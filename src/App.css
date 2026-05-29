@@ -1,0 +1,105 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app-container {
+  --app-layout-gap: 20px;
+  --app-layout-margin: 20px; 
+  --app-topbar-height: 56px;
+  --app-topbar-margin: 5px; 
+  --app-sidebar-width: 56px; /* 56px */
+  --app-sidedraw-width: min(360px, 30vh);
+  --app-active-sidedraw-width: 0px;
+
+  display: grid; 
+  grid-template-columns: var(--app-sidebar-width) minmax(0, 1fr); 
+  grid-template-areas: "sidebar main-content"; /* Each quoted string represents one row of the grid. */
+  width: 100%;
+  min-height: 100vh;
+  transition: grid-template-columns 0.25s cubic-bezier(0.1, 0, 0.58, 1);
+}
+
+.app-container:has(> .app-sidedraw.is-open) {
+  --app-active-sidedraw-width: var(--app-sidedraw-width);
+  grid-template-columns: var(--app-sidebar-width) var(--app-sidedraw-width) minmax(0, 1fr);
+  grid-template-areas: "sidebar sidedraw main-content"; 
+}
+
+.page1-overlay:has(> .side-card-1.is-open) {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.app-container:has(> .app-sidedraw:not(.is-open)) {
+  grid-template-columns: var(--app-sidebar-width) 0px minmax(0, 1fr);
+  grid-template-areas: "sidebar sidedraw main-content";
+}
+
+.main-content {
+  grid-area: main-content;
+  min-width: 0;
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
+.auth-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(42, 90, 160, 0.22), transparent 45%),
+    radial-gradient(circle at 80% 80%, rgba(18, 92, 77, 0.2), transparent 40%),
+    #f3f5f7;
+}
+
+.auth-card {
+  width: min(560px, 100%);
+  background: #ffffff;
+  border: 1px solid #d9dee5;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(28, 38, 52, 0.12);
+  padding: 2rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.auth-card h1 {
+  font-size: 1.4rem;
+  color: #193246;
+}
+
+.auth-card p {
+  color: #3c4d5f;
+  line-height: 1.5;
+}
+
+.auth-meta {
+  font-size: 0.92rem;
+  color: #556679;
+}
+
+.auth-btn {
+  appearance: none;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  background: #0f5f73;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.auth-btn:hover {
+  background: #0b4f61;
+}
+
+.auth-btn-secondary {
+  background: #3d556e;
+}
+
+.auth-btn-secondary:hover {
+  background: #32475d;
+}

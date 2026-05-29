@@ -1,0 +1,37 @@
+.sidedraw-header-block {
+    flex: 0 0 auto;
+    height: 90px;
+    display: flex;
+    align-items: flex-end; 
+    justify-content: space-between; 
+    padding-inline-start: var(--sidedraw-inline-padding-start, 0px); 
+    padding-inline-end: var(--sidedraw-inline-padding-end, 0px); 
+    padding-bottom: 2px; 
+    width: 100%;
+    min-height: 0;
+}
+
+.sidedraw-header-title-block {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    row-gap: 2px; 
+    padding-bottom: 4px;
+}
+.sidedraw-header-title-block .MuiTypography-root {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+}
+
+.sidedraw-header-toolbar {
+    height: 90px;
+    display: flex;
+    align-items: flex-end; 
+    justify-content: flex-end; 
+    width: 100%;
+    min-height: 0;
+}
+.sidedraw-header-icon-btn { 
+    color: rgba(0, 0, 0, 0.54); /* matches MUI accordion expand icon colour */
+} 

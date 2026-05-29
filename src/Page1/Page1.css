@@ -1,0 +1,39 @@
+.page1-container {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  
+  --page1-layout-gap: var(--app-layout-gap);
+  --page1-floating-card-bg: rgba(255, 255, 255, 0.8); /*0.8*/
+  --page1-floating-card-radius: 12px;
+  --page1-floating-card-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+  --page1-floating-card-backdrop-filter: blur(10px); 
+}
+.page1-overlay {
+  position: relative;
+  display: grid; 
+  padding: 0px;
+  grid-template-columns: 0px minmax(0, 1fr);
+  gap: 0px;
+  pointer-events: none; 
+  height: 100%;
+  z-index: 2;
+  overflow: hidden; 
+
+  transition: grid-template-columns 0.25s cubic-bezier(0.1, 0, 0.58, 1);
+}
+.page1-overlay:has(> .building-card.is-open) {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.page1-overlay-right-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+  width: 100%;
+}
+
+.page1-overlay-right-column > :last-child {
+  margin-top: auto;
+}

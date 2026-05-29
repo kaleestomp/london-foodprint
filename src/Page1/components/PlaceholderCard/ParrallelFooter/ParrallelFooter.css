@@ -1,0 +1,27 @@
+.parrallel-footer-container {
+  grid-area: footer;
+  display: flex; 
+  justify-content: center;
+  align-items: flex-end;
+  margin-top: 0;
+  margin-bottom: 0;
+  height: 100%;
+  padding-block: 0px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.parrallel-footer-container .MuiPagination-root {
+  max-width: 100%; 
+  
+}
+
+.parrallel-footer-container .MuiPagination-ul {
+  flex-wrap: nowrap; 
+  gap: 6px;
+}
+
+.MuiPaginationItem-root:focus {
+  outline: none !important;
+  /* box-shadow: 0 0 0 0px #1976d2; */
+}

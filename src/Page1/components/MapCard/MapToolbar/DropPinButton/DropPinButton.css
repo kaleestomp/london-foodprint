@@ -1,0 +1,29 @@
+/* Body-level cursor suppression during carry mode */
+body.drop-pin-carrying,
+body.drop-pin-carrying * {
+  cursor: none !important;
+  user-select: none;
+}
+
+/* Grab animation: pin scales up from nothing on first appearance */
+@keyframes pin-grab {
+  from { opacity: 0; transform: translate(-50%, -100%) scale(0.2); }
+  to   { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+}
+
+/* Floating pin that follows the pointer */
+.drop-pin-cursor {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -100%);
+  animation: pin-grab 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Subtle highlight on the FAB while carrying */
+.map-toolbar-fab.carrying {
+  /* background: rgba(255, 255, 255, 0.12) !important; */
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 2px dashed #e63946 !important;
+}

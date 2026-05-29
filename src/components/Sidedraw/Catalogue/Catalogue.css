@@ -1,0 +1,33 @@
+.catalogue {
+	width: 100%; 
+	--thumbnail-column-width: 80px;
+	--expanded-thumbnail-bottom-offset: 0px; 
+	--content-padding: var(--sidedraw-inline-padding-end, 0px);
+}
+
+.catalogue-card { 
+	position: relative; 
+	height: fit-content; 
+	min-height: 150px;
+	overflow: hidden; 
+	transition: height 260ms ease !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	border-bottom: none !important; 
+	border-bottom: 1px solid var(--mui-palette-divider, rgba(0, 0, 0, 0.12)) !important; 
+}
+.catalogue-card.catalogue-card-expanded { 
+	position: sticky; 
+	top: 0;
+	z-index: 10;
+	height: 350px; 
+	box-shadow: 0 0px 4px rgba(0, 0, 0, 0.1) !important; 
+}
+.catalogue-card .MuiCardActionArea-root {
+	display: grid;
+	grid-template-columns: var(--thumbnail-column-width) minmax(0, 1fr);
+	grid-template-areas: "thumbnail content";
+	height: 100%;
+	min-height: inherit;
+}
+
