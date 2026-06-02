@@ -65,19 +65,19 @@ async def nearby_search(
 
 def _normalise(place: dict) -> dict:
     return {
-        "place_id": place.get("id"),
-        "name": place.get("displayName", {}).get("text"),
-        "type": (place.get("primaryTypeDisplayName") or {}).get("text"),
+        "id": place.get("id"),
+        "displayName": place.get("displayName", {}).get("text"),
+        "primaryTypeDisplayName": (place.get("primaryTypeDisplayName") or {}).get("text"),
         "rating": place.get("rating"),
-        "user_ratings_total": place.get("userRatingCount"),
+        "userRatingCount": place.get("userRatingCount"),
         "location": place.get("location"),          # {"latitude": ..., "longitude": ...}
-        "address": place.get("shortFormattedAddress"),
-        "maps_url": place.get("googleMapsUri"),
+        "shortFormattedAddress": place.get("shortFormattedAddress"),
+        "googleMapsUri": place.get("googleMapsUri"),
 
-        "price_range": place.get("priceRange"),
-        "price_level": place.get("priceLevel"),
-        "website": place.get("websiteUri"),
-        "business_status": place.get("businessStatus"),
+        "priceRange": place.get("priceRange"),
+        "priceLevel": place.get("priceLevel"),
+        "websiteUri": place.get("websiteUri"),
+        "businessStatus": place.get("businessStatus"),
         "types": place.get("types"),
-        "primary_type": place.get("primaryType"),
+        "primaryType": place.get("primaryType"),
     }

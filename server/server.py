@@ -7,10 +7,10 @@ from fastapi import Depends
 from fastapi.security.api_key import APIKeyHeader
 
 from fastapi.middleware.cors import CORSMiddleware
-from server.scripts.read_db.read_db import read_db_test, read_tree 
-from server.scripts.scan_files.scan_files import scan_files
-from server.scripts.geocode.geocode import geocode_query, reverse_geocode
-from server.scripts.ip_location.ip_location import lookup_ip_location
+from server.scripts.NotUsed.read_db.read_db import read_db_test, read_tree 
+from server.scripts.NotUsed.scan_files.scan_files import scan_files
+from server.scripts.NotUsed.geocode.geocode import geocode_query, reverse_geocode
+from server.scripts.NotUsed.ip_location.ip_location import lookup_ip_location
 
 SERVER_ROOT = Path(__file__).resolve().parent
 DATA_ROOT = (SERVER_ROOT / "../public/data_samples").resolve()

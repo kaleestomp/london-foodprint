@@ -1,23 +1,24 @@
 from collections import deque
-import folium
+import time
+import pandas as pd
 import geopandas as gpd
 import random
 from h3_api import _h3_cell_to_shapely, _h3_cell_center, _h3_get_children
 from config import SOURCE_CRS, H3_EDGE_LENGTH_M, MAX_DEPTH, SATURATION_THRESHOLD
+from overpass_search.overpass_nearby import overpass_nearby_search
 
 # --- Mock Google Places API subdivision (H3 hex edition) ---
-# Rules:
-#   - 50% chance a tile returns 20 results (saturated) → subdivide into ~7 children
-#   - 50% chance returns under 20 → accept tile as final
-#   - Children fully outside Inner London boundary are discarded immediately
-
 def mock_places_api() -> int:
+    # Rules:
+    #   - 50% chance a tile returns 20 results (saturated) → subdivide into ~7 children
+    #   - 50% chance returns under 20 → accept tile as final
+    #   - Children fully outside Inner London boundary are discarded immediately
     """50% chance of saturation (20), else uniform random 0–19."""
     if random.random() < 0.5:
         return SATURATION_THRESHOLD
     return random.randint(0, SATURATION_THRESHOLD - 1)
 
-def run_h3_recursive_division(seed_geodf: gpd.GeoDataFrame, union_wgs84, api_func=mock_places_api) -> gpd.GeoDataFrame:
+def run_h3_recursive_division(seed_geodf: gpd.GeoDataFrame, union_wgs84, disable_api: bool=True) -> gpd.GeoDataFrame:
     """
     Simulate adaptive H3 subdivision driven by mock Places API results.
 
@@ -39,10 +40,24 @@ def run_h3_recursive_division(seed_geodf: gpd.GeoDataFrame, union_wgs84, api_fun
             continue
 
         # Mock API Call  
-        result_count = api_func()
+        if disable_api:
+            result_count = mock_places_api()
+        # Real API call 
+        else: 
+            results = overpass_nearby_search(
+                lat=row["center_lat"],
+                lon=row["center_lon"],
+                radius_m=row["tile_size_m"]
+            )
+            results_df = pd.DataFrame(results)
+            results_df.to_csv(f"overpass_search/data/{row['tile_path_id']}.csv", index=False)  # Debug output
+            result_count = len(results_df)
+            time.sleep(2.25)
+
         stats["api_calls"] += 1
         row["result_count"] = result_count
 
+        # Subdivision Rule
         if result_count >= SATURATION_THRESHOLD and row["level"] < MAX_DEPTH:
             children = subdivide_h3_cell(row) # ~7 children per hex
             row["children"] += len(children)

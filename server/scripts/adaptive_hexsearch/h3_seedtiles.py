@@ -3,10 +3,7 @@ import folium
 import geopandas as gpd
 from shapely.geometry import Polygon
 from h3_api import _h3_polyfill, _h3_cell_to_shapely, _h3_cell_center
-from config import SOURCE_CRS, H3_EDGE_LENGTH_M, H3_INITIAL_RESOLUTION
-
-# Reference coordinate for seed ordering: Inner London centroid [lon, lat]
-SEED_ORDER_REFERENCE = (-0.0924108873340905, 51.514381685897675)  # (lon, lat)
+from config import SOURCE_CRS, H3_EDGE_LENGTH_M, H3_INITIAL_RESOLUTION, SEED_ORDER_REFERENCE
 
 # --- Load preformatted Inner London boundary & generate seed H3 cells ---
 def init_h3(boundary):

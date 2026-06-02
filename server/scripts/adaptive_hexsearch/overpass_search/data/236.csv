@@ -1,0 +1,2 @@
+osm_type,osm_id,place_id,name,amenity,lat,lon,distance_m,tags
+node,2892389801,osm:node:2892389801,Fes,restaurant,51.4660771,-0.152233,531.26,"{'addr:city': 'London', 'addr:housenumber': '33', 'addr:street': 'Lavender Hill', 'alt_name': 'Battersea Fes', 'amenity': 'restaurant', 'cuisine': 'turkish', 'name': 'Fes', 'opening_hours': 'Mo 18:00-23:00; Tu-Su 12:00-14:30, 18:00-23:00', 'outdoor_seating': 'yes', 'smoking': 'no', 'source': 'survey', 'wheelchair': 'no'}"
