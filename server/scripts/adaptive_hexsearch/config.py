@@ -7,7 +7,7 @@ H3_EDGE_LENGTH_M = {
     9:   200.821,
     10:   75.864,
 }
-BOUNDARY_JSON_PATH = r"C:\Users\kylec\OneDrive\Desktop\react_project\london-explorer\server\scripts\visualize_hex_division\inner_london_boundary.json"
+BOUNDARY_JSON_PATH = r"inner_london_boundary.json"
 # Reference coordinate for seed ordering: Inner London centroid [lon, lat]
 SEED_ORDER_REFERENCE = (-0.0924108873340905, 51.514381685897675)  # (lon, lat)
 

@@ -36,9 +36,9 @@ out center tags;
 
 
 def overpass_nearby_search(
-    lat: float,
-    lon: float,
-    radius_m: int,
+    latitude: float,
+    longitude: float,
+    radius: int,
     category: str = "restaurant",
     limit: int = 20,
     endpoint: str = OVERPASS_ENDPOINT,
@@ -57,7 +57,7 @@ def overpass_nearby_search(
     if limit <= 0:
         return []
 
-    query = build_overpass_nearby_query(lat=lat, lon=lon, radius_m=radius_m, category=category)
+    query = build_overpass_nearby_query(lat=latitude, lon=longitude, radius_m=radius, category=category)
     headers = {"User-Agent": "london-explorer-overpass-test/1.0"}
     response = requests.post(endpoint, data={"data": query}, headers=headers, timeout=timeout_s)
     response.raise_for_status()
@@ -82,7 +82,7 @@ def overpass_nearby_search(
         if el_lat is None or el_lon is None or el_type is None or el_id is None:
             continue
 
-        distance_m = _haversine_m(lat, lon, float(el_lat), float(el_lon))
+        distance_m = _haversine_m(latitude, longitude, float(el_lat), float(el_lon))
         items.append(
             {
                 "osm_type": el_type,

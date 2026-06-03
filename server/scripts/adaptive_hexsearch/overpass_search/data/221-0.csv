@@ -1,5 +1,0 @@
-osm_type,osm_id,place_id,name,amenity,lat,lon,distance_m,tags
-node,4717389945,osm:node:4717389945,Bollywood Dreams,restaurant,51.4600992,-0.135122,146.69,"{'addr:housenumber': '72', 'addr:street': 'Clapham Park Road', 'amenity': 'restaurant', 'cuisine': 'indian', 'name': 'Bollywood Dreams', 'takeaway': 'yes'}"
-node,4717389952,osm:node:4717389952,Yun Hua,restaurant,51.4598444,-0.1346648,169.36,"{'amenity': 'restaurant', 'cuisine': 'chinese', 'name': 'Yun Hua'}"
-node,12093570071,osm:node:12093570071,Dumplings And Baos,restaurant,51.4611093,-0.1361545,180.64,"{'addr:housenumber': '31', 'addr:street': 'Clapham Park Road', 'amenity': 'restaurant', 'check_date': '2024-08-07', 'cuisine': 'asian', 'name': 'Dumplings And Baos', 'opening_hours': 'Mo-Tu off; We 17:00-21:15; Th 12:00-21:15; Fr-Sa 12:00-21:45; Su 12:00-20:45', 'payment:cash': 'yes', 'payment:credit_cards': 'yes', 'payment:debit_cards': 'yes', 'phone': '+44 20 3759 0162', 'website': 'https://none'}"
-node,5062549528,osm:node:5062549528,Sushi O'Clock,restaurant,51.4608319,-0.1390177,192.9,"{'amenity': 'restaurant', 'cuisine': 'sushi', 'name': ""Sushi O'Clock""}"

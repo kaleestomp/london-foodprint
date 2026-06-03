@@ -1,11 +1,14 @@
+import asyncio
 from collections import deque
 import time
+from pathlib import Path
 import pandas as pd
 import geopandas as gpd
 import random
 from h3_api import _h3_cell_to_shapely, _h3_cell_center, _h3_get_children
 from config import SOURCE_CRS, H3_EDGE_LENGTH_M, MAX_DEPTH, SATURATION_THRESHOLD
-from overpass_search.overpass_nearby import overpass_nearby_search
+from request_places.request_places import nearby_search
+
 
 # --- Mock Google Places API subdivision (H3 hex edition) ---
 def mock_places_api() -> int:
@@ -18,7 +21,7 @@ def mock_places_api() -> int:
         return SATURATION_THRESHOLD
     return random.randint(0, SATURATION_THRESHOLD - 1)
 
-def run_h3_recursive_division(seed_geodf: gpd.GeoDataFrame, union_wgs84, disable_api: bool=True) -> gpd.GeoDataFrame:
+async def run_h3_recursive_division(seed_geodf: gpd.GeoDataFrame, union_wgs84, disable_api: bool=True) -> gpd.GeoDataFrame:
     """
     Simulate adaptive H3 subdivision driven by mock Places API results.
 
@@ -28,33 +31,58 @@ def run_h3_recursive_division(seed_geodf: gpd.GeoDataFrame, union_wgs84, disable
     random.seed(42) # Random Seed
     queue = deque(seed_geodf.to_dict("records"))
     final_cells = []
-    stats = {"api_calls": 0, "discarded": 0, "added": 0}
+    stats = {"api_calls": 0, "discarded": 0, "added": 0, "api_failures": 0}
+    out_places_dir = Path("out/places")
+    out_places_dir.mkdir(parents=True, exist_ok=True)
     
     while queue:
         row  = queue.popleft()
         geom = row["geometry"]
+        row.setdefault("fetch_success", None)
 
         # Boundary check — no API call for out-of-bounds cells.
         if not geom.intersects(union_wgs84):
             stats["discarded"] += 1
             continue
 
-        # Mock API Call  
-        if disable_api:
+        if disable_api: # Mock API Call  
             result_count = mock_places_api()
-        # Real API call 
-        else: 
-            results = overpass_nearby_search(
-                lat=row["center_lat"],
-                lon=row["center_lon"],
-                radius_m=row["tile_size_m"]
-            )
-            results_df = pd.DataFrame(results)
-            results_df.to_csv(f"overpass_search/data/{row['tile_path_id']}.csv", index=False)  # Debug output
-            result_count = len(results_df)
-            time.sleep(2.25)
+            row["fetch_success"] = True
+        else:           # Real API call 
+            try:
+                results = await nearby_search(
+                    latitude=row["center_lat"],
+                    longitude=row["center_lon"],
+                    radius=row["tile_size_m"]
+                )
+                results_df = pd.DataFrame(results)
+                results_df.to_csv(out_places_dir / f"{row['tile_path_id']}.csv", index=False)  # Debug output
+                result_count = len(results_df)
+                row["fetch_success"] = True
+            except Exception as exc:
+                stats["api_failures"] += 1
+                row["fetch_success"] = False
+                row["result_count"] = None
+                row["checked"] = True
+                pd.DataFrame([
+                    {
+                        "error": type(exc).__name__,
+                        "message": str(exc),
+                        "tile_path_id": row.get("tile_path_id"),
+                        "center_lat": row.get("center_lat"),
+                        "center_lon": row.get("center_lon"),
+                        "radius_m": row.get("tile_size_m"),
+                    }
+                ]).to_csv(out_places_dir / f"{row['tile_path_id']}.csv", index=False)
+                final_cells.append(row)
+                stats["api_calls"] += 1
+                print(f"API calls executed: {stats['api_calls']} | failures: {stats['api_failures']}", flush=True)
+                await asyncio.sleep(2.25)
+                continue
+            await asyncio.sleep(2.25)
 
         stats["api_calls"] += 1
+        print(f"API calls executed: {stats['api_calls']} | failures: {stats['api_failures']}", flush=True)
         row["result_count"] = result_count
 
         # Subdivision Rule
@@ -91,11 +119,7 @@ def subdivide_h3_cell(row: dict) -> list:
         out.append(
             {
                 "tile_id": child_id,
-                # "root_tile_id": row["root_tile_id"],
                 "tile_path_id": f"{row['tile_path_id']}-{child_index}",
-                # "root_h3_id": row["root_h3_id"],
-                # "root_center_lat": row["root_center_lat"],
-                # "root_center_lon": row["root_center_lon"],
                 "h3_res": child_res,
                 "level": child_level,
                 "center_lat": lat,
@@ -104,6 +128,7 @@ def subdivide_h3_cell(row: dict) -> list:
                 "geometry": _h3_cell_to_shapely(child_id),
                 "children": 0, 
                 "checked": False, 
+                "fetch_success": None, 
             }
         )
     return out

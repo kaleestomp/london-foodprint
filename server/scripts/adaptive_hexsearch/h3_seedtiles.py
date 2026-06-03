@@ -71,6 +71,7 @@ def get_seed_cells(union_wgs84, resolution: int, bbox_buffer_deg: float = 0.03) 
                 "geometry": geom,
                 "children": 0, 
                 "checked": False, 
+                "fetch_success": None, 
             }
         )
 

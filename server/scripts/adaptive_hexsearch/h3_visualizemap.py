@@ -66,7 +66,7 @@ def visualize_seed(seed_geodf, boundary):
 
     folium.LayerControl(collapsed=False).add_to(m)
 
-    output_path = "h3hex_seed_map.html"
+    output_path = "out/h3hex_seed_map.html"
     m.save(output_path)
     print(f"Saved seed H3 map to: {output_path}")
 
@@ -119,7 +119,7 @@ def visualize_divisions(division_geodf, boundary):
 
     folium.LayerControl(collapsed=False).add_to(m)
 
-    output_path2 = "h3hex_mock_map.html"
+    output_path2 = "out/h3hex_mock_map.html"
     m.save(output_path2)
     print(f"Saved mock adaptive H3 map to: {output_path2}")
 
