@@ -1,0 +1,2 @@
+id,displayName,primaryTypeDisplayName,rating,userRatingCount,location,shortFormattedAddress,googleMapsUri,priceRange,priceLevel,websiteUri,businessStatus,types,primaryType
+ChIJjSo_JgAFdkgR3dtRFD0qqoc,Hungry Crust,Restaurant,,,"{'latitude': 51.474936199999995, 'longitude': -0.1407372}","Lindford Street Business Estate, Stewart's Rd, London",https://maps.google.com/?cid=9775672382983363549&g_mp=Cilnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaE5lYXJieRACGAQgAA,,,,OPERATIONAL,"['restaurant', 'point_of_interest', 'food', 'establishment']",restaurant

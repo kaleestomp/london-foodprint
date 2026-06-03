@@ -4,18 +4,23 @@ FIELD_MASK = ",".join([
     "places.id",
     "places.displayName",
     "places.primaryTypeDisplayName",
-    "places.rating",
-    "places.userRatingCount",
+    "places.rating",#
+    "places.userRatingCount",#
     "places.location",
     "places.shortFormattedAddress",
     "places.googleMapsUri",
 
-    "places.priceRange",
-    "places.priceLevel",
-    "places.websiteUri",
+    "places.priceRange",#
+    "places.priceLevel",#
+    "places.websiteUri",#
     "places.businessStatus",
     "places.types",
     "places.primaryType",
+
+    "places.openingDate",
+
+    "places.regularOpeningHours",#
+    "places.dineIn"##
 ])
 
 async def nearby_search(
@@ -44,6 +49,8 @@ async def nearby_search(
             "https://places.googleapis.com/v1/places:searchNearby", 
             json = {
                 "includedPrimaryTypes": ["restaurant"],
+                "excludedPrimaryTypes": ["meal_takeaway"],
+                "rankPreference": "POPULARITY",
                 "maxResultCount": 20,
                 "locationRestriction": {
                     "circle": {
@@ -80,4 +87,9 @@ def _normalise(place: dict) -> dict:
         "businessStatus": place.get("businessStatus"),
         "types": place.get("types"),
         "primaryType": place.get("primaryType"),
+
+        "openingDate": place.get("openingDate"),
+
+        "regularOpeningHours": place.get("regularOpeningHours"),
+        "dineIn": place.get("dineIn"),
     }

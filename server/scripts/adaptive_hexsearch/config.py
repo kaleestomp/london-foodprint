@@ -6,13 +6,15 @@ H3_EDGE_LENGTH_M = {
     8:   531.415,
     9:   200.821,
     10:   75.864,
+    11:   28.827,
+    12:   10.950,
 }
 BOUNDARY_JSON_PATH = r"inner_london_boundary.json"
 # Reference coordinate for seed ordering: Inner London centroid [lon, lat]
 SEED_ORDER_REFERENCE = (-0.0924108873340905, 51.514381685897675)  # (lon, lat)
 
 SATURATION_THRESHOLD = 20   # Google Places API result cap per query
-MAX_DEPTH = 2    # res 8 → 9 → 10  
+MAX_DEPTH = 4    # res 8 → 9 → 10 → 11 → 12
 
 LEVEL_COLORS = {
     0: ("#4C78A8", "#2A5783"),   # blue   – res 8,  ~531 m

@@ -1,6 +1,5 @@
 import asyncio
 from collections import deque
-import time
 from pathlib import Path
 import pandas as pd
 import geopandas as gpd
@@ -91,6 +90,7 @@ async def run_h3_recursive_division(seed_geodf: gpd.GeoDataFrame, union_wgs84, d
             row["children"] += len(children)
             stats["added"] += len(children) 
             for child in children: queue.append(child)
+            # final_cells.append(row)
         else:
             final_cells.append(row)
         row["checked"] = True
