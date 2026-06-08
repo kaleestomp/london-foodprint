@@ -1,0 +1,2 @@
+id,displayName,primaryTypeDisplayName,rating,userRatingCount,location,shortFormattedAddress,googleMapsUri,priceRange,priceLevel,websiteUri,businessStatus,types,primaryType
+ChIJn2XbEcEFdkgR8x55514B9uU,Red Lighthouse,Restaurant,,,"{'latitude': 51.4639192, 'longitude': -0.1370012}","The Stonhouse, 165 Stonhouse St, London",https://maps.google.com/?cid=16570433386078346995&g_mp=Cilnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaE5lYXJieRACGAQgAA,,,,OPERATIONAL,"['restaurant', 'point_of_interest', 'food', 'establishment']",restaurant
