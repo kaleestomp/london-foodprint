@@ -32,3 +32,33 @@ def _h3_get_children(cell_id: str, child_res: int) -> set:
     except AttributeError:
         return set(h3.h3_to_children(cell_id, child_res))  # v3
 
+def _h3_latlng_to_cell(lat: float, lng: float, resolution: int) -> str:
+    """Return the H3 cell ID containing (lat, lng) at the given resolution."""
+    try:
+        return h3.latlng_to_cell(lat, lng, resolution)  # v4
+    except AttributeError:
+        return h3.geo_to_h3(lat, lng, resolution)  # v3
+
+def _h3_get_neighbours(cell_id: str, k: int = 1) -> set:
+    """Return all H3 cell IDs within k rings of cell_id (excludes the cell itself)."""
+    try:
+        return set(h3.grid_disk(cell_id, k)) - {cell_id}  # v4
+    except AttributeError:
+        return set(h3.k_ring(cell_id, k)) - {cell_id}  # v3
+
+def _h3_get_parent(cell_id: str, parent_res: int) -> str:
+    """Return parent H3 cell ID at the specified parent_res."""
+    try:
+        res = int(parent_res)
+        return h3.cell_to_parent(cell_id, res)  # v4
+    except AttributeError:
+        res = int(parent_res)
+        return h3.h3_to_parent(cell_id, res)  # v3
+
+def _h3_get_resolution(cell_id: str) -> int:
+    """Return the resolution of an H3 cell ID."""
+    try:
+        return h3.get_resolution(cell_id)  # v4
+    except AttributeError:
+        return h3.h3_get_resolution(cell_id)  # v3
+

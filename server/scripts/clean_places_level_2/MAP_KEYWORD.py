@@ -51,7 +51,7 @@ KEYWORD_MAP: list[tuple[str, str]] = [
 
     (r"\bpizzeria\b|\bpizza\b", "pizza_restaurant"),
     (r"\btrattoria\b|\brisotto\b|\bpasta\b|\bitalian\b|\bitaliana\b", "italian_restaurant"),
-    (r"\btapas\b|\bpaella\b|\bspanish\b", "spanish_restaurant"),
+    (r"\bpaella\b|\bspanish\b", "spanish_restaurant"),
     (r"\bfrench\b|\bL’\b|\bL'\b|\bdu\b|\bbrasserie\b", "french_restaurant"),
     (r"\bgreek\b", "greek_restaurant"),
     (r"\bportuguese\b", "portuguese_restaurant"),
@@ -108,30 +108,4 @@ KEYWORD_MAP: list[tuple[str, str]] = [
     (r"\bperi\b|\broosters\b", "chicken_restaurant"),
     (r"\bhalal\b", "halal_restaurant"),
     (r"\bsandwich\b|\bsub\b|\bhoagie\b|\bpanini\b", "sandwich_shop")
-]
-
-# ── Keyword patterns for name-based inference (ordered most→least specific) ──
-KEYWORD_LEGACY: list[tuple[str, str]] = [
-    (r"\bsushi\b|\bramen\b|\budon\b|\bsoba\b|\btonkatsu\b|\byakitori\b|\bizakaya\b|\bbento\b|\btempura\b|\bwasabi\b|\bmatcha\b", "Japanese"),
-    (r"\bchina\b|\bchinese\b|\bbao\b|\bdim\s?sum\b|\byum\s?cha\b|\bdumpling\b|\bpeking\b|\bszechuan\b|\bsichuan\b|\bcantones\b|\bwonton\b|\bmapo\b|\bbaozi\b|\bxiao\s?long", "Chinese"),
-    (r"\bkorean\b|\bbibimbap\b|\bgalbi\b|\bbulgogi\b|\bkorean\s?bbq\b|\bbbq\s?korean\b", "Korean"),
-    (r"\bthai\b|\bpad\s?thai\b|\bsiamese\b|\bmuay\b", "Thai"),
-    (r"\bvietnamese\b|\bviet\b|\bpho\b|\bbanh\s?mi\b", "Vietnamese"),
-    (r"\bindian\b|\bcurry\b|\btandoor\b|\bmasala\b|\bbiryani\b|\bpakistan\b|\bbengali\b|\bnepal(ese)?\b|\bsri\s?lanka\b|\bceylon\b|\bchaat\b|\bdosa\b", "South Asian"),
-    (r"\blebanes\b|\bturk(ish)?\b|\bpersian\b|\biran(ian)?\b|\bshawarma\b|\bfalafel\b|\bkebab\b|\bhummus\b|\bmoroc\b|\bbeirut\b|\bistanbul\b|\barab\b|\bmeze\b", "Middle Eastern"),
-    (r"\bmexican\b|\btaco\b|\bburrito\b|\bchurros\b|\bbrazil\b|\blatino?\b|\bchilean\b|\bperu(vian)?\b|\bcuban\b|\bcolombian\b|\bcaribbean\b|\bceviche\b", "Latin American"),
-    (r"\bfrench\b|\bitalian\b|\bitaliana\b|\bpasta\b|\bpizzeria\b|\btrattoria\b|\brisotto\b|\bgreek\b|\bspanish\b|\btapas\b|\bpaella\b|\bportuguese\b|\bbritish\b|\bgerman\b|\bscandinavian\b|\bnordic\b|\bbaltic\b", "European"),
-    (r"\bamerican\b|\bsouthern\b|\bcajun\b|\btex.?mex\b|\bhawaiian\b", "American"),
-    (r"\bafrican\b|\bethiopian\b|\bnigerian\b|\bghana(ian)?\b|\bwest\s?africa\b|\bsomalian\b", "African"),
-    (r"\bindonesian\b|\bmalay(sian)?\b|\bfilipino\b|\bphilippin\b|\bcambodian\b|\bburmese\b|\bmyanmar\b|\bsingapore(an)?\b", "Southeast Asian"),
-    (r"\bpizza\b|\bpizzeria\b", "Pizza"),
-    (r"\bburger\b|\bburgers\b|\bsmash\b", "Burgers"),
-    (r"\blobster\b|\blobsters\b|\bfish\b|\bseafood\b|\bfish\s?&?\s?chips?\b|\boyster\b|\blobster\b|\bcrab\b|\bshrimp\b", "Seafood"),
-    (r"\bsteak\b|\bbbq\b|\bbarbecue\b|\bchurrasco\b|\bsmokehouse\b|\bgrill\b", "Steakhouse & BBQ"),
-    (r"\bbreakfast\b|\bcafe\b|\bcaffe\b|\bcoffee\b|\bboba\b|\bbubble\s?tea\b|\bteahouse\b|\btea\s?house\b", "Cafe & Coffee"),
-    (r"\bbakery\b|\bbakehouse\b|\bpastry\b|\bcroissant\b|\bboulanger\b|\bpatisserie\b", "Bakery & Pastry"),
-    (r"\bice\s?cream\b|\bgelato\b|\bchuros\b|\bdessert\b|\bsweets?\b|\bchocolate\b|\bcrepe\b", "Dessert & Ice Cream"),
-    (r"\bvegan\b|\bvegetarian\b|\bplant.?based\b", "Vegetarian & Vegan"),
-    (r"\bpub\b|\btavern\b|\bbrew(ery|pub)?\b|\bale\b|\bgin\s?bar\b|\bwine\s?bar\b", "Bar & Pub"),
-    (r"\bfast\s?food\b|\bchicken\b|\bfried\s?chicken\b", "Fast Food"),
 ]
