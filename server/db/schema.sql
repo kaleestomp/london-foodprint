@@ -3,7 +3,6 @@
 -- PostGIS is natively supported on Neon; H3 math runs in Python (no h3-pg needed).
 --
 -- Design notes:
---   • Only operational=True places are loaded (closed restaurants excluded at ETL).
 --   • h3_r10  = H3 res-10 cell — the finest tile grain, used for nearby k-ring lookups.
 --   • score/rank columns use a tri-confidence ranking system from the pipeline:
 --       _0 = broad, _1 = medium (primary sort key), _2 = conservative
@@ -94,7 +93,7 @@ CREATE TABLE h3_density (
     venue_type      TEXT     NOT NULL DEFAULT '',   -- '' | 'Dine-In' | 'Takeaway'
     score_basis     SMALLINT NOT NULL DEFAULT 0,    -- 0=boosted | 1=raw
     confidence      SMALLINT NOT NULL DEFAULT 1,    -- 0=lenient | 1=moderate | 2=conservative
-    score_tier      SMALLINT NOT NULL DEFAULT 0,    -- cumulative: 0=all, 1=below avg, 2=above avg, 3=top 25%, 4=top 10%
+    score_tier      SMALLINT NOT NULL DEFAULT 0,    -- cumulative: 0=all, 2=above avg, 3=top 25%, 4=top 10% 1 excluded (below avg)
     count           INTEGER  NOT NULL,
     PRIMARY KEY (tile, resolution, cuisine_type, cost, venue_type, score_basis, confidence, score_tier)
 );
