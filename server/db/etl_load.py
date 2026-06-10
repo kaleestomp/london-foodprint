@@ -20,10 +20,13 @@ SERVER_ROOT = Path(__file__).resolve().parents[1]  # db/ -> server/
 if str(SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(SERVER_ROOT))
 
+import pandas as pd
 from db.etl.load_places import load_places
 from db.etl.build_h3_density import build_h3_density
 from db.etl.insert_places import insert_places
 from db.etl.insert_h3_density import insert_h3_density
+
+H3_DENSITY_CSV = SERVER_ROOT / "out" / "h3_density.csv"
 
 # ─── Paths & config ───────────────────────────────────────────────────────────
 load_dotenv(SERVER_ROOT.parent / ".env")
@@ -34,18 +37,27 @@ if __name__ == "__main__":
     print("Loading places.csv …")
     df = load_places()
 
-    print("Pre-aggregating h3_density …")
-    density_df = build_h3_density(
-        df[[
-            "h3_res10", "cuisineType", "cost", "venueType",
-            "bnormal_0", "bnormal_1", "bnormal_2",
-            "normal_0",  "normal_1",  "normal_2",
-        ]].rename(columns={
-            "h3_res10":    "h3_r10",
-            "cuisineType": "cuisine_type",
-            "venueType":   "venue_type",
-        }).copy()
-    )
+    if H3_DENSITY_CSV.exists():
+        print(f"Reading h3_density from {H3_DENSITY_CSV} …")
+        density_df = pd.read_csv(H3_DENSITY_CSV)
+        # Empty-string wildcard rows are written as blank cells in CSV and
+        # read back as NaN. Neon columns are NOT NULL, so restore them to "".
+        density_df[["cuisine_type", "cost", "venue_type"]] = (
+            density_df[["cuisine_type", "cost", "venue_type"]].fillna("") # Handles wildcard rows inserted by build_h3_density
+        )
+    else:
+        print("h3_density.csv not found — building from scratch …")
+        density_df = build_h3_density(
+            df[[
+                "h3_res10", "cuisineType", "cost", "venueType",
+                "bnormal_0", "bnormal_1", "bnormal_2",
+                "normal_0",  "normal_1",  "normal_2",
+            ]].rename(columns={
+                "h3_res10":    "h3_r10",
+                "cuisineType": "cuisine_type",
+                "venueType":   "venue_type",
+            }).copy()
+        )
     print(f"  {len(density_df):,} density rows")
 
     print("Connecting to Neon …")

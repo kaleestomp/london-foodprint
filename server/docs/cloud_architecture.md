@@ -1,6 +1,6 @@
 ﻿# London Explorer — Cloud Architecture Design
 **Last updated:** June 10, 2026  
-**Status:** Schema finalised. ETL code complete and import-validated. Ready to run against Neon.
+**Status:** Schema finalised. ETL code complete. h3_density CSV generated and validated. Ready to run `etl_load.py` against Neon.
 
 ---
 
@@ -19,14 +19,18 @@
 
 ```
 server/
+  out/
+    places.csv            ← source data (13,092 rows incl. temporarily closed)
+    h3_density.csv        ← pre-generated aggregation (2,123,754 rows); used by etl_load.py
   db/
     schema.sql            ← run once against Neon to create tables + indexes
     etl_load.py           ← orchestrator: run from server/ as `python db/etl_load.py`
     etl/
-      load_places.py      ← reads server/out/places.csv, cleans, returns DataFrame
-      build_h3_density.py ← pure transform: builds h3_density rows from places
-      insert_places.py    ← bulk upserts into places table
-      insert_h3_density.py← bulk upserts into h3_density table
+      load_places.py        ← reads server/out/places.csv, cleans, returns DataFrame
+      build_h3_density.py   ← pure transform: builds h3_density rows from places
+      build_h3_density.ipynb← standalone notebook to regenerate h3_density.csv independently
+      insert_places.py      ← bulk upserts into places table
+      insert_h3_density.py  ← bulk upserts into h3_density table
   docs/
     cloud_architecture.md ← this file
 ```
@@ -39,9 +43,10 @@ All ETL imports use `db.etl.*` with `server/` as the `sys.path` root (not repo r
 ## Database Tables
 
 ### Table 1: `places`
-One row per restaurant (operational=True only). Source: `server/out/places.csv`
+All places including temporarily-closed ones. Source: `server/out/places.csv` (13,092 rows: ~12,320 open + ~772 temporarily closed).
 
 **Key design decisions:**
+- `operational` BOOLEAN — `FALSE` = temporarily closed; frontend can grey-out or hide these pins
 - `h3_r10` (H3 res-10) is the only tile column — used for k-ring nearby pre-filter
 - `lat`/`lon` kept alongside `geom`: frontend needs raw floats for pin/heatmap rendering
 - `score_tier` NOT stored — derived client-side from the active rank float: `rank >= 0.90 → "Top 10%"` etc.
@@ -79,6 +84,8 @@ CREATE TABLE places (
     wscore_1 REAL,  wrank_1 REAL,
     wscore_2 REAL,  wrank_2 REAL,
 
+    operational         BOOLEAN,        -- FALSE = temporarily closed
+
     -- detail card fields (pin tap only)
     address             TEXT,
     postcode            TEXT,
@@ -105,7 +112,9 @@ Pre-aggregated tile counts — eliminates GROUP BY on every pan/zoom.
 - `score_basis` + `confidence` reflect the 6 rank scenarios; tile counts differ geographically
   - e.g. conservative (99%) biases toward high-footfall areas (Mayfair); lenient (90%) surfaces residential gems
 - `''` for any TEXT dimension = "all" (unfiltered aggregate)
-- ~430k rows, ~42 MB — well within Neon free tier (500 MB limit)
+- **Actual row count: 2,123,754** — validated, 0 duplicate PKs
+  - Earlier estimate of ~430k was wrong; full expansion of 41 cuisines × 8 costs × 3 venues × 2 basis × 3 confidence × 4 tiers × tiles-per-combo gives the correct order
+- **CSV round-trip gotcha**: `''` wildcard rows are written as blank cells in CSV and read back as `NaN` by pandas. `etl_load.py` applies `.fillna("")` on the three TEXT dimension columns after `pd.read_csv()` before any insert. Neon columns are `NOT NULL` so skipping this step causes a null constraint violation.
 
 ```sql
 CREATE TABLE h3_density (
@@ -133,12 +142,20 @@ Run from `server/` directory:
 python db/etl_load.py
 ```
 
-`load_places.py` normalises nulls:
-- `cuisineType` → `"Unspecified"` if null
-- `venueType` → `"Dine-In"` if null
-- `cost` → `""` if null
+**`etl_load.py` — h3_density fast path:**  
+If `server/out/h3_density.csv` exists, it is read directly (skipping the slow build step). If not, `build_h3_density()` runs from scratch. This lets you pre-generate the CSV via the notebook and iterate on uploads without rebuilding.
 
-`build_h3_density.py` iterates all combinations of `score_basis × confidence × tier × cuisine × cost × venue × resolution` and skips empty groupby results. Only 319 of the theoretical 984 cuisine/cost/venue combos are non-empty in the data.
+**`load_places.py`** normalises nulls in source data:
+- `cuisineType` → `"Unspecified"` if null
+- `venueType` → `"Dine-In"` if null  
+- `cost` → `"Unspecified"` if null
+- `operational` → `True` if null
+
+**`build_h3_density.py`** iterates all combinations of `score_basis × confidence × tier × cuisine × cost × venue × resolution` and skips empty groupby results. Appends `""` to each dimension list as the wildcard ("show all") value.
+
+**`build_h3_density.ipynb`** — standalone notebook in `server/db/etl/`. Runs `load_places()` + `build_h3_density()` independently and saves to `server/out/h3_density.csv`. Use this to regenerate or inspect the aggregation without touching the DB. Run with the `server/venv` kernel.
+
+**`insert_h3_density.py`** deduplicates on PK columns before insert as a safety net against any upstream dimension list collisions.
 
 ---
 
@@ -201,14 +218,19 @@ Full metadata, fetched only on pin tap.
 [x] 1. Create server/db/schema.sql
 [x] 2. Create server/db/etl/ (load, build, insert modules)
 [x] 3. Validate imports and dry-run
-[ ] 4. Create Neon project → add DATABASE_URL to .env
-[ ] 5. Run schema.sql against Neon (Neon SQL Editor or psql)
-[ ] 6. Run: python db/etl_load.py
-[ ] 7. Verify: SELECT COUNT(*) FROM places; → ~12,320
-[ ] 8. Verify: SELECT COUNT(*) FROM h3_density; → ~430,000
-[ ] 9. Build FastAPI endpoints (/api/tiles, /api/nearby, /api/place/{id})
-[ ] 10. Deploy FastAPI to Render.com, set DATABASE_URL env var
-[ ] 11. Wire React frontend to new endpoints
+[x] 4. Add `operational` column to schema and insert_places.py
+[x] 5. Add h3_density fast-path (read CSV if exists) to etl_load.py
+[x] 6. Create build_h3_density.ipynb for standalone aggregation
+[x] 7. Validate h3_density.csv (2,123,754 rows, 0 duplicate PKs, correct dimensions)
+[x] 8. Fix CSV round-trip NaN: etl_load.py applies .fillna('') on dimension columns after pd.read_csv()
+[ ] 9. Create Neon project → add DATABASE_URL to .env
+[ ] 10. Run schema.sql against Neon (Neon SQL Editor or psql)
+[ ] 11. Run: python db/etl_load.py
+[ ] 12. Verify: SELECT COUNT(*) FROM places; → ~13,092
+[ ] 13. Verify: SELECT COUNT(*) FROM h3_density; → ~2,123,754
+[ ] 14. Build FastAPI endpoints (/api/tiles, /api/nearby, /api/place/{id})
+[ ] 15. Deploy FastAPI to Render.com, set DATABASE_URL env var
+[ ] 16. Wire React frontend to new endpoints
 ```
 
 ---
