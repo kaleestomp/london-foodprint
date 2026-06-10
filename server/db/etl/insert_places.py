@@ -20,6 +20,7 @@ def insert_places(cur, df: pd.DataFrame) -> None:
             _v(row.venueType)   or None,
             _v(row.cost)        or None,
             _v(row.is_chain, bool),
+            _v(row.operational, bool),
             row.primaryType if pd.notna(row.primaryType) else None,
             row.primaryTypeDisplayName if pd.notna(row.primaryTypeDisplayName) else None,
             _v(row.rating, float),
@@ -42,7 +43,7 @@ def insert_places(cur, df: pd.DataFrame) -> None:
     psycopg2.extras.execute_values(cur, """
         INSERT INTO places (
             id, display_name, lat, lon, h3_r10,
-            cuisine_type, venue_type, cost, is_chain,
+            cuisine_type, venue_type, cost, is_chain, operational,
             primary_type, type_label,
             rating, user_rating_count,
             score_0, rank_0, score_1, rank_1, score_2, rank_2,
@@ -57,6 +58,7 @@ def insert_places(cur, df: pd.DataFrame) -> None:
             venue_type        = EXCLUDED.venue_type,
             cost              = EXCLUDED.cost,
             is_chain          = EXCLUDED.is_chain,
+            operational       = EXCLUDED.operational,
             rating            = EXCLUDED.rating,
             user_rating_count = EXCLUDED.user_rating_count,
             score_0 = EXCLUDED.score_0,  rank_0 = EXCLUDED.rank_0,

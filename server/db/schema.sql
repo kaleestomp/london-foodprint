@@ -33,6 +33,7 @@ CREATE TABLE places (
     venue_type          TEXT,           -- 'Dine-In' | 'Takeaway'
     cost                TEXT,           -- '<10' | '10+' | '20+' | '40+' | '60+' | '100+'
     is_chain            BOOLEAN,
+    operational         BOOLEAN,        -- FALSE = temporarily closed; frontend may grey out pin
     primary_type        TEXT,           -- Google primaryType slug
     type_label          TEXT,           -- human label, e.g. 'Thai Restaurant'
 

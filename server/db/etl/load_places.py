@@ -8,13 +8,12 @@ PLACES_CSV   = SERVER_ROOT / "out" / "places.csv"
 # ─── Load & clean ─────────────────────────────────────────────────────────────
 def load_places() -> pd.DataFrame:
     df = pd.read_csv(PLACES_CSV)
-    # Drop closed restaurants — no value to show on the map
-    df = df[df["operational"] == True].copy()
+    # Keep all places — operational=False means temporarily closed, not permanently gone.
+    # Frontend can style temporarily-closed pins differently.
+    df["operational"] = df["operational"].fillna(True).astype(bool)
     # Normalise nulls in filter columns to empty string (matches h3_density '' rows)
     df["cuisineType"] = df["cuisineType"].fillna("Unspecified")
     df["cost"]        = df["cost"].fillna("")
     df["venueType"]   = df["venueType"].fillna("Dine-In")
-    # score_tier removed: derived client-side from the active rank float.
-    # h3_density still uses score_tier (cumulative thresholds) for tile counts.
-    print(f"  {len(df):,} operational rows")
+    print(f"  {len(df):,} rows loaded ({df['operational'].sum():,} open, {(~df['operational']).sum():,} temporarily closed)")
     return df
