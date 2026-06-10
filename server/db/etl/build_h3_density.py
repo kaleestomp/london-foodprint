@@ -60,9 +60,9 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
     for res in [7, 8, 9]:
         df[f"_t{res}"] = df["h3_r10"].apply(lambda t: h3.cell_to_parent(t, res))
 
-    cuisines    = sorted(df["cuisine_type"].dropna().unique().tolist()) + [""]
-    costs       = sorted(df["cost"].dropna().unique().tolist()) + [""]
-    venue_types = sorted(df["venue_type"].dropna().unique().tolist()) + [""]
+    cuisines    = sorted([c for c in df["cuisine_type"].dropna().unique() if c != ""]) + [""]
+    costs       = sorted([c for c in df["cost"].dropna().unique() if c != ""]) + [""]
+    venue_types = sorted([v for v in df["venue_type"].dropna().unique() if v != ""]) + [""]
     bases       = [0, 1]        # score_basis
     confidences = [0, 1, 2]     # confidence level
     tiers       = [0, 2, 3, 4]  # 0=all, 2=above avg, 3=top 25%, 4=top 10%  (tier 1/below avg excluded)

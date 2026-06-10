@@ -13,7 +13,7 @@ def load_places() -> pd.DataFrame:
     df["operational"] = df["operational"].fillna(True).astype(bool)
     # Normalise nulls in filter columns to empty string (matches h3_density '' rows)
     df["cuisineType"] = df["cuisineType"].fillna("Unspecified")
-    df["cost"]        = df["cost"].fillna("")
+    df["cost"]        = df["cost"].fillna("Unspecified")
     df["venueType"]   = df["venueType"].fillna("Dine-In")
     print(f"  {len(df):,} rows loaded ({df['operational'].sum():,} open, {(~df['operational']).sum():,} temporarily closed)")
     return df

@@ -4,6 +4,10 @@ import psycopg2.extras
 
 # ─── Insert helpers ───────────────────────────────────────────────────────────
 def insert_h3_density(cur, density_df: pd.DataFrame) -> None:
+    # Deduplicate on PK columns — guards against upstream dimension list collisions
+    pk_cols = ["tile", "resolution", "cuisine_type", "cost", "venue_type", "score_basis", "confidence", "score_tier"]
+    density_df = density_df.drop_duplicates(subset=pk_cols, keep="last")
+
     records = [
         (
             row.tile, int(row.resolution),
