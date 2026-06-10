@@ -1,3 +1,10 @@
+# Categories known to be noisy in Google type signals for this dataset.
+# If type-based and name-based predictions disagree for these summaries,
+# prefer the name-based prediction.
+NOISY_GOOGLE_TYPE_SUMMARIES = {
+    "Bar & Pub",
+}
+
 # ── Google Maps type → condensed summaryType mapping ─────────────────────────
 CHINESE = ["chinese_restaurant", "cantonese_restaurant", "chinese_noodle_restaurant", "dim_sum_restaurant",
     "dumpling_restaurant", "hot_pot_restaurant", "taiwanese_restaurant", "noodle_shop"]
@@ -98,3 +105,10 @@ CUISINE_TYPES: dict[str, str] = {
 # Types that carry no cuisine signal — skip these when scanning the types array
 UNSPECIFIED = {"restaurant", "food", "point_of_interest", "establishment", "store",
     "meal_delivery", "meal_takeaway", "local_food_market"}
+
+GOOGLE_TYPE_TO_CUISINE_TYPE = {
+    google_type: summary
+    for summary, google_types in CUISINE_TYPES.items()
+    for google_type in google_types
+}
+

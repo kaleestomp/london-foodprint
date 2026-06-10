@@ -3,7 +3,9 @@ import pandas as pd
 from server.scripts.h3.h3_api import _h3_get_parent, _h3_get_resolution, _h3_latlng_to_cell
 
 TYPE_COL   = "cuisineType"   # ← change to your actual cuisine/type column name
-ALPHA      = 0.2             # competition boost strength (0 = off, 0.5 = strong)
+VENUE_COL  = "venueType"
+UNSPECIFIED_TYPE = "Unspecified"
+ALPHA      = 0.1             # competition boost strength (0 = off, 0.5 = strong)
 Z_CONFIDENCE = 2.576
 MIN_REPRESENTATIONS = 4      # minimum same-type count in region to apply any boost;
                              # below this there's no real competition to have beaten
@@ -29,20 +31,31 @@ def get_local_competition_factor(df_places: pd.DataFrame, global_composition: pd
     local_places = df_places[df_places['local_tile'].isin(local_tiles)]
     if local_places.empty:
         return 
+
+    # Exclude unspecified cuisine types from competition calculations.
+    local_places = local_places[local_places[TYPE_COL].ne(UNSPECIFIED_TYPE)]
+    if local_places.empty:
+        return
+
+    # Competition can be defined by cuisine only, or by cuisine+venueType when
+    # venueType exists in both local data and global composition.
+    group_cols = [TYPE_COL]
+    if VENUE_COL in local_places.columns and VENUE_COL in global_composition.columns:
+        group_cols.append(VENUE_COL)
     
     n_region = len(local_places)
-    type_counts = local_places[TYPE_COL].value_counts()  # raw counts
     local_composition = (
-        type_counts.rename("n_type")
+        local_places.groupby(group_cols, dropna=False)
+        .size()
+        .rename("n_type")
         .reset_index()
-        .rename(columns={"index": TYPE_COL})
     )
     local_composition["p_local"] = local_composition["n_type"] / n_region
     # Credible proportion: Wilson lower bound on p_local given n_region observations
     local_composition["p_credible"] = local_composition.apply(
         lambda r: _wilson_lower(r["p_local"], n_region, Z_CONFIDENCE), axis=1
     )
-    merged = local_composition.merge(global_composition, on=TYPE_COL, how="left")
+    merged = local_composition.merge(global_composition, on=group_cols, how="left")
     # competition_factor uses credible proportion — small regions auto-discounted.
     # If representations < MIN_REPRESENTATIONS, there's no real competition to have beaten
     # (e.g. the only Ukrainian restaurant in the area has no rivals — ρ is meaningless).

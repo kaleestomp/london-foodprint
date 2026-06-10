@@ -1,2 +1,0 @@
-id,displayName,primaryTypeDisplayName,rating,userRatingCount,location,shortFormattedAddress,googleMapsUri,priceRange,priceLevel,websiteUri,businessStatus,types,primaryType
-ChIJWzB9NAAFdkgRg2qfdCC1yMI,POTAGE,Restaurant,4.5,68,"{'latitude': 51.4752386, 'longitude': -0.14213979999999998}","Unit 7, Lindford Street Business Estate, 2 Linford St, London",https://maps.google.com/?cid=14035667389700336259&g_mp=Cilnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaE5lYXJieRACGAQgAA,,,,CLOSED_TEMPORARILY,"['restaurant', 'point_of_interest', 'food', 'establishment']",restaurant

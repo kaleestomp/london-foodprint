@@ -32,38 +32,62 @@ One row per restaurant. Source: `server/out/places.csv`
 
 ```sql
 CREATE TABLE places (
-    id                 TEXT PRIMARY KEY,
-    display_name       TEXT NOT NULL,
-    lat                DOUBLE PRECISION NOT NULL,
-    lon                DOUBLE PRECISION NOT NULL,
-    geom               GEOMETRY(Point, 4326) GENERATED ALWAYS AS (
-                           ST_SetSRID(ST_MakePoint(lon, lat), 4326)
-                       ) STORED,
-    local_tile         TEXT NOT NULL,          -- H3 res-10 cell
-    cuisine_type       TEXT,
-    price_band         TEXT,                   -- '<20' | '<50' | '<100' | '100+'
-    rating             REAL,
-    user_rating_count  INTEGER,
-    wilson_score       REAL,
-    adjusted_score     REAL,
-    adjusted_quantile  REAL,
-    seed_index         INTEGER,
-    primary_type       TEXT,
-    address            TEXT,
-    google_maps_uri    TEXT
+    id                       TEXT PRIMARY KEY,
+    display_name             TEXT NOT NULL,
+    primary_type_display_name TEXT,
+    lat                      DOUBLE PRECISION NOT NULL,
+    lon                      DOUBLE PRECISION NOT NULL,
+    geom                     GEOMETRY(Point, 4326) GENERATED ALWAYS AS (
+                               ST_SetSRID(ST_MakePoint(lon, lat), 4326)
+                           ) STORED,
+    h3_res9                  TEXT NOT NULL,
+    h3_res10                 TEXT NOT NULL,
+    types                    TEXT,
+    primary_type             TEXT,
+    cuisine_type             TEXT,
+    venue_type               TEXT,
+    predicted_type           TEXT,
+    price_band               TEXT,                   -- '<20' | '<50' | '<100' | '100+'
+    cost                     TEXT,
+    is_chain                 BOOLEAN,
+    wheelchair_access        BOOLEAN,
+    operational              BOOLEAN,
+    rating                   REAL,
+    user_rating_count        INTEGER,
+    p_local                  REAL,
+    competition_factor       REAL,
+    representations          INTEGER,
+    wilson_0                 REAL,
+    normal_0                 REAL,
+    wilson_1                 REAL,
+    normal_1                 REAL,
+    wilson_2                 REAL,
+    normal_2                 REAL,
+    boosted_0                REAL,
+    bnormal_0                REAL,
+    boosted_1                REAL,
+    bnormal_1                REAL,
+    boosted_2                REAL,
+    bnormal_2                REAL,
+    pcd                      TEXT,
+    areacode                 TEXT,
+    address                  TEXT,
+    google_maps_uri          TEXT,
+    website_uri              TEXT
 );
 
-CREATE INDEX idx_places_local_tile   ON places(local_tile);
+CREATE INDEX idx_places_h3_res9      ON places(h3_res9);
+CREATE INDEX idx_places_h3_res10     ON places(h3_res10);
 CREATE INDEX idx_places_geom         ON places USING GIST(geom);
-CREATE INDEX idx_places_cuisine_rank ON places(cuisine_type, adjusted_quantile DESC);
+CREATE INDEX idx_places_cuisine_rank ON places(cuisine_type, bnormal_2 DESC);
 ```
 
-**Important:** `local_tile` stores **res 10** in the cloud DB.  
-The pipeline CSVs (`server/out/places.csv`) use res 9 internally — upgrade at ETL time:
+**Important:** the cloud DB keeps both `h3_res9` and `h3_res10` for filtering.  
+Use `h3_res9` for broader viewport queries and `h3_res10` for fine-grain lookups:
 ```python
 # res 9 → res 10 is a FINER resolution: use cell_to_center_child, NOT cell_to_parent.
 # cell_to_parent only works going to coarser (lower-numbered) resolutions.
-df["local_tile"] = df["local_tile"].apply(lambda t: h3.cell_to_center_child(t, 10))
+df["h3_res10"] = df["h3_res9"].apply(lambda t: h3.cell_to_center_child(t, 10))
 ```
 
 ---
@@ -103,12 +127,12 @@ bands    = ["<20", "<50", "<100", "100+", ""]
 cuisines = list(df["cuisineType"].unique()) + [""]
 rows = []
 
-LOCAL_TILE_RES = 10  # local_tile_r10 is already at this resolution
+LOCAL_TILE_RES = 10  # res 10 is the finest per-place tile in the cloud DB
 
 for res in [7, 8, 9, 10]:
     col = f"t{res}"
     # Pass-through for res 10 (already at target res); cell_to_parent for coarser res
-    df[col] = df["local_tile"].apply(
+    df[col] = df["h3_res10"].apply(
         lambda t, r=res: t if r == LOCAL_TILE_RES else h3.cell_to_parent(t, r)
     )
     for cuisine, band in itertools.product(cuisines, bands):
@@ -163,10 +187,10 @@ async def get_tiles(sw_lat, sw_lng, ne_lat, ne_lng, zoom, cuisine="", price=""):
     if total <= 20:
         # Return actual restaurant records
         places = await db.fetch(
-            "SELECT id, display_name, lat, lon, cuisine_type, adjusted_quantile "
-            "FROM places WHERE local_tile=ANY($1) "
-            "AND ($2='' OR cuisine_type=$2) AND ($3='' OR price_band=$3) "
-            "ORDER BY adjusted_quantile DESC",
+                "SELECT id, display_name, lat, lon, h3_res9, h3_res10, cuisine_type, bnormal_2 "
+                "FROM places WHERE (h3_res9 = ANY($1) OR h3_res10 = ANY($1)) "
+                "AND ($2='' OR cuisine_type=$2) AND ($3='' OR price_band=$3) "
+                "ORDER BY bnormal_2 DESC",
             list(viewport_tiles), cuisine, price
         )
         return {"mode": "places", "data": places}
@@ -197,13 +221,13 @@ async def get_nearby(lat, lng, cuisine="", price="", page=1):
     offset = (page - 1) * PAGE_SIZE
     rows = await db.fetch("""
         SELECT id, display_name, lat, lon, cuisine_type, price_band,
-               rating, user_rating_count, adjusted_quantile,
+               rating, user_rating_count, bnormal_2,
                ST_Distance(
                    geom::geography,
                    ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography
                ) AS dist_m
         FROM places
-        WHERE local_tile = ANY($3)
+        WHERE (h3_res10 = ANY($3) OR h3_res9 = ANY($3))
           AND ($4 = '' OR cuisine_type = $4)
           AND ($5 = '' OR price_band = $5)
           AND ST_DWithin(
@@ -211,7 +235,7 @@ async def get_nearby(lat, lng, cuisine="", price="", page=1):
               ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
               $6
           )
-        ORDER BY adjusted_quantile DESC
+        ORDER BY bnormal_2 DESC
         LIMIT $7 OFFSET $8
     """, lat, lng, list(candidate_tiles), cuisine, price, WALK_RADIUS_M, PAGE_SIZE, offset)
 
@@ -276,7 +300,7 @@ async def get_place(place_id: str):
 [ ] 2. Run CREATE EXTENSION h3; CREATE EXTENSION postgis;
 [ ] 3. Run CREATE TABLE places / h3_density DDL above
 [ ] 4. ETL: run pipeline → server/out/places.csv (if not already fresh)
-[ ] 5. ETL: upgrade local_tile res 9 → res 10 in ETL script
+[ ] 5. ETL: derive h3_res10 from h3_res9 when needed
 [ ] 6. ETL: pre-aggregate h3_density (Python script above)
 [ ] 7. ETL: bulk insert places + h3_density into Neon
 [ ] 8. Refactor server/server.py: new /api/tiles, /api/nearby, /api/place/{id}
