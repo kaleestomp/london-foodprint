@@ -154,7 +154,7 @@ async def get_tiles(
         inner_set = set(inner_tiles)
         inner_count = sum(int(row["count"]) for row in tile_rows if row["tile"] in inner_set)
 
-        if inner_count <= PAGE_SIZE or res >= 10:
+        if inner_count <= PAGE_SIZE:
             rows = await conn.fetch(
                 places_sql,
                 sw_lat,

@@ -8,7 +8,7 @@ RANK_THRESHOLD_MAP = {
     4: 0.9,
 }
 
-PAGE_SIZE = 20
+PAGE_SIZE = 25
 
 
 def zoom_to_resolution(zoom: int) -> int:
