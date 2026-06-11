@@ -2,7 +2,7 @@ import React from 'react';
 
 import Loading from '../components/Loading/Loading';
 import MapCard from './components/MapCard/MapCard'; 
-import SideCard from './components/SideCard/SideCard'; 
+// import SideCard from './components/SideCard/SideCard'; 
 
 import { useAppUI } from '../context/AppUIContext'; 
 
@@ -22,9 +22,6 @@ const { isLoading } = useAppUI()!;
     <div className="page1-container">
         <Loading loading={isLoading} />
         <MapCard />
-        <div className="page1-overlay">
-            <SideCard />
-        </div>
     </div>
   );
 };

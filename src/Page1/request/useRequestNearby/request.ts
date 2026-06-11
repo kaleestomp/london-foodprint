@@ -1,6 +1,4 @@
-const API_BASE =
-  (import.meta.env as Record<string, string | undefined>).VITE_API_BASE_URL ??
-  'http://localhost:3000';
+import { apiBasePromise } from '../../../utils/apiBase';
 
 export interface NearbyPlace {
   id: string;
@@ -26,6 +24,7 @@ export const request = async (
   queryKey: string,
   { signal }: { signal?: AbortSignal } = {}
 ): Promise<NearbyResponse> => {
+  const API_BASE = await apiBasePromise;
   const res: Response = await fetch(`${API_BASE}/api/nearby?${queryKey}`, { signal });
   if (!res.ok) {
     throw new Error(`Failed to fetch /api/nearby: ${res.status} ${res.statusText}`);

@@ -1,6 +1,4 @@
-const API_BASE =
-  (import.meta.env as Record<string, string | undefined>).VITE_API_BASE_URL ??
-  'http://localhost:3000';
+import { apiBasePromise } from '../../../utils/apiBase';
 
 export interface PlaceDetailResponse {
   id: string;
@@ -40,6 +38,7 @@ export const request = async (
   placeId: string,
   { signal }: { signal?: AbortSignal } = {}
 ): Promise<PlaceDetailResponse> => {
+  const API_BASE = await apiBasePromise;
   const res: Response = await fetch(`${API_BASE}/api/place/${encodeURIComponent(placeId)}`, { signal });
   if (!res.ok) {
     throw new Error(`Failed to fetch /api/place/${placeId}: ${res.status} ${res.statusText}`);

@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 out
+.env
+.env.local
 misc_store
 *.local
 __pycache__

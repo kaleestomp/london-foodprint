@@ -1,132 +1,62 @@
-import L from 'leaflet';
-import { type apiResourceContract} from '../../../../request/useRequestEPDMap/request'; 
+import L, { map } from 'leaflet';
+import { cellToLatLng } from 'h3-js';
+import { type TileDensity } from '../../../../request/useRequestTiles/request';
 
-const DENSITY_RADIUS_KM = 25;
-
-const toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
-
-const distanceKm = (
-  latA: number,
-  lonA: number,
-  latB: number,
-  lonB: number
-): number => {
-  const earthRadiusKm = 6371;
-  const dLat = toRadians(latB - latA);
-  const dLon = toRadians(lonB - lonA);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRadians(latA)) * Math.cos(toRadians(latB)) * Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return earthRadiusKm * c;
+type HeatmapConfig = {
+  radius: number;
+  blur: number;
+  maxZoom: number;
+  highCount: number;
+  // Leaflet.heat canvas threshold: gradient hits full red when the blurred
+  // canvas peak reaches this fraction of the point weight. After blur, a single
+  // point's peak pixel is far below 1.0, so this must be tuned per resolution.
+  // Lower = more colour-saturated; raise if everything looks red.
+  max: number;
 };
 
-const addHeatmap = (map: L.Map | L.LayerGroup, data: apiResourceContract[] | null) => { 
-    if (Array.isArray(data)) {
-        const heatPoints = buildHeatPoints(data);
-        if (heatPoints.length > 0) {
-        L.heatLayer(heatPoints, {
-            radius: 16,
-            blur: 16,
-            maxZoom: 4,
-            gradient: {
-              0.2: '#2b83ba',
-              0.4: '#abdda4',
-              0.6: '#ffffbf',
-              0.8: '#fdae61',
-              1.0: '#d7191c'
-            }
-        }).addTo(map);
-        }
-    }
+// H3 resolution → heatmap params.
+// maxZoom matches the top of each resolution's zoom range (from map_common.py):
+//   res 7 → zoom ≤ 11,  res 8 → zoom ≤ 14,  res 9 → zoom ≤ 17
+const CONFIG_BY_RESOLUTION: Record<number, HeatmapConfig> = {
+  7: { radius: 40, blur: 35, maxZoom: 11, highCount: 300, max: 0.4 },
+  8: { radius: 25, blur: 22, maxZoom: 14, highCount: 80,  max: 0.25 },
+  9: { radius: 14, blur: 12, maxZoom: 17, highCount: 20,  max: 0.1 },
 };
+const CONFIG_BY_ZOOM_LEVEL: Record<number, any> = {
+  10: { radius: 100, blur: 35},
+  11: { radius: 100, blur: 30},
+  12: { radius: 100, blur: 25},
+  13: { radius: 100, blur: 22},
+  14: { radius: 100, blur: 18},
+  15: { radius: 100, blur: 15},
+  16: { radius: 100, blur: 12},
+};
+const DEFAULT_CONFIG: HeatmapConfig = { radius: 20, blur: 18, maxZoom: 13, highCount: 50, max: 0.2 };
 
-const buildHeatPoints = (data: apiResourceContract[]): Array<L.LatLng | L.HeatLatLngTuple> => {
-  const validPoints = data.filter(
-    (item) =>
-      typeof item.Latitude === 'number' &&
-      Number.isFinite(item.Latitude) &&
-      typeof item.Longitude === 'number' &&
-      Number.isFinite(item.Longitude)
-  );
-
-  if (validPoints.length === 0) {
-    return [];
-  }
-
-  // Density metric: for each point, count how many other points are nearby.
-  const densityValues = validPoints.map((point, index) => {
-    let nearbyCount = 0;
-    for (let i = 0; i < validPoints.length; i += 1) {
-      if (i === index) {
-        continue;
-      }
-      const candidate = validPoints[i];
-      const distance = distanceKm(
-        point.Latitude as number,
-        point.Longitude as number,
-        candidate.Latitude as number,
-        candidate.Longitude as number
-      );
-      if (distance <= DENSITY_RADIUS_KM) {
-        nearbyCount += 1;
-      }
-    }
-    return nearbyCount;
+const addHeatmap = (layer: L.Map | L.LayerGroup, data: TileDensity[], resolution: number, zoom: number) => {
+  if (!data.length) return;
+  const { radius, blur } = CONFIG_BY_ZOOM_LEVEL[resolution] ?? DEFAULT_CONFIG;
+  const zoomConfig = CONFIG_BY_ZOOM_LEVEL[zoom] ?? DEFAULT_CONFIG;
+  const maxDensity = Math.max(...data.map(d => d.count));
+  const heatPoints: L.HeatLatLngTuple[] = data.map((d) => {
+    const [lat, lng] = cellToLatLng(d.tile);
+    return [lat, lng, Math.min(d.count / 200, 1)];
   });
-  const maxDensity = Math.max(...densityValues, 1);
 
-  return validPoints.map((item, index) => [
-    item.Latitude as number,
-    item.Longitude as number,
-    densityValues[index] / maxDensity
-  ]);
+  L.heatLayer(heatPoints, {
+    radius: 100,
+    blur: 25,
+    maxZoom: 16,
+    minOpacity: 0.2,
+    gradient: {
+      0.2: '#2b83ba',
+      0.4: '#abdda4',
+      0.6: '#ffffbf',
+      0.8: '#fdae61',
+      1.0: '#d7191c',
+    },
+  }).addTo(layer);
 };
 
-export default addHeatmap; 
+export default addHeatmap;
 
-
-// const addHeatmap = (map: L.Map | L.LayerGroup, data: apiResourceContract[] | null) => { 
-//     if (Array.isArray(data)) {
-//         const heatPoints = buildHeatPoints(data);
-//         if (heatPoints.length > 0) {
-//         L.heatLayer(heatPoints, {
-//             radius: 16,
-//             blur: 16,
-//             maxZoom: 4,
-//             gradient: {
-//               0.2: '#2b83ba',
-//               0.4: '#abdda4',
-//               0.6: '#ffffbf',
-//               0.8: '#fdae61',
-//               1.0: '#d7191c'
-//             }
-//         }).addTo(map);
-//         }
-//     }
-// };
-
-// const buildHeatPoints = (data: apiResourceContract[]): Array<L.LatLng | L.HeatLatLngTuple> => {
-//   const validPoints = data.filter(
-//     (item) =>
-//       typeof item.Latitude === 'number' &&
-//       Number.isFinite(item.Latitude) &&
-//       typeof item.Longitude === 'number' &&
-//       Number.isFinite(item.Longitude)
-//   );
-
-//   if (validPoints.length === 0) {
-//     return [];
-//   }
-
-//   const metricValues = validPoints.map((item) =>
-//     typeof item.KgCO2eq === 'number' && Number.isFinite(item.KgCO2eq) ? Math.max(item.KgCO2eq, 0) : 1
-//   );
-//   const maxMetric = Math.max(...metricValues, 1);
-
-//   return validPoints.map((item, index) => [
-//     item.Latitude as number,
-//     item.Longitude as number,
-//     metricValues[index] / maxMetric
-//   ]);
-// };

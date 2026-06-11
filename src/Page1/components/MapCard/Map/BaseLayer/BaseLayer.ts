@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet.heat';
 
 import useMapResizeSync from './useMapResizeSync'; 
-import { WORLD_BOUNDS } from '../MapTemplate'; 
+import { LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM, LONDON_BOUNDS } from '../MapTemplate'; 
 
 const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): { 
     mapContainerRef: React.RefObject<HTMLDivElement>; 
@@ -19,19 +19,18 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
     if (!mapContainerRef.current || mapRef.current) { return; }
     const mapContainer = mapContainerRef.current;
 
-    // LAYER 1: Create Instance ----
     const map = L.map(mapContainer, { 
       attributionControl: false, 
       zoomControl: false, 
       inertia: true, 
-      worldCopyJump: true,
+      worldCopyJump: false,
       renderer: L.canvas({ willReadFrequently: true } as any),
-      maxBounds: WORLD_BOUNDS,
+      maxBounds: LONDON_BOUNDS,
       maxBoundsViscosity: 1.0,
-    }).setView([54.2, -2.5], 6);
+      minZoom: LONDON_MIN_ZOOM,
+    }).setView(LONDON_CENTER, LONDON_INITIAL_ZOOM);
     mapRef.current = map;
 
-    // LAYER 2: Add Map Client ----
     L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
       minZoom: 0,
       maxZoom: 20,

@@ -4,41 +4,7 @@
   box-sizing: border-box;
 }
 
-.app-container {
+:root {
   --app-layout-gap: 20px;
-  --app-layout-margin: 20px; 
-  --app-topbar-height: 56px;
-  --app-topbar-margin: 5px; 
-  --app-sidebar-width: 56px; /* 56px */
-  --app-sidedraw-width: min(360px, 30vh);
-  --app-active-sidedraw-width: 0px;
-
-  display: grid; 
-  grid-template-columns: var(--app-sidebar-width) minmax(0, 1fr); 
-  grid-template-areas: "sidebar main-content"; /* Each quoted string represents one row of the grid. */
-  width: 100%;
-  min-height: 100vh;
-  transition: grid-template-columns 0.25s cubic-bezier(0.1, 0, 0.58, 1);
-}
-
-.app-container:has(> .app-sidedraw.is-open) {
-  --app-active-sidedraw-width: var(--app-sidedraw-width);
-  grid-template-columns: var(--app-sidebar-width) var(--app-sidedraw-width) minmax(0, 1fr);
-  grid-template-areas: "sidebar sidedraw main-content"; 
-}
-
-.page1-overlay:has(> .side-card-1.is-open) {
-  grid-template-columns: auto minmax(0, 1fr);
-}
-
-.app-container:has(> .app-sidedraw:not(.is-open)) {
-  grid-template-columns: var(--app-sidebar-width) 0px minmax(0, 1fr);
-  grid-template-areas: "sidebar sidedraw main-content";
-}
-
-.main-content {
-  grid-area: main-content;
-  min-width: 0;
-  min-height: 100vh;
-  overflow-y: auto;
+  --app-layout-margin: 20px;
 }

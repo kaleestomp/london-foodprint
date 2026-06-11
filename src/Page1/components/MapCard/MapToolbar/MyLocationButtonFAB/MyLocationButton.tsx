@@ -1,7 +1,7 @@
 import IconButton from '@mui/material/IconButton';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
 import { type LocationResult } from '../GeoSearch/useGeoSearch';
-import useMyLocation from '../../../../../utils/useMyLocation/useMyLocation';
+// import useMyLocation from '../../../../../utils/useMyLocation/useMyLocation';
 import '../MapToolbar.css';
 
 
@@ -10,7 +10,7 @@ type Props = {
 };
 const MyLocation: React.FC<Props> = ({ setLocation }) => {
   
-  const myLocation = useMyLocation();
+  const myLocation = undefined; // useMyLocation();
   const handleMyLocation = () => {
     if (!myLocation) { return; }
     const label = [myLocation.district, myLocation.city, myLocation.region, myLocation.country]

@@ -1,39 +1,60 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet.heat';
 
 import { useAppUI } from '../../../../../context/AppUIContext';
-import useRequestEPDMap from '../../../../request/useRequestEPDMap/useRequestEPDMap';
-import { adjustBounds } from '../MapTemplate'; 
-import useSelectDataOnZoom from './useSelectDataOnZoom'; 
+import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
+import addHeatmap from './addHeatmap';
+// import addMarkers from './addMarkers';
+import onUserRoam from './updateOnMove';
 
 const DataLayer = (mapRef: React.RefObject<L.Map | null>): void => {
 
-  const { status, res } = useRequestEPDMap(); 
-  // console.log('DataLayer - API Response Sample:', res);
-  const { toggleLoading } = useAppUI()!;
+  const layerRef = useRef<L.LayerGroup | null>(null);
+  const { toggleLoading } = useAppUI();
+
+  const viewportParams = onUserRoam(mapRef);
+  const { status, res } = useRequestTiles(viewportParams);
+  console.log(viewportParams);
+  console.log(res);
+
   useEffect(() => {
     toggleLoading(status === 'loading');
   }, [status, toggleLoading]);
-  
+
+  // Render / replace data layer when response changes
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || status !== 'success') { return; }
+    if (!map || status !== 'success' || !res) return;
 
-    const bounds = L.latLngBounds([]);
-    const { heatLayer, scatterLayer, dataZoomHandler } = useSelectDataOnZoom(map, res);
+    if (layerRef.current) {
+      map.removeLayer(layerRef.current);
+      layerRef.current = null;
+    }
 
-    map.on('zoomend', dataZoomHandler);
-    dataZoomHandler();
-    adjustBounds(map, res, bounds);
+    const layer = L.layerGroup();
+    if (res.mode === 'tiles') {
+      addHeatmap(layer, res.data, res.resolution, viewportParams.zoom);
+    } else {
+      // addMarkers(layer, res.data);
+    }
+    layer.addTo(map);
+    layerRef.current = layer;
 
     return () => {
-      map.off('zoomend', dataZoomHandler);
-      map.removeLayer(heatLayer);
-      map.removeLayer(scatterLayer);
+      if (layerRef.current) {
+        map.removeLayer(layerRef.current);
+        layerRef.current = null;
+      }
     };
-  }, [status, res]);
+  }, [res, status]);
 
 };
 
 export default DataLayer;
+
+// The flow is:
+// 1. New res arrives → check layerRef.current
+// 2. If there's an existing layer, remove it from the map
+// 3. Build the new layer (heatmap or markers), add it to the map
+// 4. Store it in layerRef.current so the next render knows what to remove
