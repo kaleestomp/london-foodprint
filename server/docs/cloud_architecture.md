@@ -1,6 +1,6 @@
 ﻿# London Explorer — Cloud Architecture Design
-**Last updated:** June 10, 2026  
-**Status:** Schema finalised. ETL code complete. h3_density CSV generated and validated. Ready to run `etl_load.py` against Neon.
+**Last updated:** June 11, 2026  
+**Status:** Schema finalised. ETL complete. All three API endpoints built. Server startup blocked on network (port 5432) — test on non-corporate network.
 
 ---
 
@@ -31,6 +31,18 @@ server/
       build_h3_density.ipynb← standalone notebook to regenerate h3_density.csv independently
       insert_places.py      ← bulk upserts into places table
       insert_h3_density.py  ← bulk upserts into h3_density table
+  api/
+    nearby_api/
+      map_common.py         ← shared helpers (zoom→res, rank col, bbox→H3 cells, PAGE_SIZE)
+      nearby_api.py         ← GET /api/nearby
+    tile_api/
+      tile_api.py           ← GET /api/tiles
+      tile_cache.py         ← in-process TTL cache (default 60s, env-configurable)
+      places_query/         ← reference/notes on places fallback query variants
+    place_api.py            ← GET /api/place/{id}
+  api_test/
+    backend_api_test.ipynb  ← smoke-test notebook (health, tiles, nearby, place detail)
+  server.py               ← FastAPI app, asyncpg pool, CORS, router registration
   docs/
     cloud_architecture.md ← this file
 ```
@@ -159,7 +171,14 @@ If `server/out/h3_density.csv` exists, it is read directly (skipping the slow bu
 
 ---
 
-## API Endpoints (to be built)
+## API Endpoints
+
+**All three endpoints are implemented.** Run the server from the repo root:
+```powershell
+server\venv\Scripts\python.exe -m uvicorn server.server:app --host 0.0.0.0 --port 3000 --reload
+```
+
+**SSL note (Windows + Neon):** `asyncpg` requires an explicit `SSLContext` on Windows — the `sslmode=require` URL param is not sufficient. `server.py` creates one via `ssl.create_default_context()` and passes it to `create_pool(ssl=ssl_ctx)`.
 
 ### Adaptive H3 zoom resolution
 ```
@@ -173,19 +192,43 @@ zoom 17+   → res 10  (finest; heatmap OFF)
 ```
 ?sw_lat=&sw_lng=&ne_lat=&ne_lng=&zoom=&cuisine=&cost=&venue_type=&score_basis=0&confidence=1&score_tier=0
 ```
-Returns `{mode: "tiles", data: [{tile, count}]}` or `{mode: "places", data: [...]}` when total ≤ 20.
+
+**Dual-tile design (outer/inner split):**
+
+The endpoint computes two tile sets from the viewport bbox:
+
+- **`outer_tiles`** (padded bbox, ~1 H3 cell diameter per resolution)
+  - Queried against `h3_density` — includes intersecting edge tiles so the heatmap has no missing patches at the viewport boundary
+  - Used as the cache key (more stable across small pans; a pan smaller than the pad doesn't change `outer_tiles` → cache hit)
+- **`inner_tiles`** (exact bbox, no padding)
+  - Used only to sum the place count threshold from the already-fetched `h3_density` rows — no second DB call
+  - Determines whether to fall back to the places query
+
+Padding per resolution (in `map_common.py`):
+| res | pad |
+|---|---|
+| 7 | 0.05° |
+| 8 | 0.018° |
+| 9 | 0.007° |
+| 10 | 0.003° |
+
+**Response modes:**
+- `inner_count > 20` → `{mode: "tiles", resolution, data: [{tile, count}, ...]}` (full outer set)
+- `inner_count ≤ 20` → `{mode: "places", data: [...], total: inner_count}` (places query by lat/lon BETWEEN original bbox bounds)
+
+**Cache:** 60s in-process TTL (`tile_cache.py`, env var `TILES_CACHE_TTL_SECONDS`). Cache key includes `outer_tiles` sorted + all filter dimensions.
 
 ### GET /api/nearby — Pin drop / walk bubble
 ```
 ?lat=&lng=&radius_m=1000&cuisine=&cost=&venue_type=&score_basis=0&confidence=1&rank_threshold=0&page=1
 ```
 - k-ring pre-filter: `h3.grid_disk(center_r10, k=ceil(radius_m / 114.2) + 1)`
-- Then: `ST_DWithin(geom, point, radius_m)`
-- Sort: `ORDER BY rank_1 DESC` (boosted) or `wrank_1` (raw), selected by `score_basis`
+- Then: `ST_DWithin(geom::geography, point::geography, radius_m)`
+- Sort: `ORDER BY rank_1 DESC` (boosted) or `wrank_1` (raw Wilson), selected by `score_basis`
 - Pagination: 20 per page
 
 ### GET /api/place/{id} — Detail card
-Full metadata, fetched only on pin tap.
+Full metadata including all rank scores, address, website, wheelchair access. 404 on miss. Fetched only on pin tap.
 
 ---
 
@@ -204,8 +247,9 @@ Full metadata, fetched only on pin tap.
 | Technique | Saves |
 |---|---|
 | Pre-aggregated `h3_density` | Eliminates GROUP BY on every pan |
+| Outer/inner tile split | outer_tiles cache key absorbs small pans; inner_count threshold avoids counting edge tiles |
 | 60s TTL in-process cache on `/api/tiles` | Absorbs repeated pans |
-| Viewport snapped to H3 tile boundary before cache key | Prevents sub-pixel cache misses |
+| Cache key uses sorted outer_tiles | Deterministic across viewport jitter |
 | `asyncpg` pool `max_size=5` | Keeps Neon compute-seconds low |
 | Narrow SELECT (no `*` in list endpoints) | Reduces transfer |
 | Detail fields only on tap (`/api/place/{id}`) | Never sent in list/tile responses |
@@ -223,14 +267,18 @@ Full metadata, fetched only on pin tap.
 [x] 6. Create build_h3_density.ipynb for standalone aggregation
 [x] 7. Validate h3_density.csv (2,123,754 rows, 0 duplicate PKs, correct dimensions)
 [x] 8. Fix CSV round-trip NaN: etl_load.py applies .fillna('') on dimension columns after pd.read_csv()
-[ ] 9. Create Neon project → add DATABASE_URL to .env
-[ ] 10. Run schema.sql against Neon (Neon SQL Editor or psql)
-[ ] 11. Run: python db/etl_load.py
-[ ] 12. Verify: SELECT COUNT(*) FROM places; → ~13,092
-[ ] 13. Verify: SELECT COUNT(*) FROM h3_density; → ~2,123,754
-[ ] 14. Build FastAPI endpoints (/api/tiles, /api/nearby, /api/place/{id})
-[ ] 15. Deploy FastAPI to Render.com, set DATABASE_URL env var
-[ ] 16. Wire React frontend to new endpoints
+[x] 9. Build FastAPI endpoints (/api/tiles, /api/nearby, /api/place/{id})
+[x] 10. Implement outer/inner tile split in tile_api.py + map_common.py
+[x] 11. Fix asyncpg Windows SSL: explicit SSLContext in server.py
+[x] 12. Create api_test/backend_api_test.ipynb smoke-test notebook
+[ ] 13. Create Neon project → add DATABASE_URL to .env
+[ ] 14. Run schema.sql against Neon (Neon SQL Editor or psql)
+[ ] 15. Run: python db/etl_load.py
+[ ] 16. Verify: SELECT COUNT(*) FROM places; → ~13,092
+[ ] 17. Verify: SELECT COUNT(*) FROM h3_density; → ~2,123,754
+[ ] 18. Test all endpoints via api_test/backend_api_test.ipynb (requires non-corporate network or VPN bypass for port 5432)
+[ ] 19. Deploy FastAPI to Render.com, set DATABASE_URL env var
+[ ] 20. Wire React frontend to new endpoints
 ```
 
 ---

@@ -1,4 +1,5 @@
 import os
+import ssl
 from contextlib import asynccontextmanager
 
 import asyncpg
@@ -6,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from server.api.nearby_api import router as nearby_router
+from server.api.nearby_api.nearby_api import router as nearby_router
 from server.api.place_api import router as place_router
 from server.api.tile_api.tile_api import router as tiles_router
 
@@ -19,11 +20,18 @@ async def lifespan(app: FastAPI):
     if not database_url:
         raise RuntimeError("DATABASE_URL is required")
 
+    # Neon requires SSL. On Windows, asyncpg needs an explicit SSLContext
+    # rather than ssl='require' to complete the TLS handshake correctly.
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = ssl.CERT_NONE
+
     app.state.pool = await asyncpg.create_pool(
         dsn=database_url,
         min_size=int(os.getenv("DB_POOL_MIN_SIZE", "1")),
         max_size=int(os.getenv("DB_POOL_MAX_SIZE", "5")),
         command_timeout=30,
+        ssl=ssl_ctx,
     )
     yield
     await app.state.pool.close()

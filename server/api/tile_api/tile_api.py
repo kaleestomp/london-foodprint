@@ -38,9 +38,11 @@ async def get_tiles(
     rank_column = get_rank_column(score_basis)
     rank_threshold = RANK_THRESHOLD_MAP[score_tier]
 
-    snapped_tiles = h3_cells_for_bbox(sw_lat, sw_lng, ne_lat, ne_lng, resolution)
+    outer_tiles, inner_tiles = h3_cells_for_bbox(sw_lat, sw_lng, ne_lat, ne_lng, resolution)
+    # Cache key is keyed on outer_tiles — small pans that don't change the
+    # padded set still get a cache hit.
     cache_key = _cache_key(
-        snapped_tiles,
+        outer_tiles,
         resolution,
         cuisine_value,
         cost_value,
@@ -95,7 +97,7 @@ async def get_tiles(
         tile_rows = await conn.fetch(
             tiles_sql,
             resolution,
-            snapped_tiles,
+            outer_tiles,  # padded — covers intersecting edge tiles for heatmap
             cuisine_value,
             cost_value,
             venue_value,
@@ -104,9 +106,12 @@ async def get_tiles(
             score_tier,
         )
 
-        total_from_tiles = sum(int(row["count"]) for row in tile_rows)
+        # Use only the inner (unpadded) tiles to decide whether to fall back to
+        # the places query — avoids counting edge tiles that are barely visible.
+        inner_set = set(inner_tiles)
+        inner_count = sum(int(row["count"]) for row in tile_rows if row["tile"] in inner_set)
 
-        if total_from_tiles <= PAGE_SIZE:
+        if inner_count <= PAGE_SIZE:
             rows = await conn.fetch(
                 places_sql,
                 sw_lat,
@@ -121,7 +126,7 @@ async def get_tiles(
             payload = {
                 "mode": "places",
                 "data": [dict(row) for row in rows],
-                "total": total_from_tiles,
+                "total": inner_count,
             }
             await _set_cached(cache_key, payload)
             return payload
