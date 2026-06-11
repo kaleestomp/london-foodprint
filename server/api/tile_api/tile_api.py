@@ -1,8 +1,8 @@
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
-from server.api.tile_api.tile_cache import _cache_key, _get_cached, _set_cached
-from server.api.map_common import (
+from api.tile_api.tile_cache import _cache_key, _get_cached, _set_cached
+from api.map_common import (
     PAGE_SIZE,
     RANK_THRESHOLD_MAP,
     get_rank_column,

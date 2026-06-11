@@ -7,9 +7,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from server.api.nearby_api.nearby_api import router as nearby_router
-from server.api.place_api import router as place_router
-from server.api.tile_api.tile_api import router as tiles_router
+from api.nearby_api.nearby_api import router as nearby_router
+from api.place_api import router as place_router
+from api.tile_api.tile_api import router as tiles_router
 
 load_dotenv()
 
