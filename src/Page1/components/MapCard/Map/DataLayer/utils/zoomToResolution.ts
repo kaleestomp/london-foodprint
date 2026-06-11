@@ -21,15 +21,18 @@ export const GRID_ZOOM_TO_RES: ZoomResTable = [
  * to keep pins readable and avoid over-plotting.
  */
 export const PINS_ZOOM_TO_RES: ZoomResTable = [
-  [11, 7],
+  [12, 7],
   [14, 8],
-  [17, 9],
-  [22, 10],
+  [16, 9],
+  [18, 10],
 ];
 
-export const zoomToResolution = (zoom: number, table: ZoomResTable): number => {
+const zoomToResolution = (zoom: number, table: ZoomResTable = PINS_ZOOM_TO_RES): number => {
+  console.log('zoom', zoom);
   for (const [maxZoom, res] of table) {
     if (zoom <= maxZoom) return res;
   }
   return table[table.length - 1][1];
 };
+
+export default zoomToResolution;

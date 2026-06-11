@@ -26,9 +26,12 @@ async def get_tiles(
     score_basis: int = Query(default=0, ge=0, le=1),
     confidence: int = Query(default=1, ge=0, le=2),
     score_tier: int = Query(default=0),
+    places_only: bool = Query(default=False),
 ) -> dict[str, Any]:
     if score_tier not in RANK_THRESHOLD_MAP:
         raise HTTPException(status_code=422, detail="score_tier must be one of 0,2,3,4")
+    if places_only and res < 10:
+        raise HTTPException(status_code=422, detail="places_only requires res=10")
 
     cuisine_value = normalize_dimension(cuisine)
     cost_value = normalize_dimension(cost)
@@ -54,6 +57,47 @@ async def get_tiles(
     cached = await _get_cached(cache_key)
     if cached is not None:
         return cached
+
+    # --- places_only fast-path: skip density query entirely ---
+    if places_only:
+        places_direct_sql = f"""
+            SELECT
+                id,
+                display_name,
+                lat,
+                lon,
+                cuisine_type,
+                venue_type,
+                cost,
+                rating,
+                user_rating_count,
+                operational,
+                {rank_column} AS rank
+            FROM places
+            WHERE lat BETWEEN $1 AND $2
+              AND lon BETWEEN $3 AND $4
+              AND ($5 = '' OR cuisine_type = $5)
+              AND ($6 = '' OR cost = $6)
+              AND ($7 = '' OR venue_type = $7)
+              AND {rank_column} >= $8
+            ORDER BY {rank_column} DESC
+            LIMIT 100
+        """
+        async with request.app.state.pool.acquire() as conn:
+            rows = await conn.fetch(
+                places_direct_sql,
+                sw_lat, ne_lat, sw_lng, ne_lng,
+                cuisine_value, cost_value, venue_value,
+                rank_threshold,
+            )
+        payload = {
+            "mode": "places",
+            "data": [dict(row) for row in rows],
+            "total": len(rows),
+        }
+        await _set_cached(cache_key, payload)
+        return payload
+    # ----------------------------------------------------------
 
     tiles_sql = """
         SELECT tile, count
@@ -122,6 +166,7 @@ async def get_tiles(
                 venue_value,
                 rank_threshold,
             )
+            # places_sql already uses PAGE_SIZE limit (20)
             payload = {
                 "mode": "places",
                 "data": [dict(row) for row in rows],

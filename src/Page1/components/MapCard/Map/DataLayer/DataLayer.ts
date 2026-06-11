@@ -4,10 +4,9 @@ import L from 'leaflet';
 import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
 import addDensityPins from './addDensityPins';
 import addMarkers from './addMarkers';
-import onUserRoam from './onUserRoam';
-import DelayLoadingScreen from './delayLoadingScreen';
-import createPersistentLayer from './createPersistentLayer';
-import { zoomToResolution, PINS_ZOOM_TO_RES } from './zoomToResolution';
+import onUserRoam from './utils/onUserRoam';
+import DelayLoadingScreen from './utils/delayLoadingScreen';
+import createPersistentLayer from './utils/createPersistentLayer';
 
 const DataLayer = (mapRef: React.RefObject<L.Map | null>): void => {
 
@@ -15,7 +14,7 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>): void => {
   // adds (no need to rebuild the whole layer when the user pans).
   const renderedTilesRef = useRef<Set<string>>(new Set());
   const currentResRef = useRef<number | null>(null);
-  const viewportParams = onUserRoam(mapRef, (z) => zoomToResolution(z, PINS_ZOOM_TO_RES));
+  const viewportParams = onUserRoam(mapRef);
   const { status, res } = useRequestTiles(viewportParams);
 
   // Only show loading spinner if request takes longer than LOADING_DELAY_MS.

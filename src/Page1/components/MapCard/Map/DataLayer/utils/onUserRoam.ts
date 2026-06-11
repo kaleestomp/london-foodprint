@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import L from 'leaflet';
 
-import { type TilesParams } from '../../../../request/useRequestTiles/useRequestTiles';
+import { type TilesParams } from '../../../../../request/useRequestTiles/useRequestTiles';
+import zoomToResolution from './zoomToResolution';
 
 /**
  * Tracks map viewport and emits TilesParams whenever the user pans or zooms.
@@ -10,7 +11,6 @@ import { type TilesParams } from '../../../../request/useRequestTiles/useRequest
  */
 const onUserRoam = (
   mapRef: React.RefObject<L.Map | null>,
-  resolveRes: (zoom: number) => number,
 ): TilesParams | null => {
 
   const [viewportParams, setViewportParams] = useState<TilesParams | null>(null);
@@ -27,7 +27,7 @@ const onUserRoam = (
         sw_lng: b.getWest(),
         ne_lat: b.getNorth(),
         ne_lng: b.getEast(),
-        res: resolveRes(zoom),
+        res: zoomToResolution(zoom),
       });
     };
     update();
