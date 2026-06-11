@@ -12,11 +12,11 @@ PAGE_SIZE = 20
 
 
 def zoom_to_resolution(zoom: int) -> int:
-    if zoom <= 11:
+    if zoom <= 9:
         return 7
-    if zoom <= 14:
+    if zoom <= 12:
         return 8
-    if zoom <= 17:
+    if zoom <= 15:
         return 9
     return 10
 
