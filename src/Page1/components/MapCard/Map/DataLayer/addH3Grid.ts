@@ -46,6 +46,13 @@ const intensityToColour = (t: number): string => {
 // which is far faster than SVG (no DOM node per polygon).
 const canvasRenderer = L.canvas({ padding: 0.5 });
 
+// Apply multiply blend mode so the map basemap shows through the hex fills.
+// _container is the underlying <canvas> DOM element.
+(canvasRenderer as any)._initContainer = function () {
+  (L.Canvas.prototype as any)._initContainer.call(this);
+  this._container.style.mixBlendMode = 'multiply';
+};
+
 const addH3Grid = (layer: L.Map | L.LayerGroup, data: TileDensity[], resolution: number): void => {
   if (!data.length) return;
 
@@ -63,9 +70,9 @@ const addH3Grid = (layer: L.Map | L.LayerGroup, data: TileDensity[], resolution:
       renderer: canvasRenderer,
       color: colour,
       fillColor: colour,
-      fillOpacity: 0.55,
-      weight: 0.5,
-      opacity: 0.3,
+      fillOpacity: 0.25,
+      weight: 0.0,
+      opacity: 0.0,
     }).addTo(layer);
   });
 };

@@ -4,14 +4,15 @@ import { type TilesResponse, request } from './request';
 
 const requestCached = createCachedMemoryFetcher(request);
 
-type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
+export type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
 export interface TilesParams {
   sw_lat: number;
   sw_lng: number;
   ne_lat: number;
   ne_lng: number;
-  zoom: number;
+  /** H3 resolution resolved on the frontend (7–10). Sent directly to the API. */
+  res: number;
   cuisine?: string;
   cost?: string;
   venue_type?: string;
@@ -26,7 +27,7 @@ const buildQueryKey = (params: TilesParams): string => {
     sw_lng: String(params.sw_lng),
     ne_lat: String(params.ne_lat),
     ne_lng: String(params.ne_lng),
-    zoom: String(params.zoom),
+    res: String(params.res),
     cuisine: params.cuisine ?? '',
     cost: params.cost ?? '',
     venue_type: params.venue_type ?? '',

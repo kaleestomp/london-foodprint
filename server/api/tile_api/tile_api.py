@@ -8,7 +8,6 @@ from api.map_common import (
     get_rank_column,
     h3_cells_for_bbox,
     normalize_dimension,
-    zoom_to_resolution,
 )
 
 router = APIRouter()
@@ -20,7 +19,7 @@ async def get_tiles(
     sw_lng: float = Query(...),
     ne_lat: float = Query(...),
     ne_lng: float = Query(...),
-    zoom: int = Query(..., ge=0, le=22),
+    res: int = Query(..., ge=7, le=10),
     cuisine: str | None = Query(default=""),
     cost: str | None = Query(default=""),
     venue_type: str | None = Query(default=""),
@@ -34,7 +33,7 @@ async def get_tiles(
     cuisine_value = normalize_dimension(cuisine)
     cost_value = normalize_dimension(cost)
     venue_value = normalize_dimension(venue_type)
-    resolution = zoom_to_resolution(zoom)
+    resolution = res
     rank_column = get_rank_column(score_basis)
     rank_threshold = RANK_THRESHOLD_MAP[score_tier]
 
@@ -111,7 +110,7 @@ async def get_tiles(
         inner_set = set(inner_tiles)
         inner_count = sum(int(row["count"]) for row in tile_rows if row["tile"] in inner_set)
 
-        if inner_count <= PAGE_SIZE or zoom >= 18:
+        if inner_count <= PAGE_SIZE or res >= 10:
             rows = await conn.fetch(
                 places_sql,
                 sw_lat,

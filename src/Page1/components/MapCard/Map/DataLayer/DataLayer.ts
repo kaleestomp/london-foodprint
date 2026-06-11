@@ -1,81 +1,44 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
-import { useAppUI } from '../../../../../context/AppUIContext';
 import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
-import addH3Grid from './addH3Grid';
+import addDensityPins from './addDensityPins';
 import addMarkers from './addMarkers';
-import onUserRoam from './updateOnMove';
-
-const LOADING_DELAY_MS = 2000;
+import onUserRoam from './onUserRoam';
+import DelayLoadingScreen from './delayLoadingScreen';
+import createPersistentLayer from './createPersistentLayer';
+import { zoomToResolution, PINS_ZOOM_TO_RES } from './zoomToResolution';
 
 const DataLayer = (mapRef: React.RefObject<L.Map | null>): void => {
 
-  const layerRef = useRef<L.LayerGroup | null>(null);
-  const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Map-level tile cache: tracks which H3 cell IDs are already rendered.
-  // Cleared when resolution changes so a zoom-level switch redraws cleanly.
+  // Tracks which H3 tiles already have a pin rendered — used for incremental
+  // adds (no need to rebuild the whole layer when the user pans).
   const renderedTilesRef = useRef<Set<string>>(new Set());
   const currentResRef = useRef<number | null>(null);
-  const { toggleLoading } = useAppUI();
-
-  const viewportParams = onUserRoam(mapRef);
+  const viewportParams = onUserRoam(mapRef, (z) => zoomToResolution(z, PINS_ZOOM_TO_RES));
   const { status, res } = useRequestTiles(viewportParams);
-  console.log('viewportParams', viewportParams);
+
   // Only show loading spinner if request takes longer than LOADING_DELAY_MS.
-  useEffect(() => {
-    if (status === 'loading') {
-      loadingTimerRef.current = setTimeout(() => {
-        toggleLoading(true);
-      }, LOADING_DELAY_MS);
-    } else {
-      if (loadingTimerRef.current !== null) {
-        clearTimeout(loadingTimerRef.current);
-        loadingTimerRef.current = null;
-      }
-      toggleLoading(false);
-    }
-    return () => {
-      if (loadingTimerRef.current !== null) {
-        clearTimeout(loadingTimerRef.current);
-        loadingTimerRef.current = null;
-      }
-    };
-  }, [status, toggleLoading]);
-
+  DelayLoadingScreen(status);
   // Create the persistent layer group once on mount, add to map, never remove it.
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    const layer = L.layerGroup().addTo(map);
-    layerRef.current = layer;
-    return () => {
-      layer.remove();
-      layerRef.current = null;
-    };
-  }, []);
+  const layerRef = createPersistentLayer(mapRef);
 
-  // On each new response, only add tiles not yet rendered at this resolution.
-  // On resolution change, wipe the rendered set and redraw everything fresh.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || status !== 'success' || !res || !layerRef.current) return;
 
     if (res.mode === 'tiles') {
-      // Resolution changed — clear map layer and rendered-tile registry.
+      // Resolution changed — wipe all rendered pins and clear the layer.
       if (res.resolution !== currentResRef.current) {
         layerRef.current.clearLayers();
         renderedTilesRef.current = new Set();
         currentResRef.current = res.resolution;
       }
 
-      const newTiles = res.data.filter((d) => !renderedTilesRef.current.has(d.tile));
-      if (newTiles.length > 0) {
-        addH3Grid(layerRef.current, newTiles, res.resolution);
-        newTiles.forEach((d) => renderedTilesRef.current.add(d.tile));
-      }
+      // Add only pins for tiles not yet rendered (incremental, no full rebuild).
+      addDensityPins(layerRef.current, res.data, res.resolution, renderedTilesRef.current);
     } else {
-      // places mode — always replace (individual pins change with every pan)
+      // places mode — always replace
       layerRef.current.clearLayers();
       renderedTilesRef.current = new Set();
       currentResRef.current = null;
@@ -86,9 +49,3 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>): void => {
 };
 
 export default DataLayer;
-
-// The flow is:
-// 1. New res arrives → check layerRef.current
-// 2. If there's an existing layer, remove it from the map
-// 3. Build the new layer (heatmap or markers), add it to the map
-// 4. Store it in layerRef.current so the next render knows what to remove
