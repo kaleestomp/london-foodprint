@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import L from 'leaflet';
-import 'leaflet.heat';
 
 import { type TilesParams } from '../../../../request/useRequestTiles/useRequestTiles';
 
 const onUserRoam = (mapRef: React.RefObject<L.Map | null>): TilesParams | null => {
 
   const [viewportParams, setViewportParams] = useState<TilesParams | null>(null);
-  // Sync map viewport → API params on every move/zoom
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;

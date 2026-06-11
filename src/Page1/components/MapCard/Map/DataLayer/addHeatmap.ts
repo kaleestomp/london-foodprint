@@ -20,9 +20,10 @@ type HeatmapConfig = {
 // Leaflet.heat fades intensity above maxZoom, so setting it to the transition
 // point keeps the heatmap fully saturated throughout its active zoom range.
 const CONFIG_BY_RESOLUTION: Record<number, HeatmapConfig> = {
-  7: { radius: 100, blur: 35, maxZoom: 9,  highCount: 300, max: 0.4 },
-  8: { radius: 100, blur: 22, maxZoom: 12, highCount: 80,  max: 0.25 },
-  9: { radius: 100, blur: 12, maxZoom: 15, highCount: 20,  max: 0.1 },
+  // 7: { radius: 100, blur: 35, maxZoom: 9,  highCount: 100, max: 0.4 },
+  8: { radius: 25, blur: 22, maxZoom: 12, highCount: 80,  max: 0.25 },
+  9: { radius: 35, blur: 12, maxZoom: 15, highCount: 20,  max: 0.1 },
+  10: { radius: 12, blur: 6, maxZoom: 15, highCount: 20,  max: 0.1 },
 };
 
 // Per-zoom blur refinement — smooths transitions as user zooms within a res band.
@@ -42,18 +43,18 @@ const addHeatmap = (layer: L.Map | L.LayerGroup, data: TileDensity[], resolution
   if (!data.length) return;
 
   const { radius, maxZoom, highCount, max } = CONFIG_BY_RESOLUTION[resolution] ?? DEFAULT_CONFIG;
-  const blur = BLUR_BY_ZOOM[zoom] ?? (CONFIG_BY_RESOLUTION[resolution] ?? DEFAULT_CONFIG).blur;
-
+  // const blur = BLUR_BY_ZOOM[zoom] ?? (CONFIG_BY_RESOLUTION[resolution] ?? DEFAULT_CONFIG).blur;
+  
   const heatPoints: L.HeatLatLngTuple[] = data.map((d) => {
     const [lat, lng] = cellToLatLng(d.tile);
-    return [lat, lng, Math.min(d.count / highCount, 1)];
+    return [lat, lng, Math.min(d.count / 100, 1)];
   });
 
   L.heatLayer(heatPoints, {
-    radius,
-    blur,
-    maxZoom,
-    max,
+    radius: radius,
+    blur: 20,
+    maxZoom: zoom + 2, // Keep heatmap visible one zoom level beyond maxZoom for smoother fade-out
+    max: 1.0,
     minOpacity: 0.2,
     gradient: {
       0.2: '#2b83ba',
