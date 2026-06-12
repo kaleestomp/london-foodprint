@@ -5,6 +5,7 @@ import makePinIcon, {countToSize, PIN_RANGE_BY_RESOLUTION, DEFAULT_PIN_RANGE} fr
 
 const STAGGER_STEP_MS = 0; //25
 const STAGGER_CAP    = 20; // stagger capped at the 20th pin → max 500ms //20
+const ENTRY_DELAY = 280;
 /**
  * Adds a marker at each H3 centroid not yet in `rendered`. Returns the newly
  * created {tile, marker} pairs.

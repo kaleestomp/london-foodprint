@@ -2,11 +2,10 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
 import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
-import addMarkers from './addMarkers';
 import onUserRoam from './utils/onUserRoam';
 import DelayLoadingScreen from './utils/delayLoadingScreen';
 import createPersistentLayer from './utils/createPersistentLayer';
-import usePinAnimations from './addDensityPins/usePinAnimations';
+import usePinAnimations from './pinAnimations/usePinAnimations';
 
 const DataLayer = (mapRef: React.RefObject<L.Map | null>): void => {
   const viewportParams = onUserRoam(mapRef);
@@ -14,7 +13,7 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>): void => {
 
   DelayLoadingScreen(status);
   const layerRef = createPersistentLayer(mapRef);
-  const { currentResRef, addPins, transitionRes, clearAll } = usePinAnimations(mapRef, layerRef);
+  const { currentResRef, addPins, transitionRes, transitionToPlaces, transitionFromPlaces } = usePinAnimations(mapRef, layerRef);
   // Tracks the last rendered mode so we can detect places → tiles transitions.
   // So place markers can clear
   const prevModeRef = useRef<'tiles' | 'places' | null>(null);
@@ -23,10 +22,11 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>): void => {
     if (!mapRef.current || status !== 'success' || !res || !layerRef.current) return;
 
     if (res.mode === 'tiles') {
-      // Coming back from places mode — clear dot markers (they are NOT tracked
-      // by usePinAnimations so clearAll() alone won't remove them).
+      // Coming back from places mode — animate place markers out, then show density pins.
       if (prevModeRef.current === 'places') {
-        layerRef.current.clearLayers();
+        transitionFromPlaces(res.resolution, res.data);
+        prevModeRef.current = 'tiles';
+        return;
       }
       prevModeRef.current = 'tiles';
 
@@ -37,8 +37,7 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>): void => {
       }
     } else {
       prevModeRef.current = 'places';
-      clearAll();
-      addMarkers(layerRef.current, res.data);
+      transitionToPlaces(res.data);
     }
   }, [res, status]);
 };
