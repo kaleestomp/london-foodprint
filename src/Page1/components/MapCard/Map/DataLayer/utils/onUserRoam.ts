@@ -14,7 +14,7 @@ const onUserRoam = (
 ): TilesParams | null => {
 
   const [viewportParams, setViewportParams] = useState<TilesParams | null>(null);
-
+  
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -22,12 +22,18 @@ const onUserRoam = (
     const update = () => {
       const b = map.getBounds();
       const zoom = map.getZoom();
+      const res = zoomToResolution(zoom);
+      // console.log('res', res, 'zoom', zoom);
+      
       setViewportParams({
         sw_lat: b.getSouth(),
         sw_lng: b.getWest(),
         ne_lat: b.getNorth(),
         ne_lng: b.getEast(),
-        res: zoomToResolution(zoom),
+        res: res,
+        // At the finest resolution always request individual places directly,
+        // bypassing the density table regardless of place count.
+        ...(zoom >= 18 ? { places_only: true } : {}),
       });
     };
     update();

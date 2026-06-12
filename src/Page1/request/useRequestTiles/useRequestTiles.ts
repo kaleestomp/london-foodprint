@@ -13,6 +13,11 @@ export interface TilesParams {
   ne_lng: number;
   /** H3 resolution resolved on the frontend (7–10). Sent directly to the API. */
   res: number;
+  /**
+   * When true, the backend skips the density table and returns up to 100 places
+   * directly. Only valid (and only sent) when res === 10.
+   */
+  places_only?: boolean;
   cuisine?: string;
   cost?: string;
   venue_type?: string;
@@ -28,6 +33,7 @@ const buildQueryKey = (params: TilesParams): string => {
     ne_lat: String(params.ne_lat),
     ne_lng: String(params.ne_lng),
     res: String(params.res),
+    ...(params.places_only ? { places_only: 'true' } : {}),
     cuisine: params.cuisine ?? '',
     cost: params.cost ?? '',
     venue_type: params.venue_type ?? '',

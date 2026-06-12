@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import 'leaflet.heat';
 import { cellToLatLng } from 'h3-js';
-import { type TileDensity } from '../../../../request/useRequestTiles/request';
+import { type TileDensity } from '../../../../../request/useRequestTiles/request';
 
 type HeatmapConfig = {
   radius: number;

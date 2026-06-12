@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import { cellToBoundary } from 'h3-js';
-import { type TileDensity } from '../../../../request/useRequestTiles/request';
+import { type TileDensity } from '../../../../../request/useRequestTiles/request';
 
 // Count thresholds considered "high density" per resolution — same logic as heatmap.
 const HIGH_COUNT_BY_RESOLUTION: Record<number, number> = {
