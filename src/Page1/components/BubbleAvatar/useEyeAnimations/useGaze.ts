@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { type Point, IDLE_EYE_MOVE_FREQUENCY, EYE_GAZE_ON_IDLE, IDLE_EYE_MOVE_MULTIPLIERS, JITTER, CURSOR_FREQUENCY} from '../config';
 
-export type GazeOffset = { x: number; y: number };
-
+const PICKS = EYE_GAZE_ON_IDLE;
+const MIN_MS = IDLE_EYE_MOVE_FREQUENCY[0];
+const MAX_MS = IDLE_EYE_MOVE_FREQUENCY[1];
+const MIN_AMP = IDLE_EYE_MOVE_MULTIPLIERS[0];
+const MAX_AMP = IDLE_EYE_MOVE_MULTIPLIERS[1];
 const MAX_OFFSET = 4; // px — max pupil travel in any direction
 const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
 
@@ -15,7 +19,7 @@ const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
  * separating them would require passing a ref between hooks for no real gain.
  */
 const useGaze = (bubbleRef: React.RefObject<HTMLDivElement | null>) => {
-  const [gaze, setGaze] = useState<GazeOffset>({ x: 0, y: 0 });
+  const [gaze, setGaze] = useState<Point>({ x: 0, y: 0 });
   const mouseRef = useRef<{ x: number; y: number } | null>(null);
 
   // ── Passive cursor tracking ──────────────────────────────────────────────
@@ -28,7 +32,7 @@ const useGaze = (bubbleRef: React.RefObject<HTMLDivElement | null>) => {
   }, []);
 
   // ── Cursor-angle helper ──────────────────────────────────────────────────
-  const gazeAtCursor = useCallback((): GazeOffset => {
+  const gazeAtCursor = useCallback((): Point => {
     const mouse = mouseRef.current;
     const el    = bubbleRef.current;
     if (!mouse || !el) return { x: 0, y: 0 };
@@ -52,17 +56,20 @@ const useGaze = (bubbleRef: React.RefObject<HTMLDivElement | null>) => {
     let timer: ReturnType<typeof setTimeout>;
 
     const scheduleNext = () => {
+      const delayMs = MIN_MS + Math.random() * (MAX_MS - MIN_MS); // every 1.4–4.2 s
       timer = setTimeout(() => {
         const roll = Math.random();
-
-        if      (roll < 0.40) setGaze(gazeAtCursor());             // look at cursor
-        else if (roll < 0.58) setGaze({ x: -MAX_OFFSET, y: 0 });  // glance left
-        else if (roll < 0.76) setGaze({ x:  MAX_OFFSET, y: 0 });  // glance right
-        else if (roll < 0.88) setGaze({ x: 0, y: MAX_OFFSET * 0.6 }); // glance down
-        else                  setGaze({ x: 0, y: 0 });            // centre
-
+        const baseGaze = roll <= CURSOR_FREQUENCY 
+          ? gazeAtCursor() : PICKS[Math.floor(Math.random() * PICKS.length)];
+        const amp = MIN_AMP + Math.random() * (MAX_AMP - MIN_AMP);
+        const jitterX = (Math.random() - 0.5) * 2 * JITTER;
+        const jitterY = (Math.random() - 0.5) * 2 * JITTER;
+        setGaze({
+          x: baseGaze.x * amp + jitterX,
+          y: baseGaze.y * amp + jitterY,
+        });
         scheduleNext();
-      }, 1400 + Math.random() * 2800); // every 1.4–4.2 s
+      }, delayMs); 
     };
 
     scheduleNext();

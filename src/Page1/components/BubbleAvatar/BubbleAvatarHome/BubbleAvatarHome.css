@@ -81,10 +81,18 @@
 }
 
 .bubble-eye {
-  width: 6px;
-  height: 10px;
+  width: 8px;
+  height: 12px;
   border-radius: 3px;           /* fully rounded caps on a vertical pill */
   background: #2a2a2a;
   flex-shrink: 0;
   transform-origin: center center;
+}
+
+/* Cartoon-style smiling eyes when avatar is picked up/dragging */
+.bubble-eye.is-smile {
+  width: 8px;
+  height: 8px;
+  border-bottom: 2.5px solid #2a2a2a;
+  border-radius: 20px 20px 0 0;
 }

@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
 import L from 'leaflet';
 import useBubbleDrag from '../useDragAndDrop/useBubbleDrag';
-import useEyeGaze from '../useEyeAnimations/useEyeGaze';
 import useHomeProximity from './useHomeProximity';
+import useBubbleHomeEyes from '../useEyeAnimations/useBubbleHomeEyes';
+import { getHomeCenter, HOME_SNAP_RADIUS } from '../config';
 import './BubbleAvatarHome.css';
 
 type Props = {
@@ -19,14 +20,20 @@ type Props = {
    * picking up the map avatar — the user's pointer is already held down there.
    */
   pickupFrom?: { x: number; y: number };
+  /** Spawn animation source when returning home via reset action */
+  flyInFrom?: { x: number; y: number };
+  /** Fires after one-shot fly-in animation completes */
+  onFlyInComplete?: () => void;
   /** Fires when released off the map while in pickupFrom mode (no snap-back needed) */
   onDropCancel?: () => void;
 };
 
-const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, onNearHomeChange, pickupFrom, onDropCancel }) => {
+const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, onNearHomeChange, pickupFrom, flyInFrom, onFlyInComplete, onDropCancel }) => {
   const bubbleRef     = useRef<HTMLDivElement>(null);
   const dragControls  = useDragControls();
   const firedPickupRef = useRef(false);
+  const hasDragStartedRef = useRef(false);
+  const flyInCompletedRef = useRef(false);
 
   const handleDrop = useCallback(
     (lat: number, lng: number) => onDrop?.(lat, lng),
@@ -36,13 +43,52 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, onNearH
   const { isDragging, dragPos, handleDragStart, handleDrag, handleDragEnd } =
     useBubbleDrag(mapRef, handleDrop, onDropCancel);
 
+  const handleDragStartWrapped = useCallback(() => {
+    hasDragStartedRef.current = true;
+    handleDragStart();
+  }, [handleDragStart]);
+
   // Notify parent whenever drag state changes so it can show BubbleHomeGhost
+  const isPickupPending = !!pickupFrom && !isDragging;
+  const isVisuallyDragging = isDragging || isPickupPending;
   useEffect(() => {
-    onDraggingChange?.(isDragging);
-  }, [isDragging, onDraggingChange]);
+    onDraggingChange?.(isVisuallyDragging);
+  }, [isVisuallyDragging, onDraggingChange]);
 
   // Detect when drag enters/leaves the home snap zone and notify parent
   useHomeProximity(isDragging, dragPos, onNearHomeChange);
+
+  // Resolves pickup mode when pointer is released before Framer drag starts.
+  // This prevents a "hovering" avatar when pickup succeeds but drag events don't fire.
+  const resolvePickupWithoutDrag = useCallback((x: number, y: number) => {
+    const map = mapRef.current;
+    if (!map) {
+      onDropCancel?.();
+      return;
+    }
+
+    const home = getHomeCenter();
+    const distToHome = Math.sqrt((x - home.x) ** 2 + (y - home.y) ** 2);
+
+    // Near home: cancel pickup and return to home button.
+    if (distToHome < HOME_SNAP_RADIUS) {
+      onDropCancel?.();
+      return;
+    }
+
+    const mapRect = map.getContainer().getBoundingClientRect();
+    const droppedOnMap =
+      x >= mapRect.left && x <= mapRect.right &&
+      y >= mapRect.top  && y <= mapRect.bottom;
+
+    if (droppedOnMap) {
+      const leafletPoint = L.point(x - mapRect.left, y - mapRect.top);
+      const latLng = map.containerPointToLatLng(leafletPoint);
+      onDrop?.(latLng.lat, latLng.lng);
+    } else {
+      onDropCancel?.();
+    }
+  }, [mapRef, onDrop, onDropCancel]);
 
   // When mounted at a pickup position, programmatically start the Framer Motion
   // drag using the real pointer coordinates. The user's pointer is still held
@@ -50,6 +96,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, onNearH
   useEffect(() => {
     if (!pickupFrom || firedPickupRef.current) return;
     firedPickupRef.current = true;
+    hasDragStartedRef.current = false;
     requestAnimationFrame(() => {
       dragControls.start(
         new PointerEvent('pointerdown', {
@@ -64,16 +111,41 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, onNearH
     });
   }, [pickupFrom, dragControls]);
 
+  // If pickup mode was entered but Framer drag never started (e.g. pointer timing
+  // edge case), resolve on pointerup so avatar never stays hovering.
+  useEffect(() => {
+    if (!pickupFrom) return;
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (hasDragStartedRef.current) return;
+      resolvePickupWithoutDrag(e.clientX, e.clientY);
+    };
+
+    window.addEventListener('pointerup', onPointerUp, { once: true });
+    return () => window.removeEventListener('pointerup', onPointerUp);
+  }, [pickupFrom, resolvePickupWithoutDrag]);
+
   // Override CSS positioning when mounted at a pickup location.
   // The 32 px offset centres the 64 px circle on the pointer.
   const pickupStyle = pickupFrom
     ? { bottom: 'auto' as const, left: pickupFrom.x - 32, top: pickupFrom.y - 32, marginLeft: 0 }
     : undefined;
 
-  const { gaze, isBlinking } = useEyeGaze(bubbleRef);
+  const homeCenter = getHomeCenter();
+  const shouldFlyIn = !pickupFrom && !!flyInFrom;
+  const flyInOffset = shouldFlyIn && flyInFrom
+    ? { x: flyInFrom.x - homeCenter.x, y: flyInFrom.y - homeCenter.y }
+    : null;
 
-  // scaleY: wide-eyed while dragging → squish closed while blinking → normal
-  const eyeScaleY = isDragging ? 1.4 : isBlinking ? 0.08 : 1;
+  useEffect(() => {
+    flyInCompletedRef.current = false;
+  }, [flyInFrom]);
+
+  const { isSmileEye, eyeScaleY, eyeX, eyeY, isBlinking } = useBubbleHomeEyes({
+    bubbleRef,
+    isDragging,
+    isVisuallyDragging,
+  });
 
   return (
     <>
@@ -82,6 +154,18 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, onNearH
         ref={bubbleRef}
         className={`bubble-btn${isDragging ? ' is-dragging' : ''}`}
         style={pickupStyle}
+        initial={flyInOffset ? { x: flyInOffset.x, y: flyInOffset.y, opacity: 0 } : false}
+        animate={flyInOffset ? { x: 0, y: 0, opacity: 1 } : undefined}
+        transition={flyInOffset ? {
+          x: { type: 'spring', stiffness: 280, damping: 24 },
+          y: { type: 'spring', stiffness: 280, damping: 24 },
+          opacity: { duration: 0.16 },
+        } : undefined}
+        onAnimationComplete={() => {
+          if (!flyInOffset || flyInCompletedRef.current) return;
+          flyInCompletedRef.current = true;
+          onFlyInComplete?.();
+        }}
         drag
         dragControls={dragControls}
         dragSnapToOrigin={!pickupFrom}
@@ -90,7 +174,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, onNearH
         dragTransition={{ bounceStiffness: 320, bounceDamping: 28 }}
         whileTap={{ scale: 0.88 }}
         whileDrag={{ scale: 1.18, boxShadow: '0 10px 36px rgba(0,0,0,0.22), 0 3px 10px rgba(0,0,0,0.12)' }}
-        onDragStart={handleDragStart}
+        onDragStart={handleDragStartWrapped}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
         role="button"
@@ -102,8 +186,8 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, onNearH
 
               {/* Left eye */}
               <motion.div
-                className="bubble-eye"
-                animate={{ x: gaze.x, y: gaze.y, scaleY: eyeScaleY }}
+                className={`bubble-eye${isSmileEye ? ' is-smile' : ''}`}
+                animate={{ x: eyeX, y: eyeY, scaleY: eyeScaleY }}
                 transition={{
                   x:      { type: 'spring', stiffness: 200, damping: 20 },
                   y:      { type: 'spring', stiffness: 200, damping: 20 },
@@ -113,8 +197,8 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, onNearH
 
               {/* Right eye — 40 ms stagger on blink close only */}
               <motion.div
-                className="bubble-eye"
-                animate={{ x: gaze.x, y: gaze.y, scaleY: eyeScaleY }}
+                className={`bubble-eye${isSmileEye ? ' is-smile' : ''}`}
+                animate={{ x: eyeX, y: eyeY, scaleY: eyeScaleY }}
                 transition={{
                   x:      { type: 'spring', stiffness: 200, damping: 20 },
                   y:      { type: 'spring', stiffness: 200, damping: 20 },
@@ -132,6 +216,13 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, onNearH
         <div
           className="bubble-btn-drop-ring"
           style={{ left: dragPos.x, top: dragPos.y }}
+        />
+      )}
+
+      {isPickupPending && pickupFrom && (
+        <div
+          className="bubble-btn-drop-ring"
+          style={{ left: pickupFrom.x, top: pickupFrom.y }}
         />
       )}
     </>

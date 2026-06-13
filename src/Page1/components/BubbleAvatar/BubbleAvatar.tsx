@@ -3,10 +3,10 @@ import L from 'leaflet';
 
 import { type LatLng, SEARCH_RADIUS } from './config';
 
-import BubbleHome from '../BubbleAvatar/BubbleAvatarHome/BubbleAvatarHome';
+import BubbleHome from './BubbleAvatarHome/BubbleAvatarHome';
 import useBubbleDrop from './useDragAndDrop/useBubbleDrop';
-import BubbleHomeGhost from '../BubbleAvatar/BubbleHomeGhost/BubbleHomeGhost';
-import BubbleEdgeIndicator from '../BubbleAvatar/BubbleEdgeIndicator/BubbleEdgeIndicator';
+import BubbleHomeGhost from './BubbleHomeGhost/BubbleHomeGhost';
+import BubbleEdgeIndicator from './BubbleEdgeIndicator/BubbleEdgeIndicator';
 
 const BubbleAvatar: React.FC<{ 
     mapRef?: React.RefObject<L.Map | null>;
@@ -17,20 +17,35 @@ const BubbleAvatar: React.FC<{
     // Screen coordinate where pickup was triggered — mounts BubbleButton there
     // instead of its home position and auto-starts the drag.
     const [pickupPos, setPickupPos]    = useState<{ x: number; y: number } | null>(null);
+    const [flyInFrom, setFlyInFrom]    = useState<{ x: number; y: number } | null>(null);
     const [isDraggingButton, setIsDraggingButton] = useState(false);
     const [isNearHome, setIsNearHome]  = useState(false);
 
     const handlePickup = useCallback((x: number, y: number) => {
         setDroppedPos(null);
         setPickupPos({ x, y });
+        setFlyInFrom(null);
+    }, []);
+    const handleResetHome = useCallback((from?: { x: number; y: number }) => {
+        setDroppedPos(null);
+        setPickupPos(null);
+        setFlyInFrom(from ?? null);
+        setIsDraggingButton(false);
+    }, []);
+    const handleFlyInComplete = useCallback(() => {
+        setFlyInFrom(null);
     }, []);
     const handleDrop = useCallback((lat: number, lng: number) => {
         setDroppedPos({ lat, lng });
         setPickupPos(null);
+        setFlyInFrom(null);
         setIsDraggingButton(false); // ghost must clear when avatar lands on map
     }, []);
     // Off-map release in pickup mode: clear pickupPos so button jumps to home
-    const handleDropCancel = useCallback(() => setPickupPos(null), []);
+    const handleDropCancel = useCallback(() => {
+        setPickupPos(null);
+        setFlyInFrom(null);
+    }, []);
 
     useBubbleDrop(mapRef, droppedPos, handlePickup);
 
@@ -57,6 +72,8 @@ const BubbleAvatar: React.FC<{
                     onDraggingChange={setIsDraggingButton}
                     onNearHomeChange={setIsNearHome}
                     pickupFrom={pickupPos ?? undefined}
+                    flyInFrom={flyInFrom ?? undefined}
+                    onFlyInComplete={handleFlyInComplete}
                 />
             )}
             {isDraggingButton && (
@@ -67,6 +84,7 @@ const BubbleAvatar: React.FC<{
                     mapRef={mapRef}
                     droppedPos={droppedPos}
                     onPickup={handlePickup}
+                    onResetHome={handleResetHome}
                 />
             )}
         </>

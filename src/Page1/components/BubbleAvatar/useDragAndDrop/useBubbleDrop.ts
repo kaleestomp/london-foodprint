@@ -6,7 +6,9 @@ import L from 'leaflet';
 import BubbleAvatarPin from '../BubbleAvatarPin/BubbleAvatarPin';
 import addPlaceMarkers from '../../MapCard/Map/DataLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
-import { type LatLng, SEARCH_RADIUS, LONG_PRESS_MS, ZOOM_LEVEL, CIRCLE_COLOR } from '../config';
+import { type LatLng, SEARCH_RADIUS, LONGPRESS_MS, ZOOM_LEVEL, CIRCLE_COLOR, DROP_ENTRY_DELAY_MS } from '../config';
+
+const CIRCLE_ENTRY_MS = 280;
 
 /**
  * Manages all Leaflet layers for the dropped bubble avatar.
@@ -26,6 +28,7 @@ const useBubbleDrop = (
   const markerRef      = useRef<L.Marker | null>(null);
   const reactRootRef   = useRef<Root | null>(null);
   const placesLayerRef = useRef<L.LayerGroup | null>(null);
+  const entryDelayRef  = useRef(0);
   // Keep onPickup fresh without invalidating the main effect
   const onPickupRef    = useRef(onPickup);
   useEffect(() => { onPickupRef.current = onPickup; }, [onPickup]);
@@ -59,15 +62,21 @@ const useBubbleDrop = (
   // ── Add/replace places layer when nearby results arrive ───────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !nearbyRes) return;
+    if (!map || !nearbyRes || !droppedPos) return;
     if (placesLayerRef.current) {
       map.removeLayer(placesLayerRef.current);
       placesLayerRef.current = null;
     }
     const layer = L.layerGroup().addTo(map);
     placesLayerRef.current = layer;
-    addPlaceMarkers(layer, nearbyRes.data);
-  }, [nearbyRes, mapRef]);
+    addPlaceMarkers(
+      layer,
+      nearbyRes.data,
+      undefined,
+      L.latLng(droppedPos.lat, droppedPos.lng),
+      entryDelayRef.current,
+    );
+  }, [nearbyRes, mapRef, droppedPos]);
 
   // ── React to droppedPos changes ────────────────────────────────────────
   useEffect(() => {
@@ -76,19 +85,47 @@ const useBubbleDrop = (
 
     const { lat, lng } = droppedPos;
     let pressTimer: ReturnType<typeof setTimeout> | null = null;
+    let circleAnimFrame: number | null = null;
+    let circleStartTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const entryDelayMs = map.getZoom() !== ZOOM_LEVEL ? DROP_ENTRY_DELAY_MS : 0;
+    entryDelayRef.current = entryDelayMs;
 
     // 1. Zoom
     map.setView([lat, lng], ZOOM_LEVEL, { animate: true });
 
-    // 2. Dashed 1 km circle (canvas renderer supports dashArray natively)
+    // 2. Dashed 1 km circle — created invisible (radius 1, opacity 0) so no
+    //    flash occurs before the entry delay fires.
     const circle = L.circle([lat, lng], {
-      radius:    SEARCH_RADIUS,
+      radius:    1,
       color:     CIRCLE_COLOR,
       weight:    2.0,
       fill:      false,
       dashArray: '1 4',
+      opacity:   0,
     }).addTo(map);
     circleRef.current = circle;
+
+    const startCircleIn = () => {
+      const startTs = performance.now();
+      const animateCircleIn = (ts: number) => {
+        const t = Math.min((ts - startTs) / CIRCLE_ENTRY_MS, 1);
+        const eased = 1 - (1 - t) ** 3;
+        circle.setRadius(Math.max(1, SEARCH_RADIUS * eased));
+        circle.setStyle({ opacity: 0.16 + 0.84 * eased });
+
+        if (t < 1) {
+          circleAnimFrame = window.requestAnimationFrame(animateCircleIn);
+        }
+      };
+
+      circleAnimFrame = window.requestAnimationFrame(animateCircleIn);
+    };
+    if (entryDelayMs > 0) {
+      circleStartTimer = setTimeout(startCircleIn, entryDelayMs);
+    } else {
+      startCircleIn();
+    }
 
     // 3. Avatar marker — interactive: true lets Leaflet block map-pan on press
     const icon = L.divIcon({
@@ -142,7 +179,7 @@ const useBubbleDrop = (
           // map panning is re-enabled before we hand control back to React.
           map.dragging.enable();
           onPickupRef.current(e.clientX, e.clientY);
-        }, LONG_PRESS_MS);
+        }, LONGPRESS_MS);
       });
 
       markerEl.addEventListener('pointermove', (e: PointerEvent) => {
@@ -164,6 +201,8 @@ const useBubbleDrop = (
     // Places layer is managed by the nearbyRes effect above.
     return () => {
       if (pressTimer) clearTimeout(pressTimer);
+      if (circleStartTimer) clearTimeout(circleStartTimer);
+      if (circleAnimFrame !== null) window.cancelAnimationFrame(circleAnimFrame);
       // Defensive: if the marker was removed before pointerup/pointercancel,
       // Leaflet dragging can remain disabled.
       map.dragging.enable();

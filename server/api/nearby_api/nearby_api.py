@@ -4,8 +4,8 @@ from typing import Any
 import h3
 from fastapi import APIRouter, Query, Request
 
-from api.map_common import PAGE_SIZE, get_rank_column, normalize_dimension
-
+from api.map_common import get_rank_column, normalize_dimension
+PAGE_SIZE = 80
 router = APIRouter()
 
 
