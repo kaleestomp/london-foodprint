@@ -1,0 +1,90 @@
+/* ── BubbleButton ────────────────────────────────────────────────────────────
+   Fixed at the bottom-centre of the viewport, hovering above the map.
+   Framer Motion owns the CSS transform (via x/y motion values), so we centre
+   the 64 px circle with left + negative margin rather than translateX(-50%).
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.bubble-btn {
+  position: fixed;
+  bottom: 88px;
+  left: 50%;
+  margin-left: -32px;          /* half of 64px → true centre without transform */
+
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 1.0);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    0 2px 32px rgba(0, 0, 0, 0.28),
+    0 2px 8px  rgba(0, 0, 0, 0.16);
+
+  cursor: grab;
+  z-index: 1100;               /* above toolbar (z-index 1000) */
+  touch-action: none;          /* required for Framer Motion pointer capture */
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+/* While dragging the OS cursor switches to grabbing */
+.bubble-btn.is-dragging {
+  cursor: grabbing;
+}
+
+/* Drop zone hint – a faint ring pulses on the map while carrying */
+@keyframes drop-ring-pulse {
+  0%   { transform: translate(-50%, -50%) scale(1.25); opacity: 0.55; }
+  50%  { transform: translate(-50%, -50%) scale(1.5);    opacity: 0.25; }
+  100% { transform: translate(-50%, -50%) scale(1.25); opacity: 0.55; }
+}
+
+.bubble-btn-drop-ring {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1099;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px dashed #ba160c;
+  animation: drop-ring-pulse 1.4s ease-in-out infinite;
+}
+
+/* ── Face ─────────────────────────────────────────────────────────────────── */
+
+/* Inner wrapper – bob animation runs here so it doesn't conflict with drag x/y */
+.bubble-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;        /* drag events captured by outer .bubble-btn */
+}
+
+.bubble-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: -4px;            /* nudge face slightly above dead-centre */
+}
+
+.bubble-eyes {
+  display: flex;
+  gap: 13px;
+}
+
+.bubble-eye {
+  width: 6px;
+  height: 10px;
+  border-radius: 3px;           /* fully rounded caps on a vertical pill */
+  background: #2a2a2a;
+  flex-shrink: 0;
+  transform-origin: center center;
+}

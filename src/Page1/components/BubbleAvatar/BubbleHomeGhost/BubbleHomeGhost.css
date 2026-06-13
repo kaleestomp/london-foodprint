@@ -1,0 +1,16 @@
+/* Ghost outline shown at the home position while the avatar is being carried.
+   Mirrors BubbleButton's position exactly. */
+.bubble-home-ghost {
+  position: fixed;
+  bottom: 88px;
+  left: 50%;
+  margin-left: -32px;   /* half of 64 px — no translateX so Framer scale origin is clean */
+
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px dashed #828282;
+
+  pointer-events: none;
+  z-index: 1099;        /* just below normal button (1100) */
+}

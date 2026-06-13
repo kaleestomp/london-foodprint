@@ -1,0 +1,102 @@
+/* ── BubbleEdgeIndicator ──────────────────────────────────────────────────────
+   Speech-bubble circle shown at the viewport edge when the map avatar is
+   off-screen. The tail points outward toward the avatar's map position.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* Bubble body — centred on the computed edge position via translate */
+.bubble-edge-indicator {
+  position: fixed;
+  transform: translate(-50%, -50%);
+
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, 0.16),
+    0 1px 4px  rgba(0, 0, 0, 0.08);
+
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1150;
+  touch-action: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: transform 0.1s ease;
+}
+
+.bubble-edge-indicator:active {
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+/* ── Speech-bubble tail ──────────────────────────────────────────────────── */
+/* A CSS triangle pseudo-element; direction class controls which side it exits */
+
+.bubble-edge-indicator::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* Tail points RIGHT (avatar is off the right edge) */
+.edge-right::after {
+  right: -11px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top:    7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left:   12px solid rgba(255, 255, 255, 0.95);
+}
+
+/* Tail points LEFT */
+.edge-left::after {
+  left: -11px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top:    7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right:  12px solid rgba(255, 255, 255, 0.95);
+}
+
+/* Tail points DOWN (avatar is off the bottom edge) */
+.edge-bottom::after {
+  bottom: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left:  7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top:   12px solid rgba(255, 255, 255, 0.95);
+}
+
+/* Tail points UP (avatar is off the top edge) */
+.edge-top::after {
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left:   7px solid transparent;
+  border-right:  7px solid transparent;
+  border-bottom: 12px solid rgba(255, 255, 255, 0.95);
+}
+
+/* ── Mini face ──────────────────────────────────────────────────────────── */
+.bubble-edge-eyes {
+  display: flex;
+  gap: 7px;
+  margin-top: -2px;
+}
+
+.bubble-edge-eye {
+  width: 3.5px;
+  height: 6px;
+  border-radius: 1.75px;
+  background: #2a2a2a;
+  flex-shrink: 0;
+}

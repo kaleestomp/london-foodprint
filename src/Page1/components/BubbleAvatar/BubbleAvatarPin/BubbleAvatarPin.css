@@ -1,0 +1,47 @@
+/* ── BubbleAvatarPin ─────────────────────────────────────────────────────────
+   Leaflet DivIcon container: strip the default white-box styling.
+   ──────────────────────────────────────────────────────────────────────────── */
+.bubble-avatar-leaflet-icon {
+  background: none !important;
+  border: none !important;
+  cursor: grab;
+  touch-action: none;       /* give raw pointer events immediately — no browser scroll/pan delay */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* The React-rendered circle planted on the map (≈60 % of BubbleButton) */
+.bubble-avatar-pin {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 1.00);
+  box-shadow:
+    /* 0 3px 10px rgba(0, 0, 0, 0.16),
+    0 1px 3px  rgba(0, 0, 0, 0.08); */
+    0 2px 16px rgba(0, 0, 0, 0.28),
+    0 2px 8px  rgba(0, 0, 0, 0.16);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;       /* interaction captured by the map itself */
+  user-select: none;
+}
+
+.bubble-avatar-eyes {
+  display: flex;
+  gap: 8px;
+  margin-top: -2px;           /* nudge face slightly above dead-centre */
+}
+
+/* Scaled-down version of .bubble-eye (6×10 px → 4×6.5 px) */
+.bubble-avatar-eye {
+  width: 4px;
+  height: 6.5px;
+  border-radius: 2px;
+  background: #2a2a2a;
+  flex-shrink: 0;
+  transform-origin: center center;
+}
