@@ -1,17 +1,19 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react'; 
-import L from 'leaflet';
 
 import { type LatLng, SEARCH_RADIUS } from './config';
 
 import BubbleHome from './BubbleAvatarHome/BubbleAvatarHome';
 import useBubbleDrop from './useDragAndDrop/useBubbleDrop';
+import useMapPanToLocation from './handleUserLocation/useMapPanToLocation';
+import useFlightAnimationToPoint from './handleUserLocation/useFlightAnimationToPoint';
 import BubbleHomeGhost from './BubbleHomeGhost/BubbleHomeGhost';
 import BubbleEdgeIndicator from './BubbleEdgeIndicator/BubbleEdgeIndicator';
 
 const BubbleAvatar: React.FC<{ 
-    mapRef?: React.RefObject<L.Map | null>;
-    setSearchMask: React.Dispatch<React.SetStateAction<{ center: LatLng; radiusM: number } | null>> 
-}> = ({ mapRef, setSearchMask }) => { 
+    mapRef: React.RefObject<L.Map | null>;
+    setSearchMask: React.Dispatch<React.SetStateAction<{ center: LatLng; radiusM: number } | null>>;
+    programmaticDrop?: { lat: number; lng: number; token: number } | null;
+}> = ({ mapRef, setSearchMask, programmaticDrop }) => { 
 
     const [droppedPos, setDroppedPos]  = useState<LatLng | null>(null);
     // Screen coordinate where pickup was triggered — mounts BubbleButton there
@@ -20,6 +22,61 @@ const BubbleAvatar: React.FC<{
     const [flyInFrom, setFlyInFrom]    = useState<{ x: number; y: number } | null>(null);
     const [isDraggingButton, setIsDraggingButton] = useState(false);
     const [isNearHome, setIsNearHome]  = useState(false);
+
+    const [programmaticFlightToken, setProgrammaticFlightToken] = useState<number | null>(null);
+
+    const resetFloatingState = useCallback(() => {
+        setDroppedPos(null);
+        setPickupPos(null);
+        setFlyInFrom(null);
+        setIsDraggingButton(false);
+    }, []);
+
+    const handleDrop = useCallback((lat: number, lng: number) => {
+        setDroppedPos({ lat, lng });
+        setPickupPos(null);
+        setFlyInFrom(null);
+        setIsDraggingButton(false);
+    }, []);
+
+    // Memoize targetLatLng to prevent unnecessary re-creation and infinite loops
+    const targetLatLng = useMemo(
+        () => programmaticDrop ? { lat: programmaticDrop.lat, lng: programmaticDrop.lng } : null,
+        [programmaticDrop?.lat, programmaticDrop?.lng]
+    );
+
+    const handleMapPanReady = useCallback(() => {
+        setProgrammaticFlightToken(programmaticDrop?.token ?? null);
+    }, [programmaticDrop?.token]);
+
+    useMapPanToLocation({
+        mapRef,
+        targetLatLng,
+        token: programmaticDrop?.token ?? null,
+        onReady: handleMapPanReady,
+    });
+
+    const {
+        flyOutTo,
+        startFlight,
+        handleAnimationComplete,
+        clear: clearFlight,
+    } = useFlightAnimationToPoint({
+        mapRef,
+        targetLatLng,
+        onAnimationComplete: handleDrop,
+        onStateReset: resetFloatingState,
+    });
+
+    useEffect(() => {
+        if (programmaticFlightToken) {
+            startFlight();
+        }
+    }, [programmaticFlightToken, startFlight]);
+
+    useEffect(() => {
+        clearFlight();
+    }, [clearFlight, droppedPos]);
 
     const handlePickup = useCallback((x: number, y: number) => {
         setDroppedPos(null);
@@ -32,14 +89,25 @@ const BubbleAvatar: React.FC<{
         setFlyInFrom(from ?? null);
         setIsDraggingButton(false);
     }, []);
+    const handleResetHomeAnytime = useCallback(() => {
+        if (pickupPos) {
+            handleResetHome(pickupPos);
+            return;
+        }
+
+        const map = mapRef.current;
+        if (map && droppedPos) {
+            const pt = map.latLngToContainerPoint([droppedPos.lat, droppedPos.lng]);
+            const rect = map.getContainer().getBoundingClientRect();
+            handleResetHome({ x: rect.left + pt.x, y: rect.top + pt.y });
+            return;
+        }
+
+        handleResetHome();
+    }, [pickupPos, handleResetHome, mapRef, droppedPos]);
+    
     const handleFlyInComplete = useCallback(() => {
         setFlyInFrom(null);
-    }, []);
-    const handleDrop = useCallback((lat: number, lng: number) => {
-        setDroppedPos({ lat, lng });
-        setPickupPos(null);
-        setFlyInFrom(null);
-        setIsDraggingButton(false); // ghost must clear when avatar lands on map
     }, []);
     // Off-map release in pickup mode: clear pickupPos so button jumps to home
     const handleDropCancel = useCallback(() => {
@@ -50,6 +118,7 @@ const BubbleAvatar: React.FC<{
     useBubbleDrop(mapRef, droppedPos, handlePickup);
 
     const isDropped = droppedPos !== null;
+    const isAwayFromHome = isDropped || isDraggingButton || pickupPos !== null;
     const searchMask = useMemo(
         () => (droppedPos ? { center: droppedPos, radiusM: SEARCH_RADIUS } : null),
         [droppedPos],
@@ -70,21 +139,26 @@ const BubbleAvatar: React.FC<{
                     onDrop={handleDrop}
                     onDropCancel={handleDropCancel}
                     onDraggingChange={setIsDraggingButton}
+                    isNearHome={isNearHome}
                     onNearHomeChange={setIsNearHome}
                     pickupFrom={pickupPos ?? undefined}
                     flyInFrom={flyInFrom ?? undefined}
                     onFlyInComplete={handleFlyInComplete}
+                    flyOutTo={flyOutTo ?? undefined}
+                    onFlyOutComplete={handleAnimationComplete}
                 />
             )}
-            {isDraggingButton && (
-                <BubbleHomeGhost isNearHome={isNearHome} />
+            {isAwayFromHome && (
+                <BubbleHomeGhost
+                    isNearHome={isNearHome}
+                    onResetHome={handleResetHomeAnytime}
+                />
             )}
             {isDropped && droppedPos && (
                 <BubbleEdgeIndicator
                     mapRef={mapRef}
                     droppedPos={droppedPos}
                     onPickup={handlePickup}
-                    onResetHome={handleResetHome}
                 />
             )}
         </>

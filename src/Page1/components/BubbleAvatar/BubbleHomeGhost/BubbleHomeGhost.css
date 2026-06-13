@@ -1,16 +1,37 @@
-/* Ghost outline shown at the home position while the avatar is being carried.
-   Mirrors BubbleButton's position exactly. */
-.bubble-home-ghost {
+/* Home reset action with dashed home ring at the fixed home position. */
+.bubble-home-reset {
   position: fixed;
-  bottom: 88px;
   left: 50%;
-  margin-left: -32px;   /* half of 64 px — no translateX so Framer scale origin is clean */
-
+  margin-left: -32px;
+  bottom: 88px;
   width: 64px;
   height: 64px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1099;
+  color: rgba(20, 20, 20, 0.32);
+  transition: color 0.18s ease, opacity 0.18s ease;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bubble-home-reset:hover {
+  color: rgba(20, 20, 20, 0.5);
+}
+
+.bubble-home-reset .MuiSvgIcon-root {
+  position: relative;
+  z-index: 1;
+}
+
+.bubble-home-reset-ring {
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
   border: 2px dashed #828282;
-
-  pointer-events: none;
-  z-index: 1099;        /* just below normal button (1100) */
+  opacity: 0.8;
 }

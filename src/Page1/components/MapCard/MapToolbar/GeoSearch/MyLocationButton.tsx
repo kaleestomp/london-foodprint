@@ -1,46 +1,84 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import IconButton from '@mui/material/IconButton';
+import Snackbar from '@mui/material/Snackbar';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
-import { type LocationResult } from './useGeoSearch';
-import useGeoSearchHandler from '../../Map/GeoSearchHandler/GeoSearchHandler';
-import useMyLocation from '../../../../../utils/useMyLocation/useMyLocation';
+import L from 'leaflet';
+import useMyLocation from '../../../../../request/useMyLocation/useMyLocation';
+import { LONDON_BOUNDS } from '../../Map/MapTemplate';
+import AnimatedLoadingDots from '../../../../../components/LoadingDots/AnimatedLoadingDots';
 import './GeoSearch.css';
 
 type Props = {
   mapRef: React.RefObject<L.Map | null>;
+  onProgrammaticDrop: (lat: number, lng: number) => void;
 };
 
-const MyLocationButton: React.FC<Props> = ({ mapRef }) => {
+const MyLocationButton: React.FC<Props> = ({ mapRef, onProgrammaticDrop }) => {
 
-  const myLocation = useMyLocation(); 
-  const [location, setLocation] = useState<LocationResult | null>(null); 
-  useGeoSearchHandler(mapRef, location); 
-  
-  const handleMyLocation = () => {
-    if (!myLocation) { return; }
-    const label = [myLocation.district, myLocation.city, myLocation.region, myLocation.country]
-      .filter(Boolean).join(', ') || 'My Location';
-    const location: LocationResult = {
-      place_id: 0, 
-      display_name: label, 
-      lat: String(myLocation.lat), 
-      lon: String(myLocation.lon)
-    };
-    setLocation(location);
-  };
+  const { state, locate } = useMyLocation();
+  const [message, setMessage] = useState<string | null>(null);
+  const [showLoading, setShowLoading] = useState(false);
+
+  const handleOutsideLondon = useCallback(() => {
+    setMessage('oops you are not in london');
+  }, []);
+
+  const handleLiveLocationDrop = useCallback((lat: number, lon: number) => {
+    onProgrammaticDrop(lat, lon);
+  }, [onProgrammaticDrop]);
+
+  // Delay loading animation by 100ms to avoid flashing for fast requests
+  useEffect(() => {
+    if (state.status === 'loading') {
+      const timer = setTimeout(() => setShowLoading(true), 100);
+      return () => clearTimeout(timer);
+    }
+    setShowLoading(false);
+  }, [state.status]);
+
+  useEffect(() => {
+    if (state.status === 'error') {
+      setMessage(state.message);
+      return;
+    }
+
+    if (state.status !== 'success') { return; }
+
+    if (!LONDON_BOUNDS.contains(L.latLng(state.lat, state.lon))) {
+      handleOutsideLondon();
+      return;
+    }
+
+    handleLiveLocationDrop(state.lat, state.lon);
+  }, [handleLiveLocationDrop, handleOutsideLondon, state]);
+
   return (
-    <div className="geo-search-actions">
-      <IconButton
-          className="geo-search-action-btn"
-          aria-label="My location"
-          onClick={handleMyLocation}
-          disabled={!myLocation}
-          size="small"
-      >
-        <MyLocationOutlinedIcon sx={{ fontSize: 24 }} />
-      </IconButton>
-      {/* Add More Buttons Here */}
-    </div>
+    <>
+      <div className="geo-search-actions">
+        <IconButton
+            className="geo-search-action-btn"
+            aria-label="My location"
+            onClick={locate}
+            disabled={state.status === 'loading' || !mapRef.current}
+            size="small"
+            sx={{ color: 'inherit' }}
+        >
+          {showLoading ? (
+            <AnimatedLoadingDots size="small" />
+          ) : (
+            <MyLocationOutlinedIcon sx={{ fontSize: 24 }} />
+          )}
+        </IconButton>
+        {/* Add More Buttons Here */}
+      </div>
+      <Snackbar
+        open={message !== null}
+        autoHideDuration={2600}
+        onClose={() => setMessage(null)}
+        message={message ?? ''}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      />
+    </>
   );
 };
 

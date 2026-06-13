@@ -7,9 +7,10 @@ import './MapToolbar.css';
 
 type Props = {
   mapRef: React.RefObject<L.Map | null>;
+  onProgrammaticDrop: (lat: number, lng: number) => void;
 };
 
-const MapToolbar: React.FC<Props> = ({ mapRef }) => {
+const MapToolbar: React.FC<Props> = ({ mapRef, onProgrammaticDrop }) => {
 
   return (
     <div className="map-toolbar">
@@ -17,7 +18,7 @@ const MapToolbar: React.FC<Props> = ({ mapRef }) => {
         <LayersOutlinedIcon fontSize="medium" />
       </IconButton>
       <DropPinButton mapRef={mapRef} />
-      <GeoSearch mapRef={mapRef} />
+      <GeoSearch mapRef={mapRef} onProgrammaticDrop={onProgrammaticDrop} />
     </div>
   );
 };

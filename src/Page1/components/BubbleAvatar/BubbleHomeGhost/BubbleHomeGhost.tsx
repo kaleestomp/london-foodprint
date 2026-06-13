@@ -1,22 +1,39 @@
 import { motion } from 'framer-motion';
+import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import './BubbleHomeGhost.css';
 
 type Props = {
   /** When true, scales up to signal the avatar is in the snap-back zone */
   isNearHome: boolean;
+  /** Returns the avatar to home from any active state */
+  onResetHome: () => void;
 };
 
 /**
- * Dashed circle rendered at BubbleButton's fixed home position while the
- * avatar is being carried. Scales up slightly when the carry position is
- * within HOME_SNAP_RADIUS of the home centre.
+ * Home reset action rendered at BubbleButton's fixed home position while the
+ * avatar is away from home. The ring scales up when the avatar is close
+ * enough to trigger snap-back behavior.
  */
-const BubbleHomeGhost: React.FC<Props> = ({ isNearHome }) => (
-  <motion.div
-    className="bubble-home-ghost"
-    animate={{ scale: isNearHome ? 1.16 : 1 }}
-    transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-  />
+const BubbleHomeGhost: React.FC<Props> = ({ isNearHome, onResetHome }) => (
+  <motion.button
+    className="bubble-home-reset"
+    onClick={onResetHome}
+    aria-label="Return avatar to home"
+    title="Return avatar home"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 0.88 }}
+    whileTap={{ scale: 0.9 }}
+    exit={{ opacity: 0 }}
+    transition={{ opacity: { duration: 0.2, ease: 'easeOut' } }}
+  >
+    <motion.span
+      className="bubble-home-reset-ring"
+      aria-hidden="true"
+      animate={{ scale: isNearHome ? 1.16 : 1 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+    />
+    <ReplayRoundedIcon fontSize="large" aria-hidden="true" />
+  </motion.button>
 );
 
 export default BubbleHomeGhost;

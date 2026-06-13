@@ -60,6 +60,7 @@ async def get_tiles(
 
     # --- places_only fast-path: skip density query entirely ---
     if places_only:
+        NEW_LIMIT = 100
         places_direct_sql = f"""
             SELECT
                 id,
@@ -81,7 +82,7 @@ async def get_tiles(
               AND ($7 = '' OR venue_type = $7)
               AND {rank_column} >= $8
             ORDER BY {rank_column} DESC
-            LIMIT 100
+            LIMIT {NEW_LIMIT}
         """
         async with request.app.state.pool.acquire() as conn:
             rows = await conn.fetch(

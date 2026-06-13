@@ -1,43 +1,12 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { cellToLatLng } from 'h3-js';
 
 import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
-import { type TileDensity, type TilePlacePreview } from '../../../../request/useRequestTiles/request';
 import onUserRoam from './utils/onUserRoam';
 import DelayLoadingScreen from './utils/delayLoadingScreen';
 import createPersistentLayer from './utils/createPersistentLayer';
 import usePinAnimations from './pinAnimations/usePinAnimations';
-
-type SearchMask = {
-  center: { lat: number; lng: number };
-  radiusM: number;
-};
-
-const filterDensityOutsideMask = (
-  tiles: TileDensity[],
-  searchMask: SearchMask | null,
-): TileDensity[] => {
-  if (!searchMask) return tiles;
-
-  const center = L.latLng(searchMask.center.lat, searchMask.center.lng);
-  return tiles.filter((tile) => {
-    const [lat, lng] = cellToLatLng(tile.tile);
-    return L.latLng(lat, lng).distanceTo(center) > searchMask.radiusM;
-  });
-};
-
-const filterPlacesOutsideMask = (
-  places: TilePlacePreview[],
-  searchMask: SearchMask | null,
-): TilePlacePreview[] => {
-  if (!searchMask) return places;
-
-  const center = L.latLng(searchMask.center.lat, searchMask.center.lng);
-  return places.filter((place) => {
-    return L.latLng(place.lat, place.lon).distanceTo(center) > searchMask.radiusM;
-  });
-};
+import { type SearchMask, filterDensityOutsideMask, filterPlacesOutsideMask } from './utils/filterTileOutsideMask';
 
 const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask | null = null): void => {
   const viewportParams = onUserRoam(mapRef);

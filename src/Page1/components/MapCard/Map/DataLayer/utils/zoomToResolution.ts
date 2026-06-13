@@ -6,17 +6,6 @@
 export type ZoomResTable = ReadonlyArray<readonly [number, number]>;
 
 /**
- * Grid / heatmap mode — mirrors the original backend thresholds.
- * Requests finer resolution sooner to keep hex cells small on screen.
- */
-export const GRID_ZOOM_TO_RES: ZoomResTable = [
-  [9,  7],
-  [12, 8],
-  [15, 9],
-  [22, 10],
-];
-
-/**
  * Density-pins mode — stays one resolution coarser at the same zoom level
  * to keep pins readable and avoid over-plotting.
  */
@@ -38,3 +27,14 @@ const zoomToResolution = (zoom: number, table: ZoomResTable = PINS_ZOOM_TO_RES):
 };
 
 export default zoomToResolution;
+
+// /**
+//  * Grid / heatmap mode — mirrors the original backend thresholds.
+//  * Requests finer resolution sooner to keep hex cells small on screen.
+//  */
+// export const GRID_ZOOM_TO_RES: ZoomResTable = [
+//   [9,  7],
+//   [12, 8],
+//   [15, 9],
+//   [22, 10],
+// ];

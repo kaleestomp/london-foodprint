@@ -9,8 +9,9 @@ import './GeoSearch.css';
 
 type Props = {
   mapRef: React.RefObject<L.Map | null>;
+  onProgrammaticDrop: (lat: number, lng: number) => void;
 };
-const GeoSearch: React.FC<Props> = ({ mapRef }) => {
+const GeoSearch: React.FC<Props> = ({ mapRef, onProgrammaticDrop }) => {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [location, setLocation] = useState<LocationResult | null>(null);
@@ -42,7 +43,7 @@ const GeoSearch: React.FC<Props> = ({ mapRef }) => {
           onBlur={() => setTimeout(() => setOpen(false), 150)}
         />
         <span className="geo-search-actions-divider" />
-        <MyLocationButton mapRef={mapRef} />
+        <MyLocationButton mapRef={mapRef} onProgrammaticDrop={onProgrammaticDrop} />
       </div>
       {showDropdown && (
         <GeoSearchDropdown

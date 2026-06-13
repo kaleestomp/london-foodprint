@@ -8,7 +8,7 @@
 
 `BubbleAvatar` is an animated drag-and-drop avatar that floats at the **bottom-centre of the viewport**, above the Leaflet map. The user drags it and drops it onto the map to trigger a 500 m radius place query centred on the drop point. Releasing it near its home position springs it back; releasing it off-map also cancels the drop.
 
-Visually it is a frosted-glass circle containing two pill-shaped eyes that blink and glance in random directions — including toward the cursor — giving it an alive, emoji-like character. Once dropped onto the map, a smaller copy of the avatar sits at the drop point as a Leaflet marker, retaining the same eye animations. Various satellite UI elements (ghost, edge indicator) provide feedback during carry and while the avatar is off-screen.
+Visually it is a frosted-glass circle containing two pill-shaped eyes that blink and glance in random directions — including toward the cursor — giving it an alive, emoji-like character. Once dropped onto the map, a smaller copy of the avatar sits at the drop point as a Leaflet marker, retaining the same eye animations. Various satellite UI elements (home reset ghost and edge indicator) provide feedback while carrying and while the avatar is off-screen.
 
 ---
 
@@ -39,7 +39,7 @@ src/Page1/components/BubbleAvatar/
 │   ├── BubbleAvatarPin.tsx
 │   └── BubbleAvatarPin.css
 │
-├── BubbleHomeGhost/                   ← dashed ring shown at home position while avatar is being carried
+├── BubbleHomeGhost/                   ← reset-home control with dashed ring shown while avatar is away from home
 │   ├── BubbleHomeGhost.tsx
 │   └── BubbleHomeGhost.css
 │
@@ -75,7 +75,7 @@ Current ownership split:
 | `BubbleAvatar` | `pickupPos: {x,y} \| null` | Screen coordinate used to remount `BubbleAvatarHome` in pickup mode |
 | `BubbleAvatar` | `flyInFrom: {x,y} \| null` | Edge screen coordinate for reset-home fly-in animation; cleared after animation completes |
 | `BubbleAvatar` | `isDraggingButton: boolean` | Shows/hides `BubbleHomeGhost` |
-| `BubbleAvatar` | `isNearHome: boolean` | Ghost scale state while dragging |
+| `BubbleAvatar` | `isNearHome: boolean` | Home-snap state used by reset-home ring scale and drag drop-ring suppression |
 
 `BubbleAvatar` publishes `searchMask` upward with a guarded effect:
 
@@ -149,6 +149,8 @@ whileDrag={{ scale: 1.18, boxShadow: '...' }}
 
 While dragging, a pulsing dashed ring follows the cursor (`@keyframes drop-ring-pulse` in CSS). It is a separate `div` rendered conditionally — `position: fixed` at `dragPos.x / dragPos.y`, centred via `translate(-50%, -50%)`.
 
+When the drag enters the home snap zone (`isNearHome === true`), this pulsing ring is intentionally hidden so the home-target reset ring remains the primary visual cue.
+
 During map-avatar pickup, there is also a short **pickup-pending** phase (pickup acquired but Framer drag has not emitted `onDragStart` yet). In that phase the same drop-ring is rendered at `pickupFrom` so the user gets immediate feedback that drag mode is active.
 
 ---
@@ -180,9 +182,14 @@ Markers are sorted radially from the drop centre and each receives an `animation
 
 ---
 
-## Home Ghost (`BubbleHomeGhost.tsx`)
+## Home Ghost / Reset (`BubbleHomeGhost.tsx`)
 
-Thin component — a `motion.div` with a dashed CSS ring, always rendered at the fixed home position via CSS. Receives one prop (`isNearHome`) and animates `scale` between 1.0 and 1.16 with a spring when the carry enters the snap zone.
+`BubbleHomeGhost` is now a single reset-home control (`motion.button`) rendered at the fixed home position whenever the avatar is away from home.
+
+- Contains a dashed ring and `ReplayRoundedIcon`
+- Calls `onResetHome` on tap/click from any away-from-home state
+- Uses spring scale animation on the dashed ring (`1.0 ↔ 1.16`) driven by `isNearHome`
+- Layered below the active avatar (`z-index: 1099` vs home avatar `z-index: 1100`)
 
 ---
 
@@ -204,12 +211,8 @@ Shown when the map avatar is off-screen. Computes position by tracing a ray from
 |---|---|
 | Tap / click | `map.setView()` to the avatar's lat/lng at zoom 16 |
 | Long press (`LONGPRESS_MS` ms) | Calls `onPickup(x, y)` — same state transition as a map-avatar long-press |
-| Tap reset icon (home position) | Calls `onResetHome({ x, y })` with the indicator's current screen position |
 
 Stable `useRef` wrappers for `onPickup` and `edgeState` prevent map `move` listeners from being re-registered on every render.
-
-**Reset-home action:**  
-A faint `ReplayRoundedIcon` with a dashed ring (matching `BubbleHomeGhost` styling) is rendered at the fixed home position whenever the edge indicator is visible. Both elements fade in/out via Framer Motion `AnimatePresence`. Tapping it calls `onResetHome(edgePos)`, which clears `droppedPos` and stores `flyInFrom` in `BubbleAvatar`.
 
 **Fly-in animation:**  
 When `BubbleAvatarHome` is remounted with a `flyInFrom` prop, the `motion.div` starts at the offset from `flyInFrom` to the home centre and springs to `(0, 0)` (`stiffness: 280, damping: 24`) while fading in. The `onFlyInComplete` callback clears `flyInFrom` after the first completion to prevent re-triggering.
@@ -406,6 +409,19 @@ Fix implemented in `BubbleAvatarHome.tsx`:
 Result:
 - User can long-press map avatar and release at same location without any stuck hovering state.
 - Dragging state visuals appear immediately on pickup.
+
+### 11. Home reset ownership merge + near-home visual refinement
+
+Implemented:
+- Moved reset-home ownership from `BubbleEdgeIndicator` to `BubbleHomeGhost`.
+- `BubbleHomeGhost` now renders the reset icon and dashed ring whenever avatar is away from home.
+- Reset can be triggered at any time (on map, dragging, or pickup-pending).
+
+Visual behavior refinements:
+- Removed duplicate dashed-home outlines.
+- Kept a single dashed ring attached to the reset-home control.
+- Restored natural near-home spring feel by animating only the ring scale.
+- Suppressed the pulsing drag drop-ring while `isNearHome` is true.
 
 ---
 

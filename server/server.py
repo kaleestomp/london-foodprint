@@ -3,15 +3,21 @@ import ssl
 from contextlib import asynccontextmanager
 
 import asyncpg
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.nearby_api.nearby_api import router as nearby_router
 from api.place_api import router as place_router
 from api.tile_api.tile_api import router as tiles_router
+from api.ip_location.ip_location import router as ip_location_router 
 
 load_dotenv()
+
+# Load local overrides if present (gitignored in this repo).
+_env_local_path = find_dotenv(".env.local", usecwd=True)
+if _env_local_path:
+    load_dotenv(_env_local_path, override=True)
 
 
 @asynccontextmanager
@@ -49,6 +55,7 @@ app.add_middleware(
 app.include_router(tiles_router)
 app.include_router(nearby_router)
 app.include_router(place_router)
+app.include_router(ip_location_router)
 
 
 @app.get("/health")

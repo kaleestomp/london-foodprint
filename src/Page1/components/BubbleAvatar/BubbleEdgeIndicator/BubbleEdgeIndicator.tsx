@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import L from 'leaflet';
-import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import { type LatLng, LONGPRESS_MS, INDICATOR_R } from '../config';
 import './BubbleEdgeIndicator.css';
 
@@ -51,8 +50,6 @@ type Props = {
   droppedPos: LatLng;
   /** Clears the map avatar; receives edge-indicator screen coords for BubbleButton placement */
   onPickup:  (x: number, y: number) => void;
-  /** Returns the avatar from map back to home button */
-  onResetHome: (from?: { x: number; y: number }) => void;
 };
 
 /**
@@ -61,7 +58,7 @@ type Props = {
  *  - Tap/click          → map.setView() back to avatar
  *  - Long press (LONGPRESS_MS ms) → pick up the avatar (same state as map long-press)
  */
-const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef, droppedPos, onPickup, onResetHome }) => {
+const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef, droppedPos, onPickup }) => {
   const [edgeState, setEdgeState] = useState<EdgeState>(null);
 
   // Stable refs — avoid re-registering map listeners when callbacks change
@@ -125,12 +122,6 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef, droppedPos, onPickup, on
     if (map) map.setView([droppedPos.lat, droppedPos.lng], 16, { animate: true });
   }, [mapRef, droppedPos, cancelLongPress]);
 
-  const handleResetHome = useCallback(() => {
-    cancelLongPress();
-    const state = edgeStateRef.current;
-    onResetHome(state ? { x: state.x, y: state.y } : undefined);
-  }, [cancelLongPress, onResetHome]);
-
   return (
     <>
       <AnimatePresence>
@@ -154,25 +145,6 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef, droppedPos, onPickup, on
               <div className="bubble-edge-eye" />
               <div className="bubble-edge-eye" />
             </div>
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {edgeState && (
-          <motion.button
-            key="home-reset"
-            className="bubble-home-reset"
-            onClick={handleResetHome}
-            aria-label="Return avatar to home"
-            title="Return avatar home"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.88 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-          >
-            <span className="bubble-home-reset-ring" aria-hidden="true" />
-            <ReplayRoundedIcon fontSize="large" aria-hidden="true" />
           </motion.button>
         )}
       </AnimatePresence>
