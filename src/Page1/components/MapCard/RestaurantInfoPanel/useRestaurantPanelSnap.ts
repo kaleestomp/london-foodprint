@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   type PanInfo,
   useAnimationControls,
@@ -30,7 +30,7 @@ type UseRestaurantPanelSnapOptions = {
   freezeTransform?: boolean;
 };
 
-const useRestaurantPanelSnap = ({ freezeTransform = false }: UseRestaurantPanelSnapOptions = {}) => {
+const useRestaurantPanelSnap = (_options: UseRestaurantPanelSnapOptions = {}) => {
   const { enabled: debugEnabled, events: debugEvents, pushEvent: pushDebugEvent } = usePanelDebug();
   const [viewport, setViewport] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1280,
@@ -47,7 +47,6 @@ const useRestaurantPanelSnap = ({ freezeTransform = false }: UseRestaurantPanelS
   const controls = useAnimationControls();
   const dragControls = useDragControls();
   const y = useMotionValue(0);
-  const frozenYOffsetRef = useRef<number | null>(null);
 
   useEffect(() => {
     const media = window.matchMedia(COARSE_POINTER_QUERY);
@@ -141,26 +140,12 @@ const useRestaurantPanelSnap = ({ freezeTransform = false }: UseRestaurantPanelS
       return;
     }
 
-    if (freezeTransform) {
-      if (frozenYOffsetRef.current == null) {
-        frozenYOffsetRef.current = y.get();
-      }
-      controls.set({ y: frozenYOffsetRef.current });
-      return;
-    }
-
-    frozenYOffsetRef.current = null;
-
     const target = metrics.offsets[Math.min(snapIndex, metrics.offsets.length - 1)] ?? metrics.maxOffset;
     y.set(target);
     controls.set({ y: target });
-  }, [controls, freezeTransform, isMobile, metrics.maxOffset, metrics.offsets, snapIndex, y]);
+  }, [controls, isMobile, metrics.maxOffset, metrics.offsets, snapIndex, y]);
 
   const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (freezeTransform) {
-      return;
-    }
-
     const current = y.get();
     const projected = current + info.velocity.y * 0.2;
 
@@ -179,7 +164,7 @@ const useRestaurantPanelSnap = ({ freezeTransform = false }: UseRestaurantPanelS
     pushDebugEvent(`dragEnd snapIndex=${nearestIndex} projectedY=${Math.round(projected)}`);
     const next = metrics.offsets[nearestIndex];
     controls.start({ y: next, transition: springTransition });
-  }, [controls, freezeTransform, metrics.offsets, pushDebugEvent, y]);
+  }, [controls, metrics.offsets, pushDebugEvent, y]);
 
   return {
     controls,

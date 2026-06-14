@@ -10,6 +10,8 @@ It is designed for real-device validation, especially iPhone Safari, where viewp
 - `src/Page1/components/MapCard/RestaurantInfoPanel/useRestaurantPanelSnap.ts`
 - `src/Page1/components/MapCard/RestaurantInfoPanel/RestaurantInfoPanel.tsx`
 - `src/Page1/components/MapCard/RestaurantInfoPanel/RestaurantInfoPanel.css`
+- `src/Page1/components/BubbleAvatar/BubbleAvatarHome/BubbleAvatarHome.tsx`
+- `src/Page1/components/BubbleAvatar/useDragAndDrop/useBubbleDrag.ts`
 
 ## Architecture
 ### 1. `usePanelDebug`
@@ -33,6 +35,13 @@ Renders the overlay via `createPortal(..., document.body)` when debug is enabled
 
 Using a portal avoids fixed-position issues caused by transformed ancestors and improves Safari reliability.
 
+### 4. `BubbleAvatarHome` and `useBubbleDrag`
+The final flicker fix lives outside the panel.
+
+- Desktop/non-coarse pointer devices still use Framer Motion drag for the home bubble.
+- Coarse-pointer devices use raw pointer tracking for bubble drag.
+- Shared drop, cancel, and near-home logic still flows through `useBubbleDrag`.
+
 ## How Debug Mode Is Enabled
 Debug mode is enabled when any of the following are true:
 
@@ -55,6 +64,42 @@ Safari and some share flows can deliver encoded query payloads such as:
 `usePanelDebug` decodes and re-parses this format so debug activation still works.
 
 Once debug is detected, the hook persists `panelDebug=1` in local storage to keep the overlay available across subsequent navigations.
+
+## Confirmed Root Cause
+The mobile flicker was not caused by restaurant panel state, snap logic, or viewport measurements.
+
+The confirmed root cause was Framer Motion drag on the home bubble avatar on coarse-pointer/iPhone-class devices.
+
+Observed outcome:
+- The restaurant panel appeared to flash between normal and fullscreen.
+- Debug values for panel state remained stable during the flicker.
+- Replacing coarse-pointer bubble drag with raw pointer tracking removed the flicker.
+
+Practical interpretation:
+- Safari was destabilized by the bubble's Framer drag/compositing path.
+- The panel only exposed the issue visually because it is a large fixed moving layer.
+
+## What Was Tested But Did Not Fix It
+The following probes did not resolve the issue on their own:
+
+1. Locking panel snap points to fixed pixel values
+2. Locking the final snap height to a fixed pixel value
+3. Removing panel backdrop blur alone
+4. Disabling panel drag momentum
+5. Freezing panel transform while bubble drag was active
+6. Reducing panel-derived geometry and resize sensitivity
+
+These tests were still useful because they ruled out panel state logic as the root cause.
+
+## Final Fix
+For coarse-pointer devices:
+
+1. Bubble drag no longer uses Framer Motion drag.
+2. Bubble drag uses raw `pointerdown` + window `pointermove` / `pointerup` / `pointercancel` tracking.
+3. Drop resolution still runs through the shared drag/drop logic.
+4. Desktop behavior remains unchanged.
+
+This keeps the richer Framer path where it is stable and uses the safer path where Safari needs it.
 
 ## Overlay Content
 The debug overlay currently displays:
@@ -86,3 +131,5 @@ If debug is not visible on iPhone:
 - Keep panel behavior and event emission in `useRestaurantPanelSnap`.
 - Add new event logs via `pushEvent` at decision points (resize acceptance, mode switch, snap decisions).
 - Avoid adding debug-specific conditionals directly in rendering components unless strictly required.
+- Treat coarse-pointer bubble drag as a platform fallback, not a temporary workaround.
+- If mobile flicker reappears, inspect bubble drag implementation before revisiting panel snap logic.

@@ -14,8 +14,7 @@ const BubbleAvatar: React.FC<{
     mapRef: React.RefObject<L.Map | null>;
     setSearchMask: React.Dispatch<React.SetStateAction<{ center: LatLng; radiusM: number } | null>>;
     programmaticDrop?: { lat: number; lng: number; token: number } | null;
-    onDraggingStateChange?: (isDragging: boolean) => void;
-}> = ({ mapRef, setSearchMask, programmaticDrop, onDraggingStateChange }) => { 
+}> = ({ mapRef, setSearchMask, programmaticDrop }) => { 
 
     const [droppedPos, setDroppedPos]  = useState<LatLng | null>(null);
     // Screen coordinate where pickup was triggered — mounts BubbleButton there
@@ -132,10 +131,6 @@ const BubbleAvatar: React.FC<{
     useEffect(() => {
         setSearchMask(searchMask);
     }, [searchMask, setSearchMask]);
-
-    useEffect(() => {
-        onDraggingStateChange?.(isDraggingButton);
-    }, [isDraggingButton, onDraggingStateChange]);
 
     return (  
         <div className="bubble-avatar-root">
