@@ -15,6 +15,47 @@ const RESIZE_WIDTH_JITTER_PX = 16;
 const COARSE_POINTER_QUERY = '(pointer: coarse)';
 const MAX_DEBUG_EVENTS = 12;
 
+const DEBUG_PARAM = 'panelDebug';
+
+const hasTruthyDebugValue = (value: string | null) => {
+  if (value == null) return false;
+  const normalized = value.trim().toLowerCase();
+  if (normalized.length === 0) return true;
+  return normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on';
+};
+
+const isPanelDebugEnabled = () => {
+  if (typeof window === 'undefined') return false;
+
+  const search = new URLSearchParams(window.location.search);
+  if (search.has(DEBUG_PARAM) && hasTruthyDebugValue(search.get(DEBUG_PARAM))) {
+    return true;
+  }
+
+  const hashRaw = window.location.hash ?? '';
+  const hash = hashRaw.startsWith('#') ? hashRaw.slice(1) : hashRaw;
+  const hashParams = new URLSearchParams(hash);
+  if (hashParams.has(DEBUG_PARAM) && hasTruthyDebugValue(hashParams.get(DEBUG_PARAM))) {
+    return true;
+  }
+
+  const hashSegments = hash.split(/[?&]/).map((segment) => segment.trim().toLowerCase());
+  if (hashSegments.includes(DEBUG_PARAM.toLowerCase())) {
+    return true;
+  }
+
+  try {
+    const stored = window.localStorage.getItem(DEBUG_PARAM);
+    if (hasTruthyDebugValue(stored)) {
+      return true;
+    }
+  } catch {
+    // Ignore localStorage access errors (private mode/restricted contexts).
+  }
+
+  return false;
+};
+
 const springTransition = {
   type: 'spring' as const,
   stiffness: 380,
@@ -23,7 +64,7 @@ const springTransition = {
 };
 
 const useRestaurantPanelSnap = () => {
-  const debugEnabled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('panelDebug');
+  const [debugEnabled, setDebugEnabled] = useState(() => isPanelDebugEnabled());
   const [viewport, setViewport] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1280,
     height: typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 800,
@@ -49,6 +90,21 @@ const useRestaurantPanelSnap = () => {
       return next.slice(0, MAX_DEBUG_EVENTS);
     });
   }, [debugEnabled]);
+
+  useEffect(() => {
+    const updateDebugEnabled = () => {
+      setDebugEnabled(isPanelDebugEnabled());
+    };
+
+    updateDebugEnabled();
+    window.addEventListener('hashchange', updateDebugEnabled);
+    window.addEventListener('popstate', updateDebugEnabled);
+
+    return () => {
+      window.removeEventListener('hashchange', updateDebugEnabled);
+      window.removeEventListener('popstate', updateDebugEnabled);
+    };
+  }, []);
 
   useEffect(() => {
     const media = window.matchMedia(COARSE_POINTER_QUERY);
