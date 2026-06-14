@@ -1,4 +1,4 @@
-# Session Notes — London Explorer: Data Pipeline & Ranking Algorithm
+# Session Notes — London Foodprint: Data Pipeline & Ranking Algorithm
 **Date:** June 3–7, 2026
 
 ---
@@ -46,7 +46,7 @@ python -m pip install --upgrade pip
 ```python
 import sys
 from pathlib import Path
-_repo_root = Path.cwd().parents[2]  # adaptive_hexsearch/ -> scripts/ -> server/ -> london-explorer/
+_repo_root = Path.cwd().parents[2]  # adaptive_hexsearch/ -> scripts/ -> server/ -> london-foodprint/
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 ```

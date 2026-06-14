@@ -12,6 +12,7 @@ const MOBILE_EXIT_BREAKPOINT = MOBILE_BREAKPOINT + 24;
 const MOBILE_PEEK_PX = 72;
 const RESIZE_HEIGHT_JITTER_PX = 120;
 const RESIZE_WIDTH_JITTER_PX = 16;
+const COARSE_POINTER_QUERY = '(pointer: coarse)';
 
 const springTransition = {
   type: 'spring' as const,
@@ -23,8 +24,11 @@ const springTransition = {
 const useRestaurantPanelSnap = () => {
   const [viewport, setViewport] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1280,
-    height: typeof window !== 'undefined' ? window.innerHeight : 800,
+    height: typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 800,
   });
+  const [isCoarsePointer, setIsCoarsePointer] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia(COARSE_POINTER_QUERY).matches,
+  );
   const [isMobile, setIsMobile] = useState(() =>
     (typeof window !== 'undefined' ? window.innerWidth : 1280) < MOBILE_BREAKPOINT,
   );
@@ -35,8 +39,20 @@ const useRestaurantPanelSnap = () => {
   const y = useMotionValue(0);
 
   useEffect(() => {
+    const media = window.matchMedia(COARSE_POINTER_QUERY);
+    const updateCoarsePointer = () => setIsCoarsePointer(media.matches);
+    updateCoarsePointer();
+
+    media.addEventListener('change', updateCoarsePointer);
+    return () => media.removeEventListener('change', updateCoarsePointer);
+  }, []);
+
+  useEffect(() => {
     const onResize = () => {
-      const next = { width: window.innerWidth, height: window.innerHeight };
+      const next = {
+        width: window.innerWidth,
+        height: window.visualViewport?.height ?? window.innerHeight,
+      };
       setViewport((prev) => {
         const widthDelta = Math.abs(prev.width - next.width);
         const heightDelta = Math.abs(prev.height - next.height);
@@ -52,10 +68,22 @@ const useRestaurantPanelSnap = () => {
     };
 
     window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    window.visualViewport?.addEventListener('resize', onResize);
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.visualViewport?.removeEventListener('resize', onResize);
+    };
   }, []);
 
   useEffect(() => {
+    if (isCoarsePointer) {
+      // Real mobile devices can briefly report width values near desktop breakpoints
+      // while browser chrome animates. Keep panel mode stable for coarse pointers.
+      setIsMobile(true);
+      return;
+    }
+
     setIsMobile((prev) => {
       if (prev) {
         // Stay in mobile mode until width clearly exits the breakpoint range.
@@ -65,7 +93,7 @@ const useRestaurantPanelSnap = () => {
       // Enter mobile mode only when width is clearly below the breakpoint.
       return viewport.width <= MOBILE_ENTER_BREAKPOINT;
     });
-  }, [viewport.width]);
+  }, [viewport.width, isCoarsePointer]);
 
   const metrics = useMemo(() => {
     const sheetHeight = viewport.height;

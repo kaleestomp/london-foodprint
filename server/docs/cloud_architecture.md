@@ -1,4 +1,4 @@
-﻿# London Explorer — Cloud Architecture Design
+﻿# London Foodprint — Cloud Architecture Design
 **Last updated:** June 11, 2026  
 **Status:** Schema finalised. ETL complete. All three API endpoints built. Server startup blocked on network (port 5432) — test on non-corporate network.
 
