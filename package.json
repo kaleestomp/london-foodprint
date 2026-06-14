@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server:dev": "server/.venv/Scripts/python -m server.server"
+    "server:dev": "server/.venv/Scripts/python -m server.server",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -45,7 +47,5 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12"
-  },
-  "predeploy": "npm run build",
-  "deploy": "gh-pages -d dist"
+  }
 }
