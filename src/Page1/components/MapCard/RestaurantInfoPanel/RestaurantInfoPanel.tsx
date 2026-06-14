@@ -4,6 +4,7 @@ import Stack from '@mui/material/Stack';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
+import { motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { useAppUI } from '../../../../context/AppUIContext';
 import {
@@ -112,11 +113,17 @@ const FilterSection: React.FC<FilterSectionProps> = ({
 
 const RestaurantInfoPanel: React.FC = () => {
   const {
+    controls,
     debug,
+    dragControls,
+    dragConstraints,
+    handleDragEnd,
     isMobile,
     panelHeight,
     setSnapIndex,
     snapIndex,
+    transition,
+    y,
   } = useRestaurantPanelSnap();
   const {
     restaurantPanelCommandToken,
@@ -259,12 +266,25 @@ const RestaurantInfoPanel: React.FC = () => {
     );
   } else return (
     <>
-      <section
+      <motion.section
         className="restaurant-sheet-mobile"
-        style={{ height: panelHeight }}
+        style={{ y, height: panelHeight }}
+        drag="y"
+        dragControls={dragControls}
+        dragListener={false}
+        dragMomentum={false}
+        dragElastic={0.04}
+        dragConstraints={dragConstraints}
+        onDragEnd={handleDragEnd}
+        animate={controls}
+        initial={false}
+        transition={transition}
         aria-label="Area restaurants panel"
       >
-        <div className="restaurant-sheet-header">
+        <div
+          className="restaurant-sheet-header"
+          onPointerDown={(event) => dragControls.start(event)}
+        >
           <div className="restaurant-sheet-handle-wrap">
           <div className="restaurant-sheet-handle" />
           </div>
@@ -284,7 +304,7 @@ const RestaurantInfoPanel: React.FC = () => {
         <div className="restaurant-panel-content">
           {activeTab === 'filters' ? filterContent : resultsContent}
         </div>
-      </section>
+      </motion.section>
       {debugOverlay}
     </>
   );
