@@ -13,6 +13,15 @@
     0 -14px 32px rgba(0, 0, 0, 0.18);
   touch-action: none;
   overflow: hidden;
+  backdrop-filter: var(--app-floating-card-backdrop-filter);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+@media (pointer: coarse) {
+  .restaurant-sheet-mobile {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 .restaurant-sheet-header {
