@@ -27,6 +27,12 @@ const useBubbleDrag = (
     mapRef.current?.dragging.disable();
   }, [mapRef]);
 
+  const handleDragStartAtPoint = useCallback((x: number, y: number) => {
+    setIsDragging(true);
+    setDragPos({ x, y });
+    mapRef.current?.dragging.disable();
+  }, [mapRef]);
+
   const handleDrag = useCallback(
     (_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       setDragPos({ x: info.point.x, y: info.point.y });
@@ -34,13 +40,14 @@ const useBubbleDrag = (
     [],
   );
 
-  const handleDragEnd = useCallback(
-    (_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handleDragMoveToPoint = useCallback((x: number, y: number) => {
+    setDragPos({ x, y });
+  }, []);
+
+  const finalizeDragAtPoint = useCallback((x: number, y: number) => {
       setIsDragging(false);
       setDragPos(null);
       mapRef.current?.dragging.enable();
-
-      const { x, y } = info.point;
 
       // ── Near-home check (highest priority) ──────────────────────────────
       // Must run before the map-bounds check because the home position sits
@@ -72,7 +79,23 @@ const useBubbleDrag = (
     [mapRef, onDrop, onCancel],
   );
 
-  return { isDragging, dragPos, handleDragStart, handleDrag, handleDragEnd };
+  const handleDragEnd = useCallback(
+    (_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      finalizeDragAtPoint(info.point.x, info.point.y);
+    },
+    [finalizeDragAtPoint],
+  );
+
+  return {
+    isDragging,
+    dragPos,
+    handleDragStart,
+    handleDragStartAtPoint,
+    handleDrag,
+    handleDragMoveToPoint,
+    handleDragEnd,
+    handleDragEndAtPoint: finalizeDragAtPoint,
+  };
 };
 
 export default useBubbleDrag;

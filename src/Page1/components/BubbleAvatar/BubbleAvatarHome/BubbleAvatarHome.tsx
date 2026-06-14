@@ -41,13 +41,24 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, isNearH
   const dragControls  = useDragControls();
   const firedPickupRef = useRef(false);
   const hasDragStartedRef = useRef(false);
+  const rawDragPointerIdRef = useRef<number | null>(null);
+  const rawDragActiveRef = useRef(false);
 
   const handleDrop = useCallback(
     (lat: number, lng: number) => onDrop?.(lat, lng),
     [onDrop],
   );
 
-  const { isDragging, dragPos, handleDragStart, handleDrag, handleDragEnd } =
+  const {
+    isDragging,
+    dragPos,
+    handleDragStart,
+    handleDragStartAtPoint,
+    handleDrag,
+    handleDragMoveToPoint,
+    handleDragEnd,
+    handleDragEndAtPoint,
+  } =
     useBubbleDrag(mapRef, handleDrop, onDropCancel);
 
   const handleDragStartWrapped = useCallback(() => {
@@ -97,47 +108,6 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, isNearH
     }
   }, [mapRef, onDrop, onDropCancel]);
 
-  // When mounted at a pickup position, programmatically start the Framer Motion
-  // drag using the real pointer coordinates. The user's pointer is still held
-  // down at pickupFrom, so dragControls.start() picks up the live gesture.
-  useEffect(() => {
-    if (!pickupFrom || firedPickupRef.current) return;
-    firedPickupRef.current = true;
-    hasDragStartedRef.current = false;
-    requestAnimationFrame(() => {
-      dragControls.start(
-        new PointerEvent('pointerdown', {
-          bubbles:    true,
-          cancelable: true,
-          clientX:    pickupFrom.x,
-          clientY:    pickupFrom.y,
-          pointerId:  1,
-          isPrimary:  true,
-        }),
-      );
-    });
-  }, [pickupFrom, dragControls]);
-
-  // If pickup mode was entered but Framer drag never started (e.g. pointer timing
-  // edge case), resolve on pointerup so avatar never stays hovering.
-  useEffect(() => {
-    if (!pickupFrom) return;
-
-    const onPointerUp = (e: PointerEvent) => {
-      if (hasDragStartedRef.current) return;
-      resolvePickupWithoutDrag(e.clientX, e.clientY);
-    };
-
-    window.addEventListener('pointerup', onPointerUp, { once: true });
-    return () => window.removeEventListener('pointerup', onPointerUp);
-  }, [pickupFrom, resolvePickupWithoutDrag]);
-
-  // Override CSS positioning when mounted at a pickup location.
-  // The 32 px offset centres the 64 px circle on the pointer.
-  const pickupStyle = pickupFrom
-    ? { bottom: 'auto' as const, left: pickupFrom.x - 32, top: pickupFrom.y - 32, marginLeft: 0 }
-    : undefined;
-
   const {
     initial,
     animate,
@@ -170,6 +140,112 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, isNearH
     return () => media.removeEventListener('change', update);
   }, []);
 
+  const rawDragEnabled = isCoarsePointer && dragEnabled;
+
+  const endRawDrag = useCallback((x: number, y: number) => {
+    rawDragActiveRef.current = false;
+    rawDragPointerIdRef.current = null;
+    handleDragEndAtPoint(x, y);
+  }, [handleDragEndAtPoint]);
+
+  const startRawDrag = useCallback((x: number, y: number, pointerId?: number) => {
+    rawDragActiveRef.current = true;
+    rawDragPointerIdRef.current = pointerId ?? null;
+    hasDragStartedRef.current = true;
+    handleDragStartAtPoint(x, y);
+  }, [handleDragStartAtPoint]);
+
+  useEffect(() => {
+    if (!rawDragEnabled || !isDragging || !rawDragActiveRef.current) {
+      return;
+    }
+
+    const onPointerMove = (event: PointerEvent) => {
+      const activePointerId = rawDragPointerIdRef.current;
+      if (activePointerId != null && event.pointerId !== activePointerId) {
+        return;
+      }
+
+      if (activePointerId == null) {
+        rawDragPointerIdRef.current = event.pointerId;
+      }
+
+      handleDragMoveToPoint(event.clientX, event.clientY);
+    };
+
+    const onPointerEnd = (event: PointerEvent) => {
+      const activePointerId = rawDragPointerIdRef.current;
+      if (activePointerId != null && event.pointerId !== activePointerId) {
+        return;
+      }
+
+      endRawDrag(event.clientX, event.clientY);
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerEnd);
+    window.addEventListener('pointercancel', onPointerEnd);
+
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerEnd);
+      window.removeEventListener('pointercancel', onPointerEnd);
+    };
+  }, [endRawDrag, handleDragMoveToPoint, isDragging, rawDragEnabled]);
+
+  // When mounted at a pickup position, programmatically start the Framer Motion
+  // drag using the real pointer coordinates. The user's pointer is still held
+  // down at pickupFrom, so dragControls.start() picks up the live gesture.
+  useEffect(() => {
+    if (rawDragEnabled) return;
+    if (!pickupFrom || firedPickupRef.current) return;
+    firedPickupRef.current = true;
+    hasDragStartedRef.current = false;
+    requestAnimationFrame(() => {
+      dragControls.start(
+        new PointerEvent('pointerdown', {
+          bubbles:    true,
+          cancelable: true,
+          clientX:    pickupFrom.x,
+          clientY:    pickupFrom.y,
+          pointerId:  1,
+          isPrimary:  true,
+        }),
+      );
+    });
+  }, [pickupFrom, dragControls, rawDragEnabled]);
+
+  useEffect(() => {
+    if (!rawDragEnabled || !pickupFrom || firedPickupRef.current) return;
+    firedPickupRef.current = true;
+    startRawDrag(pickupFrom.x, pickupFrom.y);
+  }, [pickupFrom, rawDragEnabled, startRawDrag]);
+
+  // If pickup mode was entered but Framer drag never started (e.g. pointer timing
+  // edge case), resolve on pointerup so avatar never stays hovering.
+  useEffect(() => {
+    if (rawDragEnabled) return;
+    if (!pickupFrom) return;
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (hasDragStartedRef.current) return;
+      resolvePickupWithoutDrag(e.clientX, e.clientY);
+    };
+
+    window.addEventListener('pointerup', onPointerUp, { once: true });
+    return () => window.removeEventListener('pointerup', onPointerUp);
+  }, [pickupFrom, rawDragEnabled, resolvePickupWithoutDrag]);
+
+  // Override CSS positioning when mounted at a pickup location.
+  // The 32 px offset centres the 64 px circle on the pointer.
+  const pickupStyle = pickupFrom
+    ? { bottom: 'auto' as const, left: pickupFrom.x - 32, top: pickupFrom.y - 32, marginLeft: 0 }
+    : undefined;
+  const rawDragStyle = rawDragEnabled && isDragging && dragPos
+    ? { bottom: 'auto' as const, left: dragPos.x - 32, top: dragPos.y - 32, marginLeft: 0 }
+    : undefined;
+  const bubbleStyle = rawDragStyle ?? pickupStyle;
+
   const whileDragVisual = useMemo(
     () => (isCoarsePointer
       ? { scale: 1.03, boxShadow: '0 2px 8px rgba(0,0,0,0.14)' }
@@ -183,12 +259,12 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, isNearH
       <motion.div
         ref={bubbleRef}
         className={`bubble-btn${isDragging ? ' is-dragging' : ''}`}
-        style={pickupStyle}
+        style={bubbleStyle}
         initial={initial}
         animate={animate}
         transition={transition}
         onAnimationComplete={handleAnimationComplete}
-        drag={dragEnabled}
+        drag={rawDragEnabled ? false : dragEnabled}
         dragControls={dragControls}
         dragSnapToOrigin={!pickupFrom}
         dragElastic={isCoarsePointer ? 0.02 : 0.12}
@@ -196,9 +272,14 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, isNearH
         dragTransition={{ bounceStiffness: 320, bounceDamping: 28 }}
         whileTap={{ scale: isCoarsePointer ? 0.96 : 0.88 }}
         whileDrag={whileDragVisual}
-        onDragStart={handleDragStartWrapped}
-        onDrag={handleDrag}
-        onDragEnd={handleDragEnd}
+        onDragStart={rawDragEnabled ? undefined : handleDragStartWrapped}
+        onDrag={rawDragEnabled ? undefined : handleDrag}
+        onDragEnd={rawDragEnabled ? undefined : handleDragEnd}
+        onPointerDown={rawDragEnabled ? (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          startRawDrag(event.clientX, event.clientY, event.pointerId);
+        } : undefined}
         role="button"
         aria-label="Drag to explore an area"
       >
