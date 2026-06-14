@@ -5,6 +5,7 @@ import {
   useDragControls,
   useMotionValue,
 } from 'framer-motion';
+import usePanelDebug from './usePanelDebug';
 
 const MOBILE_BREAKPOINT = 960;
 const MOBILE_ENTER_BREAKPOINT = MOBILE_BREAKPOINT - 24;
@@ -13,48 +14,6 @@ const MOBILE_PEEK_PX = 72;
 const RESIZE_HEIGHT_JITTER_PX = 120;
 const RESIZE_WIDTH_JITTER_PX = 16;
 const COARSE_POINTER_QUERY = '(pointer: coarse)';
-const MAX_DEBUG_EVENTS = 12;
-
-const DEBUG_PARAM = 'panelDebug';
-
-const hasTruthyDebugValue = (value: string | null) => {
-  if (value == null) return false;
-  const normalized = value.trim().toLowerCase();
-  if (normalized.length === 0) return true;
-  return normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on';
-};
-
-const isPanelDebugEnabled = () => {
-  if (typeof window === 'undefined') return false;
-
-  const search = new URLSearchParams(window.location.search);
-  if (search.has(DEBUG_PARAM) && hasTruthyDebugValue(search.get(DEBUG_PARAM))) {
-    return true;
-  }
-
-  const hashRaw = window.location.hash ?? '';
-  const hash = hashRaw.startsWith('#') ? hashRaw.slice(1) : hashRaw;
-  const hashParams = new URLSearchParams(hash);
-  if (hashParams.has(DEBUG_PARAM) && hasTruthyDebugValue(hashParams.get(DEBUG_PARAM))) {
-    return true;
-  }
-
-  const hashSegments = hash.split(/[?&]/).map((segment) => segment.trim().toLowerCase());
-  if (hashSegments.includes(DEBUG_PARAM.toLowerCase())) {
-    return true;
-  }
-
-  try {
-    const stored = window.localStorage.getItem(DEBUG_PARAM);
-    if (hasTruthyDebugValue(stored)) {
-      return true;
-    }
-  } catch {
-    // Ignore localStorage access errors (private mode/restricted contexts).
-  }
-
-  return false;
-};
 
 const springTransition = {
   type: 'spring' as const,
@@ -64,7 +23,7 @@ const springTransition = {
 };
 
 const useRestaurantPanelSnap = () => {
-  const [debugEnabled, setDebugEnabled] = useState(() => isPanelDebugEnabled());
+  const { enabled: debugEnabled, events: debugEvents, pushEvent: pushDebugEvent } = usePanelDebug();
   const [viewport, setViewport] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1280,
     height: typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 800,
@@ -76,35 +35,10 @@ const useRestaurantPanelSnap = () => {
     (typeof window !== 'undefined' ? window.innerWidth : 1280) < MOBILE_BREAKPOINT,
   );
   const [snapIndex, setSnapIndex] = useState(0);
-  const [debugEvents, setDebugEvents] = useState<string[]>([]);
 
   const controls = useAnimationControls();
   const dragControls = useDragControls();
   const y = useMotionValue(0);
-
-  const pushDebugEvent = useCallback((message: string) => {
-    if (!debugEnabled) return;
-    const ts = new Date().toISOString().split('T')[1]?.replace('Z', '') ?? '';
-    setDebugEvents((prev) => {
-      const next = [`${ts} ${message}`, ...prev];
-      return next.slice(0, MAX_DEBUG_EVENTS);
-    });
-  }, [debugEnabled]);
-
-  useEffect(() => {
-    const updateDebugEnabled = () => {
-      setDebugEnabled(isPanelDebugEnabled());
-    };
-
-    updateDebugEnabled();
-    window.addEventListener('hashchange', updateDebugEnabled);
-    window.addEventListener('popstate', updateDebugEnabled);
-
-    return () => {
-      window.removeEventListener('hashchange', updateDebugEnabled);
-      window.removeEventListener('popstate', updateDebugEnabled);
-    };
-  }, []);
 
   useEffect(() => {
     const media = window.matchMedia(COARSE_POINTER_QUERY);
