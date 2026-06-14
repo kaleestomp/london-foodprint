@@ -5,15 +5,19 @@ import {
   useDragControls,
   useMotionValue,
 } from 'framer-motion';
+import {
+  COARSE_POINTER_QUERY,
+  MOBILE_BREAKPOINT,
+  MOBILE_ENTER_BREAKPOINT,
+  MOBILE_EXIT_BREAKPOINT,
+  MOBILE_SNAP_3,
+  MOBILE_SNAP_MIN_MARGIN,
+  MOBILE_SNAP_2,
+  MOBILE_SNAP_1,
+  RESIZE_HEIGHT_JITTER_PX,
+  RESIZE_WIDTH_JITTER_PX,
+} from './config';
 import usePanelDebug from './usePanelDebug';
-
-const MOBILE_BREAKPOINT = 960;
-const MOBILE_ENTER_BREAKPOINT = MOBILE_BREAKPOINT - 24;
-const MOBILE_EXIT_BREAKPOINT = MOBILE_BREAKPOINT + 24;
-const MOBILE_PEEK_PX = 72;
-const RESIZE_HEIGHT_JITTER_PX = 120;
-const RESIZE_WIDTH_JITTER_PX = 16;
-const COARSE_POINTER_QUERY = '(pointer: coarse)';
 
 const springTransition = {
   type: 'spring' as const,
@@ -111,11 +115,11 @@ const useRestaurantPanelSnap = () => {
 
   const metrics = useMemo(() => {
     const sheetHeight = viewport.height;
-    const maxVisibleHeight = Math.max(MOBILE_PEEK_PX, viewport.height - 90);
+    const maxVisibleHeight = Math.max(MOBILE_SNAP_1, viewport.height - MOBILE_SNAP_MIN_MARGIN);
     const visibleHeights = [
-      MOBILE_PEEK_PX,
-      Math.round(viewport.height * 0.25),
-      Math.round(viewport.height * 0.5),
+      MOBILE_SNAP_1,
+      Math.min(MOBILE_SNAP_2, maxVisibleHeight),
+      Math.min(MOBILE_SNAP_3, maxVisibleHeight),
       maxVisibleHeight,
     ];
     const offsets = visibleHeights.map((visible) => Math.max(0, sheetHeight - visible));
