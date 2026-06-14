@@ -13,8 +13,6 @@
   border-radius: 50%;
 
   background: var(--bubble-avatar-bg-color);
-  backdrop-filter: var(--bubble-avatar-bg-blur);
-  -webkit-backdrop-filter: var(--bubble-avatar-bg-blur);
   box-shadow: var(--bubble-avatar-edege-shadow);
 
   border: none;

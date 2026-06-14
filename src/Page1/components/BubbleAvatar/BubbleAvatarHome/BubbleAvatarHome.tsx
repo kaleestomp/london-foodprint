@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useDragControls } from 'framer-motion';
 import L from 'leaflet';
 import useBubbleDrag from '../useDragAndDrop/useBubbleDrag';
@@ -158,6 +158,25 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, isNearH
     isVisuallyDragging,
   });
 
+  const [isCoarsePointer, setIsCoarsePointer] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches,
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia('(pointer: coarse)');
+    const update = () => setIsCoarsePointer(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+
+  const whileDragVisual = useMemo(
+    () => (isCoarsePointer
+      ? { scale: 1.03, boxShadow: '0 2px 8px rgba(0,0,0,0.14)' }
+      : { scale: 1.18, boxShadow: '0 10px 36px rgba(0,0,0,0.22), 0 3px 10px rgba(0,0,0,0.12)' }),
+    [isCoarsePointer],
+  );
+
   return (
     <>
       {/* ── Floating bubble ─────────────────────────────────────────────── */}
@@ -172,11 +191,11 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, isNearH
         drag={dragEnabled}
         dragControls={dragControls}
         dragSnapToOrigin={!pickupFrom}
-        dragElastic={0.12}
+        dragElastic={isCoarsePointer ? 0.02 : 0.12}
         dragMomentum={false}
         dragTransition={{ bounceStiffness: 320, bounceDamping: 28 }}
-        whileTap={{ scale: 0.88 }}
-        whileDrag={{ scale: 1.18, boxShadow: '0 10px 36px rgba(0,0,0,0.22), 0 3px 10px rgba(0,0,0,0.12)' }}
+        whileTap={{ scale: isCoarsePointer ? 0.96 : 0.88 }}
+        whileDrag={whileDragVisual}
         onDragStart={handleDragStartWrapped}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
