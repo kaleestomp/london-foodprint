@@ -7,8 +7,11 @@ import {
 } from 'framer-motion';
 
 const MOBILE_BREAKPOINT = 960;
+const MOBILE_ENTER_BREAKPOINT = MOBILE_BREAKPOINT - 24;
+const MOBILE_EXIT_BREAKPOINT = MOBILE_BREAKPOINT + 24;
 const MOBILE_PEEK_PX = 72;
 const RESIZE_HEIGHT_JITTER_PX = 120;
+const RESIZE_WIDTH_JITTER_PX = 16;
 
 const springTransition = {
   type: 'spring' as const,
@@ -22,6 +25,9 @@ const useRestaurantPanelSnap = () => {
     width: typeof window !== 'undefined' ? window.innerWidth : 1280,
     height: typeof window !== 'undefined' ? window.innerHeight : 800,
   });
+  const [isMobile, setIsMobile] = useState(() =>
+    (typeof window !== 'undefined' ? window.innerWidth : 1280) < MOBILE_BREAKPOINT,
+  );
   const [snapIndex, setSnapIndex] = useState(0);
 
   const controls = useAnimationControls();
@@ -32,12 +38,12 @@ const useRestaurantPanelSnap = () => {
     const onResize = () => {
       const next = { width: window.innerWidth, height: window.innerHeight };
       setViewport((prev) => {
-        const widthChanged = prev.width !== next.width;
+        const widthDelta = Math.abs(prev.width - next.width);
         const heightDelta = Math.abs(prev.height - next.height);
 
         // Ignore small mobile viewport height jitters (browser chrome/show-hide)
         // that can cause panel flicker during unrelated drag gestures.
-        if (!widthChanged && heightDelta < RESIZE_HEIGHT_JITTER_PX) {
+        if (widthDelta < RESIZE_WIDTH_JITTER_PX && heightDelta < RESIZE_HEIGHT_JITTER_PX) {
           return prev;
         }
 
@@ -49,7 +55,17 @@ const useRestaurantPanelSnap = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const isMobile = viewport.width < MOBILE_BREAKPOINT;
+  useEffect(() => {
+    setIsMobile((prev) => {
+      if (prev) {
+        // Stay in mobile mode until width clearly exits the breakpoint range.
+        return viewport.width < MOBILE_EXIT_BREAKPOINT;
+      }
+
+      // Enter mobile mode only when width is clearly below the breakpoint.
+      return viewport.width <= MOBILE_ENTER_BREAKPOINT;
+    });
+  }, [viewport.width]);
 
   const metrics = useMemo(() => {
     const sheetHeight = viewport.height;
