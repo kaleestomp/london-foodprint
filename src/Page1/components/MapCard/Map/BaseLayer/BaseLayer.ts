@@ -6,7 +6,7 @@ import useMapResizeSync from './useMapResizeSync';
 import { LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM, LONDON_BOUNDS } from '../MapTemplate'; 
 
 const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): { 
-    mapContainerRef: React.RefObject<HTMLDivElement>; 
+    mapContainerRef: React.RefObject<HTMLDivElement | null>; 
     mapRef: React.RefObject<L.Map | null> 
 } => { 
 

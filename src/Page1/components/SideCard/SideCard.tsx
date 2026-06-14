@@ -1,12 +1,10 @@
 import React from 'react'; 
 import { useAppUI } from '../../../context/AppUIContext'; 
 import useResizeWidth from './useResizeWidth'; 
-import TreeChart from './TreeChart/TreeChart';
 
 import Skeleton from '@mui/material/Skeleton'; 
 import Box from '@mui/material/Box';
 import Fade from '@mui/material/Fade'; 
-import Divider from '@mui/material/Divider';
 import './SideCard.css';
 
 const SideCard: React.FC = () => {
@@ -32,11 +30,6 @@ const SideCard: React.FC = () => {
                 {/* <div className="side-card-header-block"/>
                 <Divider /> */}
                 <div className="side-card-content-block">
-                    <TreeChart 
-                        // onExpandedChange={(expanded) => {
-                        //     console.log(expanded);
-                        // }}
-                    />
                 </div>
                 {/* <Divider />
                 <div className="side-card-footer-block"/> */}

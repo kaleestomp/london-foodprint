@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, type Transition, type Easing } from 'framer-motion';
 import './AnimatedLoadingDots.css';
 
 /**
@@ -25,11 +25,11 @@ const AnimatedLoadingDots: React.FC<{ size?: 'small' | 'medium' }> = ({ size = '
     end: { y: -5 },
   };
 
-  const dotTransition = {
+  const dotTransition: Transition = {
     duration: 0.6,
     repeat: Infinity,
-    repeatType: 'reverse' as const,
-    ease: 'easeInOut',
+    repeatType: 'reverse',
+    ease: 'easeInOut' as Easing,
   };
 
   return (

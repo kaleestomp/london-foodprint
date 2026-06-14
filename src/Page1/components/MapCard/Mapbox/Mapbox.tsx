@@ -45,7 +45,7 @@ const Map2: React.FC = () => {
     const bounds = L.latLngBounds([]);
     // LAYER 3: Add Markers ----
     sampleProducts.forEach((product) => {
-      const marker = L.circleMarker([product.latitude, product.longitude], {
+      const marker = L.circleMarker([product.Latitude, product.Longitude], {
         radius: 7,
         color: '#114b5f',
         weight: 2,
@@ -54,10 +54,10 @@ const Map2: React.FC = () => {
       }).addTo(map);
       // LAYER 4: Add Popups ----
       marker.bindPopup(
-        `<strong>${product.name}</strong><br/>${product.category}<br/>(${product.latitude.toFixed(4)}, ${product.longitude.toFixed(4)})`
+        `<strong>${product.ProductName}</strong><br/>${product.Product}<br/>(${product.Latitude.toFixed(4)}, ${product.Longitude.toFixed(4)})`
       );
       // Adjust Bounds ----
-      bounds.extend([product.latitude, product.longitude]);
+      bounds.extend([product.Latitude, product.Longitude]);
     });
 
     if (bounds.isValid()) {

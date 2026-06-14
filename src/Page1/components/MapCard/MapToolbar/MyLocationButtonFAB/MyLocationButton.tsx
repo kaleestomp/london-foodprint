@@ -10,7 +10,7 @@ type Props = {
 };
 const MyLocation: React.FC<Props> = ({ setLocation }) => {
   
-  const myLocation = undefined; // useIPLocation();
+  const myLocation = useIPLocation();
   const handleMyLocation = () => {
     if (!myLocation) { return; }
     const label = [myLocation.district, myLocation.city, myLocation.region, myLocation.country]

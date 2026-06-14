@@ -1,6 +1,9 @@
 .geo-search-container {
   position: relative;
-  width: 400px;
+  width: min(400px, calc(100vw - (var(--app-layout-margin) * 2) - var(--toolbar-height) - 12px));
+  min-width: 190px;
+  max-width: 100%;
+  flex: 1 1 auto;
   font-family: Roboto, Arial, sans-serif;
   --searchbar-height: var(--toolbar-height);
   --searchbar-radius: calc(var(--searchbar-height) / 2);
@@ -95,6 +98,17 @@
   background: transparent;
   padding: 0 12px 0 0;
   min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .geo-search-container {
+    width: calc(100vw - (var(--app-layout-margin) * 2) - var(--toolbar-height) - 8px);
+    min-width: 150px;
+  }
+
+  .geo-search-input {
+    font-size: 15px;
+  }
 }
 
 .geo-search-input::placeholder {
