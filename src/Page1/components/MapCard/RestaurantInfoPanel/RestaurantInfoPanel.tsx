@@ -113,6 +113,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
 const RestaurantInfoPanel: React.FC = () => {
   const {
     controls,
+    debug,
     dragControls,
     dragConstraints,
     handleDragEnd,
@@ -243,6 +244,16 @@ const RestaurantInfoPanel: React.FC = () => {
         <div className="restaurant-panel-content">
           {activeTab === 'filters' ? filterContent : resultsContent}
         </div>
+        {debug.enabled ? (
+          <div className="restaurant-panel-debug-overlay" aria-label="Panel debug overlay">
+            <div>mode: {debug.isMobile ? 'mobile' : 'desktop'} | coarse: {String(debug.isCoarsePointer)}</div>
+            <div>w: {debug.width} h: {Math.round(debug.height)} vvH: {debug.visualViewportHeight ? Math.round(debug.visualViewportHeight) : 'n/a'} iH: {debug.innerHeight ?? 'n/a'}</div>
+            <div>snap: {debug.snapIndex} y: {debug.y}</div>
+            {debug.events.map((event) => (
+              <div key={event}>{event}</div>
+            ))}
+          </div>
+        ) : null}
       </aside>
     );
   } else return (
@@ -284,6 +295,16 @@ const RestaurantInfoPanel: React.FC = () => {
       <div className="restaurant-panel-content">
         {activeTab === 'filters' ? filterContent : resultsContent}
       </div>
+      {debug.enabled ? (
+        <div className="restaurant-panel-debug-overlay" aria-label="Panel debug overlay">
+          <div>mode: {debug.isMobile ? 'mobile' : 'desktop'} | coarse: {String(debug.isCoarsePointer)}</div>
+          <div>w: {debug.width} h: {Math.round(debug.height)} vvH: {debug.visualViewportHeight ? Math.round(debug.visualViewportHeight) : 'n/a'} iH: {debug.innerHeight ?? 'n/a'}</div>
+          <div>snap: {debug.snapIndex} y: {debug.y}</div>
+          {debug.events.map((event) => (
+            <div key={event}>{event}</div>
+          ))}
+        </div>
+      ) : null}
     </motion.section>
   );
 };

@@ -71,6 +71,24 @@
   padding: 18px;
 }
 
+.restaurant-panel-debug-overlay {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 1200;
+  width: min(92vw, 360px);
+  max-height: 42vh;
+  overflow: auto;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(11, 18, 32, 0.86);
+  color: #dbe9ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
 .restaurant-panel-desktop {
   position: absolute;
   display: flex;

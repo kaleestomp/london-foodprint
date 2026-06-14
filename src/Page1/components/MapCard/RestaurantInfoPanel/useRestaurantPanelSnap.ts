@@ -13,6 +13,7 @@ const MOBILE_PEEK_PX = 72;
 const RESIZE_HEIGHT_JITTER_PX = 120;
 const RESIZE_WIDTH_JITTER_PX = 16;
 const COARSE_POINTER_QUERY = '(pointer: coarse)';
+const MAX_DEBUG_EVENTS = 12;
 
 const springTransition = {
   type: 'spring' as const,
@@ -22,6 +23,7 @@ const springTransition = {
 };
 
 const useRestaurantPanelSnap = () => {
+  const debugEnabled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('panelDebug');
   const [viewport, setViewport] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1280,
     height: typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 800,
@@ -33,19 +35,30 @@ const useRestaurantPanelSnap = () => {
     (typeof window !== 'undefined' ? window.innerWidth : 1280) < MOBILE_BREAKPOINT,
   );
   const [snapIndex, setSnapIndex] = useState(0);
+  const [debugEvents, setDebugEvents] = useState<string[]>([]);
 
   const controls = useAnimationControls();
   const dragControls = useDragControls();
   const y = useMotionValue(0);
 
+  const pushDebugEvent = useCallback((message: string) => {
+    if (!debugEnabled) return;
+    const ts = new Date().toISOString().split('T')[1]?.replace('Z', '') ?? '';
+    setDebugEvents((prev) => {
+      const next = [`${ts} ${message}`, ...prev];
+      return next.slice(0, MAX_DEBUG_EVENTS);
+    });
+  }, [debugEnabled]);
+
   useEffect(() => {
     const media = window.matchMedia(COARSE_POINTER_QUERY);
     const updateCoarsePointer = () => setIsCoarsePointer(media.matches);
     updateCoarsePointer();
+    pushDebugEvent(`coarsePointer=${media.matches}`);
 
     media.addEventListener('change', updateCoarsePointer);
     return () => media.removeEventListener('change', updateCoarsePointer);
-  }, []);
+  }, [pushDebugEvent]);
 
   useEffect(() => {
     const onResize = () => {
@@ -60,8 +73,11 @@ const useRestaurantPanelSnap = () => {
         // Ignore small mobile viewport height jitters (browser chrome/show-hide)
         // that can cause panel flicker during unrelated drag gestures.
         if (widthDelta < RESIZE_WIDTH_JITTER_PX && heightDelta < RESIZE_HEIGHT_JITTER_PX) {
+          pushDebugEvent(`resize ignored wΔ=${widthDelta} hΔ=${heightDelta} -> ${next.width}x${Math.round(next.height)}`);
           return prev;
         }
+
+        pushDebugEvent(`resize accepted wΔ=${widthDelta} hΔ=${heightDelta} -> ${next.width}x${Math.round(next.height)}`);
 
         return next;
       });
@@ -74,26 +90,34 @@ const useRestaurantPanelSnap = () => {
       window.removeEventListener('resize', onResize);
       window.visualViewport?.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [pushDebugEvent]);
 
   useEffect(() => {
     if (isCoarsePointer) {
       // Real mobile devices can briefly report width values near desktop breakpoints
       // while browser chrome animates. Keep panel mode stable for coarse pointers.
       setIsMobile(true);
+      pushDebugEvent('mode mobile (coarse pointer lock)');
       return;
     }
 
     setIsMobile((prev) => {
+      let nextIsMobile: boolean;
       if (prev) {
         // Stay in mobile mode until width clearly exits the breakpoint range.
-        return viewport.width < MOBILE_EXIT_BREAKPOINT;
+        nextIsMobile = viewport.width < MOBILE_EXIT_BREAKPOINT;
+      } else {
+        // Enter mobile mode only when width is clearly below the breakpoint.
+        nextIsMobile = viewport.width <= MOBILE_ENTER_BREAKPOINT;
       }
 
-      // Enter mobile mode only when width is clearly below the breakpoint.
-      return viewport.width <= MOBILE_ENTER_BREAKPOINT;
+      if (prev !== nextIsMobile) {
+        pushDebugEvent(`mode -> ${nextIsMobile ? 'mobile' : 'desktop'} at width=${viewport.width}`);
+      }
+
+      return nextIsMobile;
     });
-  }, [viewport.width, isCoarsePointer]);
+  }, [viewport.width, isCoarsePointer, pushDebugEvent]);
 
   const metrics = useMemo(() => {
     const sheetHeight = viewport.height;
@@ -140,9 +164,10 @@ const useRestaurantPanelSnap = () => {
     }
 
     setSnapIndex(nearestIndex);
+    pushDebugEvent(`dragEnd snapIndex=${nearestIndex} projectedY=${Math.round(projected)}`);
     const next = metrics.offsets[nearestIndex];
     controls.start({ y: next, transition: springTransition });
-  }, [controls, metrics.offsets, y]);
+  }, [controls, metrics.offsets, pushDebugEvent, y]);
 
   return {
     controls,
@@ -155,6 +180,18 @@ const useRestaurantPanelSnap = () => {
     setSnapIndex,
     transition: springTransition,
     y,
+    debug: {
+      enabled: debugEnabled,
+      width: viewport.width,
+      height: viewport.height,
+      visualViewportHeight: typeof window !== 'undefined' ? (window.visualViewport?.height ?? null) : null,
+      innerHeight: typeof window !== 'undefined' ? window.innerHeight : null,
+      isCoarsePointer,
+      isMobile,
+      snapIndex,
+      y: Math.round(y.get()),
+      events: debugEvents,
+    },
   };
 };
 
