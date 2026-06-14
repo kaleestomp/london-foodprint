@@ -272,7 +272,7 @@ const RestaurantInfoPanel: React.FC = () => {
         drag="y"
         dragControls={dragControls}
         dragListener={false}
-        dragMomentum
+        dragMomentum={false}
         dragElastic={0.04}
         dragConstraints={dragConstraints}
         onDragEnd={handleDragEnd}
