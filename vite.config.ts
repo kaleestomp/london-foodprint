@@ -11,5 +11,5 @@ export default defineConfig({
     // CJS-only packages that need explicit pre-bundling for named/default export interop.
     include: ['fast-deep-equal', 'size-sensor'],
   },
-  base: '/london-explorer/',
+  base: '/london-foodprint/',
 })
