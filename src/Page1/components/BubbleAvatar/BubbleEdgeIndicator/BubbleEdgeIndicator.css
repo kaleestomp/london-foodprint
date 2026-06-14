@@ -8,16 +8,14 @@
   position: fixed;
   transform: translate(-50%, -50%);
 
-  width: 52px;
-  height: 52px;
+  width: calc(var(--bubble-avatar-home-size) * var(--bubble-avatar-edge-scale)); /* 52px */
+  height: calc(var(--bubble-avatar-home-size) * var(--bubble-avatar-edge-scale)); /* 52px */
   border-radius: 50%;
 
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow:
-    0 3px 12px rgba(0, 0, 0, 0.16),
-    0 1px 4px  rgba(0, 0, 0, 0.08);
+  background: var(--bubble-avatar-bg-color);
+  backdrop-filter: var(--bubble-avatar-bg-blur);
+  -webkit-backdrop-filter: var(--bubble-avatar-bg-blur);
+  box-shadow: var(--bubble-avatar-edege-shadow);
 
   border: none;
   padding: 0;
@@ -53,7 +51,7 @@
   transform: translateY(-50%);
   border-top:    7px solid transparent;
   border-bottom: 7px solid transparent;
-  border-left:   12px solid rgba(255, 255, 255, 0.95);
+  border-left:   12px solid var(--bubble-avatar-bg-color);
 }
 
 /* Tail points LEFT */
@@ -63,7 +61,7 @@
   transform: translateY(-50%);
   border-top:    7px solid transparent;
   border-bottom: 7px solid transparent;
-  border-right:  12px solid rgba(255, 255, 255, 0.95);
+  border-right:  12px solid var(--bubble-avatar-bg-color);
 }
 
 /* Tail points DOWN (avatar is off the bottom edge) */
@@ -73,7 +71,7 @@
   transform: translateX(-50%);
   border-left:  7px solid transparent;
   border-right: 7px solid transparent;
-  border-top:   12px solid rgba(255, 255, 255, 0.95);
+  border-top:   12px solid var(--bubble-avatar-bg-color);
 }
 
 /* Tail points UP (avatar is off the top edge) */
@@ -83,20 +81,20 @@
   transform: translateX(-50%);
   border-left:   7px solid transparent;
   border-right:  7px solid transparent;
-  border-bottom: 12px solid rgba(255, 255, 255, 0.95);
+  border-bottom: 12px solid var(--bubble-avatar-bg-color);
 }
 
 /* ── Mini face ──────────────────────────────────────────────────────────── */
 .bubble-edge-eyes {
   display: flex;
-  gap: 7px;
+  gap: calc(var(--bubble-avatar-eye-gap) * var(--bubble-avatar-edge-scale));
   margin-top: -2px;
 }
 
 .bubble-edge-eye {
-  width: 4px;
-  height: 6.5px;
-  border-radius: 1.75px;
-  background: #2a2a2a;
+  width: calc(var(--bubble-avatar-eye-width)*var(--bubble-avatar-edge-scale));
+  height: calc(var(--bubble-avatar-eye-height)*var(--bubble-avatar-edge-scale));
+  border-radius: calc(var(--bubble-avatar-eye-width) * var(--bubble-avatar-edge-scale) / 2 );
+  background: var(--bubble-avatar-eye-color);
   flex-shrink: 0;
 }

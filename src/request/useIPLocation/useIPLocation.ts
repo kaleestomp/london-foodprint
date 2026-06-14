@@ -1,8 +1,6 @@
 import { apiBasePromise } from '../../utils/apiBase';
 import { useEffect, useState } from 'react';
 
-// const LOCAL_URL = 'http://localhost:3000';
-
 export type MyLocation = {
   lat: number;
   lon: number;
@@ -20,9 +18,6 @@ const useIPLocation = () => {
     let cancelled = false;
     const fetchLocation = async () => {
       const API_BASE = await apiBasePromise;
-      // if (API_BASE !== LOCAL_URL) {
-      //   return;
-      // }
       fetch(`${API_BASE}/api/ip-location`)
         .then((r) => { 
           /* silent — location is best-effort */

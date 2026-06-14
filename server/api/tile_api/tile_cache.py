@@ -11,7 +11,7 @@ _tiles_cache_lock = asyncio.Lock()
 def _cache_key(
     snapped_tiles: list[str],
     resolution: int,
-    cuisine_value: str,
+    cuisine_values: list[str],
     cost_value: str,
     venue_value: str,
     score_basis: int,
@@ -21,7 +21,7 @@ def _cache_key(
     return "|".join(
         [
             str(resolution),
-            cuisine_value,
+            ",".join(sorted(cuisine_values)),
             cost_value,
             venue_value,
             str(score_basis),

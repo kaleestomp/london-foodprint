@@ -18,7 +18,7 @@ const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
  * These are kept together because the scheduler reads the cursor ref directly;
  * separating them would require passing a ref between hooks for no real gain.
  */
-const useGaze = (bubbleRef: React.RefObject<HTMLDivElement | null>) => {
+const useIdleGaze = (bubbleRef: React.RefObject<HTMLDivElement | null>) => {
   const [gaze, setGaze] = useState<Point>({ x: 0, y: 0 });
   const mouseRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -79,4 +79,4 @@ const useGaze = (bubbleRef: React.RefObject<HTMLDivElement | null>) => {
   return { gaze };
 };
 
-export default useGaze;
+export default useIdleGaze;

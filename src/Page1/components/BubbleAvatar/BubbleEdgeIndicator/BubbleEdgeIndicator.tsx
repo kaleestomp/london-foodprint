@@ -7,6 +7,15 @@ import './BubbleEdgeIndicator.css';
 type Edge = 'top' | 'bottom' | 'left' | 'right';
 type EdgeState = { x: number; y: number; edge: Edge } | null;
 
+// Visual offset calibration: top/left appears more inset than expected while
+// right/bottom appears less inset (can overflow). Gate inset scaling by side.
+const EDGE_INSET_TL_SCALE = 0.45;
+const EDGE_INSET_BR_SCALE = 2.4;
+const EDGE_INSET_LEFT = INDICATOR_R * EDGE_INSET_TL_SCALE;
+const EDGE_INSET_TOP = INDICATOR_R * EDGE_INSET_TL_SCALE;
+const EDGE_INSET_RIGHT = INDICATOR_R * EDGE_INSET_BR_SCALE;
+const EDGE_INSET_BOTTOM = INDICATOR_R * EDGE_INSET_BR_SCALE;
+
 /**
  * Given the avatar's projected screen coordinates (possibly off-screen),
  * trace a ray from the viewport centre to the avatar and find where it
@@ -26,10 +35,10 @@ const computeEdgeState = (
   if (dx === 0 && dy === 0) return null;
 
   // Parametric t for each boundary (ray: P = centre + t * direction)
-  const tLeft   = dx < 0 ? (INDICATOR_R - cx) / dx : Infinity;
-  const tRight  = dx > 0 ? (W - INDICATOR_R - cx) / dx : Infinity;
-  const tTop    = dy < 0 ? (INDICATOR_R - cy) / dy : Infinity;
-  const tBottom = dy > 0 ? (H - INDICATOR_R - cy) / dy : Infinity;
+  const tLeft   = dx < 0 ? (EDGE_INSET_LEFT - cx) / dx : Infinity;
+  const tRight  = dx > 0 ? (W - EDGE_INSET_RIGHT - cx) / dx : Infinity;
+  const tTop    = dy < 0 ? (EDGE_INSET_TOP - cy) / dy : Infinity;
+  const tBottom = dy > 0 ? (H - EDGE_INSET_BOTTOM - cy) / dy : Infinity;
 
   const tH = dx < 0 ? tLeft : tRight;
   const tV = dy < 0 ? tTop  : tBottom;
@@ -84,8 +93,8 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef, droppedPos, onPickup }) 
       const H    = window.innerHeight;
 
       const inView =
-        sx >= INDICATOR_R && sx <= W - INDICATOR_R &&
-        sy >= INDICATOR_R && sy <= H - INDICATOR_R;
+        sx >= EDGE_INSET_LEFT && sx <= W - EDGE_INSET_RIGHT &&
+        sy >= EDGE_INSET_TOP && sy <= H - EDGE_INSET_BOTTOM;
 
       setEdgeState(inView ? null : computeEdgeState(sx, sy, W, H));
     };

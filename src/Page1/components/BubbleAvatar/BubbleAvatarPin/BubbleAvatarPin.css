@@ -12,16 +12,12 @@
 
 /* The React-rendered circle planted on the map (≈60 % of BubbleButton) */
 .bubble-avatar-pin {
-  width: 40px;
-  height: 40px;
+  width: calc(var(--bubble-avatar-home-size) * var(--bubble-avatar-pin-scale));
+  height: calc(var(--bubble-avatar-home-size) * var(--bubble-avatar-pin-scale));
   border-radius: 50%;
 
-  background: rgba(255, 255, 255, 1.00);
-  box-shadow:
-    /* 0 3px 10px rgba(0, 0, 0, 0.16),
-    0 1px 3px  rgba(0, 0, 0, 0.08); */
-    0 2px 16px rgba(0, 0, 0, 0.28),
-    0 2px 8px  rgba(0, 0, 0, 0.16);
+  background: var(--bubble-avatar-bg-color);
+  box-shadow: var(--bubble-avatar-pin-shadow);
 
   display: flex;
   align-items: center;
@@ -32,16 +28,16 @@
 
 .bubble-avatar-eyes {
   display: flex;
-  gap: 8px;
+  gap: calc(var(--bubble-avatar-eye-gap) * var(--bubble-avatar-pin-scale));
   margin-top: -2px;           /* nudge face slightly above dead-centre */
 }
 
 /* Scaled-down version of .bubble-eye (6×10 px → 4×6.5 px) */
 .bubble-avatar-eye {
-  width: 4px;
-  height: 6.5px;
-  border-radius: 2px;
-  background: #2a2a2a;
+  width: calc(var(--bubble-avatar-eye-width) * var(--bubble-avatar-pin-scale));
+  height: calc(var(--bubble-avatar-eye-height) * var(--bubble-avatar-pin-scale));
+  border-radius: calc(var(--bubble-avatar-eye-width) * var(--bubble-avatar-pin-scale) / 2);  /* fully rounded caps on a vertical pill */
+  background: var(--bubble-avatar-eye-color);
   flex-shrink: 0;
   transform-origin: center center;
 }

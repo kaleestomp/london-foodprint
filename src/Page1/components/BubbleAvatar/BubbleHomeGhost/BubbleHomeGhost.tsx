@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+import DashedCircle from '../DashedCircle/DashedCircle';
 import './BubbleHomeGhost.css';
 
 type Props = {
@@ -26,12 +27,13 @@ const BubbleHomeGhost: React.FC<Props> = ({ isNearHome, onResetHome }) => (
     exit={{ opacity: 0 }}
     transition={{ opacity: { duration: 0.2, ease: 'easeOut' } }}
   >
-    <motion.span
+    <motion.div
       className="bubble-home-reset-ring"
-      aria-hidden="true"
       animate={{ scale: isNearHome ? 1.16 : 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-    />
+    >
+      <DashedCircle className="bubble-home-reset-ring-svg" />
+    </motion.div>
     <ReplayRoundedIcon fontSize="large" aria-hidden="true" />
   </motion.button>
 );

@@ -6,9 +6,12 @@ import L from 'leaflet';
 import BubbleAvatarPin from '../BubbleAvatarPin/BubbleAvatarPin';
 import addPlaceMarkers from '../../MapCard/Map/DataLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
+import { SCORE_TIER_THRESHOLD_MAP, useSearchFilters } from '../../../../context/SearchFiltersContext';
 import { type LatLng, SEARCH_RADIUS, LONGPRESS_MS, ZOOM_LEVEL, CIRCLE_COLOR, DROP_ENTRY_DELAY_MS } from '../config';
 
 const CIRCLE_ENTRY_MS = 280;
+const PIN_SCALE = 0.625;
+const PIN_SIZE = 90 * PIN_SCALE; // 56.25px
 
 /**
  * Manages all Leaflet layers for the dropped bubble avatar.
@@ -24,6 +27,7 @@ const useBubbleDrop = (
   /** Clears the map avatar; receives screen coords so MapCard can reposition BubbleButton */
   onPickup:    (x: number, y: number) => void,
 ) => {
+  const { cuisines, venueType, priceRange, scoreTier } = useSearchFilters();
   const circleRef      = useRef<L.Circle | null>(null);
   const markerRef      = useRef<L.Marker | null>(null);
   const reactRootRef   = useRef<Root | null>(null);
@@ -35,7 +39,15 @@ const useBubbleDrop = (
 
   // Fetch nearby places via the shared request hook (caches results, handles abort)
   const { res: nearbyRes } = useRequestNearby(
-    droppedPos ? { lat: droppedPos.lat, lng: droppedPos.lng, radius_m: SEARCH_RADIUS } : null,
+    droppedPos ? {
+      lat: droppedPos.lat,
+      lng: droppedPos.lng,
+      radius_m: SEARCH_RADIUS,
+      cuisines,
+      venue_type: venueType ?? '',
+      cost: priceRange ?? '',
+      rank_threshold: SCORE_TIER_THRESHOLD_MAP[scoreTier],
+    } : null,
   );
 
   // ── Clear all Leaflet layers ───────────────────────────────────────────
@@ -99,9 +111,9 @@ const useBubbleDrop = (
     const circle = L.circle([lat, lng], {
       radius:    1,
       color:     CIRCLE_COLOR,
-      weight:    2.0,
+      weight:    4.0,
       fill:      false,
-      dashArray: '1 4',
+      dashArray: '10 10',
       opacity:   0,
     }).addTo(map);
     circleRef.current = circle;
@@ -131,8 +143,8 @@ const useBubbleDrop = (
     const icon = L.divIcon({
       className: 'bubble-avatar-leaflet-icon',
       html:      '<div class="bubble-avatar-root"></div>',
-      iconSize:   [40, 40],
-      iconAnchor: [20, 20],
+      iconSize:   [PIN_SIZE, PIN_SIZE],
+      iconAnchor: [PIN_SIZE / 2, PIN_SIZE / 2],
     });
     const marker = L.marker([lat, lng], {
       icon,

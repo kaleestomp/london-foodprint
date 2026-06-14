@@ -6,20 +6,18 @@
 
 .bubble-btn {
   position: fixed;
-  bottom: 88px;
+  bottom: var(--bubble-avatar-bottom-offset);
   left: 50%;
-  margin-left: -32px;          /* half of 64px → true centre without transform */
+  margin-left: calc(var(--bubble-avatar-home-size) / -2); /* half of size → true centre without transform */
 
-  width: 64px;
-  height: 64px;
+  width: var(--bubble-avatar-home-size);
+  height: var(--bubble-avatar-home-size);
   border-radius: 50%;
 
-  background: rgba(255, 255, 255, 1.0);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow:
-    0 2px 32px rgba(0, 0, 0, 0.28),
-    0 2px 8px  rgba(0, 0, 0, 0.16);
+  background: var(--bubble-avatar-bg-color);
+  backdrop-filter: var(--bubble-avatar-bg-blur);
+  -webkit-backdrop-filter: var(--bubble-avatar-bg-blur);
+  box-shadow: var(--bubble-avatar-shadow);
 
   cursor: grab;
   z-index: 1100;               /* above toolbar (z-index 1000) */
@@ -38,19 +36,18 @@
 
 /* Drop zone hint – a faint ring pulses on the map while carrying */
 @keyframes drop-ring-pulse {
-  0%   { transform: translate(-50%, -50%) scale(1.25); opacity: 0.55; }
-  50%  { transform: translate(-50%, -50%) scale(1.5);    opacity: 0.25; }
-  100% { transform: translate(-50%, -50%) scale(1.25); opacity: 0.55; }
+  0%   { transform: translate(-50%, -50%) scale(1.25); opacity: 1.0; }
+  50%  { transform: translate(-50%, -50%) scale(1.5);    opacity: 1.0; }
+  100% { transform: translate(-50%, -50%) scale(1.25); opacity: 1.0; }
 }
-
 .bubble-btn-drop-ring {
   position: fixed;
   pointer-events: none;
   z-index: 1099;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 2px dashed #ba160c;
+  width: var(--bubble-avatar-drop-ring-size);
+  height: var(--bubble-avatar-drop-ring-size);
+  color: var(--bubble-avatar-ring-color);
+  overflow: visible;
   animation: drop-ring-pulse 1.4s ease-in-out infinite;
 }
 
@@ -81,18 +78,18 @@
 }
 
 .bubble-eye {
-  width: 8px;
-  height: 12px;
-  border-radius: 3px;           /* fully rounded caps on a vertical pill */
-  background: #2a2a2a;
+  width: var(--bubble-avatar-eye-width);
+  height: var(--bubble-avatar-eye-height);
+  border-radius: calc(var(--bubble-avatar-eye-width) / 2);           /* fully rounded caps on a vertical pill */
+  background: var(--bubble-avatar-eye-color);
   flex-shrink: 0;
   transform-origin: center center;
 }
 
 /* Cartoon-style smiling eyes when avatar is picked up/dragging */
 .bubble-eye.is-smile {
-  width: 8px;
-  height: 8px;
-  border-bottom: 2.5px solid #2a2a2a;
+  width: var(--bubble-avatar-eye-width);
+  height: var(--bubble-avatar-eye-width);
+  border-bottom: 2.5px solid var(--bubble-avatar-eye-color);
   border-radius: 20px 20px 0 0;
 }

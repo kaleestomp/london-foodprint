@@ -2,11 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   type PanInfo,
   useAnimationControls,
+  useDragControls,
   useMotionValue,
 } from 'framer-motion';
 
 const MOBILE_BREAKPOINT = 960;
 const MOBILE_PEEK_PX = 72;
+const RESIZE_HEIGHT_JITTER_PX = 120;
 
 const springTransition = {
   type: 'spring' as const,
@@ -23,11 +25,24 @@ const useRestaurantPanelSnap = () => {
   const [snapIndex, setSnapIndex] = useState(0);
 
   const controls = useAnimationControls();
+  const dragControls = useDragControls();
   const y = useMotionValue(0);
 
   useEffect(() => {
     const onResize = () => {
-      setViewport({ width: window.innerWidth, height: window.innerHeight });
+      const next = { width: window.innerWidth, height: window.innerHeight };
+      setViewport((prev) => {
+        const widthChanged = prev.width !== next.width;
+        const heightDelta = Math.abs(prev.height - next.height);
+
+        // Ignore small mobile viewport height jitters (browser chrome/show-hide)
+        // that can cause panel flicker during unrelated drag gestures.
+        if (!widthChanged && heightDelta < RESIZE_HEIGHT_JITTER_PX) {
+          return prev;
+        }
+
+        return next;
+      });
     };
 
     window.addEventListener('resize', onResize);
@@ -38,11 +53,11 @@ const useRestaurantPanelSnap = () => {
 
   const metrics = useMemo(() => {
     const sheetHeight = viewport.height;
-    const maxVisibleHeight = Math.max(MOBILE_PEEK_PX, Math.round(viewport.height * 0.8));
+    const maxVisibleHeight = Math.max(MOBILE_PEEK_PX, viewport.height - 90);
     const visibleHeights = [
       MOBILE_PEEK_PX,
       Math.round(viewport.height * 0.25),
-      Math.round(viewport.height * 0.45),
+      Math.round(viewport.height * 0.5),
       maxVisibleHeight,
     ];
     const offsets = visibleHeights.map((visible) => Math.max(0, sheetHeight - visible));
@@ -87,10 +102,13 @@ const useRestaurantPanelSnap = () => {
 
   return {
     controls,
+    dragControls,
     dragConstraints: { top: metrics.minOffset, bottom: metrics.maxOffset },
     handleDragEnd,
     isMobile,
     panelHeight: metrics.sheetHeight,
+    snapIndex,
+    setSnapIndex,
     transition: springTransition,
     y,
   };

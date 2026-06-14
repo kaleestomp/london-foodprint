@@ -1,0 +1,27 @@
+.bubble-avatar-root {
+  --bubble-avatar-home-size: 90px;  /* 64 */
+  --bubble-avatar-eye-height: 18px;
+  --bubble-avatar-eye-width: 12px;
+  --bubble-avatar-eye-gap: 18px;
+
+  --bubble-avatar-drop-ring-size: 120px;
+  --bubble-avatar-bottom-offset: 88px;
+  --bubble-avatar-edge-scale: 0.85;
+
+  --bubble-avatar-pin-scale: 0.625;
+
+  --bubble-avatar-shadow:
+    0 2px 32px rgba(0, 0, 0, 0.5),
+    0 2px 8px  rgba(0, 0, 0, 0.25);
+  --bubble-avatar-edege-shadow:
+    0 3px 12px rgba(0, 0, 0, 0.16),
+    0 1px 4px  rgba(0, 0, 0, 0.08);
+  --bubble-avatar-pin-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.28),
+    0 2px 8px  rgba(0, 0, 0, 0.16);
+
+  --bubble-avatar-eye-color: #2a2a2a;
+  --bubble-avatar-ring-color: #ba160c;
+  --bubble-avatar-bg-color: rgba(255, 255, 255, 1.0);
+  --bubble-avatar-bg-blur: blur(24px);
+}

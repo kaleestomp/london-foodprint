@@ -8,6 +8,7 @@ import useMapPanToLocation from './handleUserLocation/useMapPanToLocation';
 import useFlightAnimationToPoint from './handleUserLocation/useFlightAnimationToPoint';
 import BubbleHomeGhost from './BubbleHomeGhost/BubbleHomeGhost';
 import BubbleEdgeIndicator from './BubbleEdgeIndicator/BubbleEdgeIndicator';
+import './BubbleAvatar.css';
 
 const BubbleAvatar: React.FC<{ 
     mapRef: React.RefObject<L.Map | null>;
@@ -75,6 +76,9 @@ const BubbleAvatar: React.FC<{
     }, [programmaticFlightToken, startFlight]);
 
     useEffect(() => {
+        // Only clear the programmatic flight once a real drop lands on the map.
+        // Clearing on null would cancel an in-flight programmatic animation.
+        if (!droppedPos) return;
         clearFlight();
     }, [clearFlight, droppedPos]);
 
@@ -129,7 +133,7 @@ const BubbleAvatar: React.FC<{
     }, [searchMask, setSearchMask]);
 
     return (  
-        <>
+        <div className="bubble-avatar-root">
             {/* key forces a fresh Framer Motion instance when switching between
                 home mode and pickup mode so motion values reset cleanly */}
             {!isDropped && (
@@ -161,7 +165,7 @@ const BubbleAvatar: React.FC<{
                     onPickup={handlePickup}
                 />
             )}
-        </>
+        </div>
     );
 }
 

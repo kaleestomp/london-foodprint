@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import createCachedMemoryFetcher from '../../../utils/cache/createCachedMemoryFetcher';
 import { type TilesResponse, request } from './request';
 
@@ -18,7 +18,7 @@ export interface TilesParams {
    * directly. Only valid (and only sent) when res === 10.
    */
   places_only?: boolean;
-  cuisine?: string;
+  cuisines?: string[];
   cost?: string;
   venue_type?: string;
   score_basis?: 0 | 1;
@@ -34,13 +34,16 @@ const buildQueryKey = (params: TilesParams): string => {
     ne_lng: String(params.ne_lng),
     res: String(params.res),
     ...(params.places_only ? { places_only: 'true' } : {}),
-    cuisine: params.cuisine ?? '',
     cost: params.cost ?? '',
     venue_type: params.venue_type ?? '',
     score_basis: String(params.score_basis ?? 0),
     confidence: String(params.confidence ?? 1),
     score_tier: String(params.score_tier ?? 0),
   });
+
+  for (const cuisine of [...(params.cuisines ?? [])].sort((left, right) => left.localeCompare(right))) {
+    qs.append('cuisine', cuisine);
+  }
 
   return qs.toString();
 };
@@ -49,17 +52,22 @@ const useRequestTiles = (params: TilesParams | null): {
   status: RequestStatus;
   error: Error | null;
   res: TilesResponse | null;
+  queryKey: string;
+  responseKey: string;
 } => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [res, setRes] = useState<TilesResponse | null>(null);
+  const [responseKey, setResponseKey] = useState('');
+  const latestRequestIdRef = useRef(0);
 
   const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
 
   const sendRequest = useCallback(async (
     key: string,
     signal: AbortSignal,
-    isActiveRef: { current: boolean }
+    isActiveRef: { current: boolean },
+    requestId: number,
   ): Promise<TilesResponse | null> => {
     setIsLoading(true);
     setError(null);
@@ -80,7 +88,7 @@ const useRequestTiles = (params: TilesParams | null): {
       setError(normalizedError);
       return null;
     } finally {
-      if (isActiveRef.current) {
+      if (isActiveRef.current && latestRequestIdRef.current === requestId) {
         setIsLoading(false);
       }
     }
@@ -89,9 +97,12 @@ const useRequestTiles = (params: TilesParams | null): {
   useEffect(() => {
     const isActiveRef = { current: true };
     const controller = new AbortController();
+    const requestId = latestRequestIdRef.current + 1;
+    latestRequestIdRef.current = requestId;
 
     if (!queryKey) {
       setRes(null);
+      setResponseKey('');
       setError(null);
       setIsLoading(false);
       return () => {
@@ -100,9 +111,10 @@ const useRequestTiles = (params: TilesParams | null): {
       };
     }
 
-    sendRequest(queryKey, controller.signal, isActiveRef).then((data) => {
-      if (isActiveRef.current && data !== null) {
+    sendRequest(queryKey, controller.signal, isActiveRef, requestId).then((data) => {
+      if (isActiveRef.current && latestRequestIdRef.current === requestId && data !== null) {
         setRes(data);
+        setResponseKey(queryKey);
       }
     });
 
@@ -114,7 +126,7 @@ const useRequestTiles = (params: TilesParams | null): {
 
   const status: RequestStatus = isLoading ? 'loading' : error ? 'error' : res ? 'success' : 'empty';
 
-  return { status, error, res };
+  return { status, error, res, queryKey, responseKey };
 };
 
 export default useRequestTiles;

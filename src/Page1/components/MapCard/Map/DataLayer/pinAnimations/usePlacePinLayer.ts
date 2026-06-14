@@ -81,10 +81,20 @@ const usePlacePinLayer = (
    * Subsequent calls while in places mode (panning): only add place IDs not
    * already tracked — existing markers persist until a res change.
    */
-  const transitionToPlaces = (places: TilePlacePreview[]): void => {
+  const transitionToPlaces = (
+    places: TilePlacePreview[],
+    options: { replaceAll?: boolean } = {},
+  ): void => {
     const map   = mapRef.current;
     const layer = layerRef.current;
     if (!map || !layer) return;
+
+    const replaceAll = options.replaceAll === true;
+    if (replaceAll && placeMarkersByIdRef.current.size > 0) {
+      cancelTimer();
+      placeMarkersByIdRef.current.forEach((marker) => layer.removeLayer(marker));
+      placeMarkersByIdRef.current.clear();
+    }
 
     const isFirstEntry = placeMarkersByIdRef.current.size === 0;
 

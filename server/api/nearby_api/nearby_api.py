@@ -4,7 +4,7 @@ from typing import Any
 import h3
 from fastapi import APIRouter, Query, Request
 
-from api.map_common import get_rank_column, normalize_dimension
+from api.map_common import get_rank_column, normalize_dimension, normalize_dimension_list
 PAGE_SIZE = 80
 router = APIRouter()
 
@@ -15,7 +15,7 @@ async def get_nearby(
     lat: float = Query(...),
     lng: float = Query(...),
     radius_m: float = Query(default=1000, gt=0, le=10000),
-    cuisine: str | None = Query(default=""),
+    cuisine: list[str] | None = Query(default=None),
     cost: str | None = Query(default=""),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=1),
@@ -25,7 +25,7 @@ async def get_nearby(
 ) -> dict[str, Any]:
     del confidence
 
-    cuisine_value = normalize_dimension(cuisine)
+    cuisine_values = normalize_dimension_list(cuisine)
     cost_value = normalize_dimension(cost)
     venue_value = normalize_dimension(venue_type)
     rank_column = get_rank_column(score_basis)
@@ -54,7 +54,7 @@ async def get_nearby(
               ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography,
               $4
           )
-          AND ($5 = '' OR cuisine_type = $5)
+                    AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
           AND ($6 = '' OR cost = $6)
           AND ($7 = '' OR venue_type = $7)
           AND {rank_column} >= $8
@@ -70,7 +70,7 @@ async def get_nearby(
             lng,
             lat,
             radius_m,
-            cuisine_value,
+            cuisine_values,
             cost_value,
             venue_value,
             rank_threshold,

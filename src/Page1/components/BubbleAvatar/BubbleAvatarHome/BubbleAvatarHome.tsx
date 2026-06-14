@@ -6,6 +6,7 @@ import useHomeProximity from './useHomeProximity';
 import useBubbleHomeEyes from '../useEyeAnimations/useBubbleHomeEyes';
 import useBubbleFlightAnimation from './useBubbleFlightAnimation';
 import { getHomeCenter, HOME_SNAP_RADIUS } from '../config';
+import DashedCircle from '../DashedCircle/DashedCircle';
 import './BubbleAvatarHome.css';
 
 type Props = {
@@ -215,14 +216,14 @@ const BubbleHome: React.FC<Props> = ({ mapRef, onDrop, onDraggingChange, isNearH
 
       {/* ── Drop-ring overlay (follows pointer while dragging) ───────────── */}
       {isDragging && dragPos && !isNearHome && (
-        <div
+        <DashedCircle
           className="bubble-btn-drop-ring"
           style={{ left: dragPos.x, top: dragPos.y }}
         />
       )}
 
       {isPickupPending && pickupFrom && (
-        <div
+        <DashedCircle
           className="bubble-btn-drop-ring"
           style={{ left: pickupFrom.x, top: pickupFrom.y }}
         />

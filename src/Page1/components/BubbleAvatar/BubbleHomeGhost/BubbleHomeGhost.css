@@ -2,16 +2,16 @@
 .bubble-home-reset {
   position: fixed;
   left: 50%;
-  margin-left: -32px;
-  bottom: 88px;
-  width: 64px;
-  height: 64px;
+  margin-left: calc(var(--bubble-avatar-home-size) / -2);
+  bottom: var(--bubble-avatar-bottom-offset);
+  width: var(--bubble-avatar-home-size);
+  height: var(--bubble-avatar-home-size);
   border: none;
   background: transparent;
   padding: 0;
   cursor: pointer;
   z-index: 1099;
-  color: rgba(20, 20, 20, 0.32);
+  color: rgba(20, 20, 20, 1.0);
   transition: color 0.18s ease, opacity 0.18s ease;
 
   display: flex;
@@ -20,7 +20,7 @@
 }
 
 .bubble-home-reset:hover {
-  color: rgba(20, 20, 20, 0.5);
+  color: rgba(20, 20, 20, 1.0);
 }
 
 .bubble-home-reset .MuiSvgIcon-root {
@@ -31,7 +31,12 @@
 .bubble-home-reset-ring {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  border: 2px dashed #828282;
-  opacity: 0.8;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.bubble-home-reset-ring-svg {
+  width: 100%;
+  height: 100%;
 }

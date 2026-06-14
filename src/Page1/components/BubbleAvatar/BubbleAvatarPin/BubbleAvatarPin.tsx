@@ -11,7 +11,7 @@ import './BubbleAvatarPin.css';
  */
 const BubbleAvatarPin: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { gaze, isBlinking } = useEyeGaze(containerRef);
+  const { gaze, isBlinking } = useEyeGaze(containerRef, 'curious');
   const eyeScaleY = isBlinking ? 0.08 : 1;
 
   return (

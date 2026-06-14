@@ -1,5 +1,4 @@
 import useEyeGaze from './useEyeGaze';
-import useSmileGaze from './useSmileGaze';
 
 type Args = {
   bubbleRef: React.RefObject<HTMLDivElement | null>;
@@ -12,13 +11,13 @@ type Args = {
  * Keeps the component focused on drag orchestration and layout concerns.
  */
 const useBubbleHomeEyes = ({ bubbleRef, isDragging, isVisuallyDragging }: Args) => {
-  const { gaze, isBlinking } = useEyeGaze(bubbleRef);
-  const smileGaze = useSmileGaze(isVisuallyDragging);
+  const mode = isVisuallyDragging ? 'smile' : 'idle';
+  const { gaze, isBlinking } = useEyeGaze(bubbleRef, mode);
 
   const isSmileEye = isVisuallyDragging;
   const eyeScaleY = isDragging ? 1.4 : isBlinking ? 0.08 : 1;
-  const eyeX = isSmileEye ? smileGaze.x : gaze.x;
-  const eyeY = isSmileEye ? smileGaze.y : gaze.y;
+  const eyeX = gaze.x;
+  const eyeY = gaze.y;
 
   return { isSmileEye, eyeScaleY, eyeX, eyeY, isBlinking };
 };

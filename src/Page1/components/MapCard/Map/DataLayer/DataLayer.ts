@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
 
 import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
+import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
 import onUserRoam from './utils/onUserRoam';
 import DelayLoadingScreen from './utils/delayLoadingScreen';
 import createPersistentLayer from './utils/createPersistentLayer';
@@ -10,7 +11,19 @@ import { type SearchMask, filterDensityOutsideMask, filterPlacesOutsideMask } fr
 
 const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask | null = null): void => {
   const viewportParams = onUserRoam(mapRef);
-  const { status, res } = useRequestTiles(viewportParams);
+  const { cuisines, venueType, priceRange, scoreTier } = useSearchFilters();
+  const requestParams = useMemo(() => {
+    if (!viewportParams) return null;
+
+    return {
+      ...viewportParams,
+      cuisines,
+      venue_type: venueType ?? '',
+      cost: priceRange ?? '',
+      score_tier: scoreTier,
+    };
+  }, [viewportParams, cuisines, venueType, priceRange, scoreTier]);
+  const { status, res, queryKey, responseKey } = useRequestTiles(requestParams);
 
   DelayLoadingScreen(status);
   const layerRef = createPersistentLayer(mapRef);
@@ -20,9 +33,13 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
   const prevModeRef = useRef<'tiles' | 'places' | null>(null);
   // Tracks mask transitions so we can force a full reconcile (remove stale in-radius pins).
   const prevMaskRef = useRef<SearchMask | null>(null);
+  // Tracks filter transitions so we can force a full reconcile (remove stale pins/markers).
+  const prevFilterKeyRef = useRef<string>('');
 
   useEffect(() => {
     if (!mapRef.current || status !== 'success' || !res || !layerRef.current) return;
+    // Ignore stale responses from the previous query key to avoid one-step lag.
+    if (responseKey !== queryKey) return;
 
     const maskChanged = (() => {
       const prev = prevMaskRef.current;
@@ -35,13 +52,24 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
       );
     })();
 
+    const nextFilterKey = JSON.stringify({
+      cuisines: [...cuisines].sort((left, right) => left.localeCompare(right)),
+      venueType: venueType ?? '',
+      priceRange: priceRange ?? '',
+      scoreTier,
+    });
+    const filterChanged = prevFilterKeyRef.current !== nextFilterKey;
+
     prevMaskRef.current = searchMask;
 
     // Tile places mode: also mask out places inside the bubble radius to avoid
     // duplicate markers with BubbleAvatar's own nearby layer.
     if (res.mode === 'places') {
       prevModeRef.current = 'places';
-      transitionToPlaces(filterPlacesOutsideMask(res.data, searchMask));
+      transitionToPlaces(filterPlacesOutsideMask(res.data, searchMask), {
+        replaceAll: filterChanged,
+      });
+      prevFilterKeyRef.current = nextFilterKey;
       return;
     }
 
@@ -57,8 +85,9 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
 
     // Force full reconcile on mask changes so already-rendered in-radius density
     // markers are removed (not just preventing new ones).
-    if (maskChanged) {
+    if (maskChanged || filterChanged) {
       transitionRes(res.resolution, filteredTiles);
+      prevFilterKeyRef.current = nextFilterKey;
       return;
     }
 
@@ -67,7 +96,8 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
     } else {
       addPins(filteredTiles, res.resolution);
     }
-  }, [res, status, searchMask]);
+    prevFilterKeyRef.current = nextFilterKey;
+  }, [res, status, searchMask, cuisines, venueType, priceRange, scoreTier, queryKey, responseKey]);
 };
 
 export default DataLayer;

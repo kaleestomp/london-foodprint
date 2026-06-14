@@ -24,7 +24,27 @@ def zoom_to_resolution(zoom: int) -> int:
 def normalize_dimension(value: str | None) -> str:
     if value is None:
         return ""
-    return value.strip()
+    normalized = value.strip()
+    if normalized.lower() == "any":
+        return ""
+    return normalized
+
+
+def normalize_dimension_list(values: list[str] | None) -> list[str]:
+    if not values:
+        return []
+
+    normalized_values: list[str] = []
+    seen: set[str] = set()
+
+    for value in values:
+        normalized = normalize_dimension(value)
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        normalized_values.append(normalized)
+
+    return normalized_values
 
 
 def get_rank_column(score_basis: int) -> str:

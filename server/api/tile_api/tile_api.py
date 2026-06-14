@@ -8,6 +8,7 @@ from api.map_common import (
     get_rank_column,
     h3_cells_for_bbox,
     normalize_dimension,
+    normalize_dimension_list,
 )
 
 router = APIRouter()
@@ -20,7 +21,7 @@ async def get_tiles(
     ne_lat: float = Query(...),
     ne_lng: float = Query(...),
     res: int = Query(..., ge=7, le=10),
-    cuisine: str | None = Query(default=""),
+    cuisine: list[str] | None = Query(default=None),
     cost: str | None = Query(default=""),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=1),
@@ -33,7 +34,7 @@ async def get_tiles(
     if places_only and res < 10:
         raise HTTPException(status_code=422, detail="places_only requires res=10")
 
-    cuisine_value = normalize_dimension(cuisine)
+    cuisine_values = normalize_dimension_list(cuisine)
     cost_value = normalize_dimension(cost)
     venue_value = normalize_dimension(venue_type)
     resolution = res
@@ -46,7 +47,7 @@ async def get_tiles(
     cache_key = _cache_key(
         outer_tiles,
         resolution,
-        cuisine_value,
+        cuisine_values,
         cost_value,
         venue_value,
         score_basis,
@@ -77,7 +78,7 @@ async def get_tiles(
             FROM places
             WHERE lat BETWEEN $1 AND $2
               AND lon BETWEEN $3 AND $4
-              AND ($5 = '' OR cuisine_type = $5)
+                            AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
               AND ($6 = '' OR cost = $6)
               AND ($7 = '' OR venue_type = $7)
               AND {rank_column} >= $8
@@ -88,7 +89,7 @@ async def get_tiles(
             rows = await conn.fetch(
                 places_direct_sql,
                 sw_lat, ne_lat, sw_lng, ne_lng,
-                cuisine_value, cost_value, venue_value,
+                cuisine_values, cost_value, venue_value,
                 rank_threshold,
             )
         payload = {
@@ -99,19 +100,6 @@ async def get_tiles(
         await _set_cached(cache_key, payload)
         return payload
     # ----------------------------------------------------------
-
-    tiles_sql = """
-        SELECT tile, count
-        FROM h3_density
-        WHERE resolution = $1
-          AND tile = ANY($2::TEXT[])
-          AND cuisine_type = $3
-          AND cost = $4
-          AND venue_type = $5
-          AND score_basis = $6
-          AND confidence = $7
-          AND score_tier = $8
-    """
 
     places_sql = f"""
         SELECT
@@ -129,7 +117,7 @@ async def get_tiles(
         FROM places
         WHERE lat BETWEEN $1 AND $2
           AND lon BETWEEN $3 AND $4
-          AND ($5 = '' OR cuisine_type = $5)
+                    AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
           AND ($6 = '' OR cost = $6)
           AND ($7 = '' OR venue_type = $7)
           AND {rank_column} >= $8
@@ -138,17 +126,55 @@ async def get_tiles(
     """
 
     async with request.app.state.pool.acquire() as conn:
-        tile_rows = await conn.fetch(
-            tiles_sql,
-            resolution,
-            outer_tiles,  # padded — covers intersecting edge tiles for heatmap
-            cuisine_value,
-            cost_value,
-            venue_value,
-            score_basis,
-            confidence,
-            score_tier,
-        )
+        if cuisine_values:
+            tiles_sql = """
+                SELECT tile, SUM(count)::INT AS count
+                FROM h3_density
+                WHERE resolution = $1
+                  AND tile = ANY($2::TEXT[])
+                  AND cuisine_type = ANY($3::TEXT[])
+                  AND cost = $4
+                  AND venue_type = $5
+                  AND score_basis = $6
+                  AND confidence = $7
+                  AND score_tier = $8
+                GROUP BY tile
+            """
+            tile_rows = await conn.fetch(
+                tiles_sql,
+                resolution,
+                outer_tiles,  # padded — covers intersecting edge tiles for heatmap
+                cuisine_values,
+                cost_value,
+                venue_value,
+                score_basis,
+                confidence,
+                score_tier,
+            )
+        else:
+            tiles_sql = """
+                SELECT tile, count
+                FROM h3_density
+                WHERE resolution = $1
+                  AND tile = ANY($2::TEXT[])
+                  AND cuisine_type = $3
+                  AND cost = $4
+                  AND venue_type = $5
+                  AND score_basis = $6
+                  AND confidence = $7
+                  AND score_tier = $8
+            """
+            tile_rows = await conn.fetch(
+                tiles_sql,
+                resolution,
+                outer_tiles,  # padded — covers intersecting edge tiles for heatmap
+                "",
+                cost_value,
+                venue_value,
+                score_basis,
+                confidence,
+                score_tier,
+            )
 
         # Use only the inner (unpadded) tiles to decide whether to fall back to
         # the places query — avoids counting edge tiles that are barely visible.
@@ -162,7 +188,7 @@ async def get_tiles(
                 ne_lat,
                 sw_lng,
                 ne_lng,
-                cuisine_value,
+                cuisine_values,
                 cost_value,
                 venue_value,
                 rank_threshold,
