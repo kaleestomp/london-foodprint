@@ -14,6 +14,7 @@ const MapCard: React.FC = () => {
     const mapRef = useRef<L.Map | null>(null);
     const [searchMask, setSearchMask] = useState<{ center: LatLng; radiusM: number } | null>(null);
     const [programmaticDrop, setProgrammaticDrop] = useState<{ lat: number; lng: number; token: number } | null>(null);
+    const [isBubbleDragging, setIsBubbleDragging] = useState(false);
     
     IPLocationHandler({ mapRef });
     const handleProgrammaticDrop = useCallback((lat: number, lng: number) => {
@@ -24,9 +25,14 @@ const MapCard: React.FC = () => {
         <div className='map-card-viewport'>
             <div className='map-canvas-wrapper'>
                 <Map mapRef={mapRef} searchMask={searchMask} />
-                <RestaurantInfoPanel />
+                <RestaurantInfoPanel freezeDuringBubbleDrag={isBubbleDragging} />
                 <MapToolbar mapRef={mapRef} onProgrammaticDrop={handleProgrammaticDrop} />
-                <BubbleAvatar mapRef={mapRef} setSearchMask={setSearchMask} programmaticDrop={programmaticDrop} />
+                <BubbleAvatar
+                    mapRef={mapRef}
+                    setSearchMask={setSearchMask}
+                    programmaticDrop={programmaticDrop}
+                    onDraggingStateChange={setIsBubbleDragging}
+                />
             </div>
         </div>
     );

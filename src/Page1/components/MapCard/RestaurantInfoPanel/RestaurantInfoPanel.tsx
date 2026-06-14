@@ -38,6 +38,10 @@ const sectionTitleSx = {
   color: 'text.secondary',
 };
 
+type RestaurantInfoPanelProps = {
+  freezeDuringBubbleDrag?: boolean;
+};
+
 const FilterSection: React.FC<FilterSectionProps> = ({
   title,
   options,
@@ -111,7 +115,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   );
 };
 
-const RestaurantInfoPanel: React.FC = () => {
+const RestaurantInfoPanel: React.FC<RestaurantInfoPanelProps> = ({ freezeDuringBubbleDrag = false }) => {
   const {
     controls,
     debug,
@@ -124,7 +128,7 @@ const RestaurantInfoPanel: React.FC = () => {
     snapIndex,
     transition,
     y,
-  } = useRestaurantPanelSnap();
+  } = useRestaurantPanelSnap({ freezeTransform: freezeDuringBubbleDrag });
   const {
     restaurantPanelCommandToken,
     restaurantPanelTargetSnapIndex,
@@ -269,13 +273,13 @@ const RestaurantInfoPanel: React.FC = () => {
       <motion.section
         className="restaurant-sheet-mobile"
         style={{ y, height: panelHeight }}
-        drag="y"
+        drag={freezeDuringBubbleDrag ? false : 'y'}
         dragControls={dragControls}
         dragListener={false}
         dragMomentum={false}
         dragElastic={0.04}
         dragConstraints={dragConstraints}
-        onDragEnd={handleDragEnd}
+        onDragEnd={freezeDuringBubbleDrag ? undefined : handleDragEnd}
         animate={controls}
         initial={false}
         transition={transition}
@@ -283,7 +287,7 @@ const RestaurantInfoPanel: React.FC = () => {
       >
         <div
           className="restaurant-sheet-header"
-          onPointerDown={(event) => dragControls.start(event)}
+          onPointerDown={freezeDuringBubbleDrag ? undefined : (event) => dragControls.start(event)}
         >
           <div className="restaurant-sheet-handle-wrap">
           <div className="restaurant-sheet-handle" />
