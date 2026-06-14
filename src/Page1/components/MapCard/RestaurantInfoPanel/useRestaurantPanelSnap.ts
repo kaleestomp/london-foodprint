@@ -10,10 +10,10 @@ import {
   MOBILE_BREAKPOINT,
   MOBILE_ENTER_BREAKPOINT,
   MOBILE_EXIT_BREAKPOINT,
-  MOBILE_SNAP_1,
-  MOBILE_SNAP_2,
-  MOBILE_SNAP_3,
-  MOBILE_SNAP_4,
+  MOBILE_MAX_BOTTOM_GAP_PX,
+  MOBILE_PEEK_PX,
+  MOBILE_SNAP_LARGE_RATIO,
+  MOBILE_SNAP_MID_RATIO,
   RESIZE_HEIGHT_JITTER_PX,
   RESIZE_WIDTH_JITTER_PX,
 } from './config';
@@ -119,11 +119,12 @@ const useRestaurantPanelSnap = (_options: UseRestaurantPanelSnapOptions = {}) =>
 
   const metrics = useMemo(() => {
     const sheetHeight = viewport.height;
+    const maxVisibleHeight = Math.max(MOBILE_PEEK_PX, viewport.height - MOBILE_MAX_BOTTOM_GAP_PX);
     const visibleHeights = [
-      MOBILE_SNAP_1,
-      MOBILE_SNAP_2,
-      MOBILE_SNAP_3,
-      MOBILE_SNAP_4,
+      MOBILE_PEEK_PX,
+      Math.round(viewport.height * MOBILE_SNAP_MID_RATIO),
+      Math.round(viewport.height * MOBILE_SNAP_LARGE_RATIO),
+      maxVisibleHeight,
     ];
     const offsets = visibleHeights.map((visible) => Math.max(0, sheetHeight - visible));
 

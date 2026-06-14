@@ -79,6 +79,14 @@ Practical interpretation:
 - Safari was destabilized by the bubble's Framer drag/compositing path.
 - The panel only exposed the issue visually because it is a large fixed moving layer.
 
+## Bug Shape
+The visible symptom was a false fullscreen flash in the restaurant panel while the user dragged the bubble avatar on iPhone Safari.
+
+Important behavior notes:
+- The panel appeared to jump between its intended snap size and a fullscreen-looking state.
+- The debug overlay showed stable panel values during the flash.
+- This meant the bug looked like panel state churn, but the render glitch was happening without corresponding panel state changes.
+
 ## What Was Tested But Did Not Fix It
 The following probes did not resolve the issue on their own:
 
@@ -88,8 +96,21 @@ The following probes did not resolve the issue on their own:
 4. Disabling panel drag momentum
 5. Freezing panel transform while bubble drag was active
 6. Reducing panel-derived geometry and resize sensitivity
+7. Replacing percentage-based snap heights with fixed snap sizes
+8. Temporarily converting the panel to a static non-dragging section
+9. Reducing panel opacity/translucency and making the sheet visually flatter
+10. Reducing bubble visual intensity alone (smaller drag scale/shadow) without changing drag mechanism
 
 These tests were still useful because they ruled out panel state logic as the root cause.
+
+## What We Learned From Failed Tests
+The failed tests were still diagnostically valuable:
+
+1. Stable debug values during the flash meant panel React state was not oscillating.
+2. Fixed snap sizes did not stop the issue, so snap math was not the dominant trigger.
+3. Freezing panel transform during bubble drag did not stop the issue, so panel transform updates were not the root cause.
+4. Reducing panel blur/opacity could change presentation cost, but did not eliminate the bug.
+5. The consistent common factor was bubble drag on coarse-pointer Safari.
 
 ## Final Fix
 For coarse-pointer devices:
@@ -100,6 +121,25 @@ For coarse-pointer devices:
 4. Desktop behavior remains unchanged.
 
 This keeps the richer Framer path where it is stable and uses the safer path where Safari needs it.
+
+## Non-Causal Changes Restored After Diagnosis
+Once the root cause was confirmed, the panel-specific degradations that did not actually fix the bug were restored:
+
+1. Percentage-based mobile snap heights
+2. Translucent/frosted panel background styling
+3. Mobile panel backdrop blur
+4. Panel box shadow / visual depth
+
+These were restored because they were not the source of the flicker.
+
+## Temporary Debug/Isolation Changes Removed
+The following temporary diagnostic changes were removed after confirming the root cause:
+
+1. Lifting bubble drag state into `MapCard` solely to freeze the panel during bubble drag
+2. `freezeDuringBubbleDrag` prop plumbing into `RestaurantInfoPanel`
+3. `freezeTransform` option in `useRestaurantPanelSnap`
+
+These were only used to disprove the panel-state hypothesis.
 
 ## Overlay Content
 The debug overlay currently displays:
@@ -133,3 +173,4 @@ If debug is not visible on iPhone:
 - Avoid adding debug-specific conditionals directly in rendering components unless strictly required.
 - Treat coarse-pointer bubble drag as a platform fallback, not a temporary workaround.
 - If mobile flicker reappears, inspect bubble drag implementation before revisiting panel snap logic.
+- Prefer restoring removed UI polish only after the causal mechanism is proven; otherwise debugging can drift toward non-causal surfaces.
