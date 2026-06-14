@@ -10,7 +10,7 @@ const IPLocationHandler: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = (
     const [ipLookupOpen, setIpLookupOpen] = useState(true);
     const [hasAppliedIpCenter, setHasAppliedIpCenter] = useState(false);
     const ipLocation = useIPLocation();
-    console.log(ipLocation);
+
     // Track map readiness for startup flows that need the Leaflet instance.
     useEffect(() => {
         if (mapRef.current) {
