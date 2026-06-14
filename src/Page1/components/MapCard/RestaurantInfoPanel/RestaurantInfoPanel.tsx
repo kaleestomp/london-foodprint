@@ -5,6 +5,7 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import { motion } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { useAppUI } from '../../../../context/AppUIContext';
 import {
   CUISINE_FILTER_OPTIONS,
@@ -154,6 +155,20 @@ const RestaurantInfoPanel: React.FC = () => {
 
   const showTabs = !isMobile || snapIndex > 0;
 
+  const debugOverlay = debug.enabled && typeof document !== 'undefined'
+    ? createPortal(
+      <div className="restaurant-panel-debug-overlay" aria-label="Panel debug overlay">
+        <div>mode: {debug.isMobile ? 'mobile' : 'desktop'} | coarse: {String(debug.isCoarsePointer)}</div>
+        <div>w: {debug.width} h: {Math.round(debug.height)} vvH: {debug.visualViewportHeight ? Math.round(debug.visualViewportHeight) : 'n/a'} iH: {debug.innerHeight ?? 'n/a'}</div>
+        <div>snap: {debug.snapIndex} y: {debug.y}</div>
+        {debug.events.map((event) => (
+          <div key={event}>{event}</div>
+        ))}
+      </div>,
+      document.body,
+    )
+    : null;
+
   const filterContent = (
     <div className="restaurant-panel-scroll-content">
       <Stack spacing={2.25} sx={{ p: 2.25 }}>
@@ -230,57 +245,9 @@ const RestaurantInfoPanel: React.FC = () => {
 
   if (!isMobile) {
     return (
-      <aside className="restaurant-panel-desktop" aria-label="Area restaurants panel">
-        <div className="restaurant-panel-header-desktop">Restaurants in this area</div>
-        <Tabs
-          value={activeTab}
-          onChange={(_, next) => setActiveTab(next)}
-          variant="fullWidth"
-          className="restaurant-panel-tabs"
-        >
-          <Tab value="results" label="Results" />
-          <Tab value="filters" label="Filters" />
-        </Tabs>
-        <div className="restaurant-panel-content">
-          {activeTab === 'filters' ? filterContent : resultsContent}
-        </div>
-        {debug.enabled ? (
-          <div className="restaurant-panel-debug-overlay" aria-label="Panel debug overlay">
-            <div>mode: {debug.isMobile ? 'mobile' : 'desktop'} | coarse: {String(debug.isCoarsePointer)}</div>
-            <div>w: {debug.width} h: {Math.round(debug.height)} vvH: {debug.visualViewportHeight ? Math.round(debug.visualViewportHeight) : 'n/a'} iH: {debug.innerHeight ?? 'n/a'}</div>
-            <div>snap: {debug.snapIndex} y: {debug.y}</div>
-            {debug.events.map((event) => (
-              <div key={event}>{event}</div>
-            ))}
-          </div>
-        ) : null}
-      </aside>
-    );
-  } else return (
-    <motion.section
-      className="restaurant-sheet-mobile"
-      style={{ y, height: panelHeight }}
-      drag="y"
-      dragControls={dragControls}
-      dragListener={false}
-      dragMomentum
-      dragElastic={0.04}
-      dragConstraints={dragConstraints}
-      onDragEnd={handleDragEnd}
-      animate={controls}
-      initial={false}
-      transition={transition}
-      aria-label="Area restaurants panel"
-    >
-      <div
-        className="restaurant-sheet-header"
-        onPointerDown={(event) => dragControls.start(event)}
-      >
-        <div className="restaurant-sheet-handle-wrap">
-        <div className="restaurant-sheet-handle" />
-        </div>
-        <div className="restaurant-sheet-title">Restaurants in this area</div>
-        {showTabs ? (
+      <>
+        <aside className="restaurant-panel-desktop" aria-label="Area restaurants panel">
+          <div className="restaurant-panel-header-desktop">Restaurants in this area</div>
           <Tabs
             value={activeTab}
             onChange={(_, next) => setActiveTab(next)}
@@ -290,22 +257,56 @@ const RestaurantInfoPanel: React.FC = () => {
             <Tab value="results" label="Results" />
             <Tab value="filters" label="Filters" />
           </Tabs>
-        ) : null}
-      </div>
-      <div className="restaurant-panel-content">
-        {activeTab === 'filters' ? filterContent : resultsContent}
-      </div>
-      {debug.enabled ? (
-        <div className="restaurant-panel-debug-overlay" aria-label="Panel debug overlay">
-          <div>mode: {debug.isMobile ? 'mobile' : 'desktop'} | coarse: {String(debug.isCoarsePointer)}</div>
-          <div>w: {debug.width} h: {Math.round(debug.height)} vvH: {debug.visualViewportHeight ? Math.round(debug.visualViewportHeight) : 'n/a'} iH: {debug.innerHeight ?? 'n/a'}</div>
-          <div>snap: {debug.snapIndex} y: {debug.y}</div>
-          {debug.events.map((event) => (
-            <div key={event}>{event}</div>
-          ))}
+          <div className="restaurant-panel-content">
+            {activeTab === 'filters' ? filterContent : resultsContent}
+          </div>
+        </aside>
+        {debugOverlay}
+      </>
+    );
+  } else return (
+    <>
+      <motion.section
+        className="restaurant-sheet-mobile"
+        style={{ y, height: panelHeight }}
+        drag="y"
+        dragControls={dragControls}
+        dragListener={false}
+        dragMomentum
+        dragElastic={0.04}
+        dragConstraints={dragConstraints}
+        onDragEnd={handleDragEnd}
+        animate={controls}
+        initial={false}
+        transition={transition}
+        aria-label="Area restaurants panel"
+      >
+        <div
+          className="restaurant-sheet-header"
+          onPointerDown={(event) => dragControls.start(event)}
+        >
+          <div className="restaurant-sheet-handle-wrap">
+          <div className="restaurant-sheet-handle" />
+          </div>
+          <div className="restaurant-sheet-title">Restaurants in this area</div>
+          {showTabs ? (
+            <Tabs
+              value={activeTab}
+              onChange={(_, next) => setActiveTab(next)}
+              variant="fullWidth"
+              className="restaurant-panel-tabs"
+            >
+              <Tab value="results" label="Results" />
+              <Tab value="filters" label="Filters" />
+            </Tabs>
+          ) : null}
         </div>
-      ) : null}
-    </motion.section>
+        <div className="restaurant-panel-content">
+          {activeTab === 'filters' ? filterContent : resultsContent}
+        </div>
+      </motion.section>
+      {debugOverlay}
+    </>
   );
 };
 

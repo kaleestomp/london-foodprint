@@ -72,12 +72,14 @@
 }
 
 .restaurant-panel-debug-overlay {
-  position: absolute;
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  left: 8px;
   right: 8px;
-  bottom: 8px;
-  z-index: 1200;
-  width: min(92vw, 360px);
-  max-height: 42vh;
+  bottom: auto;
+  z-index: 3000;
+  width: auto;
+  max-height: 38vh;
   overflow: auto;
   padding: 8px;
   border-radius: 8px;
