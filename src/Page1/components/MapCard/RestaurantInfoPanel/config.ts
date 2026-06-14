@@ -6,6 +6,7 @@ export const MOBILE_SNAP_1 = 72;
 export const MOBILE_SNAP_2 = 240;
 export const MOBILE_SNAP_3 = 420;
 export const MOBILE_SNAP_4 = 640;
+export const MOBILE_PANEL_HEIGHT = MOBILE_SNAP_4;
 
 export const RESIZE_HEIGHT_JITTER_PX = 120;
 export const RESIZE_WIDTH_JITTER_PX = 16;
