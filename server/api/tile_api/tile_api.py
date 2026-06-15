@@ -25,7 +25,6 @@ async def get_tiles(
     cost: str | None = Query(default=""),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=1),
-    confidence: int = Query(default=1, ge=0, le=2),
     score_tier: int = Query(default=0),
     places_only: bool = Query(default=False),
 ) -> dict[str, Any]:
@@ -51,7 +50,6 @@ async def get_tiles(
         cost_value,
         venue_value,
         score_basis,
-        confidence,
         score_tier,
     )
 

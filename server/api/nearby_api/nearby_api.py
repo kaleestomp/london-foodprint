@@ -19,12 +19,9 @@ async def get_nearby(
     cost: str | None = Query(default=""),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=1),
-    confidence: int = Query(default=1, ge=0, le=2),
     rank_threshold: float = Query(default=0.0, ge=0.0, le=1.0),
     page: int = Query(default=1, ge=1),
 ) -> dict[str, Any]:
-    del confidence
-
     cuisine_values = normalize_dimension_list(cuisine)
     cost_value = normalize_dimension(cost)
     venue_value = normalize_dimension(venue_type)

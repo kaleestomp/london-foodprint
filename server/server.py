@@ -10,7 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.nearby_api.nearby_api import router as nearby_router
 from api.place_api import router as place_router
 from api.tile_api.tile_api import router as tiles_router
-from api.ip_location.ip_location import router as ip_location_router 
+from api.ip_location.ip_location import router as ip_location_router
+from api.geocode.geocode_api import router as geocode_router 
 
 load_dotenv()
 
@@ -56,6 +57,7 @@ app.include_router(tiles_router)
 app.include_router(nearby_router)
 app.include_router(place_router)
 app.include_router(ip_location_router)
+app.include_router(geocode_router)
 
 
 @app.get("/health")

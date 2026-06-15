@@ -57,6 +57,10 @@ CREATE TABLE places (
 CREATE INDEX idx_places_h3_r10     ON places(h3_r10);
 -- GIST index: drives ST_DWithin exact distance check
 CREATE INDEX idx_places_geom       ON places USING GIST(geom);
+-- Composite: cuisine filter + base ranking sort (normal_1)
+CREATE INDEX idx_places_normal_1   ON places(cuisine_type, normal_1 DESC);
+-- Composite: cuisine filter + raw Wilson ranking sort (wilson_1)
+CREATE INDEX idx_places_wilson_1   ON places(cuisine_type, wilson_1 DESC);
 -- Note: score_tier is a display-only field (card badge). Filtering always uses
 -- normal_1/wilson_1 float thresholds directly — no extra sort columns needed.
 

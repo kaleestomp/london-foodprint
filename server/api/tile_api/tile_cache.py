@@ -15,7 +15,6 @@ def _cache_key(
     cost_value: str,
     venue_value: str,
     score_basis: int,
-    confidence: int,
     score_tier: int,
 ) -> str:
     return "|".join(
@@ -25,7 +24,6 @@ def _cache_key(
             cost_value,
             venue_value,
             str(score_basis),
-            str(confidence),
             str(score_tier),
             ",".join(sorted(snapped_tiles)),
         ]

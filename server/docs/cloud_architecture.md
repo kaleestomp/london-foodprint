@@ -101,9 +101,11 @@ CREATE TABLE places (
 
 CREATE INDEX idx_places_h3_r10  ON places(h3_r10);
 CREATE INDEX idx_places_geom    ON places USING GIST(geom);
-CREATE INDEX idx_places_rank    ON places(cuisine_type, normal_1 DESC);  -- boosted sort
-CREATE INDEX idx_places_wrank   ON places(cuisine_type, wilson_1 DESC);  -- raw sort
+CREATE INDEX idx_places_normal_1 ON places(cuisine_type, normal_1 DESC);  -- boosted sort
+CREATE INDEX idx_places_wilson_1 ON places(cuisine_type, wilson_1 DESC);  -- raw sort
 ```
+
+**Index naming note:** Index names were renamed to match the actual columns they index (`normal_1`, `wilson_1`) rather than legacy generic names. The old names `idx_places_rank` and `idx_places_wrank` have been replaced with `idx_places_normal_1` and `idx_places_wilson_1` for semantic clarity.
 
 ---
 
@@ -186,7 +188,7 @@ zoom 17+   → res 10  (finest; heatmap OFF)
 
 ### GET /api/tiles — Viewport tile density
 ```
-?sw_lat=&sw_lng=&ne_lat=&ne_lng=&zoom=&cuisine=&cost=&venue_type=&score_basis=0&confidence=1&score_tier=0
+?sw_lat=&sw_lng=&ne_lat=&ne_lng=&res=8&cuisine=&cost=&venue_type=&score_basis=0&score_tier=0
 ```
 
 **Dual-tile design (outer/inner split):**
@@ -216,7 +218,7 @@ Padding per resolution (in `map_common.py`):
 
 ### GET /api/nearby — Pin drop / walk bubble
 ```
-?lat=&lng=&radius_m=1000&cuisine=&cost=&venue_type=&score_basis=0&confidence=1&rank_threshold=0&page=1
+?lat=&lng=&radius_m=1000&cuisine=&cost=&venue_type=&score_basis=0&rank_threshold=0&page=1
 ```
 - k-ring pre-filter: `h3.grid_disk(center_r10, k=ceil(radius_m / 114.2) + 1)`
 - Then: `ST_DWithin(geom::geography, point::geography, radius_m)`

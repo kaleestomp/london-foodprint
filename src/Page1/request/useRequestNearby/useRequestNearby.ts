@@ -14,7 +14,6 @@ export interface NearbyParams {
   cost?: string;
   venue_type?: string;
   score_basis?: 0 | 1;
-  confidence?: 0 | 1 | 2;
   rank_threshold?: number;
   page?: number;
 }
@@ -27,7 +26,6 @@ const buildQueryKey = (params: NearbyParams): string => {
     cost: params.cost ?? '',
     venue_type: params.venue_type ?? '',
     score_basis: String(params.score_basis ?? 0),
-    confidence: String(params.confidence ?? 1),
     rank_threshold: String(params.rank_threshold ?? 0),
     page: String(params.page ?? 1),
   });

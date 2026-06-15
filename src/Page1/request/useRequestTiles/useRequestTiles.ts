@@ -22,7 +22,6 @@ export interface TilesParams {
   cost?: string;
   venue_type?: string;
   score_basis?: 0 | 1;
-  confidence?: 0 | 1 | 2;
   score_tier?: 0 | 2 | 3 | 4;
 }
 
@@ -37,7 +36,6 @@ const buildQueryKey = (params: TilesParams): string => {
     cost: params.cost ?? '',
     venue_type: params.venue_type ?? '',
     score_basis: String(params.score_basis ?? 0),
-    confidence: String(params.confidence ?? 1),
     score_tier: String(params.score_tier ?? 0),
   });
 
