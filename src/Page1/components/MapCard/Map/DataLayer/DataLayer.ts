@@ -11,18 +11,18 @@ import { type SearchMask, filterDensityOutsideMask, filterPlacesOutsideMask } fr
 
 const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask | null = null): void => {
   const viewportParams = onUserRoam(mapRef);
-  const { cuisines, venueType, priceRange, scoreTier } = useSearchFilters();
+  const { cuisineSelectionMode, effectiveCuisines, venueType, priceRange, scoreTier } = useSearchFilters();
   const requestParams = useMemo(() => {
     if (!viewportParams) return null;
 
     return {
       ...viewportParams,
-      cuisines,
+      cuisines: effectiveCuisines,
       venue_type: venueType ?? '',
       cost: priceRange ?? '',
       score_tier: scoreTier,
     };
-  }, [viewportParams, cuisines, venueType, priceRange, scoreTier]);
+  }, [viewportParams, effectiveCuisines, venueType, priceRange, scoreTier]);
   const { status, res, queryKey, responseKey } = useRequestTiles(requestParams);
 
   DelayLoadingScreen(status);
@@ -53,7 +53,8 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
     })();
 
     const nextFilterKey = JSON.stringify({
-      cuisines: [...cuisines].sort((left, right) => left.localeCompare(right)),
+      cuisineSelectionMode,
+      cuisines: [...effectiveCuisines].sort((left, right) => left.localeCompare(right)),
       venueType: venueType ?? '',
       priceRange: priceRange ?? '',
       scoreTier,
@@ -97,7 +98,7 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
       addPins(filteredTiles, res.resolution);
     }
     prevFilterKeyRef.current = nextFilterKey;
-  }, [res, status, searchMask, cuisines, venueType, priceRange, scoreTier, queryKey, responseKey]);
+  }, [res, status, searchMask, cuisineSelectionMode, effectiveCuisines, venueType, priceRange, scoreTier, queryKey, responseKey]);
 };
 
 export default DataLayer;

@@ -1,10 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  type PanInfo,
-  useAnimationControls,
-  useDragControls,
-  useMotionValue,
-} from 'framer-motion';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import {
   COARSE_POINTER_QUERY,
   MOBILE_BREAKPOINT,
@@ -17,21 +11,10 @@ import {
   RESIZE_HEIGHT_JITTER_PX,
   RESIZE_WIDTH_JITTER_PX,
 } from './config';
-import usePanelDebug from './usePanelDebug';
 
-const springTransition = {
-  type: 'spring' as const,
-  stiffness: 380,
-  damping: 34,
-  mass: 0.85,
-};
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-type UseRestaurantPanelSnapOptions = {
-  freezeTransform?: boolean;
-};
-
-const useRestaurantPanelSnap = (_options: UseRestaurantPanelSnapOptions = {}) => {
-  const { enabled: debugEnabled, events: debugEvents, pushEvent: pushDebugEvent } = usePanelDebug();
+const useRestaurantPanelSnap = () => {
   const [viewport, setViewport] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1280,
     height: typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 800,
@@ -43,20 +26,20 @@ const useRestaurantPanelSnap = (_options: UseRestaurantPanelSnapOptions = {}) =>
     (typeof window !== 'undefined' ? window.innerWidth : 1280) < MOBILE_BREAKPOINT,
   );
   const [snapIndex, setSnapIndex] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const controls = useAnimationControls();
-  const dragControls = useDragControls();
-  const y = useMotionValue(0);
+  const dragStartYRef = useRef(0);
+  const dragStartTranslateRef = useRef(0);
 
   useEffect(() => {
     const media = window.matchMedia(COARSE_POINTER_QUERY);
     const updateCoarsePointer = () => setIsCoarsePointer(media.matches);
     updateCoarsePointer();
-    pushDebugEvent(`coarsePointer=${media.matches}`);
 
     media.addEventListener('change', updateCoarsePointer);
     return () => media.removeEventListener('change', updateCoarsePointer);
-  }, [pushDebugEvent]);
+  }, []);
 
   useEffect(() => {
     const onResize = () => {
@@ -64,18 +47,14 @@ const useRestaurantPanelSnap = (_options: UseRestaurantPanelSnapOptions = {}) =>
         width: window.innerWidth,
         height: window.visualViewport?.height ?? window.innerHeight,
       };
+
       setViewport((prev) => {
         const widthDelta = Math.abs(prev.width - next.width);
         const heightDelta = Math.abs(prev.height - next.height);
 
-        // Ignore small mobile viewport height jitters (browser chrome/show-hide)
-        // that can cause panel flicker during unrelated drag gestures.
         if (widthDelta < RESIZE_WIDTH_JITTER_PX && heightDelta < RESIZE_HEIGHT_JITTER_PX) {
-          pushDebugEvent(`resize ignored wΔ=${widthDelta} hΔ=${heightDelta} -> ${next.width}x${Math.round(next.height)}`);
           return prev;
         }
-
-        pushDebugEvent(`resize accepted wΔ=${widthDelta} hΔ=${heightDelta} -> ${next.width}x${Math.round(next.height)}`);
 
         return next;
       });
@@ -88,34 +67,19 @@ const useRestaurantPanelSnap = (_options: UseRestaurantPanelSnapOptions = {}) =>
       window.removeEventListener('resize', onResize);
       window.visualViewport?.removeEventListener('resize', onResize);
     };
-  }, [pushDebugEvent]);
+  }, []);
 
   useEffect(() => {
     if (isCoarsePointer) {
-      // Real mobile devices can briefly report width values near desktop breakpoints
-      // while browser chrome animates. Keep panel mode stable for coarse pointers.
       setIsMobile(true);
-      pushDebugEvent('mode mobile (coarse pointer lock)');
       return;
     }
 
     setIsMobile((prev) => {
-      let nextIsMobile: boolean;
-      if (prev) {
-        // Stay in mobile mode until width clearly exits the breakpoint range.
-        nextIsMobile = viewport.width < MOBILE_EXIT_BREAKPOINT;
-      } else {
-        // Enter mobile mode only when width is clearly below the breakpoint.
-        nextIsMobile = viewport.width <= MOBILE_ENTER_BREAKPOINT;
-      }
-
-      if (prev !== nextIsMobile) {
-        pushDebugEvent(`mode -> ${nextIsMobile ? 'mobile' : 'desktop'} at width=${viewport.width}`);
-      }
-
-      return nextIsMobile;
+      if (prev) return viewport.width < MOBILE_EXIT_BREAKPOINT;
+      return viewport.width <= MOBILE_ENTER_BREAKPOINT;
     });
-  }, [viewport.width, isCoarsePointer, pushDebugEvent]);
+  }, [isCoarsePointer, viewport.width]);
 
   const metrics = useMemo(() => {
     const sheetHeight = viewport.height;
@@ -137,24 +101,26 @@ const useRestaurantPanelSnap = (_options: UseRestaurantPanelSnapOptions = {}) =>
   }, [viewport.height]);
 
   useEffect(() => {
-    if (!isMobile) {
-      return;
-    }
+    if (!isMobile || isDragging) return;
 
     const target = metrics.offsets[Math.min(snapIndex, metrics.offsets.length - 1)] ?? metrics.maxOffset;
-    y.set(target);
-    controls.set({ y: target });
-  }, [controls, isMobile, metrics.maxOffset, metrics.offsets, snapIndex, y]);
+    setTranslateY(target);
+  }, [isDragging, isMobile, metrics.maxOffset, metrics.offsets, snapIndex]);
 
-  const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const current = y.get();
-    const projected = current + info.velocity.y * 0.2;
+  const handlePointerMove = useCallback((event: PointerEvent) => {
+    const deltaY = event.clientY - dragStartYRef.current;
+    const next = clamp(dragStartTranslateRef.current + deltaY, metrics.minOffset, metrics.maxOffset);
+    setTranslateY(next);
+  }, [metrics.maxOffset, metrics.minOffset]);
+
+  const handlePointerUp = useCallback(() => {
+    if (!isDragging) return;
 
     let nearestIndex = 0;
     let nearestDistance = Number.POSITIVE_INFINITY;
 
     for (let i = 0; i < metrics.offsets.length; i += 1) {
-      const distance = Math.abs(metrics.offsets[i] - projected);
+      const distance = Math.abs(metrics.offsets[i] - translateY);
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearestIndex = i;
@@ -162,34 +128,39 @@ const useRestaurantPanelSnap = (_options: UseRestaurantPanelSnapOptions = {}) =>
     }
 
     setSnapIndex(nearestIndex);
-    pushDebugEvent(`dragEnd snapIndex=${nearestIndex} projectedY=${Math.round(projected)}`);
-    const next = metrics.offsets[nearestIndex];
-    controls.start({ y: next, transition: springTransition });
-  }, [controls, metrics.offsets, pushDebugEvent, y]);
+    setTranslateY(metrics.offsets[nearestIndex]);
+    setIsDragging(false);
+  }, [isDragging, metrics.offsets, translateY]);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
+    };
+  }, [handlePointerMove, handlePointerUp]);
+
+  const handleHandlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isMobile) return;
+
+    setIsDragging(true);
+    dragStartYRef.current = event.clientY;
+    dragStartTranslateRef.current = translateY;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
 
   return {
-    controls,
-    dragControls,
-    dragConstraints: { top: metrics.minOffset, bottom: metrics.maxOffset },
-    handleDragEnd,
+    handleHandlePointerDown,
+    isDragging,
     isMobile,
     panelHeight: metrics.sheetHeight,
-    snapIndex,
-    setSnapIndex,
-    transition: springTransition,
-    y,
-    debug: {
-      enabled: debugEnabled,
-      width: viewport.width,
-      height: viewport.height,
-      visualViewportHeight: typeof window !== 'undefined' ? (window.visualViewport?.height ?? null) : null,
-      innerHeight: typeof window !== 'undefined' ? window.innerHeight : null,
-      isCoarsePointer,
-      isMobile,
-      snapIndex,
-      y: Math.round(y.get()),
-      events: debugEvents,
-    },
+    translateY,
   };
 };
 

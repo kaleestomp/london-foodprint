@@ -1,45 +1,62 @@
-import { createContext, useContext, useMemo, useState } from 'react'; 
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'; 
 import type { ReactNode } from 'react'; 
+
+export type ToolbarFilterTab = 'rating' | 'price' | 'cuisine';
+
+export type LiveLocation = {
+  lat: number;
+  lng: number;
+  token: number;
+};
 
 interface AppUIContextType { 
   isLoading: boolean;
   isSideCardVisible: boolean;
-  restaurantPanelCommandToken: number;
-  restaurantPanelTargetTab: 'results' | 'filters';
-  restaurantPanelTargetSnapIndex: number;
+  activeToolbarTab: ToolbarFilterTab | null;
+  liveLocation: LiveLocation | null;
   toggleLoading: (loading: boolean) => void;
-  toggleSideCard: () => void;
-  openRestaurantFiltersPanel: () => void;
+  setActiveToolbarTab: (tab: ToolbarFilterTab | null) => void;
+  toggleToolbarFilterTab: (tab: ToolbarFilterTab) => void;
+  queueLiveLocationDrop: (lat: number, lng: number) => void;
 }
 
 const AppUIContext = createContext<AppUIContextType | null>(null);
 
 export const AppUIProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isSideCardVisible, setIsSideCardVisible] = useState(true);
-  const [restaurantPanelCommandToken, setRestaurantPanelCommandToken] = useState(0);
-  const [restaurantPanelTargetTab, setRestaurantPanelTargetTab] = useState<'results' | 'filters'>('results');
-  const [restaurantPanelTargetSnapIndex, setRestaurantPanelTargetSnapIndex] = useState(0);
+  const [isSideCardVisible] = useState(true);
+  const [activeToolbarTab, setActiveToolbarTab] = useState<ToolbarFilterTab | null>(null);
+  const [liveLocation, setLiveLocation] = useState<LiveLocation | null>(null);
+
+  const toggleLoading = useCallback((loading: boolean) => {
+    setIsLoading((prev) => (prev === loading ? prev : loading));
+  }, []);
+
+  const toggleToolbarFilterTab = useCallback((tab: ToolbarFilterTab) => {
+    setActiveToolbarTab((prev) => (prev === tab ? null : tab));
+  }, []);
+
+  const queueLiveLocationDrop = useCallback((lat: number, lng: number) => {
+    setLiveLocation({ lat, lng, token: Date.now() });
+  }, []);
 
   const exposed = useMemo<AppUIContextType>(() => ({ 
     isLoading,
     isSideCardVisible,
-    restaurantPanelCommandToken,
-    restaurantPanelTargetTab,
-    restaurantPanelTargetSnapIndex,
-    toggleLoading: (loading: boolean) => setIsLoading(loading),
-    toggleSideCard: () => setIsSideCardVisible((prev) => !prev),
-    openRestaurantFiltersPanel: () => {
-      setRestaurantPanelTargetSnapIndex(2);
-      setRestaurantPanelTargetTab('filters');
-      setRestaurantPanelCommandToken((prev) => prev + 1);
-    },
+    activeToolbarTab,
+    liveLocation,
+    toggleLoading,
+    setActiveToolbarTab,
+    toggleToolbarFilterTab,
+    queueLiveLocationDrop,
   }), [
+    activeToolbarTab,
     isLoading,
     isSideCardVisible,
-    restaurantPanelCommandToken,
-    restaurantPanelTargetSnapIndex,
-    restaurantPanelTargetTab,
+    liveLocation,
+    queueLiveLocationDrop,
+    toggleLoading,
+    toggleToolbarFilterTab,
   ]);
 
   return (

@@ -4,7 +4,7 @@ export type Point = { x: number; y: number };
 /** Screen coordinates of BubbleButton's fixed home centre */
 export const getHomeCenter = (): Point => ({
   x: window.innerWidth / 2,
-  y: window.innerHeight - 88 - 32, // bottom: 88px + half of 64px height
+  y: window.innerHeight - 88 - 45, // bottom: 88px + half of 90px height
 });
 
 /** Interaction Spec */

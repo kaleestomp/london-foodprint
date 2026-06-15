@@ -27,7 +27,7 @@ const useBubbleDrop = (
   /** Clears the map avatar; receives screen coords so MapCard can reposition BubbleButton */
   onPickup:    (x: number, y: number) => void,
 ) => {
-  const { cuisines, venueType, priceRange, scoreTier } = useSearchFilters();
+  const { effectiveCuisines, venueType, priceRange, scoreTier } = useSearchFilters();
   const circleRef      = useRef<L.Circle | null>(null);
   const markerRef      = useRef<L.Marker | null>(null);
   const reactRootRef   = useRef<Root | null>(null);
@@ -43,7 +43,7 @@ const useBubbleDrop = (
       lat: droppedPos.lat,
       lng: droppedPos.lng,
       radius_m: SEARCH_RADIUS,
-      cuisines,
+      cuisines: effectiveCuisines,
       venue_type: venueType ?? '',
       cost: priceRange ?? '',
       rank_threshold: SCORE_TIER_THRESHOLD_MAP[scoreTier],

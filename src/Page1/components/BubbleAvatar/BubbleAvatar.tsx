@@ -13,8 +13,8 @@ import './BubbleAvatar.css';
 const BubbleAvatar: React.FC<{ 
     mapRef: React.RefObject<L.Map | null>;
     setSearchMask: React.Dispatch<React.SetStateAction<{ center: LatLng; radiusM: number } | null>>;
-    programmaticDrop?: { lat: number; lng: number; token: number } | null;
-}> = ({ mapRef, setSearchMask, programmaticDrop }) => { 
+    liveLocation?: { lat: number; lng: number; token: number } | null;
+}> = ({ mapRef, setSearchMask, liveLocation }) => { 
 
     const [droppedPos, setDroppedPos]  = useState<LatLng | null>(null);
     // Screen coordinate where pickup was triggered — mounts BubbleButton there
@@ -42,18 +42,18 @@ const BubbleAvatar: React.FC<{
 
     // Memoize targetLatLng to prevent unnecessary re-creation and infinite loops
     const targetLatLng = useMemo(
-        () => programmaticDrop ? { lat: programmaticDrop.lat, lng: programmaticDrop.lng } : null,
-        [programmaticDrop?.lat, programmaticDrop?.lng]
+        () => liveLocation ? { lat: liveLocation.lat, lng: liveLocation.lng } : null,
+        [liveLocation?.lat, liveLocation?.lng]
     );
 
     const handleMapPanReady = useCallback(() => {
-        setProgrammaticFlightToken(programmaticDrop?.token ?? null);
-    }, [programmaticDrop?.token]);
+        setProgrammaticFlightToken(liveLocation?.token ?? null);
+    }, [liveLocation?.token]);
 
     useMapPanToLocation({
         mapRef,
         targetLatLng,
-        token: programmaticDrop?.token ?? null,
+        token: liveLocation?.token ?? null,
         onReady: handleMapPanReady,
     });
 

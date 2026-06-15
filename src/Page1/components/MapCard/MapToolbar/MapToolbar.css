@@ -1,26 +1,28 @@
 .map-toolbar {
   position: absolute;
   top: var(--app-layout-margin);
-  right: var(--app-layout-margin);
-  justify-self: center;
-  z-index: 1000;
+  left: var(--app-layout-margin);
+  right: auto;
+  justify-self: start;
+  z-index: 1300;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 12px; 
   width: min(520px, calc(100vw - (var(--app-layout-margin) * 2)));
 
   --toolbar-height: 56px;
-  --toolbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); 
-  --toolbar-shadow-active: 0 2px 6px rgba(0, 0, 0, 0.2);
-  --toolbar-background: rgba(255, 255, 255, 0.5); 
-  --toolbar-background-hover: rgba(255, 255, 255, 0.75);
-  --toolbar-backdrop-filter: blur(10px);
+  --toolbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); 
+  --toolbar-shadow-active: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --toolbar-background: rgba(255, 255, 255, 0.25); 
+  --toolbar-background-hover: rgba(255, 255, 255, 0.8);
+  --toolbar-backdrop-filter: none;
   --toolbar-icon-color: #5f6368;
 }
 
 .map-toolbar-fab {
+  position: relative;
   width: var(--toolbar-height) !important;
   height: var(--toolbar-height) !important;
   min-width: var(--toolbar-height) !important;
@@ -46,10 +48,47 @@
   transition: transform 0.15s ease;
 }
 
+@property --rainbow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rainbow-spin {
+  to { --rainbow-angle: 360deg; }
+}
+
+.map-toolbar-fab-active::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from var(--rainbow-angle),
+    rgb(31, 130, 192), rgb(146, 199, 249),
+    rgb(146, 199, 249), rgb(31, 130, 192)
+  );
+  animation: rainbow-spin 3s linear infinite;
+  z-index: 0;
+  padding: 2px;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+.map-toolbar-fab-active svg {
+  color: rgb(31, 130, 192);
+}
+
 @media (max-width: 767px) {
   .map-toolbar {
-    --toolbar-height: 50px;
+    --toolbar-height: 56px;
     gap: 8px;
     width: calc(100vw - (var(--app-layout-margin) * 2));
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    justify-content: center;
   }
 }
