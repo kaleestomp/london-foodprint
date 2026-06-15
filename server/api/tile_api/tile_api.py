@@ -136,8 +136,7 @@ async def get_tiles(
                   AND cost = $4
                   AND venue_type = $5
                   AND score_basis = $6
-                  AND confidence = $7
-                  AND score_tier = $8
+                                    AND score_tier = $7
                 GROUP BY tile
             """
             tile_rows = await conn.fetch(
@@ -148,7 +147,6 @@ async def get_tiles(
                 cost_value,
                 venue_value,
                 score_basis,
-                confidence,
                 score_tier,
             )
         else:
@@ -161,8 +159,7 @@ async def get_tiles(
                   AND cost = $4
                   AND venue_type = $5
                   AND score_basis = $6
-                  AND confidence = $7
-                  AND score_tier = $8
+                  AND score_tier = $7
             """
             tile_rows = await conn.fetch(
                 tiles_sql,
@@ -172,7 +169,6 @@ async def get_tiles(
                 cost_value,
                 venue_value,
                 score_basis,
-                confidence,
                 score_tier,
             )
 

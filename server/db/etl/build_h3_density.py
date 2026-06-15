@@ -6,22 +6,22 @@ Pure data transform — no file I/O, no DB calls.
 
 Input columns required:
     h3_r10, cuisine_type, cost, venue_type
-    bnormal_0, bnormal_1, bnormal_2   (competition-boosted ranks)
-    normal_0,  normal_1,  normal_2    (raw Wilson ranks)
+    tier, tier_d, tier_independent  (pre-computed tier assignments)
 
 Output columns:
     tile, resolution, cuisine_type, cost, venue_type,
-    score_basis, confidence, score_tier, count
+    score_basis, score_tier, count
 
 Score tier semantics (CUMULATIVE thresholds — matches the frontend filter):
-    0 = all
-    2 = above average  (rank >= 0.50)
-    3 = top 25%        (rank >= 0.75)
-    4 = top 10%        (rank >= 0.90)
-    (tier 1 / below average excluded)
+    0 = all                            (input tier >= 0)
+    2 = above average / independent    (input tier >= 1)
+    3 = top 25%                        (input tier >= 2)
+    4 = top 10%                        (input tier >= 3)
 
-score_basis: 0 = boosted | 1 = raw Wilson
-confidence:  0 = lenient (90%) | 1 = moderate (95%) | 2 = conservative (99%)
+score_basis:
+    0 = tier       (base quality ranking)
+    1 = tier_d     (diversity-aware: cuisine-capped representation)
+    2 = tier_independent (diversity + no chains in top tiers)
 """
 import itertools
 
@@ -30,24 +30,19 @@ import pandas as pd
 
 H3_RESOLUTIONS = [7, 8, 9, 10]
 
-# Maps (score_basis, confidence) → rank column in the input DataFrame
-RANK_COLS = {
-    (0, 0): "bnormal_0",
-    (0, 1): "bnormal_1",
-    (0, 2): "bnormal_2",
-    (1, 0): "normal_0",
-    (1, 1): "normal_1",
-    (1, 2): "normal_2",
+# Maps score_basis to input tier column name
+TIER_COLS = {
+    0: "tier",
+    1: "tier_d",
+    2: "tier_independent",
 }
 
-# Vectorised tier masks applied to a rank Series
-# None = no filter (all rows pass)
-TIER_MASKS = {
-    0: None,
-    1: lambda r: r <  0.50,
-    2: lambda r: r >= 0.50,
-    3: lambda r: r >= 0.75,
-    4: lambda r: r >= 0.90,
+# Maps output score_tier to a filter function on input tier values
+TIER_FILTERS = {
+    0: lambda t: t >= 0,   # all rows
+    2: lambda t: t >= 1,   # above average / independent (excludes tier 0)
+    3: lambda t: t >= 2,   # top 25%
+    4: lambda t: t >= 3,   # top 10%
 }
 
 
@@ -63,19 +58,18 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
     cuisines    = sorted([c for c in df["cuisine_type"].dropna().unique() if c != ""]) + [""]
     costs       = sorted([c for c in df["cost"].dropna().unique() if c != ""]) + [""]
     venue_types = sorted([v for v in df["venue_type"].dropna().unique() if v != ""]) + [""]
-    bases       = [0, 1]        # score_basis
-    confidences = [0, 1, 2]     # confidence level
-    tiers       = [0, 2, 3, 4]  # 0=all, 2=above avg, 3=top 25%, 4=top 10%  (tier 1/below avg excluded)
+    bases       = [0, 1, 2]    # score_basis
+    score_tiers = [0, 2, 3, 4] # output tiers: 0=all, 2=above avg, 3=top 25%, 4=top 10%
 
     rows = []
-    total = len(bases) * len(confidences) * len(tiers) * len(cuisines) * len(costs) * len(venue_types) * len(H3_RESOLUTIONS)
+    total = len(bases) * len(score_tiers) * len(cuisines) * len(costs) * len(venue_types) * len(H3_RESOLUTIONS)
     done  = 0
 
-    for base, conf in itertools.product(bases, confidences):
-        rank_col = RANK_COLS[(base, conf)]
+    for base in bases:
+        tier_col = TIER_COLS[base]
         for res in H3_RESOLUTIONS:
             tile_col = "h3_r10" if res == 10 else f"_t{res}"
-            for tier, cuisine, cost, venue in itertools.product(tiers, cuisines, costs, venue_types):
+            for score_tier, cuisine, cost, venue in itertools.product(score_tiers, cuisines, costs, venue_types):
                 mask = pd.Series(True, index=df.index)
                 if cuisine:
                     mask &= df["cuisine_type"] == cuisine
@@ -83,9 +77,10 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
                     mask &= df["cost"] == cost
                 if venue:
                     mask &= df["venue_type"] == venue
-                tier_fn = TIER_MASKS[tier]
-                if tier_fn is not None:
-                    mask &= tier_fn(df[rank_col])
+
+                # Apply tier filter on the chosen tier column
+                tier_fn = TIER_FILTERS[score_tier]
+                mask &= tier_fn(df[tier_col])
 
                 agg = (
                     df[mask]
@@ -103,8 +98,7 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
                 agg["cost"]         = cost
                 agg["venue_type"]   = venue
                 agg["score_basis"]  = base
-                agg["confidence"]   = conf
-                agg["score_tier"]   = tier
+                agg["score_tier"]   = score_tier
                 rows.append(agg)
                 done += 1
 
@@ -115,5 +109,5 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
     return (
         pd.concat(rows, ignore_index=True)
         [["tile", "resolution", "cuisine_type", "cost", "venue_type",
-          "score_basis", "confidence", "score_tier", "count"]]
+          "score_basis", "score_tier", "count"]]
     )

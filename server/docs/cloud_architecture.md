@@ -1,6 +1,6 @@
 ﻿# London Foodprint — Cloud Architecture Design
-**Last updated:** June 11, 2026  
-**Status:** Schema finalised. ETL complete. All three API endpoints built. Server startup blocked on network (port 5432) — test on non-corporate network.
+**Last updated:** June 15, 2026  
+**Status:** Schema rebuilt for the updated places export. ETL loader updated. All three API endpoints built.
 
 ---
 
@@ -24,7 +24,7 @@ server/
     h3_density.csv        ← pre-generated aggregation (2,123,754 rows); used by etl_load.py
   db/
     schema.sql            ← run once against Neon to create tables + indexes
-    etl_load.py           ← orchestrator: run from server/ as `python db/etl_load.py`
+    etl_load.py           ← orchestrator: run from repo root as `python server/db/etl_load.py`
     etl/
       load_places.py        ← reads server/out/places.csv, cleans, returns DataFrame
       build_h3_density.py   ← pure transform: builds h3_density rows from places
@@ -60,57 +60,49 @@ All places including temporarily-closed ones. Source: `server/out/places.csv` (1
 **Key design decisions:**
 - `operational` BOOLEAN — `FALSE` = temporarily closed; frontend can grey-out or hide these pins
 - `h3_r10` (H3 res-10) is the only tile column — used for k-ring nearby pre-filter
-- `lat`/`lon` kept alongside `geom`: frontend needs raw floats for pin/heatmap rendering
-- `score_tier` NOT stored — derived client-side from the active rank float: `rank >= 0.90 → "Top 10%"` etc.
-- Six rank columns cover all 2 (boosted/raw) × 3 (confidence) scenarios; frontend switches `ORDER BY`
-- Detail card fields (address, website, etc.) fetched only on pin tap via `/api/place/{id}`
+- `lat`/`lon` are kept alongside `geom` because the frontend renders markers directly from floats
+- Latest CSV fields are stored directly: `primary_type_display_name`, `short_formatted_address`, `predicted_type`, `wilson_1`, `normal_1`, `tier*`
+- The API computes the display `rank` at query time from `normal_1` or `wilson_1`
+- Detail card fields are fetched only on pin tap via `/api/place/{id}`
 
 ```sql
 CREATE TABLE places (
     id                  TEXT             PRIMARY KEY,
     display_name        TEXT             NOT NULL,
-    lat                 DOUBLE PRECISION NOT NULL,
-    lon                 DOUBLE PRECISION NOT NULL,
-    geom                GEOMETRY(Point, 4326) GENERATED ALWAYS AS (
-                            ST_SetSRID(ST_MakePoint(lon, lat), 4326)
-                        ) STORED,
-    h3_r10              TEXT             NOT NULL,
-
-    cuisine_type        TEXT,            -- e.g. 'Chinese', 'Southeast Asian'
-    venue_type          TEXT,            -- 'Dine-In' | 'Takeaway'
-    cost                TEXT,            -- '<10' | '10+' | '20+' | '40+' | '60+' | '100+'
-    is_chain            BOOLEAN,
-    primary_type        TEXT,
-    type_label          TEXT,
-
-    rating              REAL,
-    user_rating_count   INTEGER,
-
-    -- boosted (competition-adjusted) ranks; _1 = moderate confidence = primary sort
-    score_0  REAL,  rank_0  REAL,
-    score_1  REAL,  rank_1  REAL,
-    score_2  REAL,  rank_2  REAL,
-
-    -- raw Wilson ranks (no competition adjustment)
-    wscore_0 REAL,  wrank_0 REAL,
-    wscore_1 REAL,  wrank_1 REAL,
-    wscore_2 REAL,  wrank_2 REAL,
-
-    operational         BOOLEAN,        -- FALSE = temporarily closed
-
-    -- detail card fields (pin tap only)
-    address             TEXT,
-    postcode            TEXT,
-    area_code           TEXT,
-    google_maps_uri     TEXT,
-    website_uri         TEXT,
-    wheelchair_access   BOOLEAN
+  primary_type_display_name TEXT,
+  rating              REAL,
+  user_rating_count   INTEGER,
+  short_formatted_address TEXT,
+  google_maps_uri     TEXT,
+  website_uri         TEXT,
+  types               TEXT,
+  primary_type        TEXT,
+  is_chain            BOOLEAN,
+  predicted_type      TEXT,
+  cuisine_type        TEXT,
+  venue_type          TEXT,
+  lat                 DOUBLE PRECISION NOT NULL,
+  lon                 DOUBLE PRECISION NOT NULL,
+  geom                GEOMETRY(Point, 4326) GENERATED ALWAYS AS (
+              ST_SetSRID(ST_MakePoint(lon, lat), 4326)
+            ) STORED,
+  h3_r10              TEXT             NOT NULL,
+  pcd                 TEXT,
+  areacode            TEXT,
+  wheelchair_access   BOOLEAN,
+  operational         BOOLEAN,
+  cost                TEXT,
+  wilson_1            REAL,
+  normal_1            REAL,
+  tier                SMALLINT,
+  tier_d              SMALLINT,
+  tier_independent    SMALLINT
 );
 
 CREATE INDEX idx_places_h3_r10  ON places(h3_r10);
 CREATE INDEX idx_places_geom    ON places USING GIST(geom);
-CREATE INDEX idx_places_rank    ON places(cuisine_type, rank_1 DESC);   -- boosted sort
-CREATE INDEX idx_places_wrank   ON places(cuisine_type, wrank_1 DESC);  -- raw sort
+CREATE INDEX idx_places_rank    ON places(cuisine_type, normal_1 DESC);  -- boosted sort
+CREATE INDEX idx_places_wrank   ON places(cuisine_type, wilson_1 DESC);  -- raw sort
 ```
 
 ---
@@ -121,25 +113,22 @@ Pre-aggregated tile counts — eliminates GROUP BY on every pan/zoom.
 **Key design decisions:**
 - `score_tier` uses **cumulative** thresholds (≠ places): `0=all, 2=≥0.50, 3=≥0.75, 4=≥0.90`
 - Tier 1 (below average) excluded — not a useful map filter
-- `score_basis` + `confidence` reflect the 6 rank scenarios; tile counts differ geographically
-  - e.g. conservative (99%) biases toward high-footfall areas (Mayfair); lenient (90%) surfaces residential gems
+- `score_basis` distinguishes the two tile aggregation modes: `0=base`, `1=diversity-aware`, `2=independent`
 - `''` for any TEXT dimension = "all" (unfiltered aggregate)
 - **Actual row count: 2,123,754** — validated, 0 duplicate PKs
-  - Earlier estimate of ~430k was wrong; full expansion of 41 cuisines × 8 costs × 3 venues × 2 basis × 3 confidence × 4 tiers × tiles-per-combo gives the correct order
 - **CSV round-trip gotcha**: `''` wildcard rows are written as blank cells in CSV and read back as `NaN` by pandas. `etl_load.py` applies `.fillna("")` on the three TEXT dimension columns after `pd.read_csv()` before any insert. Neon columns are `NOT NULL` so skipping this step causes a null constraint violation.
 
 ```sql
 CREATE TABLE h3_density (
     tile            TEXT     NOT NULL,
-    resolution      SMALLINT NOT NULL,  -- 7=city | 8=neighbourhood | 9=street | 10=finest
+  resolution      SMALLINT NOT NULL,  -- 7=city | 8=neighbourhood | 9=street | 10=finest
     cuisine_type    TEXT     NOT NULL DEFAULT '',
     cost            TEXT     NOT NULL DEFAULT '',
     venue_type      TEXT     NOT NULL DEFAULT '',
-    score_basis     SMALLINT NOT NULL DEFAULT 0,  -- 0=boosted | 1=raw Wilson
-    confidence      SMALLINT NOT NULL DEFAULT 1,  -- 0=lenient | 1=moderate | 2=conservative
-    score_tier      SMALLINT NOT NULL DEFAULT 0,  -- 0=all | 2=above avg | 3=top 25% | 4=top 10%
+  score_basis     SMALLINT NOT NULL DEFAULT 0,  -- 0=base | 1=diversity-aware | 2=independent
+  score_tier      SMALLINT NOT NULL DEFAULT 0,  -- 0=all | 2=above avg | 3=top 25% | 4=top 10%
     count           INTEGER  NOT NULL,
-    PRIMARY KEY (tile, resolution, cuisine_type, cost, venue_type, score_basis, confidence, score_tier)
+  PRIMARY KEY (tile, resolution, cuisine_type, cost, venue_type, score_basis, score_tier)
 );
 
 CREATE INDEX idx_h3_density_lookup ON h3_density(resolution, tile);
@@ -149,13 +138,20 @@ CREATE INDEX idx_h3_density_lookup ON h3_density(resolution, tile);
 
 ## ETL
 
-Run from `server/` directory:
+Run from the repo root:
 ```powershell
-python db/etl_load.py
+python server/db/etl_load.py
 ```
 
 **`etl_load.py` — h3_density fast path:**  
 If `server/out/h3_density.csv` exists, it is read directly (skipping the slow build step). If not, `build_h3_density()` runs from scratch. This lets you pre-generate the CSV via the notebook and iterate on uploads without rebuilding.
+
+**Terminal command from the repo root:**
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+& .\.venv\Scripts\Activate.ps1
+python server/db/etl_load.py
+```
 
 **`load_places.py`** normalises nulls in source data:
 - `cuisineType` → `"Unspecified"` if null
@@ -163,7 +159,7 @@ If `server/out/h3_density.csv` exists, it is read directly (skipping the slow bu
 - `cost` → `"Unspecified"` if null
 - `operational` → `True` if null
 
-**`build_h3_density.py`** iterates all combinations of `score_basis × confidence × tier × cuisine × cost × venue × resolution` and skips empty groupby results. Appends `""` to each dimension list as the wildcard ("show all") value.
+**`build_h3_density.py`** iterates all combinations of `score_basis × tier × cuisine × cost × venue × resolution` and skips empty groupby results. Appends `""` to each dimension list as the wildcard ("show all") value.
 
 **`build_h3_density.ipynb`** — standalone notebook in `server/db/etl/`. Runs `load_places()` + `build_h3_density()` independently and saves to `server/out/h3_density.csv`. Use this to regenerate or inspect the aggregation without touching the DB. Run with the `server/venv` kernel.
 
@@ -236,7 +232,7 @@ Full metadata including all rank scores, address, website, wheelchair access. 40
 
 | Layer | Data source | Off condition |
 |---|---|---|
-| H3 pin-count labels | `/api/tiles` mode=tiles | mode=places (≤20 results) |
+| H3 pin-count labels | `/api/tiles` mode=tiles | mode=places (≤25 results) |
 | Smooth heatmap (Option B) | `/api/tiles` mode=tiles → `h3.cellToLatLng()` client-side | res 10 OR mode=places |
 | Restaurant pins | `/api/tiles` mode=places | mode=tiles |
 

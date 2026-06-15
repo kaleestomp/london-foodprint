@@ -100,7 +100,7 @@ KEYWORD_MAP: list[tuple[str, str]] = [
     (r"\blebanese\b|\bbeirut\b", "lebanese_restaurant"),
     (r"\bturk(?:ish)?\b|\bistanbul\b|\bdoner\b|\bocakbasi\b|\bmangal\b", "turkish_restaurant"),
     (r"\bpersian\b|\biran(?:ian)?\b", "persian_restaurant"),
-    (r"\bmoroc\b", "moroccan_restaurant"),
+    (r"\bmoroc\b|\bmoroco\b|\bmorocan\b", "moroccan_restaurant"),
     (r"\b(?:arab|hummus|meze|mezze|syrian|habibi|manoushe)\b", "middle_eastern_restaurant"),
 
     (r"\btaqueria\b|\bantojitos\b", "mexican_restaurant"),
@@ -142,7 +142,7 @@ KEYWORD_MAP: list[tuple[str, str]] = [
     (r"\bburmese\b|\bmyanmar\b", "burmese_restaurant"),
     (r"\bsingapore(?:an)?\b", "asian_restaurant"),
 
-    (r"\bsmash\b|\bburgers?\b", "hamburger_restaurant"),
+    (r"\bsmash\b|\bburger\b|\bburgers?\b", "hamburger_restaurant"),
     (r"\bfish\s?&?\s?chips?\b|\bchippy\b", "fish_and_chips_restaurant"),
     (r"\boyster\b", "oyster_bar_restaurant"),
     (r"\b(?:lobsters?|crab|shrimp|seafood|fish)\b", "seafood_restaurant"),

@@ -48,7 +48,7 @@ def normalize_dimension_list(values: list[str] | None) -> list[str]:
 
 
 def get_rank_column(score_basis: int) -> str:
-    return "wrank_1" if score_basis == 1 else "rank_1"
+    return "wilson_1" if score_basis == 1 else "normal_1"
 
 
 # Approximate padding in degrees to add around the viewport so that tiles
