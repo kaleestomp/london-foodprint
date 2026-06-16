@@ -5,6 +5,11 @@ export interface TileDensity {
   count: number;
 }
 
+export interface CostHistogramEntry {
+  cost: string;
+  count: number;
+}
+
 export interface TilePlacePreview {
   id: string;
   display_name: string;
@@ -20,8 +25,8 @@ export interface TilePlacePreview {
 }
 
 export type TilesResponse =
-  | { mode: 'tiles'; resolution: number; data: TileDensity[] }
-  | { mode: 'places'; total: number; data: TilePlacePreview[] };
+  | { mode: 'tiles'; resolution: number; data: TileDensity[]; cost_histogram?: CostHistogramEntry[] }
+  | { mode: 'places'; total: number; data: TilePlacePreview[]; cost_histogram?: CostHistogramEntry[] };
 
 export const request = async (
   queryKey: string,

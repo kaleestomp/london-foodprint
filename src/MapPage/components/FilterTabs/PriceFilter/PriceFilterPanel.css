@@ -1,0 +1,27 @@
+.price-filter-panel__content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.price-filter-panel__chart-wrap {
+  width: 100%;
+  min-height: 220px;
+}
+
+.price-filter-panel__slider-wrap {
+  width: 100%;
+  padding-inline: 6px;
+}
+
+.price-filter-panel__slider-label {
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--mui-palette-text-secondary, rgba(0, 0, 0, 0.6));
+}
+
+.price-filter-panel__slider-wrap .MuiSlider-markLabel {
+  font-size: 0.72rem;
+}

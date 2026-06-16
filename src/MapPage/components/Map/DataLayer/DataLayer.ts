@@ -11,7 +11,7 @@ import { type SearchMask, filterDensityOutsideMask, filterPlacesOutsideMask } fr
 
 const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask | null = null): void => {
   const viewportParams = onUserRoam(mapRef);
-  const { cuisineSelectionMode, ratingSelectionMode, effectiveCuisines, venueType, priceRange, scoreTier } = useSearchFilters();
+  const { cuisineSelectionMode, ratingSelectionMode, effectiveCuisines, venueType, effectivePriceRanges, scoreTier } = useSearchFilters();
   const requestParams = useMemo(() => {
     if (!viewportParams) return null;
 
@@ -21,11 +21,11 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
       ...viewportParams,
       cuisines: effectiveCuisines,
       venue_type: venueType ?? '',
-      cost: priceRange ?? '',
+      cost: effectivePriceRanges,
       score_basis: scoreBasis,
       score_tier: scoreTier,
     };
-  }, [viewportParams, effectiveCuisines, venueType, priceRange, ratingSelectionMode, scoreTier]);
+  }, [viewportParams, effectiveCuisines, venueType, effectivePriceRanges, ratingSelectionMode, scoreTier]);
   const { status, res, queryKey, responseKey } = useRequestTiles(requestParams);
 
   DelayLoadingScreen(status);
@@ -59,7 +59,7 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
       cuisineSelectionMode,
       cuisines: [...effectiveCuisines].sort((left, right) => left.localeCompare(right)),
       venueType: venueType ?? '',
-      priceRange: priceRange ?? '',
+      priceRanges: [...effectivePriceRanges],
       ratingSelectionMode,
       scoreTier,
     });
@@ -102,7 +102,7 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
       addPins(filteredTiles, res.resolution);
     }
     prevFilterKeyRef.current = nextFilterKey;
-  }, [res, status, searchMask, cuisineSelectionMode, effectiveCuisines, venueType, priceRange, ratingSelectionMode, scoreTier, queryKey, responseKey]);
+  }, [res, status, searchMask, cuisineSelectionMode, effectiveCuisines, venueType, effectivePriceRanges, ratingSelectionMode, scoreTier, queryKey, responseKey]);
 };
 
 export default DataLayer;

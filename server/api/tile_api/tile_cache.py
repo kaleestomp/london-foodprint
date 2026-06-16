@@ -12,19 +12,21 @@ def _cache_key(
     snapped_tiles: list[str],
     resolution: int,
     cuisine_values: list[str],
-    cost_value: str,
+    cost_values: list[str],
     venue_value: str,
     score_basis: int,
     score_tier: int,
+    include_cost_histogram: bool,
 ) -> str:
     return "|".join(
         [
             str(resolution),
             ",".join(sorted(cuisine_values)),
-            cost_value,
+            ",".join(sorted(cost_values)),
             venue_value,
             str(score_basis),
             str(score_tier),
+            "hist" if include_cost_histogram else "nohist",
             ",".join(sorted(snapped_tiles)),
         ]
     )

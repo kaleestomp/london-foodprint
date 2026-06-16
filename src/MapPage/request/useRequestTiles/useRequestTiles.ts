@@ -19,10 +19,11 @@ export interface TilesParams {
    */
   places_only?: boolean;
   cuisines?: string[];
-  cost?: string;
+  cost?: string[];
   venue_type?: string;
   score_basis?: 0 | 1;
   score_tier?: 0 | 1 | 2 | 3 | 4;
+  include_cost_histogram?: boolean;
 }
 
 const buildQueryKey = (params: TilesParams): string => {
@@ -33,11 +34,15 @@ const buildQueryKey = (params: TilesParams): string => {
     ne_lng: String(params.ne_lng),
     res: String(params.res),
     ...(params.places_only ? { places_only: 'true' } : {}),
-    cost: params.cost ?? '',
+    ...(params.include_cost_histogram ? { include_cost_histogram: 'true' } : {}),
     venue_type: params.venue_type ?? '',
     score_basis: String(params.score_basis ?? 0),
     score_tier: String(params.score_tier ?? 0),
   });
+
+  for (const cost of [...(params.cost ?? [])].sort((left, right) => left.localeCompare(right))) {
+    qs.append('cost', cost);
+  }
 
   for (const cuisine of [...(params.cuisines ?? [])].sort((left, right) => left.localeCompare(right))) {
     qs.append('cuisine', cuisine);

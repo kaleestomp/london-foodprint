@@ -23,7 +23,7 @@ const PullDownPanel: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = ({ ma
         activeToolbarTab === 'rating'
             ? <RatingFilterPanel />
             : activeToolbarTab === 'price'
-                ? <PriceFilterPanel />
+                ? <PriceFilterPanel mapRef={mapRef} />
                 : activeToolbarTab === 'cuisine'
                     ? <CuisineFilterPanel />
                     : activeToolbarTab === 'search'
