@@ -16,8 +16,6 @@ def _cache_key(
     venue_value: str,
     score_basis: int,
     score_tier: int,
-    include_cost_histogram: bool,
-    include_cost_histogram_scope: str,
 ) -> str:
     return "|".join(
         [
@@ -27,8 +25,6 @@ def _cache_key(
             venue_value,
             str(score_basis),
             str(score_tier),
-            "hist" if include_cost_histogram else "nohist",
-            include_cost_histogram_scope,
             ",".join(sorted(snapped_tiles)),
         ]
     )

@@ -11,7 +11,7 @@ import {
 import MaterialUISwitch from '../CuisineFilter/MaterialUISwitch';
 import FilterTabPanel from '../FilterTabPanel';
 import onUserRoam from '../../Map/DataLayer/utils/onUserRoam';
-import useRequestTiles from '../../../request/useRequestTiles/useRequestTiles';
+import useRequestPriceHistogram from '../../../request/useRequestPriceHistogram/useRequestPriceHistogram';
 import './PriceFilterPanel.css';
 
 type Props = {
@@ -34,22 +34,31 @@ const PriceFilterPanel: React.FC<Props> = ({ mapRef }) => {
   const sliderValue = priceRangeInterval ?? [0, sliderMax];
 
   const requestParams = useMemo(() => {
-    if (!viewportParams) return null;
     const scoreBasis: 0 | 1 = ratingSelectionMode === 'tier_independent' ? 1 : 0;
-    const histogramScope: 'view' | 'citywide' = isCityWide ? 'citywide' : 'view';
+    if (isCityWide) {
+      return {
+        scope: 'citywide' as const,
+        cuisines: effectiveCuisines,
+        venue_type: venueType ?? '',
+        score_basis: scoreBasis,
+        score_tier: scoreTier,
+      };
+    }
+    if (!viewportParams) return null;
     return {
-      ...viewportParams,
+      scope: 'view' as const,
+      sw_lat: viewportParams.sw_lat,
+      sw_lng: viewportParams.sw_lng,
+      ne_lat: viewportParams.ne_lat,
+      ne_lng: viewportParams.ne_lng,
       cuisines: effectiveCuisines,
       venue_type: venueType ?? '',
-      cost: [],
       score_basis: scoreBasis,
       score_tier: scoreTier,
-      include_cost_histogram: true,
-      include_cost_histogram_scope: histogramScope,
     };
   }, [viewportParams, effectiveCuisines, venueType, ratingSelectionMode, scoreTier, isCityWide]);
 
-  const { res } = useRequestTiles(requestParams);
+  const { res } = useRequestPriceHistogram(requestParams);
 
   const countsByCategory = useMemo(() => {
     const empty = Object.fromEntries(PRICE_RANGE_FILTER_OPTIONS.map((label) => [label, 0])) as Record<string, number>;
@@ -154,3 +163,4 @@ const PriceFilterPanel: React.FC<Props> = ({ mapRef }) => {
 };
 
 export default PriceFilterPanel;
+
