@@ -9,7 +9,10 @@ from api.map_common import RANK_THRESHOLD_MAP, get_rank_column, normalize_dimens
 
 router = APIRouter()
 
-_CACHE_TTL = int(os.getenv("HISTOGRAM_CACHE_TTL_SECONDS", "120"))
+try:
+    _CACHE_TTL = int(os.getenv("HISTOGRAM_CACHE_TTL_SECONDS", "120"))
+except ValueError:
+    _CACHE_TTL = 120
 _cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
 _cache_lock = asyncio.Lock()
 
@@ -81,7 +84,7 @@ async def get_cost_histogram(
             cached_at, data = entry
             if now - cached_at <= _CACHE_TTL:
                 return {"cost_histogram": data}
-            _cache.pop(cache_key, None)
+            del _cache[cache_key]
 
     async with request.app.state.pool.acquire() as conn:
         if scope == "citywide":

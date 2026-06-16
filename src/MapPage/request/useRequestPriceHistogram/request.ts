@@ -32,7 +32,7 @@ export const buildQueryKey = (params: PriceHistogramParams): string => {
     score_basis: String(params.score_basis ?? 0),
     score_tier: String(params.score_tier ?? 0),
   });
-  for (const cuisine of [...(params.cuisines ?? [])].sort((a, b) => a.localeCompare(b))) {
+  for (const cuisine of (params.cuisines ?? []).slice().sort((a, b) => a.localeCompare(b))) {
     qs.append('cuisine', cuisine);
   }
   return qs.toString();
