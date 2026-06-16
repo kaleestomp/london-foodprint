@@ -70,11 +70,11 @@ async def get_cost_histogram(
 
     # Citywide cache key is viewport-independent — stays valid across pans.
     if scope == "citywide":
-        cache_key = "|".join(["citywide", ",".join(sorted(cuisine_values)), venue_value, str(score_basis), str(rank_threshold)])
+        cache_key = "|".join(["citywide", ",".join(sorted(cuisine_values)), venue_value, str(score_basis), str(score_tier)])
     else:
         cache_key = "|".join([
             "view", str(sw_lat), str(sw_lng), str(ne_lat), str(ne_lng),
-            ",".join(sorted(cuisine_values)), venue_value, str(score_basis), str(rank_threshold),
+            ",".join(sorted(cuisine_values)), venue_value, str(score_basis), str(score_tier),
         ])
 
     now = time.time()

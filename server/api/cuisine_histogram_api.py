@@ -81,11 +81,11 @@ async def get_cuisine_histogram(
     rank_threshold = RANK_THRESHOLD_MAP[score_tier]
 
     if scope == "citywide":
-        cache_key = "|".join(["citywide", ",".join(sorted(cost_values)), venue_value, str(score_basis), str(rank_threshold)])
+        cache_key = "|".join(["citywide", ",".join(sorted(cost_values)), venue_value, str(score_basis), str(score_tier)])
     else:
         cache_key = "|".join([
             "view", str(sw_lat), str(sw_lng), str(ne_lat), str(ne_lng),
-            ",".join(sorted(cost_values)), venue_value, str(score_basis), str(rank_threshold),
+            ",".join(sorted(cost_values)), venue_value, str(score_basis), str(score_tier),
         ])
 
     now = time.time()
