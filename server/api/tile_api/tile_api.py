@@ -29,7 +29,7 @@ async def get_tiles(
     places_only: bool = Query(default=False),
 ) -> dict[str, Any]:
     if score_tier not in RANK_THRESHOLD_MAP:
-        raise HTTPException(status_code=422, detail="score_tier must be one of 0,2,3,4")
+        raise HTTPException(status_code=422, detail="score_tier must be one of 0,1,2,3,4")
     if places_only and res < 10:
         raise HTTPException(status_code=422, detail="places_only requires res=10")
 

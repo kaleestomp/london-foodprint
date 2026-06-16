@@ -1,0 +1,11 @@
+.page1-container {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  
+  --page1-layout-gap: var(--app-layout-gap);
+  --page1-floating-card-bg: rgba(255, 255, 255, 0.8); /*0.8*/
+  --page1-floating-card-radius: 12px;
+  --page1-floating-card-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+  --page1-floating-card-backdrop-filter: blur(15px); 
+}

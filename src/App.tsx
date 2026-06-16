@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import { AppUIProvider } from './context/AppUIContext';
 import { SearchFiltersProvider } from './context/SearchFiltersContext';
-import Page1 from './Page1/Page1';
+import MapPage from './MapPage/MapPage';
 import './App.css';
 
 const App = () => {
@@ -11,7 +11,7 @@ const App = () => {
       <AppUIProvider>
         <SearchFiltersProvider>
           <Routes>
-            <Route path="/" element={<Page1 />} />
+            <Route path="/" element={<MapPage />} />
           </Routes>
         </SearchFiltersProvider>
       </AppUIProvider>

@@ -7,7 +7,7 @@
 :root {
   --app-layout-gap: 20px;
   --app-layout-margin: 20px;
-  --app-floating-card-bg: rgba(255, 255, 255, 0.5);
-  --app-floating-card-backdrop-filter: blur(10px);
+  --app-floating-card-bg: rgba(255, 255, 255, 0.6);
+  --app-floating-card-backdrop-filter: blur(14px);
   --app-faint-outline-color: rgba(0, 0, 0, 0.15);
 }

@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'; 
 import type { ReactNode } from 'react'; 
 
-export type ToolbarFilterTab = 'rating' | 'price' | 'cuisine';
+export type ToolbarFilterTab = 'rating' | 'price' | 'cuisine' | 'search';
 
 export type LiveLocation = {
   lat: number;

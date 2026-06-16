@@ -3,9 +3,10 @@ from fastapi import HTTPException
 
 RANK_THRESHOLD_MAP = {
     0: 0.0,
-    2: 0.5,
-    3: 0.75,
-    4: 0.9,
+    1: 0.5,
+    2: 0.75,
+    3: 0.9,
+    4: 0.95,
 }
 
 PAGE_SIZE = 25
