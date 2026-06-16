@@ -3,9 +3,9 @@ import IconButton from '@mui/material/IconButton';
 import Snackbar from '@mui/material/Snackbar';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
 import L from 'leaflet';
-import useMyLocation from '../../../../../request/useMyLocation/useMyLocation';
+import useMyLocation from '../../../../request/useMyLocation/useMyLocation';
 import { LONDON_BOUNDS } from '../../Map/MapTemplate';
-import AnimatedLoadingDots from '../../../../../components/LoadingDots/AnimatedLoadingDots';
+import AnimatedLoadingDots from '../../../../components/LoadingDots/AnimatedLoadingDots';
 import './GeoSearch.css';
 
 type Props = {

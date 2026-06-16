@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import Snackbar from '@mui/material/Snackbar';
-import NearMeIcon from '@mui/icons-material/NearMe';
+// import NearMeIcon from '@mui/icons-material/NearMe';
 import L from 'leaflet';
 import useMyLocation from '../../../request/useMyLocation/useMyLocation';
 import { LONDON_BOUNDS } from '../Map/MapTemplate';

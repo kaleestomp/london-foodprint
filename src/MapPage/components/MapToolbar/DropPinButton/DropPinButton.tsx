@@ -2,7 +2,7 @@ import IconButton from '@mui/material/IconButton';
 import FmdGoodIcon from '@mui/icons-material/FmdGood';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import usePinCarry from './usePinCarry';
-import { red } from '../../../../../utils/styling/Colors';
+import { red } from '../../../../utils/styling/Colors';
 import './DropPinButton.css';
 
 type Props = {
