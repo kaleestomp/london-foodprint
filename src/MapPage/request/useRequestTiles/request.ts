@@ -25,8 +25,8 @@ export interface TilePlacePreview {
 }
 
 export type TilesResponse =
-  | { mode: 'tiles'; resolution: number; data: TileDensity[]; cost_histogram?: CostHistogramEntry[] }
-  | { mode: 'places'; total: number; data: TilePlacePreview[]; cost_histogram?: CostHistogramEntry[] };
+  | { mode: 'tiles'; resolution: number; data: TileDensity[] }
+  | { mode: 'places'; total: number; data: TilePlacePreview[] };
 
 export const request = async (
   queryKey: string,

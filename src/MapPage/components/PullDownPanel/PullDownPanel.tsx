@@ -25,7 +25,7 @@ const PullDownPanel: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = ({ ma
             : activeToolbarTab === 'price'
                 ? <PriceFilterPanel mapRef={mapRef} />
                 : activeToolbarTab === 'cuisine'
-                    ? <CuisineFilterPanel />
+                    ? <CuisineFilterPanel mapRef={mapRef} />
                     : activeToolbarTab === 'search'
                         ? <GeoSearch mapRef={mapRef} onProgrammaticDrop={queueLiveLocationDrop} />
                     : null;
@@ -47,4 +47,3 @@ const PullDownPanel: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = ({ ma
 }
 
 export default PullDownPanel;
-

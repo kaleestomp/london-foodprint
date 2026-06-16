@@ -13,6 +13,85 @@ from api.map_common import (
 
 router = APIRouter()
 
+_PLACES_ONLY_SQL = """
+    SELECT
+        id,
+        display_name,
+        lat,
+        lon,
+        cuisine_type,
+        venue_type,
+        cost,
+        rating,
+        user_rating_count,
+        operational,
+        {{rank_column}} AS rank
+    FROM places
+    WHERE lat BETWEEN $1 AND $2
+      AND lon BETWEEN $3 AND $4
+      AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
+      AND ($6 = '' OR venue_type = $6)
+      AND (
+            COALESCE(array_length($7::TEXT[], 1), 0) = 0
+            OR cost = ANY($7::TEXT[])
+            OR cost IS NULL
+            OR cost = ''
+            OR LOWER(cost) = 'unspecified'
+          )
+      AND {{rank_column}} >= $8
+    ORDER BY {{rank_column}} DESC
+    LIMIT 100
+"""
+
+_PLACES_SQL = """
+    SELECT
+        id,
+        display_name,
+        lat,
+        lon,
+        cuisine_type,
+        venue_type,
+        cost,
+        rating,
+        user_rating_count,
+        operational,
+        {{rank_column}} AS rank
+    FROM places
+    WHERE lat BETWEEN $1 AND $2
+      AND lon BETWEEN $3 AND $4
+      AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
+      AND ($6 = '' OR venue_type = $6)
+      AND (
+            COALESCE(array_length($7::TEXT[], 1), 0) = 0
+            OR cost = ANY($7::TEXT[])
+            OR cost IS NULL
+            OR cost = ''
+            OR LOWER(cost) = 'unspecified'
+          )
+      AND {{rank_column}} >= $8
+    ORDER BY {{rank_column}} DESC
+    LIMIT {page_size}
+""".format(page_size=PAGE_SIZE)
+
+_TILES_SQL = """
+    SELECT tile, SUM(count)::INT AS count
+    FROM h3_density
+    WHERE resolution = $1
+      AND tile = ANY($2::TEXT[])
+      AND (COALESCE(array_length($3::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($3::TEXT[]))
+      AND (
+            COALESCE(array_length($4::TEXT[], 1), 0) = 0
+            OR cost = ANY($4::TEXT[])
+            OR cost = ''
+            OR LOWER(cost) = 'unspecified'
+          )
+      AND ($5 = '' OR venue_type = $5)
+      AND score_basis = $6
+      AND score_tier = $7
+    GROUP BY tile
+"""
+
+
 @router.get("/api/tiles")
 async def get_tiles(
     request: Request,
@@ -27,15 +106,11 @@ async def get_tiles(
     score_basis: int = Query(default=0, ge=0, le=1),
     score_tier: int = Query(default=0),
     places_only: bool = Query(default=False),
-    include_cost_histogram: bool = Query(default=False),
-    include_cost_histogram_scope: str = Query(default="view"),
 ) -> dict[str, Any]:
     if score_tier not in RANK_THRESHOLD_MAP:
         raise HTTPException(status_code=422, detail="score_tier must be one of 0,1,2,3,4")
     if places_only and res < 10:
         raise HTTPException(status_code=422, detail="places_only requires res=10")
-    if include_cost_histogram_scope not in {"view", "citywide"}:
-        raise HTTPException(status_code=422, detail="include_cost_histogram_scope must be 'view' or 'citywide'")
 
     cuisine_values = normalize_dimension_list(cuisine)
     cost_values = normalize_dimension_list(cost)
@@ -55,153 +130,35 @@ async def get_tiles(
         venue_value,
         score_basis,
         score_tier,
-        include_cost_histogram,
-        include_cost_histogram_scope,
     )
 
     cached = await _get_cached(cache_key)
     if cached is not None:
         return cached
 
-    cost_histogram_sql_view = """
-            SELECT cost, COUNT(*)::INT AS count
-            FROM places
-            WHERE lat BETWEEN $1 AND $2
-                AND lon BETWEEN $3 AND $4
-                AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
-                AND ($6 = '' OR venue_type = $6)
-                AND (cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified')
-                AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
-                AND {rank_column} >= $7
-            GROUP BY cost
-    """
-    cost_histogram_sql_citywide = """
-            SELECT cost, COUNT(*)::INT AS count
-            FROM places
-            WHERE (COALESCE(array_length($1::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($1::TEXT[]))
-                AND ($2 = '' OR venue_type = $2)
-                AND (cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified')
-                AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
-                AND {rank_column} >= $3
-            GROUP BY cost
-    """
-    cost_histogram: list[dict[str, Any]] | None = None
+    places_sql = _PLACES_SQL.format(rank_column=rank_column)
 
     # --- places_only fast-path: skip density query entirely ---
     if places_only:
-        NEW_LIMIT = 100
-        places_direct_sql = f"""
-            SELECT
-                id,
-                display_name,
-                lat,
-                lon,
-                cuisine_type,
-                venue_type,
-                cost,
-                rating,
-                user_rating_count,
-                operational,
-                {rank_column} AS rank
-            FROM places
-            WHERE lat BETWEEN $1 AND $2
-              AND lon BETWEEN $3 AND $4
-              AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
-              AND ($6 = '' OR venue_type = $6)
-              AND (
-                    COALESCE(array_length($7::TEXT[], 1), 0) = 0
-                    OR cost = ANY($7::TEXT[])
-                    OR cost IS NULL
-                    OR cost = ''
-                    OR LOWER(cost) = 'unspecified'
-                  )
-              AND {rank_column} >= $8
-            ORDER BY {rank_column} DESC
-            LIMIT {NEW_LIMIT}
-        """
         async with request.app.state.pool.acquire() as conn:
             rows = await conn.fetch(
-                places_direct_sql,
+                _PLACES_ONLY_SQL.format(rank_column=rank_column),
                 sw_lat, ne_lat, sw_lng, ne_lng,
                 cuisine_values, venue_value, cost_values,
                 rank_threshold,
             )
-            if include_cost_histogram:
-                histogram_rows = await conn.fetch(
-                    cost_histogram_sql_citywide.format(rank_column=rank_column)
-                    if include_cost_histogram_scope == "citywide"
-                    else cost_histogram_sql_view.format(rank_column=rank_column),
-                    *( (
-                        cuisine_values,
-                        venue_value,
-                        rank_threshold,
-                    ) if include_cost_histogram_scope == "citywide" else (
-                        sw_lat, ne_lat, sw_lng, ne_lng,
-                        cuisine_values, venue_value,
-                        rank_threshold,
-                    ))
-                )
-                cost_histogram = [dict(row) for row in histogram_rows]
         payload = {
             "mode": "places",
             "data": [dict(row) for row in rows],
             "total": len(rows),
-            **({"cost_histogram": cost_histogram} if cost_histogram is not None else {}),
         }
         await _set_cached(cache_key, payload)
         return payload
     # ----------------------------------------------------------
 
-    places_sql = f"""
-        SELECT
-            id,
-            display_name,
-            lat,
-            lon,
-            cuisine_type,
-            venue_type,
-            cost,
-            rating,
-            user_rating_count,
-            operational,
-            {rank_column} AS rank
-        FROM places
-        WHERE lat BETWEEN $1 AND $2
-          AND lon BETWEEN $3 AND $4
-          AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
-          AND ($6 = '' OR venue_type = $6)
-          AND (
-                COALESCE(array_length($7::TEXT[], 1), 0) = 0
-                OR cost = ANY($7::TEXT[])
-                OR cost IS NULL
-                OR cost = ''
-                OR LOWER(cost) = 'unspecified'
-              )
-          AND {rank_column} >= $8
-        ORDER BY {rank_column} DESC
-        LIMIT {PAGE_SIZE}
-    """
-
     async with request.app.state.pool.acquire() as conn:
-        tiles_sql = """
-            SELECT tile, SUM(count)::INT AS count
-            FROM h3_density
-            WHERE resolution = $1
-              AND tile = ANY($2::TEXT[])
-              AND (COALESCE(array_length($3::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($3::TEXT[]))
-              AND (
-                    COALESCE(array_length($4::TEXT[], 1), 0) = 0
-                    OR cost = ANY($4::TEXT[])
-                    OR cost = ''
-                  OR LOWER(cost) = 'unspecified'
-                  )
-              AND ($5 = '' OR venue_type = $5)
-              AND score_basis = $6
-              AND score_tier = $7
-            GROUP BY tile
-        """
         tile_rows = await conn.fetch(
-            tiles_sql,
+            _TILES_SQL,
             resolution,
             outer_tiles,
             cuisine_values,
@@ -210,23 +167,6 @@ async def get_tiles(
             score_basis,
             score_tier,
         )
-
-        if include_cost_histogram:
-            histogram_rows = await conn.fetch(
-                cost_histogram_sql_citywide.format(rank_column=rank_column)
-                if include_cost_histogram_scope == "citywide"
-                else cost_histogram_sql_view.format(rank_column=rank_column),
-                *( (
-                    cuisine_values,
-                    venue_value,
-                    rank_threshold,
-                ) if include_cost_histogram_scope == "citywide" else (
-                    sw_lat, ne_lat, sw_lng, ne_lng,
-                    cuisine_values, venue_value,
-                    rank_threshold,
-                ))
-            )
-            cost_histogram = [dict(row) for row in histogram_rows]
 
         # Use only the inner (unpadded) tiles to decide whether to fall back to
         # the places query — avoids counting edge tiles that are barely visible.
@@ -245,12 +185,10 @@ async def get_tiles(
                 cost_values,
                 rank_threshold,
             )
-            # places_sql already uses PAGE_SIZE limit (20)
             payload = {
                 "mode": "places",
                 "data": [dict(row) for row in rows],
                 "total": inner_count,
-                **({"cost_histogram": cost_histogram} if cost_histogram is not None else {}),
             }
             await _set_cached(cache_key, payload)
             return payload
@@ -259,7 +197,6 @@ async def get_tiles(
         "mode": "tiles",
         "resolution": resolution,
         "data": [dict(row) for row in tile_rows],
-        **({"cost_histogram": cost_histogram} if cost_histogram is not None else {}),
     }
     await _set_cached(cache_key, payload)
     return payload
