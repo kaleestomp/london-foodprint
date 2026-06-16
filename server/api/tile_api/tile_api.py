@@ -59,22 +59,21 @@ async def get_tiles(
     if cached is not None:
         return cached
 
-        cost_histogram_sql = """
-                SELECT cost, COUNT(*)::INT AS count
-                FROM places
-                WHERE lat BETWEEN $1 AND $2
-                    AND lon BETWEEN $3 AND $4
-                    AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
-                    AND ($6 = '' OR venue_type = $6)
-                    AND (cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified')
-                    AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
-                    AND {rank_column} >= $7
-                GROUP BY cost
-        """
+    cost_histogram_sql = """
+            SELECT cost, COUNT(*)::INT AS count
+            FROM places
+            WHERE lat BETWEEN $1 AND $2
+              AND lon BETWEEN $3 AND $4
+              AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
+              AND ($6 = '' OR venue_type = $6)
+              AND (cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified')
+              AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
+              AND {rank_column} >= $7
+            GROUP BY cost
+    """
+    cost_histogram: list[dict[str, Any]] | None = None
 
-        cost_histogram: list[dict[str, Any]] | None = None
-
-        # --- places_only fast-path: skip density query entirely ---
+    # --- places_only fast-path: skip density query entirely ---
     if places_only:
         NEW_LIMIT = 100
         places_direct_sql = f"""
