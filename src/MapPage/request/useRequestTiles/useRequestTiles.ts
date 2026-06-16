@@ -24,6 +24,7 @@ export interface TilesParams {
   score_basis?: 0 | 1;
   score_tier?: 0 | 1 | 2 | 3 | 4;
   include_cost_histogram?: boolean;
+  include_cost_histogram_scope?: 'view' | 'citywide';
 }
 
 const buildQueryKey = (params: TilesParams): string => {
@@ -35,6 +36,7 @@ const buildQueryKey = (params: TilesParams): string => {
     res: String(params.res),
     ...(params.places_only ? { places_only: 'true' } : {}),
     ...(params.include_cost_histogram ? { include_cost_histogram: 'true' } : {}),
+    ...(params.include_cost_histogram_scope ? { include_cost_histogram_scope: params.include_cost_histogram_scope } : {}),
     venue_type: params.venue_type ?? '',
     score_basis: String(params.score_basis ?? 0),
     score_tier: String(params.score_tier ?? 0),

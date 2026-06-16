@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type L from 'leaflet';
-import Chip from '@mui/material/Chip';
 import Slider from '@mui/material/Slider';
 import Typography from '@mui/material/Typography';
 import ReactECharts from 'echarts-for-react';
@@ -9,6 +8,7 @@ import {
   PRICE_RANGE_FILTER_OPTIONS,
   useSearchFilters,
 } from '../../../../context/SearchFiltersContext';
+import MaterialUISwitch from '../CuisineFilter/MaterialUISwitch';
 import FilterTabPanel from '../FilterTabPanel';
 import onUserRoam from '../../Map/DataLayer/utils/onUserRoam';
 import useRequestTiles from '../../../request/useRequestTiles/useRequestTiles';
@@ -19,6 +19,7 @@ type Props = {
 };
 
 const PriceFilterPanel: React.FC<Props> = ({ mapRef }) => {
+  const [isCityWide, setIsCityWide] = useState(false);
   const {
     effectiveCuisines,
     venueType,
@@ -35,6 +36,7 @@ const PriceFilterPanel: React.FC<Props> = ({ mapRef }) => {
   const requestParams = useMemo(() => {
     if (!viewportParams) return null;
     const scoreBasis: 0 | 1 = ratingSelectionMode === 'tier_independent' ? 1 : 0;
+    const histogramScope: 'view' | 'citywide' = isCityWide ? 'citywide' : 'view';
     return {
       ...viewportParams,
       cuisines: effectiveCuisines,
@@ -43,8 +45,9 @@ const PriceFilterPanel: React.FC<Props> = ({ mapRef }) => {
       score_basis: scoreBasis,
       score_tier: scoreTier,
       include_cost_histogram: true,
+      include_cost_histogram_scope: histogramScope,
     };
-  }, [viewportParams, effectiveCuisines, venueType, ratingSelectionMode, scoreTier]);
+  }, [viewportParams, effectiveCuisines, venueType, ratingSelectionMode, scoreTier, isCityWide]);
 
   const { res } = useRequestTiles(requestParams);
 
@@ -64,6 +67,7 @@ const PriceFilterPanel: React.FC<Props> = ({ mapRef }) => {
       value: countsByCategory[label] ?? 0,
       itemStyle: {
         color: inRange ? 'rgb(31, 130, 192)' : 'rgba(31, 130, 192, 0.2)',
+        borderRadius: [999, 999, 0, 0],
       },
     };
   });
@@ -71,11 +75,17 @@ const PriceFilterPanel: React.FC<Props> = ({ mapRef }) => {
   const chartOption = useMemo(() => ({
     animationDuration: 220,
     grid: { left: 28, right: 12, top: 18, bottom: 36 },
-    tooltip: { trigger: 'axis' },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { show: false },
+    },
+    axisPointer: { show: false },
     xAxis: {
+      show: false,
       type: 'category',
       data: PRICE_RANGE_FILTER_OPTIONS,
       axisTick: { alignWithLabel: true },
+      axisPointer: { show: false },
     },
     yAxis: {
       type: 'value',
@@ -95,13 +105,19 @@ const PriceFilterPanel: React.FC<Props> = ({ mapRef }) => {
   return (
     <FilterTabPanel title="Price Range">
       <div className="price-filter-panel__content">
-        <Chip
-          label="Any"
-          clickable
-          color={priceRangeInterval === null ? 'primary' : 'default'}
-          variant={priceRangeInterval === null ? 'filled' : 'outlined'}
-          onClick={() => setPriceRangeInterval(null)}
-        />
+        <div className="price-filter-panel__scope-row">
+          <Typography variant="caption" className="price-filter-panel__scope-label price-filter-panel__scope-label--left">
+            Local
+          </Typography>
+          <MaterialUISwitch
+            checked={isCityWide}
+            onChange={(event) => setIsCityWide(event.target.checked)}
+            slotProps={{ input: { 'aria-label': 'Toggle between local and city-wide price chart' } }}
+          />
+          <Typography variant="caption" className="price-filter-panel__scope-label price-filter-panel__scope-label--right">
+            City-wide
+          </Typography>
+        </div>
 
         <div className="price-filter-panel__chart-wrap">
           <ReactECharts
@@ -113,9 +129,6 @@ const PriceFilterPanel: React.FC<Props> = ({ mapRef }) => {
         </div>
 
         <div className="price-filter-panel__slider-wrap">
-          <Typography className="price-filter-panel__slider-label">
-            Selected price interval
-          </Typography>
           <Slider
             aria-label="Price category interval"
             value={sliderValue}

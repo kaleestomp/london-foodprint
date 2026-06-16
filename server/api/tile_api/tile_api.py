@@ -28,11 +28,14 @@ async def get_tiles(
     score_tier: int = Query(default=0),
     places_only: bool = Query(default=False),
     include_cost_histogram: bool = Query(default=False),
+    include_cost_histogram_scope: str = Query(default="view"),
 ) -> dict[str, Any]:
     if score_tier not in RANK_THRESHOLD_MAP:
         raise HTTPException(status_code=422, detail="score_tier must be one of 0,1,2,3,4")
     if places_only and res < 10:
         raise HTTPException(status_code=422, detail="places_only requires res=10")
+    if include_cost_histogram_scope not in {"view", "citywide"}:
+        raise HTTPException(status_code=422, detail="include_cost_histogram_scope must be 'view' or 'citywide'")
 
     cuisine_values = normalize_dimension_list(cuisine)
     cost_values = normalize_dimension_list(cost)
@@ -53,22 +56,33 @@ async def get_tiles(
         score_basis,
         score_tier,
         include_cost_histogram,
+        include_cost_histogram_scope,
     )
 
     cached = await _get_cached(cache_key)
     if cached is not None:
         return cached
 
-    cost_histogram_sql = """
+    cost_histogram_sql_view = """
             SELECT cost, COUNT(*)::INT AS count
             FROM places
             WHERE lat BETWEEN $1 AND $2
-              AND lon BETWEEN $3 AND $4
-              AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
-              AND ($6 = '' OR venue_type = $6)
-              AND (cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified')
-              AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
-              AND {rank_column} >= $7
+                AND lon BETWEEN $3 AND $4
+                AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
+                AND ($6 = '' OR venue_type = $6)
+                AND (cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified')
+                AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
+                AND {rank_column} >= $7
+            GROUP BY cost
+    """
+    cost_histogram_sql_citywide = """
+            SELECT cost, COUNT(*)::INT AS count
+            FROM places
+            WHERE (COALESCE(array_length($1::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($1::TEXT[]))
+                AND ($2 = '' OR venue_type = $2)
+                AND (cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified')
+                AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
+                AND {rank_column} >= $3
             GROUP BY cost
     """
     cost_histogram: list[dict[str, Any]] | None = None
@@ -114,10 +128,18 @@ async def get_tiles(
             )
             if include_cost_histogram:
                 histogram_rows = await conn.fetch(
-                    cost_histogram_sql.format(rank_column=rank_column),
-                    sw_lat, ne_lat, sw_lng, ne_lng,
-                    cuisine_values, venue_value,
-                    rank_threshold,
+                    cost_histogram_sql_citywide.format(rank_column=rank_column)
+                    if include_cost_histogram_scope == "citywide"
+                    else cost_histogram_sql_view.format(rank_column=rank_column),
+                    *( (
+                        cuisine_values,
+                        venue_value,
+                        rank_threshold,
+                    ) if include_cost_histogram_scope == "citywide" else (
+                        sw_lat, ne_lat, sw_lng, ne_lng,
+                        cuisine_values, venue_value,
+                        rank_threshold,
+                    ))
                 )
                 cost_histogram = [dict(row) for row in histogram_rows]
         payload = {
@@ -191,10 +213,18 @@ async def get_tiles(
 
         if include_cost_histogram:
             histogram_rows = await conn.fetch(
-                cost_histogram_sql.format(rank_column=rank_column),
-                sw_lat, ne_lat, sw_lng, ne_lng,
-                cuisine_values, venue_value,
-                rank_threshold,
+                cost_histogram_sql_citywide.format(rank_column=rank_column)
+                if include_cost_histogram_scope == "citywide"
+                else cost_histogram_sql_view.format(rank_column=rank_column),
+                *( (
+                    cuisine_values,
+                    venue_value,
+                    rank_threshold,
+                ) if include_cost_histogram_scope == "citywide" else (
+                    sw_lat, ne_lat, sw_lng, ne_lng,
+                    cuisine_values, venue_value,
+                    rank_threshold,
+                ))
             )
             cost_histogram = [dict(row) for row in histogram_rows]
 

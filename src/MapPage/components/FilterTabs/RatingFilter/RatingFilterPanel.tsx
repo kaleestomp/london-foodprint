@@ -3,7 +3,6 @@ import IconButton from '@mui/material/IconButton';
 
 import Typography from '@mui/material/Typography';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import RatingSwitch from './Switch';
 
 import { ratingOptions, T4Icon, T3Icon, T2Icon, T1Icon } from './RatingIcons';
 import '../FilterTabPanel.css';
@@ -20,9 +19,6 @@ const RatingFilterPanel: React.FC = () => {
     <div className="filter-tab-panel rating-filter-panel">
       <div className="filter-tab-panel__header">
         <Typography className="filter-tab-panel__title">Ratings</Typography>
-        <div className="filter-tab-panel__header-content">
-          <RatingSwitch />
-        </div>
       </div>
       <div className="filter-tab-panel__chips">
         <div className="rating-filter-panel__group">
