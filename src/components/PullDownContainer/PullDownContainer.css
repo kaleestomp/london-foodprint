@@ -1,9 +1,9 @@
 .pull-down-container {
-  --pull-down-toolbar-height: 56px;
+  --pull-down-toolbar-height: var(--app-toolbar-height);
+  --pull-down-header-height: calc(var(--pull-down-toolbar-height) + (var(--app-layout-margin-top) * 2));
+
   --pull-down-fly-ms: 320ms;
   --pull-down-fly-easing: cubic-bezier(0.22, 1, 0.36, 1);
-  --pull-down-header-vertical-padding: 20px;
-  --pull-down-header-height: calc(var(--pull-down-toolbar-height) + (var(--pull-down-header-vertical-padding) * 2));
   --pull-down-bottom-gap: 72px;
   --pull-down-bottom-padding: 56px;
   --pull-down-surface-bg: var(--app-floating-card-bg);
@@ -74,7 +74,7 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
   max-height: calc(100dvh - var(--pull-down-header-height) - var(--pull-down-bottom-gap));
-  padding: 12px 14px;
+  padding: 0 var(--app-layout-margin);
 }
 
 .pull-down-container.is-shell-animating .pull-down-content,
@@ -99,7 +99,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 56px;
+  height: var(--pull-down-toolbar-height);
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -118,7 +118,6 @@
 
 @media (max-width: 959px) {
   .pull-down-container {
-    --pull-down-toolbar-height: 50px;
     width: 100%;
   }
 }

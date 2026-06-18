@@ -29,7 +29,7 @@ async def get_tiles(
     score_tier: int = Query(default=0),
 ) -> dict[str, Any]:
     if score_tier not in RANK_THRESHOLD_MAP:
-        raise HTTPException(status_code=422, detail="score_tier must be one of 0,2,3,4")
+        raise HTTPException(status_code=422, detail="score_tier must be one of 1,2,3,4")
 
     cuisine_value = normalize_dimension(cuisine)
     cost_value = normalize_dimension(cost)

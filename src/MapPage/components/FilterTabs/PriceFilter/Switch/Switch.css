@@ -1,0 +1,19 @@
+.scope-toggle-group {
+    position: relative;
+    bottom: 0px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2px;
+}
+.scope-label {
+    min-width: 52px;
+    position: relative;
+    color: var(--app-menu-txt-color);
+}
+.left {
+    text-align: right;
+}
+.right {
+    text-align: left;
+}

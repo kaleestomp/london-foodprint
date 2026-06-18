@@ -1,43 +1,30 @@
 import { createTheme } from '@mui/material/styles';
 
-declare module '@mui/material/styles' {
-  interface Palette {
-    primaryBlack: Palette['primary'];
-    primaryGrey: Palette['primary'];
-    // etc.
-  }
-  interface PaletteOptions {
-    primaryBlack?: PaletteOptions['primary'];
-    primaryGrey?: PaletteOptions['primary'];
-  }
-}
-
-declare module '@mui/material/IconButton' {
-  interface IconButtonPropsColorOverrides {
-    primaryBlack: true;
-    primaryGrey: true;
-  }
-}
 const theme = createTheme({
+    cssVariables: true,
     palette: {
         primary: {
             main: 'rgb(31, 130, 192)',
             light: 'rgb(188, 213, 236)',
             dark: 'rgb(30, 118, 174)',
             contrastText: '#ffffff',
-        }, 
+        },
+        text: {
+            primary: 'rgb(45, 45, 45)',
+            secondary: 'rgb(120, 120, 120)',
+        },
         primaryBlack: {
             main: 'rgb(45, 45, 45)',
             light: 'rgb(160, 160, 160)',
             dark: 'rgb(110, 110, 110)',
             contrastText: '#ffffff',
-        }, 
+        },
         primaryRed: {
             main: 'rgb(190, 10, 38)',
             light: 'rgb(255, 100, 100)',
             dark: '#BA160C',
             contrastText: '#ffffff',
-        }, 
+        },
         primaryBlackInverted: {
             main: 'rgba(255, 255, 255, 0)',
             light: 'rgba(255, 255, 255, 0)',

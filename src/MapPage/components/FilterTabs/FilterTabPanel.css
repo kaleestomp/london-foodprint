@@ -1,8 +1,8 @@
 .filter-tab-panel {
   display: flex;
   flex-direction: column;
-  padding-top: 14px;
-  gap: 18px;
+  padding-top: 20px;
+  gap: 8px;
 }
 
 .filter-tab-panel__header {
@@ -14,7 +14,7 @@
 .filter-tab-panel__header-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .filter-tab-panel__title {
@@ -25,7 +25,7 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--mui-palette-text-secondary, rgba(0, 0, 0, 0.6));
+  color: var(--app-menu-txt-color);
 }
 
 .filter-tab-panel__chips {

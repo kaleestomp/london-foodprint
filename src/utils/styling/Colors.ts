@@ -15,9 +15,3 @@ export const primaryYellow: string = "rgb(239,191,4)";
 export const primaryPurple: string = "rgb(102, 51, 153)";
 export const white: string = "rgb(255, 255, 255)";
 export const red: string = "#e63946";
-
-export const themes: string[] = [
-    primaryBlue,
-    secondaryRed,
-    primaryGreen,
-];

@@ -1,0 +1,6 @@
+.price-filter-panel__chart-wrap {
+    width: 100%;
+    position: relative;
+    align-self: center;
+    z-index: 1;
+}

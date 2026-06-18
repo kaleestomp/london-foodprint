@@ -7,7 +7,23 @@
 :root {
   --app-layout-gap: 20px;
   --app-layout-margin: 20px;
-  --app-floating-card-bg: rgba(255, 255, 255, 0.6);
+  --app-layout-margin-top: var(--app-layout-margin);
+  --app-toolbar-height: 56px;
+  --app-toolbar-button-gap: 14px;
+  --app-floating-card-bg: rgba(255, 255, 255, 0.5);
   --app-floating-card-backdrop-filter: blur(14px);
   --app-faint-outline-color: rgba(0, 0, 0, 0.15);
+
+  --app-primary-blue: rgb(31, 130, 192);
+  --app-secondary-blue: rgb(146, 199, 249);
+  --app-primary-grey: rgb(120, 120, 120);
+  --app-secondary-grey: rgb(200, 200, 200);
+  --app-tertiary-grey: rgb(240, 240, 240);
+  --app-menu-txt-color: rgba(0, 0, 0, 0.6);
+}
+@media (max-width: 959px) {
+  :root  {
+    --app-layout-margin-top: 12px;
+    --app-toolbar-height: 52px;
+  }
 }

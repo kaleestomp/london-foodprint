@@ -11,7 +11,7 @@ import RamenDiningIcon from '@mui/icons-material/RamenDining';
 import CurrencyPoundIcon from '@mui/icons-material/CurrencyPound';
 import SearchIcon from '@mui/icons-material/Search';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { T1Icon, T2Icon, T3Icon, T4Icon } from '../FilterTabs/RatingFilter/RatingIcons';
+import { T1Icon, T2Icon, T3Icon, T4Icon } from '../FilterTabs/RatingFilter/RatingBar/RatingIcons';
 
 import './MapToolbar.css';
 

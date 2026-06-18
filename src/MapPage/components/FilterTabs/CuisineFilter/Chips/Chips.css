@@ -1,0 +1,13 @@
+.cuisine-filter-panel__toggle-chip {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.cuisine-filter-panel__toggle-chip .MuiChip-label {
+  padding: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 1.2rem;
+  line-height: 1;
+}

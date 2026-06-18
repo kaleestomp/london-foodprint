@@ -25,7 +25,7 @@ _PLACES_ONLY_SQL = """
         rating,
         user_rating_count,
         operational,
-        {{rank_column}} AS rank
+        {rank_column} AS rank
     FROM places
     WHERE lat BETWEEN $1 AND $2
       AND lon BETWEEN $3 AND $4
@@ -38,8 +38,8 @@ _PLACES_ONLY_SQL = """
             OR cost = ''
             OR LOWER(cost) = 'unspecified'
           )
-      AND {{rank_column}} >= $8
-    ORDER BY {{rank_column}} DESC
+            AND {rank_column} >= $8
+        ORDER BY {rank_column} DESC
     LIMIT 100
 """
 

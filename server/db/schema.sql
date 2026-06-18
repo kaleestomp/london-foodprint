@@ -70,8 +70,7 @@ CREATE INDEX idx_places_wilson_1   ON places(cuisine_type, wilson_1 DESC);
 -- '' for cuisine_type / cost / venue_type = "all" (no filter on that dimension).
 --
 -- score_tier uses CUMULATIVE thresholds (used as a pre-filter, not a display band):
---   0 = all  |  2 = above avg (≥0.50)  |  3 = top 25% (≥0.75)  |  4 = top 10% (≥0.90)
---   (tier 1 / below average excluded — not a useful map filter)
+--   0 = all  |  1 = above avg  |  2 = strong  |  3 = top 10%  |  4 = top 5%
 --
 -- score_basis:  0 = base  |  1 = diversity-aware  |  2 = independent
 -- Resolutions: 7=city, 8=neighbourhood, 9=street, 10=finest (heatmap off at 10).
@@ -83,7 +82,7 @@ CREATE TABLE h3_density (
     cost            TEXT     NOT NULL DEFAULT '',
     venue_type      TEXT     NOT NULL DEFAULT '',   -- '' | 'Dine-In' | 'Takeaway'
     score_basis     SMALLINT NOT NULL DEFAULT 0,    -- 0=base | 1=diversity-aware | 2=independent
-    score_tier      SMALLINT NOT NULL DEFAULT 0,    -- cumulative: 0=all, 2=above avg, 3=top 25%, 4=top 10% 1 excluded (below avg)
+    score_tier      SMALLINT NOT NULL DEFAULT 0,    -- cumulative: 0=all, 1=above avg, 2=strong, 3=top 10%, 4=top 5%
     count           INTEGER  NOT NULL,
     PRIMARY KEY (tile, resolution, cuisine_type, cost, venue_type, score_basis, score_tier)
 );

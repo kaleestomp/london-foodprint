@@ -3,9 +3,9 @@ import Chip from '@mui/material/Chip';
 import {
     CUISINE_FILTER_OPTIONS,
     useSearchFilters,
-} from '../../../../context/SearchFiltersContext';
+} from '../../../../../context/SearchFiltersContext';
 
-import './CuisineFilterPanel.css';
+import './Chips.css';
 
 const COLLAPSED_COUNT = 6;
 

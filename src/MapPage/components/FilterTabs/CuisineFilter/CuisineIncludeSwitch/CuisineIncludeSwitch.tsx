@@ -1,7 +1,7 @@
 import Typography from '@mui/material/Typography';
-import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import MaterialUISwitch from '../../../../components/Switch/MaterialUISwitch';
-import './CuisineFilterPanel.css';
+import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import MaterialUISwitch from '../../../../../components/Switch/MaterialUISwitch';
+import './Switch.css';
 
 
 const CuisineIncludeSwitch: React.FC = () => {
@@ -11,8 +11,8 @@ const CuisineIncludeSwitch: React.FC = () => {
   } = useSearchFilters();
 
   return (
-    <div className="cuisine-filter-panel__mode-row">
-        <Typography variant="caption" className="cuisine-filter-panel__mode-label cuisine-filter-panel__mode-label--left">
+    <div className="switch-row">
+        <Typography variant="caption" className="switch-label switch-label--left">
         Incl.
         </Typography>
         <MaterialUISwitch
@@ -20,7 +20,7 @@ const CuisineIncludeSwitch: React.FC = () => {
         onChange={(event) => setCuisineSelectionMode(event.target.checked ? 'exclude' : 'include')}
         slotProps={{ input: { 'aria-label': 'Cuisine include or exclude mode' } }}
         />
-        <Typography variant="caption" className="cuisine-filter-panel__mode-label cuisine-filter-panel__mode-label--right">
+        <Typography variant="caption" className="switch-label switch-label--right">
         Excl.
         </Typography>
     </div>

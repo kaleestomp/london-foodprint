@@ -14,9 +14,10 @@ Output columns:
 
 Score tier semantics (CUMULATIVE thresholds — matches the frontend filter):
     0 = all                            (input tier >= 0)
-    2 = above average / independent    (input tier >= 1)
-    3 = top 25%                        (input tier >= 2)
-    4 = top 10%                        (input tier >= 3)
+    1 = above average                  (input tier >= 1)
+    2 = strong                         (input tier >= 2)
+    3 = top 10%                        (input tier >= 3)
+    4 = top 5%                         (input tier >= 4)
 
 score_basis:
     0 = tier       (base quality ranking)
@@ -40,9 +41,10 @@ TIER_COLS = {
 # Maps output score_tier to a filter function on input tier values
 TIER_FILTERS = {
     0: lambda t: t >= 0,   # all rows
-    2: lambda t: t >= 1,   # above average / independent (excludes tier 0)
-    3: lambda t: t >= 2,   # top 25%
-    4: lambda t: t >= 3,   # top 10%
+    1: lambda t: t >= 1,   # above average
+    2: lambda t: t >= 2,   # strong
+    3: lambda t: t >= 3,   # top 10%
+    4: lambda t: t >= 4,   # top 5%
 }
 
 
@@ -59,7 +61,7 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
     costs       = sorted([c for c in df["cost"].dropna().unique() if c != ""]) + [""]
     venue_types = sorted([v for v in df["venue_type"].dropna().unique() if v != ""]) + [""]
     bases       = [0, 1, 2]    # score_basis
-    score_tiers = [0, 2, 3, 4] # output tiers: 0=all, 2=above avg, 3=top 25%, 4=top 10%
+    score_tiers = [0, 1, 2, 3, 4] # output tiers: cumulative thresholds on input tier value
 
     rows = []
     total = len(bases) * len(score_tiers) * len(cuisines) * len(costs) * len(venue_types) * len(H3_RESOLUTIONS)
