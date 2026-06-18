@@ -215,10 +215,14 @@ async def get_tiles(
                 cost_values,
                 rank_threshold,
             )
+            # Note: Use actual len(rows) as total, not inner_count.
+            # H3 tiles don't perfectly align with lat/lon bboxes, so a place inside an
+            # inner tile may fall outside the exact bbox bounds. inner_count is a heuristic
+            # for switching modes; the true count is what the places query returns.
             payload = {
                 "mode": "places",
                 "data": [dict(row) for row in rows],
-                "total": inner_count,
+                "total": len(rows),
             }
             await _set_cached(places_cache_key, payload)
             return payload

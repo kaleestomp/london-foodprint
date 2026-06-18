@@ -237,6 +237,31 @@ Padding per resolution (in `map_common.py`):
 - The bug was not caused by pre-aggregation itself, but by ambiguous query semantics over mixed wildcard + concrete rows.
 - Keeping wildcard rows is acceptable as long as queries always choose one semantic set per dimension.
 
+### Bug 3: Total Count Mismatch in Places Mode
+
+**Observed symptom:** Tile shows `count=1`, user zooms, but no place pins appear (or fewer than displayed).
+
+**Root cause:** The `total` field in places-mode responses was set to `inner_count` (from h3_density), not the actual number of rows returned by the places query. H3 tiles don't perfectly align with lat/lon bounding boxes—a place inside an inner tile can fall outside the exact bbox when filtered by `lat BETWEEN sw_lat AND ne_lat`. This caused the frontend to expect N results but receive fewer or zero.
+
+**Resolution implemented:**
+- [server/api/tile_api/tile_api.py#L223](server/api/tile_api/tile_api.py#L223) — changed places-mode total to `len(rows)` (actual result count).
+- Added comment explaining the bbox/tile misalignment logic.
+
+**Why this matters:**
+- `inner_count` is a heuristic for deciding when to switch from tiles to places mode (if `inner_count <= PAGE_SIZE`, fetch places).
+- The true count of places within the exact bbox is what the places query returns; using `inner_count` as the total misleads the frontend.
+
+**Regression validation:**
+A reconciliation script validates that tile counts are internally consistent. Run it manually to verify deployed queries:
+```powershell
+python server/api_test/reconcile_tiles_places.py
+```
+Checks two invariants:
+1. `inner_count` from tiles query closely matches the actual place query result (sanity bound: ±10%).
+2. Mode switch is deterministic: `inner_count > PAGE_SIZE` → tiles mode, else → places mode.
+
+Exit code 0 = pass, 1 = fail (see stdout for details).
+
 **Cache:** 60s in-process TTL (`tile_cache.py`, env var `TILES_CACHE_TTL_SECONDS`).
 - `tiles` responses use cache key: sorted `outer_tiles` + all filter dimensions.
 - `places` responses use a separate cache key that also includes exact viewport bbox (`sw_lat/sw_lng/ne_lat/ne_lng`).
