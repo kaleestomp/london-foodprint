@@ -1,6 +1,6 @@
 ﻿# London Foodprint — Cloud Architecture Design
-**Last updated:** June 15, 2026  
-**Status:** Schema rebuilt for the updated places export. ETL loader updated. All three API endpoints built.
+**Last updated:** June 18, 2026  
+**Status:** Schema rebuilt for the updated places export. ETL loader updated. Core map, nearby, detail, and ranked-list endpoints built.
 
 ---
 
@@ -40,6 +40,7 @@ server/
       tile_cache.py         ← in-process TTL cache (default 60s, env-configurable)
       places_query/         ← reference/notes on places fallback query variants
     place_api.py            ← GET /api/place/{id}
+    places_list_api.py      ← GET /api/places/list
   api_test/
     backend_api_test.ipynb  ← smoke-test notebook (health, tiles, nearby, place detail)
   server.py               ← FastAPI app, asyncpg pool, CORS, router registration
@@ -171,7 +172,7 @@ python server/db/etl_load.py
 
 ## API Endpoints
 
-**All three endpoints are implemented.** Run the server from the repo root:
+**Core endpoints are implemented.** Run the server from the repo root:
 ```powershell
 server\venv\Scripts\python.exe -m uvicorn server.server:app --host 0.0.0.0 --port 3000 --reload
 ```
@@ -186,7 +187,7 @@ zoom 14–16 → res 9   (street)
 zoom 17+   → res 10  (finest; heatmap OFF)
 ```
 
-### GET /api/tiles — Viewport tile density
+### GET /api/tiles — Viewport tile density or lightweight places pins
 ```
 ?sw_lat=&sw_lng=&ne_lat=&ne_lng=&res=8&cuisine=&cost=&venue_type=&score_basis=0&score_tier=0
 ```
@@ -212,7 +213,13 @@ Padding per resolution (in `map_common.py`):
 
 **Response modes:**
 - `inner_count > 20` → `{mode: "tiles", resolution, data: [{tile, count}, ...]}` (full outer set)
-- `inner_count ≤ 20` → `{mode: "places", data: [...], total: inner_count}` (places query by lat/lon BETWEEN original bbox bounds)
+- `inner_count ≤ 20` → `{mode: "places", data: [...], total: len(rows)}` (places query by lat/lon BETWEEN original bbox bounds)
+
+**Places-mode payload (map pin rendering):**
+- `id`
+- `lat`
+- `lon`
+- `tier` (0–4 from selected score-basis tier column)
 
 ### June 2026 Tile Count Consistency Fix (incident + resolution)
 
@@ -268,15 +275,51 @@ Exit code 0 = pass, 1 = fail (see stdout for details).
 
 ### GET /api/nearby — Pin drop / walk bubble
 ```
-?lat=&lng=&radius_m=1000&cuisine=&cost=&venue_type=&score_basis=0&rank_threshold=0&page=1
+?lat=&lng=&radius_m=1000&cuisine=&cost=&venue_type=&score_basis=0&score_tier=0&page=1
 ```
 - k-ring pre-filter: `h3.grid_disk(center_r10, k=ceil(radius_m / 114.2) + 1)`
 - Then: `ST_DWithin(geom::geography, point::geography, radius_m)`
-- Sort: `ORDER BY rank_1 DESC` (boosted) or `wrank_1` (raw Wilson), selected by `score_basis`
-- Pagination: 20 per page
+- Sort/filter basis column selected from `score_basis` (`tier`, `tier_d`, or `tier_independent`)
+- Pagination: 80 per page (`PAGE_SIZE_ON_REQUEST`)
 
 ### GET /api/place/{id} — Detail card
-Full metadata including all rank scores, address, website, wheelchair access. 404 on miss. Fetched only on pin tap.
+Fetched on pin tap for tooltip/detail panel. 404 on miss.
+
+Returns:
+- `id`
+- `ranking` (`normal_1` percentile)
+- `display_name`
+- `cuisine_type`
+- `is_chain`
+- `venue_type`
+- `google_maps_uri`
+- `website_uri`
+- `short_formatted_address`
+- `pcd`
+
+### GET /api/places/list — Ranked places for restaurant info panel
+```
+?sw_lat=&sw_lng=&ne_lat=&ne_lng=&cuisine=&cost=&venue_type=&rank_column=normal_1&score_basis=0&score_tier=0&page=1
+```
+
+Purpose:
+- Returns a ranked list for panel/table rendering and pagination
+
+Behavior:
+- Default sorting column: `normal_1`
+- Optional sort allowlist: `normal_1`, `wilson_1`
+- Applies the same bbox/cuisine/cost/venue filters as map place queries
+- Applies score threshold via selected basis tier column
+- Pagination: 20 per page
+
+Returns list rows:
+- `ranking` (`normal_1`)
+- `display_name`
+- `cuisine_type`
+- `is_chain`
+- `venue_type`
+- `google_maps_uri`
+- `website_uri`
 
 ---
 
@@ -286,7 +329,7 @@ Full metadata including all rank scores, address, website, wheelchair access. 40
 |---|---|---|
 | H3 pin-count labels | `/api/tiles` mode=tiles | mode=places (≤25 results) |
 | Smooth heatmap (Option B) | `/api/tiles` mode=tiles → `h3.cellToLatLng()` client-side | res 10 OR mode=places |
-| Restaurant pins | `/api/tiles` mode=places | mode=tiles |
+| Restaurant pins | `/api/tiles` mode=places (lightweight: id/lat/lon/tier) | mode=tiles |
 
 ---
 
