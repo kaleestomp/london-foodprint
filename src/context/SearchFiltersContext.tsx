@@ -53,19 +53,26 @@ export const PRICE_RANGE_FILTER_OPTIONS = ['<10', '10+', '20+', '40+', '60+', '1
 export const SCORE_TIER_FILTER_OPTIONS = [1, 2, 3, 4] as const;
 export const SCORE_TIER_THRESHOLD_MAP = {
   0: 0,
-  1: 0.5,
-  2: 0.75,
-  3: 0.9,
-  4: 0.95,
+  1: 1,
+  2: 2,
+  3: 3,
+  4: 4,
 } as const;
 
 export type CuisineFilterOption = (typeof CUISINE_FILTER_OPTIONS)[number];
 export type CuisineSelectionMode = 'include' | 'exclude';
-export type RatingSelectionMode = 'tier' | 'tier_independent';
+export type RatingSelectionMode = 'tier' | 'tier_d' | 'tier_independent';
 export type VenueTypeFilterOption = (typeof VENUE_TYPE_FILTER_OPTIONS)[number];
 export type PriceRangeFilterOption = (typeof PRICE_RANGE_FILTER_OPTIONS)[number];
 export type PriceRangeInterval = [number, number];
 export type ScoreTierFilterOption = 0 | (typeof SCORE_TIER_FILTER_OPTIONS)[number];
+export type ScoreBasis = 0 | 1 | 2;
+
+export const scoreBasisFromRatingSelectionMode = (mode: RatingSelectionMode): ScoreBasis => {
+  if (mode === 'tier') return 0;
+  if (mode === 'tier_d') return 1;
+  return 2;
+};
 
 type SearchFiltersContextType = {
   cuisines: CuisineFilterOption[];

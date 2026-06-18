@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
 
 import useRequestTiles from '../../../request/useRequestTiles/useRequestTiles';
-import { useSearchFilters } from '../../../../context/SearchFiltersContext';
+import { scoreBasisFromRatingSelectionMode, useSearchFilters } from '../../../../context/SearchFiltersContext';
 import onUserRoam from './utils/onUserRoam';
 import DelayLoadingScreen from './utils/delayLoadingScreen';
 import createPersistentLayer from './utils/createPersistentLayer';
@@ -15,7 +15,7 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
   const requestParams = useMemo(() => {
     if (!viewportParams) return null;
 
-    const scoreBasis: 0 | 1 = ratingSelectionMode === 'tier_independent' ? 1 : 0;
+    const scoreBasis = scoreBasisFromRatingSelectionMode(ratingSelectionMode);
 
     return {
       ...viewportParams,

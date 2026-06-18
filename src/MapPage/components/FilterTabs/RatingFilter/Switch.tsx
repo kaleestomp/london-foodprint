@@ -1,30 +1,32 @@
-import Typography from '@mui/material/Typography';
+import type { MouseEvent } from 'react';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import MaterialUISwitch from '../../../../components/Switch/MaterialUISwitch';
-import './RatingFilterPanel.css';
+import './Switch/Switch.css';
 
 
 const RatingSwitch: React.FC = () => {
-  const {
-    ratingSelectionMode,
-    setRatingSelectionMode,
-  } = useSearchFilters();
+  const { ratingSelectionMode, setRatingSelectionMode } = useSearchFilters();
+
+  const handleModeChange = (_event: MouseEvent<HTMLElement>, value: 'tier' | 'tier_d' | 'tier_independent' | null) => {
+    if (!value) return;
+    setRatingSelectionMode(value);
+  };
 
   return (
-    <div className="rating-filter-panel__mode-row">
-      <Typography variant="caption" className="rating-filter-panel__mode-label rating-filter-panel__mode-label--left">
-        Pure
-      </Typography>
-      <MaterialUISwitch
-        checkedThumbColor = {'#1565c0'}
-        checkedTrackColor = {'#90caf9'}
-        checked={ratingSelectionMode === 'tier_independent'}
-        onChange={(event) => setRatingSelectionMode(event.target.checked ? 'tier_independent' : 'tier')}
-        slotProps={{ input: { 'aria-label': 'Toggle tier rating mode' } }}
-      />
-      <Typography variant="caption" className="rating-filter-panel__mode-label rating-filter-panel__mode-label--right">
-        Diversify
-      </Typography>
+    <div className="switch-row">
+      <ToggleButtonGroup
+        exclusive
+        size="small"
+        value={ratingSelectionMode}
+        onChange={handleModeChange}
+        aria-label="Select rating basis"
+        className="switch-segmented"
+      >
+        <ToggleButton value="tier" aria-label="Base tier basis">Base</ToggleButton>
+        <ToggleButton value="tier_d" aria-label="Diversity-adjusted basis">Diversity</ToggleButton>
+        <ToggleButton value="tier_independent" aria-label="Independent-friendly basis">Independent</ToggleButton>
+      </ToggleButtonGroup>
     </div>
   );
 };

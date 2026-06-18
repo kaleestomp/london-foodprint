@@ -13,7 +13,7 @@ export interface NearbyParams {
   cuisines?: string[];
   cost?: string[];
   venue_type?: string;
-  score_basis?: 0 | 1;
+  score_basis?: 0 | 1 | 2;
   rank_threshold?: number;
   page?: number;
 }

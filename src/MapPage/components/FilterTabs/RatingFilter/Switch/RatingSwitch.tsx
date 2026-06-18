@@ -5,6 +5,7 @@ import './Switch.css';
 
 const RatingSwitch: React.FC = () => {
   const { ratingSelectionMode, setRatingSelectionMode } = useSearchFilters();
+
   return (
     <div className="switch-row">
       <Typography variant="caption" className="switch-label left">
@@ -13,7 +14,7 @@ const RatingSwitch: React.FC = () => {
       <PrimarySwitch
         checked={ratingSelectionMode === 'tier_independent'}
         onChange={(event) => setRatingSelectionMode(event.target.checked ? 'tier_independent' : 'tier')}
-        slotProps={{ input: { 'aria-label': 'Toggle between tier and tier-independent rating basis' } }}
+        slotProps={{ input: { 'aria-label': 'Toggle between popularity and independent rating basis' } }}
       />
       <Typography variant="caption" className="switch-label right">
         Pro Diversity

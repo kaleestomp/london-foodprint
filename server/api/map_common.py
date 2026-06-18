@@ -2,11 +2,11 @@ import h3
 from fastapi import HTTPException
 
 RANK_THRESHOLD_MAP = {
-    0: 0.0,
-    1: 0.5,
-    2: 0.75,
-    3: 0.9,
-    4: 0.95,
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
 }
 
 PAGE_SIZE = 25
@@ -49,7 +49,11 @@ def normalize_dimension_list(values: list[str] | None) -> list[str]:
 
 
 def get_rank_column(score_basis: int) -> str:
-    return "wilson_1" if score_basis == 1 else "normal_1"
+    if score_basis == 0:
+        return "tier"
+    if score_basis == 1:
+        return "tier_d"
+    return "tier_independent"
 
 
 # Approximate padding in degrees to add around the viewport so that tiles

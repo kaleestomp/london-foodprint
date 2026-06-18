@@ -3,6 +3,7 @@ import type L from 'leaflet';
 
 import {
   PRICE_RANGE_FILTER_OPTIONS,
+  scoreBasisFromRatingSelectionMode,
   useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
 import onUserRoam from '../../../Map/DataLayer/utils/onUserRoam';
@@ -30,7 +31,7 @@ const getChartData = ({ mapRef, isGlobal }: Props) => {
   const sliderValue = priceRangeInterval ?? [0, sliderMax];
 
   const requestParams = useMemo(() => {
-    const scoreBasis: 0 | 1 = ratingSelectionMode === 'tier_independent' ? 1 : 0;
+    const scoreBasis = scoreBasisFromRatingSelectionMode(ratingSelectionMode);
     if (isGlobal) {
       return {
         scope: 'citywide' as const,

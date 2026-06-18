@@ -3,6 +3,7 @@ import type L from 'leaflet';
 
 import {
     CUISINE_FILTER_OPTIONS,
+    scoreBasisFromRatingSelectionMode,
     type CuisineFilterOption,
     useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
@@ -43,7 +44,7 @@ const getCuisineChartData = ({ mapRef, isGlobal }: Props) => {
     const viewportParams = onUserRoam(mapRef);
 
     const requestParams = useMemo(() => {
-        const scoreBasis: 0 | 1 = ratingSelectionMode === 'tier_independent' ? 1 : 0;
+        const scoreBasis = scoreBasisFromRatingSelectionMode(ratingSelectionMode);
         if (isGlobal) {
             return {
                 scope: 'citywide' as const,

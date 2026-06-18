@@ -24,7 +24,7 @@ async def get_tiles(
     cuisine: str | None = Query(default=""),
     cost: str | None = Query(default=""),
     venue_type: str | None = Query(default=""),
-    score_basis: int = Query(default=0, ge=0, le=1),
+    score_basis: int = Query(default=0, ge=0, le=2),
     confidence: int = Query(default=1, ge=0, le=2),
     score_tier: int = Query(default=0),
 ) -> dict[str, Any]:

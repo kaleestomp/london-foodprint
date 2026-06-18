@@ -15,7 +15,7 @@ export interface CuisineHistogramParams {
   ne_lng?: number;
   cost?: string[];
   venue_type?: string;
-  score_basis?: 0 | 1;
+  score_basis?: 0 | 1 | 2;
   score_tier?: 0 | 1 | 2 | 3 | 4;
 }
 

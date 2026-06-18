@@ -6,7 +6,7 @@ import L from 'leaflet';
 import BubbleAvatarPin from '../BubbleAvatarPin/BubbleAvatarPin';
 import addPlaceMarkers from '../../Map/DataLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
-import { SCORE_TIER_THRESHOLD_MAP, useSearchFilters } from '../../../../context/SearchFiltersContext';
+import { SCORE_TIER_THRESHOLD_MAP, scoreBasisFromRatingSelectionMode, useSearchFilters } from '../../../../context/SearchFiltersContext';
 import { type LatLng, SEARCH_RADIUS, LONGPRESS_MS, ZOOM_LEVEL, CIRCLE_COLOR, DROP_ENTRY_DELAY_MS } from '../config';
 
 const CIRCLE_ENTRY_MS = 280;
@@ -46,7 +46,7 @@ const useBubbleDrop = (
       cuisines: effectiveCuisines,
       venue_type: venueType ?? '',
       cost: effectivePriceRanges,
-      score_basis: ratingSelectionMode === 'tier_independent' ? 1 : 0,
+      score_basis: scoreBasisFromRatingSelectionMode(ratingSelectionMode),
       rank_threshold: SCORE_TIER_THRESHOLD_MAP[scoreTier],
     } : null,
   );

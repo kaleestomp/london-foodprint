@@ -53,7 +53,7 @@ async def get_cost_histogram(
     ne_lng: float | None = Query(default=None),
     cuisine: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
-    score_basis: int = Query(default=0, ge=0, le=1),
+    score_basis: int = Query(default=0, ge=0, le=2),
     score_tier: int = Query(default=0),
 ) -> dict[str, Any]:
     if scope not in {"view", "citywide"}:
