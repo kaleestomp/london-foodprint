@@ -8,6 +8,7 @@ const STAGGER_CAP = 20;
 const addPlaceMarkers = (
   layer: L.Map | L.LayerGroup,
   data: TilePlacePreview[],
+  onPlaceClick?: (placeId: string) => void,
   startOffsets?: Map<string, { dx: number; dy: number }>,
   mapCenter?: L.LatLng | null,
   entryDelayMs = 0,
@@ -26,8 +27,7 @@ const addPlaceMarkers = (
   const created: Array<{ id: string; marker: L.Marker }> = [];
 
   ordered.forEach((place, i) => {
-    const rankPct = place.rank != null ? `${Math.round(place.rank * 100)}th percentile` : '';
-    const rating  = place.rating != null ? `⭐ ${place.rating} (${place.user_rating_count ?? 0})` : '';
+    const tierText = place.tier != null ? `Tier ${Math.round(place.tier)}` : 'Tier unknown';
 
     const staggerMs = entryDelayMs + Math.min(i, STAGGER_CAP) * STAGGER_STEP_MS;
     const offset = startOffsets?.get(place.id);
@@ -37,12 +37,12 @@ const addPlaceMarkers = (
     });
 
     const marker = L.marker([place.lat, place.lon], { icon })
-      .bindPopup(
-        `<strong>${place.display_name}</strong><br/>` +
-        `${place.cuisine_type ?? ''}${place.cost ? ' · ' + place.cost : ''}<br/>` +
-        `${rating}${rankPct ? '<br/>' + rankPct : ''}`
-      )
+      .bindPopup(`<strong>${place.id}</strong><br/>${tierText}`)
       .addTo(layer);
+
+    if (onPlaceClick) {
+      marker.on('click', () => onPlaceClick(place.id));
+    }
 
     created.push({ id: place.id, marker });
   });

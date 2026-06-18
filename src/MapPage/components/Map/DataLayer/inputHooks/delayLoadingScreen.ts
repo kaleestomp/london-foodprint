@@ -4,7 +4,7 @@ import { type RequestStatus } from '../../../../request/useRequestTiles/useReque
 
 const LOADING_DELAY_MS = 2000;
 
-const DelayLoadingScreen = (status: RequestStatus): void => {
+const delayLoadingScreen = (status: RequestStatus): void => {
 
   const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toggleLoading } = useAppUI();
@@ -32,4 +32,4 @@ const DelayLoadingScreen = (status: RequestStatus): void => {
 
 };
 
-export default DelayLoadingScreen;
+export default delayLoadingScreen;

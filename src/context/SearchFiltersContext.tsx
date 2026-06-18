@@ -61,23 +61,16 @@ export const SCORE_TIER_THRESHOLD_MAP = {
 
 export type CuisineFilterOption = (typeof CUISINE_FILTER_OPTIONS)[number];
 export type CuisineSelectionMode = 'include' | 'exclude';
-export type RatingSelectionMode = 'tier' | 'tier_d' | 'tier_independent';
 export type VenueTypeFilterOption = (typeof VENUE_TYPE_FILTER_OPTIONS)[number];
 export type PriceRangeFilterOption = (typeof PRICE_RANGE_FILTER_OPTIONS)[number];
 export type PriceRangeInterval = [number, number];
 export type ScoreTierFilterOption = 0 | (typeof SCORE_TIER_FILTER_OPTIONS)[number];
 export type ScoreBasis = 0 | 1 | 2;
 
-export const scoreBasisFromRatingSelectionMode = (mode: RatingSelectionMode): ScoreBasis => {
-  if (mode === 'tier') return 0;
-  if (mode === 'tier_d') return 1;
-  return 2;
-};
-
 type SearchFiltersContextType = {
   cuisines: CuisineFilterOption[];
   cuisineSelectionMode: CuisineSelectionMode;
-  ratingSelectionMode: RatingSelectionMode;
+  scoreBasis: ScoreBasis;
   effectiveCuisines: CuisineFilterOption[];
   venueType: VenueTypeFilterOption | null;
   priceRange: PriceRangeFilterOption | null;
@@ -87,7 +80,7 @@ type SearchFiltersContextType = {
   toggleCuisine: (value: CuisineFilterOption) => void;
   clearCuisines: () => void;
   setCuisineSelectionMode: (value: CuisineSelectionMode) => void;
-  setRatingSelectionMode: (value: RatingSelectionMode) => void;
+  setScoreBasis: (value: ScoreBasis) => void;
   setVenueType: (value: VenueTypeFilterOption | null) => void;
   setPriceRange: (value: PriceRangeFilterOption | null) => void;
   setPriceRangeInterval: (value: PriceRangeInterval | null) => void;
@@ -100,7 +93,7 @@ const SearchFiltersContext = createContext<SearchFiltersContextType | null>(null
 export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => {
   const [cuisines, setCuisines] = useState<CuisineFilterOption[]>([]);
   const [cuisineSelectionMode, setCuisineSelectionMode] = useState<CuisineSelectionMode>('include');
-  const [ratingSelectionMode, setRatingSelectionMode] = useState<RatingSelectionMode>('tier_independent');
+  const [scoreBasis, setScoreBasis] = useState<ScoreBasis>(2);
   const [venueType, setVenueType] = useState<VenueTypeFilterOption | null>(null);
   const [priceRangeInterval, setPriceRangeInterval] = useState<PriceRangeInterval | null>(null);
   const [scoreTier, setScoreTier] = useState<ScoreTierFilterOption>(3);
@@ -121,7 +114,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   const exposed = useMemo<SearchFiltersContextType>(() => ({
     cuisines,
     cuisineSelectionMode,
-    ratingSelectionMode,
+    scoreBasis,
     effectiveCuisines: cuisineSelectionMode === 'include'
       ? cuisines
       : CUISINE_FILTER_OPTIONS.filter((option) => !cuisines.includes(option)),
@@ -141,7 +134,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
     },
     clearCuisines: () => setCuisines([]),
     setCuisineSelectionMode,
-    setRatingSelectionMode,
+    setScoreBasis,
     setVenueType,
     setPriceRange: (value: PriceRangeFilterOption | null) => {
       if (value === null) {
@@ -160,12 +153,12 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
     resetFilters: () => {
       setCuisines([]);
       setCuisineSelectionMode('include');
-      setRatingSelectionMode('tier_independent');
+      setScoreBasis(2);
       setVenueType(null);
       setPriceRangeInterval(null);
       setScoreTier(3);
     },
-  }), [cuisineSelectionMode, cuisines, ratingSelectionMode, venueType, priceRange, priceRangeInterval, effectivePriceRanges, scoreTier]);
+  }), [cuisineSelectionMode, cuisines, scoreBasis, venueType, priceRange, priceRangeInterval, effectivePriceRanges, scoreTier]);
 
   return (
     <SearchFiltersContext.Provider value={exposed}>

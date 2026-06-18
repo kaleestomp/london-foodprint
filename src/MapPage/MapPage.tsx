@@ -8,6 +8,8 @@ import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 import IPLocationHandler from './components/Map/IPLocationHandler/IPLocationHandler';
 import { useAppUI } from '../context/AppUIContext';
 import PullDownPanel from './components/PullDownPanel/PullDownPanel';
+import RestaurantInfoPanel from './components/RestaurantInfoPanel/RestaurantInfoPanel';
+import { PlacesQueryProvider } from './context/PlacesQueryContext';
 
 import './MapPage.css';
 
@@ -21,16 +23,19 @@ const MapPage: React.FC = () => {
   IPLocationHandler({ mapRef });
 
   return (
-    <div className="map-page-container">
-      <Loading loading={isLoading} />
-      <div className='map-card-viewport'>
-        <div className='map-canvas-wrapper'>
-          <Map mapRef={mapRef} searchMask={searchMask} />
-          <PullDownPanel mapRef={mapRef} />
-          <BubbleAvatar mapRef={mapRef} setSearchMask={setSearchMask} liveLocation={liveLocation} />
+    <PlacesQueryProvider>
+      <div className="map-page-container">
+        <Loading loading={isLoading} />
+        <div className='map-card-viewport'>
+          <div className='map-canvas-wrapper'>
+            <Map mapRef={mapRef} searchMask={searchMask} />
+            <PullDownPanel mapRef={mapRef} />
+            <RestaurantInfoPanel mapRef={mapRef} />
+            <BubbleAvatar mapRef={mapRef} setSearchMask={setSearchMask} liveLocation={liveLocation} />
+          </div>
         </div>
       </div>
-    </div>
+    </PlacesQueryProvider>
   );
 };
 

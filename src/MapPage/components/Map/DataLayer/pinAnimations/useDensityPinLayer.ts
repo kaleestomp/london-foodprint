@@ -19,6 +19,7 @@ const useDensityPinLayer = (
   mapRef:   React.RefObject<L.Map | null>,
   layerRef: React.RefObject<L.LayerGroup | null>,
 ) => {
+  
   const renderedTilesRef = useRef<Set<string>>(new Set());
   const currentResRef    = useRef<number | null>(null);
   const markersByTileRef = useRef<Map<string, L.Marker>>(new Map());

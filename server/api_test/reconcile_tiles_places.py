@@ -26,7 +26,7 @@ if str(SERVER_ROOT) not in sys.path:
 import psycopg2
 from dotenv import load_dotenv
 
-from api.map_common import h3_cells_for_bbox, normalize_dimension_list, normalize_dimension, PAGE_SIZE, RANK_THRESHOLD_MAP
+from api.map_common import h3_cells_for_bbox, normalize_dimension_list, normalize_dimension, PAGE_SIZE_ON_ZOOM, RANK_THRESHOLD_MAP
 
 # ─── Test viewports ───────────────────────────────────────────────────────────
 # All within London bounds; chosen to exercise different filter combinations.
@@ -155,8 +155,8 @@ def run_checks(conn_str: str) -> bool:
         # Check 2: mode switch determinism
         # If inner_count > PAGE_SIZE, should be in tiles mode
         # If inner_count <= PAGE_SIZE, should be in places mode
-        expected_mode = "tiles" if inner_count > PAGE_SIZE else "places"
-        print(f"  → inner_count {inner_count} → mode={expected_mode} (PAGE_SIZE={PAGE_SIZE})")
+        expected_mode = "tiles" if inner_count > PAGE_SIZE_ON_ZOOM else "places"
+        print(f"  → inner_count {inner_count} → mode={expected_mode} (PAGE_SIZE={PAGE_SIZE_ON_ZOOM})")
 
     cur.close()
     conn.close()

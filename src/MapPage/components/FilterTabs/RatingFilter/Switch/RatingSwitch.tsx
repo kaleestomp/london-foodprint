@@ -4,7 +4,11 @@ import PrimarySwitch from '../../../../../components/Switch/PrimarySwitch';
 import './Switch.css';
 
 const RatingSwitch: React.FC = () => {
-  const { ratingSelectionMode, setRatingSelectionMode } = useSearchFilters();
+  
+  const { scoreBasis, setScoreBasis } = useSearchFilters();
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setScoreBasis(event.target.checked ? 2 : 0);
+  };
 
   return (
     <div className="switch-row">
@@ -12,8 +16,8 @@ const RatingSwitch: React.FC = () => {
         Pro Popularity
       </Typography>
       <PrimarySwitch
-        checked={ratingSelectionMode === 'tier_independent'}
-        onChange={(event) => setRatingSelectionMode(event.target.checked ? 'tier_independent' : 'tier')}
+        checked={scoreBasis === 2}
+        onChange={handleChange}
         slotProps={{ input: { 'aria-label': 'Toggle between popularity and independent rating basis' } }}
       />
       <Typography variant="caption" className="switch-label right">

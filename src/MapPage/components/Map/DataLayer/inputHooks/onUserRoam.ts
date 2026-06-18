@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import L from 'leaflet';
 
 import { type TilesParams } from '../../../../request/useRequestTiles/useRequestTiles';
-import zoomToResolution from './zoomToResolution';
+import zoomToResolution from '../utils/zoomToResolution';
 
 /**
  * Tracks map viewport and emits TilesParams whenever the user pans or zooms.
@@ -31,11 +31,12 @@ const onUserRoam = (
         ne_lat: b.getNorth(),
         ne_lng: b.getEast(),
         res: res,
-        // At the finest resolution always request individual places directly,
+        // At past 18 Zoom, always request individual places directly,
         // bypassing the density table regardless of place count.
         ...(zoom >= 18 ? { places_only: true } : {}),
       });
     };
+
     update();
     map.on('moveend', update);
     map.on('zoomend', update);

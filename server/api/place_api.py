@@ -10,32 +10,15 @@ async def get_place(place_id: str, request: Request) -> dict[str, Any]:
     sql = """
         SELECT
             id,
+            normal_1 AS ranking,
             display_name,
-            primary_type_display_name,
-            rating,
-            user_rating_count,
-            short_formatted_address,
+            cuisine_type,
+            is_chain,
+            venue_type,
             google_maps_uri,
             website_uri,
-            types,
-            primary_type,
-            is_chain,
-            predicted_type,
-            cuisine_type,
-            venue_type,
-            lat,
-            lon,
-            h3_r10,
-            pcd,
-            areacode,
-            wheelchair_access,
-            operational,
-            cost,
-            wilson_1,
-            normal_1,
-            tier,
-            tier_d,
-            tier_independent
+            short_formatted_address,
+            pcd
         FROM places
         WHERE id = $1
     """

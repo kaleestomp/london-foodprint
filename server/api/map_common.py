@@ -1,16 +1,8 @@
 import h3
 from fastapi import HTTPException
 
-RANK_THRESHOLD_MAP = {
-    0: 0,
-    1: 1,
-    2: 2,
-    3: 3,
-    4: 4,
-}
-
-PAGE_SIZE = 25
-
+PAGE_SIZE_ON_ZOOM = 20
+PAGE_SIZE_ON_REQUEST = 80
 
 def zoom_to_resolution(zoom: int) -> int:
     if zoom <= 9:
@@ -20,41 +12,6 @@ def zoom_to_resolution(zoom: int) -> int:
     if zoom <= 15:
         return 9
     return 10
-
-
-def normalize_dimension(value: str | None) -> str:
-    if value is None:
-        return ""
-    normalized = value.strip()
-    if normalized.lower() == "any":
-        return ""
-    return normalized
-
-
-def normalize_dimension_list(values: list[str] | None) -> list[str]:
-    if not values:
-        return []
-
-    normalized_values: list[str] = []
-    seen: set[str] = set()
-
-    for value in values:
-        normalized = normalize_dimension(value)
-        if not normalized or normalized in seen:
-            continue
-        seen.add(normalized)
-        normalized_values.append(normalized)
-
-    return normalized_values
-
-
-def get_rank_column(score_basis: int) -> str:
-    if score_basis == 0:
-        return "tier"
-    if score_basis == 1:
-        return "tier_d"
-    return "tier_independent"
-
 
 # Approximate padding in degrees to add around the viewport so that tiles
 # intersecting the edge are included in the heatmap query.

@@ -4,26 +4,12 @@ export interface TileDensity {
   tile: string;
   count: number;
 }
-
-export interface CostHistogramEntry {
-  cost: string;
-  count: number;
-}
-
 export interface TilePlacePreview {
   id: string;
-  display_name: string;
   lat: number;
   lon: number;
-  cuisine_type: string | null;
-  venue_type: string | null;
-  cost: string | null;
-  rating: number | null;
-  user_rating_count: number | null;
-  operational: boolean | null;
-  rank: number | null;
+  tier: number | null;
 }
-
 export type TilesResponse =
   | { mode: 'tiles'; resolution: number; data: TileDensity[] }
   | { mode: 'places'; total: number; data: TilePlacePreview[] };

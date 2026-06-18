@@ -3,10 +3,9 @@ import type L from 'leaflet';
 
 import {
   PRICE_RANGE_FILTER_OPTIONS,
-  scoreBasisFromRatingSelectionMode,
   useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
-import onUserRoam from '../../../Map/DataLayer/utils/onUserRoam';
+import onUserRoam from '../../../Map/DataLayer/inputHooks/onUserRoam';
 import useRequestPriceHistogram from '../../../../request/useRequestPriceHistogram/useRequestPriceHistogram';
 
 import { primaryBlue, secondaryGrey } from '../../../../../utils/styling/Colors';
@@ -22,7 +21,7 @@ const getChartData = ({ mapRef, isGlobal }: Props) => {
     effectiveCuisines,
     venueType,
     scoreTier,
-    ratingSelectionMode,
+    scoreBasis,
     priceRangeInterval,
   } = useSearchFilters();
 
@@ -31,7 +30,6 @@ const getChartData = ({ mapRef, isGlobal }: Props) => {
   const sliderValue = priceRangeInterval ?? [0, sliderMax];
 
   const requestParams = useMemo(() => {
-    const scoreBasis = scoreBasisFromRatingSelectionMode(ratingSelectionMode);
     if (isGlobal) {
       return {
         scope: 'citywide' as const,
@@ -53,7 +51,7 @@ const getChartData = ({ mapRef, isGlobal }: Props) => {
       score_basis: scoreBasis,
       score_tier: scoreTier,
     };
-  }, [viewportParams, effectiveCuisines, venueType, ratingSelectionMode, scoreTier, isGlobal]);
+  }, [viewportParams, effectiveCuisines, venueType, scoreBasis, scoreTier, isGlobal]);
   
   const { res } = useRequestPriceHistogram(requestParams);
 

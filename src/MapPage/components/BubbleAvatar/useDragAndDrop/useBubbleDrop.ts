@@ -6,7 +6,7 @@ import L from 'leaflet';
 import BubbleAvatarPin from '../BubbleAvatarPin/BubbleAvatarPin';
 import addPlaceMarkers from '../../Map/DataLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
-import { SCORE_TIER_THRESHOLD_MAP, scoreBasisFromRatingSelectionMode, useSearchFilters } from '../../../../context/SearchFiltersContext';
+import { SCORE_TIER_THRESHOLD_MAP, useSearchFilters } from '../../../../context/SearchFiltersContext';
 import { type LatLng, SEARCH_RADIUS, LONGPRESS_MS, ZOOM_LEVEL, CIRCLE_COLOR, DROP_ENTRY_DELAY_MS } from '../config';
 
 const CIRCLE_ENTRY_MS = 280;
@@ -27,7 +27,7 @@ const useBubbleDrop = (
   /** Clears the map avatar; receives screen coords so MapCard can reposition BubbleButton */
   onPickup:    (x: number, y: number) => void,
 ) => {
-  const { effectiveCuisines, venueType, effectivePriceRanges, scoreTier, ratingSelectionMode } = useSearchFilters();
+  const { effectiveCuisines, venueType, effectivePriceRanges, scoreTier, scoreBasis } = useSearchFilters();
   const circleRef      = useRef<L.Circle | null>(null);
   const markerRef      = useRef<L.Marker | null>(null);
   const reactRootRef   = useRef<Root | null>(null);
@@ -46,7 +46,7 @@ const useBubbleDrop = (
       cuisines: effectiveCuisines,
       venue_type: venueType ?? '',
       cost: effectivePriceRanges,
-      score_basis: scoreBasisFromRatingSelectionMode(ratingSelectionMode),
+      score_basis: scoreBasis,
       rank_threshold: SCORE_TIER_THRESHOLD_MAP[scoreTier],
     } : null,
   );

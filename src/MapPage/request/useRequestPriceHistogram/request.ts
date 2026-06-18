@@ -1,6 +1,9 @@
 import { apiBasePromise } from '../../../utils/apiBase';
-import type { CostHistogramEntry } from '../useRequestTiles/request';
 
+export interface CostHistogramEntry {
+  cost: string;
+  count: number;
+}
 export type PriceHistogramScope = 'view' | 'citywide';
 
 export interface PriceHistogramParams {

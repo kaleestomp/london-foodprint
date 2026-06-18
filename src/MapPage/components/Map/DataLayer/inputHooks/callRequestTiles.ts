@@ -1,0 +1,56 @@
+import { useMemo } from 'react';
+
+import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
+import type { TilesParams } from '../../../../request/useRequestTiles/useRequestTiles';
+import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import delayLoadingScreen from './delayLoadingScreen';
+import onUserRoam from './onUserRoam';
+
+type Response = {
+  status: string;
+  res: any;
+  queryKey: string;
+  responseKey: string;
+  requestParams: TilesParams | null;
+};
+
+const callRequestTiles = (mapRef: React.RefObject<L.Map | null>): Response => {
+
+  // Get Current Viewport Params (bounds, zoom)
+  const viewportParams = onUserRoam(mapRef);
+
+  // Get Filter States
+  const { 
+    effectiveCuisines, // Sorted array of cuisines
+    venueType, // Placeholder (string or null)
+    effectivePriceRanges, // Array of selected price ranges - empty on default
+    scoreBasis, scoreTier 
+  } = useSearchFilters();
+
+  // Assemble API Request Params
+  const requestParams = useMemo(() => {
+    if (!viewportParams) return null;
+    return {
+      ...viewportParams,
+      cuisines: effectiveCuisines,
+      venue_type: venueType ?? '',
+      cost: effectivePriceRanges,
+      score_basis: scoreBasis,
+      score_tier: scoreTier,
+    };
+  }, [
+    viewportParams, effectiveCuisines, 
+    venueType, effectivePriceRanges, 
+    scoreBasis, scoreTier
+  ]);
+
+  // Call Request
+  const { status, res, queryKey, responseKey } = useRequestTiles(requestParams);
+  
+  // Delay Loading Screen (if applicable)
+  delayLoadingScreen(status);
+  
+  return { status, res, queryKey, responseKey, requestParams };
+};
+
+export default callRequestTiles;

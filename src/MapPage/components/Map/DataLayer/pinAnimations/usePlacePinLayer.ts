@@ -24,6 +24,7 @@ const usePlacePinLayer = (
   mapRef:      React.RefObject<L.Map | null>,
   layerRef:    React.RefObject<L.LayerGroup | null>,
   density:     DensityRefs,
+  onPlaceClick?: (placeId: string) => void,
 ) => {
   const placeMarkersByIdRef  = useRef<Map<string, L.Marker>>(new Map());
   const cleanupTimerRef      = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -121,13 +122,13 @@ const usePlacePinLayer = (
       // Remove density pins immediately (burst is visual-only).
       setTimeout(() => outgoing.forEach((m) => layer.removeLayer(m)), 0);
 
-      const created = addPlaceMarkers(layer, places, startOffsets);
+      const created = addPlaceMarkers(layer, places, onPlaceClick, startOffsets);
       created.forEach(({ id, marker }) => placeMarkersByIdRef.current.set(id, marker));
     } else {
       // ── Places pan: only add new markers, persist existing ones ─────────
       const newPlaces = places.filter((p) => !placeMarkersByIdRef.current.has(p.id));
       if (!newPlaces.length) return;
-      const created = addPlaceMarkers(layer, newPlaces, undefined);
+      const created = addPlaceMarkers(layer, newPlaces, onPlaceClick, undefined);
       created.forEach(({ id, marker }) => placeMarkersByIdRef.current.set(id, marker));
     }
   };

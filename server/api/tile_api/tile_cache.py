@@ -47,3 +47,30 @@ async def _set_cached(key: str, payload: dict[str, Any]) -> None:
     async with _tiles_cache_lock:
         _tiles_cache[key] = (time.time(), payload)
 
+def _places_cache_key(
+    resolution: int,
+    cuisine_values: list[str],
+    cost_values: list[str],
+    venue_value: str,
+    score_basis: int,
+    score_tier: int,
+    sw_lat: float,
+    sw_lng: float,
+    ne_lat: float,
+    ne_lng: float,
+) -> str:
+    # Places cache key is based on exact bbox + non-tile filters only.
+    # Deliberately excludes outer/inner/snapped tiles to avoid tile-shape cache misses.
+    return "|".join([
+        "places",
+        str(resolution),
+        ",".join(sorted(cuisine_values)),
+        ",".join(sorted(cost_values)),
+        venue_value,
+        str(score_basis),
+        str(score_tier),
+        f"{sw_lat:.6f}",
+        f"{sw_lng:.6f}",
+        f"{ne_lat:.6f}",
+        f"{ne_lng:.6f}",
+    ])

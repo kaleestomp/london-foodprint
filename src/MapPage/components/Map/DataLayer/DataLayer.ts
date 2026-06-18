@@ -1,108 +1,112 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
-import useRequestTiles from '../../../request/useRequestTiles/useRequestTiles';
-import { scoreBasisFromRatingSelectionMode, useSearchFilters } from '../../../../context/SearchFiltersContext';
-import onUserRoam from './utils/onUserRoam';
-import DelayLoadingScreen from './utils/delayLoadingScreen';
-import createPersistentLayer from './utils/createPersistentLayer';
+import callRequestTiles from './inputHooks/callRequestTiles';
+import { useSearchFilters } from '../../../../context/SearchFiltersContext';
+import createPersistentLayer from './LayerStates/createPersistentLayer';
 import usePinAnimations from './pinAnimations/usePinAnimations';
-import { type SearchMask, filterDensityOutsideMask, filterPlacesOutsideMask } from './utils/filterTileOutsideMask';
+import { type SearchMask, filterDensityOutsideMask, filterPlacesOutsideMask } from './LayerStates/filterTileOutsideMask';
+import addDebugTileOverlay from './utils/addDebugTileOverlay';
+import useCheckMaskChanged from './LayerStates/checkMaskChanged';
+import useBuildFilterKey from './LayerStates/buildFilterKey';
+import { usePlacesQuery } from '../../../context/PlacesQueryContext';
+
+// DEBUG Layers that only shows in local dev
+const DEBUG_TILE_OVERLAY = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_TILE_OVERLAY === 'true';
 
 const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask | null = null): void => {
-  const viewportParams = onUserRoam(mapRef);
-  const { cuisineSelectionMode, ratingSelectionMode, effectiveCuisines, venueType, effectivePriceRanges, scoreTier } = useSearchFilters();
-  const requestParams = useMemo(() => {
-    if (!viewportParams) return null;
 
-    const scoreBasis = scoreBasisFromRatingSelectionMode(ratingSelectionMode);
+  const { 
+    cuisineSelectionMode, // Include / Exclude
+    effectiveCuisines, // Sorted array of cuisines
+    venueType, // Placeholder (string or null)
+    effectivePriceRanges, // Array of selected price ranges - empty on default
+    scoreBasis, scoreTier 
+  } = useSearchFilters();
 
-    return {
-      ...viewportParams,
-      cuisines: effectiveCuisines,
-      venue_type: venueType ?? '',
-      cost: effectivePriceRanges,
-      score_basis: scoreBasis,
-      score_tier: scoreTier,
-    };
-  }, [viewportParams, effectiveCuisines, venueType, effectivePriceRanges, ratingSelectionMode, scoreTier]);
-  const { status, res, queryKey, responseKey } = useRequestTiles(requestParams);
+  const { status, res, queryKey, responseKey, requestParams } = callRequestTiles(mapRef);
+  const { setLastTilesParams, setSelectedPlaceId } = usePlacesQuery();
+  // console.log(responseKey)
 
-  DelayLoadingScreen(status);
+  // Create a persistent LayerGroup for Markers
   const layerRef = createPersistentLayer(mapRef);
-  const { currentResRef, addPins, transitionRes, transitionToPlaces, transitionFromPlaces } = usePinAnimations(mapRef, layerRef);
+
+  // Get a animation functions
+  const { 
+    currentResRef, 
+    addPins, 
+    transitionRes, 
+    transitionToPlaces, 
+    transitionFromPlaces, 
+    clearAll 
+  } = usePinAnimations(mapRef, layerRef, {
+    onPlaceClick: (placeId) => setSelectedPlaceId(placeId),
+  });
+
   // Tracks the last rendered mode so we can detect places → tiles transitions.
-  // So place markers can clear
   const prevModeRef = useRef<'tiles' | 'places' | null>(null);
-  // Tracks mask transitions so we can force a full reconcile (remove stale in-radius pins).
-  const prevMaskRef = useRef<SearchMask | null>(null);
-  // Tracks filter transitions so we can force a full reconcile (remove stale pins/markers).
-  const prevFilterKeyRef = useRef<string>('');
+
+  // Owns refs for mask and filter change detection
+  const checkMaskChanged = useCheckMaskChanged();
+  const buildFilterKey = useBuildFilterKey();
+
+  useEffect(() => {
+    setLastTilesParams(requestParams);
+  }, [requestParams, setLastTilesParams]);
 
   useEffect(() => {
     if (!mapRef.current || status !== 'success' || !res || !layerRef.current) return;
-    // Ignore stale responses from the previous query key to avoid one-step lag.
     if (responseKey !== queryKey) return;
 
-    const maskChanged = (() => {
-      const prev = prevMaskRef.current;
-      if (!prev && !searchMask) return false;
-      if (!prev || !searchMask) return true;
-      return (
-        prev.radiusM !== searchMask.radiusM ||
-        prev.center.lat !== searchMask.center.lat ||
-        prev.center.lng !== searchMask.center.lng
-      );
-    })();
+    const maskChanged = checkMaskChanged(searchMask);
+    const { changed: filterChanged } = buildFilterKey(
+      cuisineSelectionMode, effectiveCuisines,
+      venueType, effectivePriceRanges,
+      scoreBasis, scoreTier,
+    );
+    const reconcileLayer = maskChanged || filterChanged;
 
-    const nextFilterKey = JSON.stringify({
-      cuisineSelectionMode,
-      cuisines: [...effectiveCuisines].sort((left, right) => left.localeCompare(right)),
-      venueType: venueType ?? '',
-      priceRanges: [...effectivePriceRanges],
-      ratingSelectionMode,
-      scoreTier,
-    });
-    const filterChanged = prevFilterKeyRef.current !== nextFilterKey;
-
-    prevMaskRef.current = searchMask;
-
-    // Tile places mode: also mask out places inside the bubble radius to avoid
-    // duplicate markers with BubbleAvatar's own nearby layer.
+    // Places mode — mask out pins inside the bubble radius to avoid duplicates with BubbleAvatar.
     if (res.mode === 'places') {
       prevModeRef.current = 'places';
-      transitionToPlaces(filterPlacesOutsideMask(res.data, searchMask), {
-        replaceAll: filterChanged,
-      });
-      prevFilterKeyRef.current = nextFilterKey;
+      const filteredPlaces = filterPlacesOutsideMask(res.data, searchMask);
+      transitionToPlaces(filteredPlaces, { replaceAll: reconcileLayer });
       return;
     }
 
     const filteredTiles = filterDensityOutsideMask(res.data, searchMask);
-
+    
     // Coming back from places mode — animate place markers out, then show density pins.
-    if (prevModeRef.current === 'places') {
+    if (!DEBUG_TILE_OVERLAY && prevModeRef.current === 'places') {
       transitionFromPlaces(res.resolution, filteredTiles);
+      prevModeRef.current = 'tiles';
+      return;
+    } else if (DEBUG_TILE_OVERLAY) {
+      // Reset pin-layer refs too — otherwise places mode can skip rendering stale markers.
+      clearAll();
+      addDebugTileOverlay(mapRef.current, layerRef.current, filteredTiles);
       prevModeRef.current = 'tiles';
       return;
     }
     prevModeRef.current = 'tiles';
 
-    // Force full reconcile on mask changes so already-rendered in-radius density
-    // markers are removed (not just preventing new ones).
-    if (maskChanged || filterChanged) {
+    // Force full reconcile on mask/filter change so stale in-radius markers are removed.
+    if (reconcileLayer) {
       transitionRes(res.resolution, filteredTiles);
-      prevFilterKeyRef.current = nextFilterKey;
       return;
     }
-
     if (res.resolution !== currentResRef.current) {
       transitionRes(res.resolution, filteredTiles);
     } else {
       addPins(filteredTiles, res.resolution);
     }
-    prevFilterKeyRef.current = nextFilterKey;
-  }, [res, status, searchMask, cuisineSelectionMode, effectiveCuisines, venueType, effectivePriceRanges, ratingSelectionMode, scoreTier, queryKey, responseKey]);
+
+  }, [
+    res, status, searchMask, cuisineSelectionMode, 
+    effectiveCuisines, venueType, effectivePriceRanges, 
+    scoreBasis, scoreTier, queryKey, responseKey
+  ]);
+
 };
 
 export default DataLayer;

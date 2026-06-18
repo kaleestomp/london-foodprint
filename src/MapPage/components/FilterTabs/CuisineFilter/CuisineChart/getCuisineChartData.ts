@@ -3,11 +3,10 @@ import type L from 'leaflet';
 
 import {
     CUISINE_FILTER_OPTIONS,
-    scoreBasisFromRatingSelectionMode,
     type CuisineFilterOption,
     useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
-import onUserRoam from '../../../Map/DataLayer/utils/onUserRoam';
+import onUserRoam from '../../../Map/DataLayer/inputHooks/onUserRoam';
 import useRequestCuisineHistogram from '../../../../request/useRequestCuisineHistogram/useRequestCuisineHistogram';
 
 import './CuisineChart.css';
@@ -39,12 +38,11 @@ const getCuisineChartData = ({ mapRef, isGlobal }: Props) => {
         effectivePriceRanges,
         venueType,
         scoreTier,
-        ratingSelectionMode,
+        scoreBasis,
     } = useSearchFilters();
     const viewportParams = onUserRoam(mapRef);
 
     const requestParams = useMemo(() => {
-        const scoreBasis = scoreBasisFromRatingSelectionMode(ratingSelectionMode);
         if (isGlobal) {
             return {
                 scope: 'citywide' as const,
@@ -66,7 +64,7 @@ const getCuisineChartData = ({ mapRef, isGlobal }: Props) => {
             score_basis: scoreBasis,
             score_tier: scoreTier,
         };
-    }, [viewportParams, effectivePriceRanges, venueType, ratingSelectionMode, scoreTier, isGlobal]);
+    }, [viewportParams, effectivePriceRanges, venueType, scoreBasis, scoreTier, isGlobal]);
 
     const { res } = useRequestCuisineHistogram(requestParams);
 

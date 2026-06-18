@@ -1,116 +1,15 @@
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
-from api.tile_api.tile_cache import _cache_key, _get_cached, _set_cached
+from api.tile_api.tile_cache import _cache_key, _get_cached, _set_cached, _places_cache_key
+from api.tile_api.sql import PLACES_SQL, TILES_SQL
+from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
 from api.map_common import (
-    PAGE_SIZE,
-    RANK_THRESHOLD_MAP,
-    get_rank_column,
+    PAGE_SIZE_ON_ZOOM,
+    PAGE_SIZE_ON_REQUEST,
     h3_cells_for_bbox,
-    normalize_dimension,
-    normalize_dimension_list,
 )
-
 router = APIRouter()
-
-
-def _places_cache_key(base_key: str, sw_lat: float, sw_lng: float, ne_lat: float, ne_lng: float) -> str:
-    # Places payloads are viewport-precise, so cache key must include exact bbox.
-    # 6 decimals (~11 cm) is stable enough for map panning and avoids long keys.
-    return "|".join([
-        "places",
-        base_key,
-        f"{sw_lat:.6f}",
-        f"{sw_lng:.6f}",
-        f"{ne_lat:.6f}",
-        f"{ne_lng:.6f}",
-    ])
-
-
-_PLACES_ONLY_SQL = """
-    SELECT
-        id,
-        display_name,
-        lat,
-        lon,
-        cuisine_type,
-        venue_type,
-        cost,
-        rating,
-        user_rating_count,
-        operational,
-        {rank_column} AS rank
-    FROM places
-    WHERE lat BETWEEN $1 AND $2
-      AND lon BETWEEN $3 AND $4
-      AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
-      AND ($6 = '' OR venue_type = $6)
-      AND (
-            COALESCE(array_length($7::TEXT[], 1), 0) = 0
-            OR cost = ANY($7::TEXT[])
-            OR cost IS NULL
-            OR cost = ''
-            OR LOWER(cost) = 'unspecified'
-          )
-            AND {rank_column} >= $8
-        ORDER BY {rank_column} DESC
-    LIMIT 100
-"""
-
-_PLACES_SQL = """
-    SELECT
-        id,
-        display_name,
-        lat,
-        lon,
-        cuisine_type,
-        venue_type,
-        cost,
-        rating,
-        user_rating_count,
-        operational,
-        {{rank_column}} AS rank
-    FROM places
-    WHERE lat BETWEEN $1 AND $2
-      AND lon BETWEEN $3 AND $4
-      AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
-      AND ($6 = '' OR venue_type = $6)
-      AND (
-            COALESCE(array_length($7::TEXT[], 1), 0) = 0
-            OR cost = ANY($7::TEXT[])
-            OR cost IS NULL
-            OR cost = ''
-            OR LOWER(cost) = 'unspecified'
-          )
-      AND {{rank_column}} >= $8
-    ORDER BY {{rank_column}} DESC
-    LIMIT {page_size}
-""".format(page_size=PAGE_SIZE)
-
-# h3_density stores explicit wildcard rows (dimension='') for "no filter".
-# Query contract:
-# - if a filter list is empty, select only the wildcard row for that dimension;
-# - if a filter list is non-empty, select only matching concrete rows.
-# This avoids double counting when both wildcard + concrete rows coexist.
-_TILES_SQL = """
-    SELECT tile, SUM(count)::INT AS count
-    FROM h3_density
-    WHERE resolution = $1
-      AND tile = ANY($2::TEXT[])
-      AND (
-            (CARDINALITY($3::TEXT[]) = 0 AND cuisine_type = '')
-            OR (CARDINALITY($3::TEXT[]) > 0 AND cuisine_type = ANY($3::TEXT[]))
-          )
-      AND (
-            (CARDINALITY($4::TEXT[]) = 0 AND cost = '')
-            OR (CARDINALITY($4::TEXT[]) > 0 AND (cost = ANY($4::TEXT[]) OR LOWER(cost) = 'unspecified'))
-          )
-      AND venue_type = $5
-      AND score_basis = $6
-      AND score_tier = $7
-    GROUP BY tile
-"""
-
 
 @router.get("/api/tiles")
 async def get_tiles(
@@ -127,8 +26,8 @@ async def get_tiles(
     score_tier: int = Query(default=0),
     places_only: bool = Query(default=False),
 ) -> dict[str, Any]:
-    if score_tier not in RANK_THRESHOLD_MAP:
-        raise HTTPException(status_code=422, detail="score_tier must be one of 0,1,2,3,4")
+    
+    # VALIDATE INPUTS
     if places_only and res < 10:
         raise HTTPException(status_code=422, detail="places_only requires res=10")
 
@@ -136,10 +35,10 @@ async def get_tiles(
     cost_values = normalize_dimension_list(cost)
     venue_value = normalize_dimension(venue_type)
     resolution = res
-    rank_column = get_rank_column(score_basis)
-    rank_threshold = RANK_THRESHOLD_MAP[score_tier]
-
+    tier_column = get_score_basis_column(score_basis)
     outer_tiles, inner_tiles = h3_cells_for_bbox(sw_lat, sw_lng, ne_lat, ne_lng, resolution)
+
+    # CREATE CACHE KEYS
     # Tiles cache key uses padded outer tiles so small pans can hit cache.
     tiles_cache_key = _cache_key(
         outer_tiles,
@@ -150,8 +49,19 @@ async def get_tiles(
         score_basis,
         score_tier,
     )
-    # Places payloads are bbox-precise and must never share cache keys with tiles.
-    places_cache_key = _places_cache_key(tiles_cache_key, sw_lat, sw_lng, ne_lat, ne_lng)
+    # Places payloads are bbox-precise and intentionally ignore snapped tile sets.
+    places_cache_key = _places_cache_key(
+        resolution,
+        cuisine_values,
+        cost_values,
+        venue_value,
+        score_basis,
+        score_tier,
+        sw_lat,
+        sw_lng,
+        ne_lat,
+        ne_lng,
+    )
 
     # --- places_only fast-path: skip density query entirely ---
     if places_only:
@@ -161,10 +71,10 @@ async def get_tiles(
 
         async with request.app.state.pool.acquire() as conn:
             rows = await conn.fetch(
-                _PLACES_ONLY_SQL.format(rank_column=rank_column),
+                PLACES_SQL.format(rank_column=tier_column, page_size=PAGE_SIZE_ON_REQUEST),
                 sw_lat, ne_lat, sw_lng, ne_lng,
                 cuisine_values, venue_value, cost_values,
-                rank_threshold,
+                score_tier,
             )
         payload = {
             "mode": "places",
@@ -175,20 +85,21 @@ async def get_tiles(
         return payload
     # ----------------------------------------------------------
 
-    # In non-places_only mode, prefer exact-bbox places cache first.
+    # --- default: tile query first ---
+    # Check for exact-bbox places cache first.
     cached_places = await _get_cached(places_cache_key)
     if cached_places is not None:
         return cached_places
-
+    # Check for snapped-tiles cache next.
     cached_tiles = await _get_cached(tiles_cache_key)
     if cached_tiles is not None:
         return cached_tiles
-
-    places_sql = _PLACES_SQL.format(rank_column=rank_column)
-
+    
+    # If neither cache hit, query the tiles table
     async with request.app.state.pool.acquire() as conn:
+        
         tile_rows = await conn.fetch(
-            _TILES_SQL,
+            TILES_SQL,
             resolution,
             outer_tiles,
             cuisine_values,
@@ -203,9 +114,9 @@ async def get_tiles(
         inner_set = set(inner_tiles)
         inner_count = sum(int(row["count"]) for row in tile_rows if row["tile"] in inner_set)
 
-        if inner_count <= PAGE_SIZE:
+        if inner_count <= PAGE_SIZE_ON_ZOOM:
             rows = await conn.fetch(
-                places_sql,
+                PLACES_SQL.format(rank_column=tier_column, page_size=int(PAGE_SIZE_ON_ZOOM*1.5)),
                 sw_lat,
                 ne_lat,
                 sw_lng,
@@ -213,7 +124,7 @@ async def get_tiles(
                 cuisine_values,
                 venue_value,
                 cost_values,
-                rank_threshold,
+                score_tier,
             )
             # Note: Use actual len(rows) as total, not inner_count.
             # H3 tiles don't perfectly align with lat/lon bboxes, so a place inside an
