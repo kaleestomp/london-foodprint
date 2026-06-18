@@ -13,6 +13,20 @@ from api.map_common import (
 
 router = APIRouter()
 
+
+def _places_cache_key(base_key: str, sw_lat: float, sw_lng: float, ne_lat: float, ne_lng: float) -> str:
+    # Places payloads are viewport-precise, so cache key must include exact bbox.
+    # 6 decimals (~11 cm) is stable enough for map panning and avoids long keys.
+    return "|".join([
+        "places",
+        base_key,
+        f"{sw_lat:.6f}",
+        f"{sw_lng:.6f}",
+        f"{ne_lat:.6f}",
+        f"{ne_lng:.6f}",
+    ])
+
+
 _PLACES_ONLY_SQL = """
     SELECT
         id,
@@ -126,9 +140,8 @@ async def get_tiles(
     rank_threshold = RANK_THRESHOLD_MAP[score_tier]
 
     outer_tiles, inner_tiles = h3_cells_for_bbox(sw_lat, sw_lng, ne_lat, ne_lng, resolution)
-    # Cache key is keyed on outer_tiles — small pans that don't change the
-    # padded set still get a cache hit.
-    cache_key = _cache_key(
+    # Tiles cache key uses padded outer tiles so small pans can hit cache.
+    tiles_cache_key = _cache_key(
         outer_tiles,
         resolution,
         cuisine_values,
@@ -137,15 +150,15 @@ async def get_tiles(
         score_basis,
         score_tier,
     )
-
-    cached = await _get_cached(cache_key)
-    if cached is not None:
-        return cached
-
-    places_sql = _PLACES_SQL.format(rank_column=rank_column)
+    # Places payloads are bbox-precise and must never share cache keys with tiles.
+    places_cache_key = _places_cache_key(tiles_cache_key, sw_lat, sw_lng, ne_lat, ne_lng)
 
     # --- places_only fast-path: skip density query entirely ---
     if places_only:
+        cached_places = await _get_cached(places_cache_key)
+        if cached_places is not None:
+            return cached_places
+
         async with request.app.state.pool.acquire() as conn:
             rows = await conn.fetch(
                 _PLACES_ONLY_SQL.format(rank_column=rank_column),
@@ -158,9 +171,20 @@ async def get_tiles(
             "data": [dict(row) for row in rows],
             "total": len(rows),
         }
-        await _set_cached(cache_key, payload)
+        await _set_cached(places_cache_key, payload)
         return payload
     # ----------------------------------------------------------
+
+    # In non-places_only mode, prefer exact-bbox places cache first.
+    cached_places = await _get_cached(places_cache_key)
+    if cached_places is not None:
+        return cached_places
+
+    cached_tiles = await _get_cached(tiles_cache_key)
+    if cached_tiles is not None:
+        return cached_tiles
+
+    places_sql = _PLACES_SQL.format(rank_column=rank_column)
 
     async with request.app.state.pool.acquire() as conn:
         tile_rows = await conn.fetch(
@@ -196,7 +220,7 @@ async def get_tiles(
                 "data": [dict(row) for row in rows],
                 "total": inner_count,
             }
-            await _set_cached(cache_key, payload)
+            await _set_cached(places_cache_key, payload)
             return payload
 
     payload = {
@@ -204,5 +228,5 @@ async def get_tiles(
         "resolution": resolution,
         "data": [dict(row) for row in tile_rows],
     }
-    await _set_cached(cache_key, payload)
+    await _set_cached(tiles_cache_key, payload)
     return payload

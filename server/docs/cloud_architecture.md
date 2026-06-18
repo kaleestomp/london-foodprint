@@ -227,6 +227,9 @@ Padding per resolution (in `map_common.py`):
   - no filter on a dimension → select wildcard row only (`dimension=''`)
   - active filter on a dimension → select concrete matching rows only (`dimension IN (...)`)
 - Venue now follows the same explicit rule through exact match (`venue_type = $5`) where frontend sends `''` when unfiltered.
+- Cache scope is now split by payload type:
+  - `tiles` cache key remains based on padded `outer_tiles` + filters (high hit rate on small pans)
+  - `places` cache key is independent and includes exact bbox bounds (prevents stale mode or stale viewport place lists)
 - Added code comments in `tile_api.py`, schema comments in `schema.sql`, and ETL notes in `build_h3_density.py` to make this invariant explicit and prevent regressions.
 
 **Why this architecture remains correct:**
@@ -234,7 +237,9 @@ Padding per resolution (in `map_common.py`):
 - The bug was not caused by pre-aggregation itself, but by ambiguous query semantics over mixed wildcard + concrete rows.
 - Keeping wildcard rows is acceptable as long as queries always choose one semantic set per dimension.
 
-**Cache:** 60s in-process TTL (`tile_cache.py`, env var `TILES_CACHE_TTL_SECONDS`). Cache key includes `outer_tiles` sorted + all filter dimensions.
+**Cache:** 60s in-process TTL (`tile_cache.py`, env var `TILES_CACHE_TTL_SECONDS`).
+- `tiles` responses use cache key: sorted `outer_tiles` + all filter dimensions.
+- `places` responses use a separate cache key that also includes exact viewport bbox (`sw_lat/sw_lng/ne_lat/ne_lng`).
 
 ### GET /api/nearby — Pin drop / walk bubble
 ```
