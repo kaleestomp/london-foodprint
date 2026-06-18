@@ -9,7 +9,7 @@
   --app-layout-margin: 20px;
   --app-layout-margin-top: var(--app-layout-margin);
   --app-toolbar-height: 56px;
-  --app-toolbar-button-gap: 14px;
+  --app-toolbar-button-gap: 12px;
   --app-floating-card-bg: rgba(255, 255, 255, 0.5);
   --app-floating-card-backdrop-filter: blur(14px);
   --app-faint-outline-color: rgba(0, 0, 0, 0.15);
@@ -23,7 +23,7 @@
 }
 @media (max-width: 959px) {
   :root  {
-    --app-layout-margin-top: 12px;
-    --app-toolbar-height: 52px;
+    --app-layout-margin-top: var(--app-toolbar-button-gap);
+    --app-toolbar-height: 56px;
   }
 }

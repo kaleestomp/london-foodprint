@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet.heat';
 
 import useMapResizeSync from './useMapResizeSync'; 
-import { LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM, LONDON_BOUNDS } from '../MapTemplate'; 
+import { LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM, LONDON_MAX_ZOOM, LONDON_BOUNDS } from '../MapTemplate'; 
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
@@ -31,6 +31,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
       maxBounds: LONDON_BOUNDS,
       maxBoundsViscosity: 1.0,
       minZoom: LONDON_MIN_ZOOM,
+      maxZoom: LONDON_MAX_ZOOM,
     }).setView(LONDON_CENTER, LONDON_INITIAL_ZOOM);
     mapRef.current = map;
     // 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
