@@ -73,19 +73,25 @@ _PLACES_SQL = """
     LIMIT {page_size}
 """.format(page_size=PAGE_SIZE)
 
+# h3_density stores explicit wildcard rows (dimension='') for "no filter".
+# Query contract:
+# - if a filter list is empty, select only the wildcard row for that dimension;
+# - if a filter list is non-empty, select only matching concrete rows.
+# This avoids double counting when both wildcard + concrete rows coexist.
 _TILES_SQL = """
     SELECT tile, SUM(count)::INT AS count
     FROM h3_density
     WHERE resolution = $1
       AND tile = ANY($2::TEXT[])
-      AND (COALESCE(array_length($3::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($3::TEXT[]))
       AND (
-            COALESCE(array_length($4::TEXT[], 1), 0) = 0
-            OR cost = ANY($4::TEXT[])
-            OR cost = ''
-            OR LOWER(cost) = 'unspecified'
+            (CARDINALITY($3::TEXT[]) = 0 AND cuisine_type = '')
+            OR (CARDINALITY($3::TEXT[]) > 0 AND cuisine_type = ANY($3::TEXT[]))
           )
-      AND ($5 = '' OR venue_type = $5)
+      AND (
+            (CARDINALITY($4::TEXT[]) = 0 AND cost = '')
+            OR (CARDINALITY($4::TEXT[]) > 0 AND (cost = ANY($4::TEXT[]) OR LOWER(cost) = 'unspecified'))
+          )
+      AND venue_type = $5
       AND score_basis = $6
       AND score_tier = $7
     GROUP BY tile

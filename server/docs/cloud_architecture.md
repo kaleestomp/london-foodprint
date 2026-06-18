@@ -214,6 +214,26 @@ Padding per resolution (in `map_common.py`):
 - `inner_count > 20` → `{mode: "tiles", resolution, data: [{tile, count}, ...]}` (full outer set)
 - `inner_count ≤ 20` → `{mode: "places", data: [...], total: inner_count}` (places query by lat/lon BETWEEN original bbox bounds)
 
+### June 2026 Tile Count Consistency Fix (incident + resolution)
+
+**Symptom observed:** a density pin could show a larger count than the number of place pins seen after zooming in (for example, `8` on a tile collapsing to `1` place).
+
+**Root cause:**
+- `h3_density` intentionally stores wildcard aggregate rows (`cuisine_type=''`, `cost=''`, `venue_type=''`) alongside concrete dimension rows.
+- The previous SQL predicate logic could include both wildcard and concrete rows in the same query path, causing over-summed tile counts.
+
+**Resolution implemented:**
+- `/api/tiles` now enforces a strict dimension contract in `_TILES_SQL`:
+  - no filter on a dimension → select wildcard row only (`dimension=''`)
+  - active filter on a dimension → select concrete matching rows only (`dimension IN (...)`)
+- Venue now follows the same explicit rule through exact match (`venue_type = $5`) where frontend sends `''` when unfiltered.
+- Added code comments in `tile_api.py`, schema comments in `schema.sql`, and ETL notes in `build_h3_density.py` to make this invariant explicit and prevent regressions.
+
+**Why this architecture remains correct:**
+- Pre-aggregation is still preferred for pan/zoom latency and Neon cost control.
+- The bug was not caused by pre-aggregation itself, but by ambiguous query semantics over mixed wildcard + concrete rows.
+- Keeping wildcard rows is acceptable as long as queries always choose one semantic set per dimension.
+
 **Cache:** 60s in-process TTL (`tile_cache.py`, env var `TILES_CACHE_TTL_SECONDS`). Cache key includes `outer_tiles` sorted + all filter dimensions.
 
 ### GET /api/nearby — Pin drop / walk bubble

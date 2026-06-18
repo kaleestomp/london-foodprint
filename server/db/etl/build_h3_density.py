@@ -52,6 +52,11 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
     """
     Pre-aggregate restaurant counts across all filter dimension combinations.
     Only non-zero count rows are returned.
+
+        Wildcard rows are intentional:
+            cuisine_type = '' / cost = '' / venue_type = '' means "all" on that dimension.
+        API queries must treat wildcard rows as a separate semantic scope from
+        concrete filter values to avoid double counting.
     """
     # Pre-compute parent tile IDs at coarser resolutions from the res-10 base
     for res in [7, 8, 9]:
