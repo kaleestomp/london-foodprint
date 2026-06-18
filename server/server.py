@@ -13,8 +13,8 @@ from api.places_list_api import router as places_list_router
 from api.tile_api.tile_api import router as tiles_router
 from api.ip_location.ip_location import router as ip_location_router
 from api.geocode.geocode_api import router as geocode_router
-from api.cuisine_histogram_api import router as cuisine_histogram_router
-from api.price_histogram_api import router as price_histogram_router
+from api.histogram_api.cuisine_histogram_api import router as cuisine_histogram_router
+from api.histogram_api.price_histogram_api import router as price_histogram_router
 
 load_dotenv()
 
