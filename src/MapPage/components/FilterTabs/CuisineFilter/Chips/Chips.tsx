@@ -1,47 +1,78 @@
 import { useMemo, useState } from 'react';
+import type L from 'leaflet';
 import Chip from '@mui/material/Chip';
 import {
     CUISINE_FILTER_OPTIONS,
     useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
+import getCuisineDensity from './getCuisineDensity';
 
 import './Chips.css';
 
 const COLLAPSED_COUNT = 6;
+const EXPAND_STEP = 6;
 
-const CuisineFilterChips: React.FC = () => {
+type Props = {
+    mapRef: React.RefObject<L.Map | null>;
+};
+
+const CuisineFilterChips: React.FC<Props> = ({ mapRef }) => {
     const {
         cuisines,
         cuisineSelectionMode,
         toggleCuisine,
         clearCuisines,
     } = useSearchFilters();
-    const [expanded, setExpanded] = useState(false);
+    const [visibleCount, setVisibleCount] = useState(COLLAPSED_COUNT);
+    const { res } = getCuisineDensity({ mapRef, isGlobal: false });
+    const isExcludeMode = cuisineSelectionMode === 'exclude';
+    const anyChipLabel = isExcludeMode ? 'None' : 'Any';
 
     const selectedSet = useMemo(() => new Set(cuisines), [cuisines]);
-    const visibleOptions = useMemo(() => {
-        if (expanded) return CUISINE_FILTER_OPTIONS;
-        const selectedFirst = CUISINE_FILTER_OPTIONS.filter((opt) => selectedSet.has(opt));
-        const rest = CUISINE_FILTER_OPTIONS.filter((opt) => !selectedSet.has(opt));
-        return [...selectedFirst, ...rest].slice(0, COLLAPSED_COUNT);
-    }, [expanded, selectedSet]);
+    const countsByCuisine = useMemo(() => {
+        const map = new Map<string, number>();
+        for (const entry of res?.cuisine_histogram ?? []) {
+            map.set(entry.cuisine, entry.count);
+        }
+        return map;
+    }, [res]);
+    const orderedOptions = useMemo(() => {
+        const byDensityDesc = (left: string, right: string): number => {
+            const leftCount = countsByCuisine.get(left) ?? 0;
+            const rightCount = countsByCuisine.get(right) ?? 0;
+            return rightCount - leftCount || left.localeCompare(right);
+        };
 
-    const hasHidden = !expanded && visibleOptions.length < CUISINE_FILTER_OPTIONS.length;
+        const selected = CUISINE_FILTER_OPTIONS
+            .filter((option) => selectedSet.has(option))
+            .sort(byDensityDesc);
+        const unselected = CUISINE_FILTER_OPTIONS
+            .filter((option) => !selectedSet.has(option))
+            .sort(byDensityDesc);
+
+        return [...selected, ...unselected];
+    }, [countsByCuisine, selectedSet]);
+    const visibleOptions = useMemo(() => {
+        return orderedOptions.slice(0, visibleCount);
+    }, [orderedOptions, visibleCount]);
+
+    const hasHidden = visibleOptions.length < CUISINE_FILTER_OPTIONS.length;
 
     return (<>
         <Chip
-            label="Any"
+            label={anyChipLabel}
             clickable
-            color={cuisines.length === 0 ? 'primary' : 'default'}
-            variant={cuisines.length === 0 ? 'filled' : 'outlined'}
+            color={isExcludeMode ? 'warning' : (cuisines.length === 0 ? 'primary' : 'default')}
+            variant={isExcludeMode ? 'filled' : (cuisines.length === 0 ? 'filled' : 'outlined')}
             onClick={clearCuisines}
         />
         {visibleOptions.map((option) => {
             const selected = selectedSet.has(option);
+            const density = countsByCuisine.get(option) ?? 0;
             return (
                 <Chip
                     key={option}
-                    label={option}
+                    label={`${option} | ${density}`}
                     clickable
                     color={selected ? (cuisineSelectionMode === 'exclude' ? 'warning' : 'primary') : 'default'}
                     variant={selected ? 'filled' : 'outlined'}
@@ -55,17 +86,17 @@ const CuisineFilterChips: React.FC = () => {
                 clickable
                 variant="outlined"
                 className="cuisine-filter-panel__toggle-chip"
-                onClick={() => setExpanded(true)}
-                aria-label="Expand cuisines"
+                onClick={() => setVisibleCount((prev) => Math.min(prev + EXPAND_STEP, orderedOptions.length))}
+                aria-label="Show more cuisines"
             />
         ) : null}
-        {!hasHidden && expanded ? (
+        {visibleCount > COLLAPSED_COUNT ? (
             <Chip
                 label="-"
                 clickable
                 variant="outlined"
                 className="cuisine-filter-panel__toggle-chip"
-                onClick={() => setExpanded(false)}
+                onClick={() => setVisibleCount(COLLAPSED_COUNT)}
                 aria-label="Collapse cuisines"
             />
         ) : null}

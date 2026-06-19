@@ -22,7 +22,7 @@ const PriceChart: React.FC<Props> = ({ mapRef, isGlobal }) => {
 
   const chartCategories = [PAD_CATEGORY_LEFT, ...PRICE_RANGE_FILTER_OPTIONS, PAD_CATEGORY_RIGHT];
   const chartData = getChartData({mapRef, isGlobal});
-
+  
   const chartOption = useMemo(() => ({
     animationDuration: 220,
     grid: { 

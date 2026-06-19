@@ -17,7 +17,7 @@ const CuisineFilterPanel: React.FC<Props> = ({ mapRef }) => {
       className="cuisine-filter-panel"
       headerContent={(<CuisineIncludeSwitch />)}
     >
-      <CuisineFilterChips />
+      <CuisineFilterChips mapRef={mapRef} />
     </FilterTabPanel>
   );
 };

@@ -6,6 +6,7 @@ import L from 'leaflet';
 import BubbleAvatarPin from '../BubbleAvatarPin/BubbleAvatarPin';
 import addPlaceMarkers from '../../Map/DataLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
+import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
 import { SCORE_TIER_THRESHOLD_MAP, useSearchFilters } from '../../../../context/SearchFiltersContext';
 import { type LatLng, SEARCH_RADIUS, LONGPRESS_MS, ZOOM_LEVEL, CIRCLE_COLOR, DROP_ENTRY_DELAY_MS } from '../config';
 
@@ -82,9 +83,16 @@ const useBubbleDrop = (
     }
     const layer = L.layerGroup().addTo(map);
     placesLayerRef.current = layer;
+    const previewPlaces: TilePlacePreview[] = nearbyRes.data.map((place) => ({
+      id: place.id,
+      lat: place.lat,
+      lon: place.lon,
+      tier: place.rank,
+    }));
     addPlaceMarkers(
       layer,
-      nearbyRes.data,
+      previewPlaces,
+      undefined,
       undefined,
       L.latLng(droppedPos.lat, droppedPos.lng),
       entryDelayRef.current,
