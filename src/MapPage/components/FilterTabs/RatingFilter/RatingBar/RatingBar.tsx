@@ -1,8 +1,9 @@
 // import { useId } from 'react';
 
+import IconButton from '@mui/material/IconButton';
+
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import { describeTier } from './describeTier';
-import { ratingOptions, DIAMOND } from './RatingIcons';
+import { ratingOptions, BADGE } from './RatingIcons';
 import './RatingBar.css';
 
 
@@ -15,18 +16,17 @@ const RatingBar: React.FC = () => {
         const selected = scoreTier === option.tier;
 
         return (
-          <button
+          <IconButton
             key={option.tier}
-            type="button"
-            className={`rating-filter-panel__button ${selected ? 'is-selected' : ''}`}
+            className={`rating-filter-button tier-${option.tier} ${selected ? 'rating-filter-button-active' : ''}`}
             aria-pressed={selected}
             aria-label={`Tier ${option.tier} ${option.label}`}
             onClick={() => setScoreTier(selected ? 0 : option.tier)}
           >
-            <span className={`rating-filter-panel__icon tier-${option.tier}`} aria-hidden="true">
-              <DIAMOND text={describeTier(option.tier)} filled={selected} />
+            <span className={`rating-filter-button-icon tier-${option.tier}`} aria-hidden="true">
+              <BADGE tier={option.tier} filled={selected} />
             </span>
-          </button>
+          </IconButton>
         );
       })}
     </div>

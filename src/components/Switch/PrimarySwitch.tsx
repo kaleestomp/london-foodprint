@@ -10,72 +10,94 @@ const dissatisfiedIconSvg = `url("data:image/svg+xml;utf8,<svg xmlns='http://www
 export type PrimarySwitchProps = SwitchProps & {
   uncheckedThumbSvg?: string;
   checkedThumbSvg?: string;
+  uncheckedThumbColor?: string;
+  checkedThumbColor?: string;
+  uncheckedTrackColor?: string;
+  checkedTrackColor?: string;
 };
 
 const PrimarySwitch = styled(Switch, {
-  shouldForwardProp: (prop) => prop !== 'uncheckedThumbSvg' && prop !== 'checkedThumbSvg',
-})<PrimarySwitchProps>(({ theme, uncheckedThumbSvg, checkedThumbSvg }) => ({
-  // Exclude mode (checked): blue thumb + blue track.
-  // Include mode (unchecked): orange thumb + orange track.
-  '--switch-blue-thumb': '#1565c0',
-  '--switch-blue-track': '#64b5f6',
-  '--switch-orange-thumb': '#ef6c00',
-  '--switch-orange-track': '#ffb74d',
-  width: THUMB_SIZE * 2 - 2,
-  height: THUMB_SIZE + 2,
-  padding: 7,
-  '& .MuiSwitch-switchBase': {
-    margin: 1,
-    padding: 0,
-    transform: `translateX(${THUMB_SIZE / 6}px)`,
-    '&.Mui-checked': {
-      color: '#fff',
-      transform: `translateX(${THUMB_SIZE - 10}px)`,
-      '& .MuiSwitch-thumb:before': {
-        backgroundImage: checkedThumbSvg ?? dissatisfiedIconSvg,
-      },
-      '& + .MuiSwitch-track': {
-        opacity: 1,
-        backgroundColor: 'var(--switch-orange-track)',
-        ...theme.applyStyles('dark', {
-          backgroundColor: 'var(--switch-orange-track)',
-        }),
+  shouldForwardProp: (prop) =>
+    prop !== 'uncheckedThumbSvg' &&
+    prop !== 'checkedThumbSvg' &&
+    prop !== 'uncheckedThumbColor' &&
+    prop !== 'checkedThumbColor' &&
+    prop !== 'uncheckedTrackColor' &&
+    prop !== 'checkedTrackColor',
+})<PrimarySwitchProps>(
+  ({
+    theme,
+    uncheckedThumbSvg,
+    checkedThumbSvg,
+    uncheckedThumbColor = '#1565c0',
+    checkedThumbColor = '#ef6c00',
+    uncheckedTrackColor = '#64b5f6',
+    checkedTrackColor = '#ffb74d',
+  }) => ({
+    '--switch-unchecked-thumb': uncheckedThumbColor,
+    '--switch-checked-thumb': checkedThumbColor,
+    '--switch-unchecked-track': uncheckedTrackColor,
+    '--switch-checked-track': checkedTrackColor,
+    width: THUMB_SIZE * 2 - 2,
+    height: THUMB_SIZE + 2,
+    padding: 7,
+    '& .MuiSwitch-switchBase': {
+      margin: 1,
+      padding: 0,
+      transform: `translateX(${THUMB_SIZE / 6}px)`,
+      '&.Mui-checked': {
+        color: '#fff',
+        transform: `translateX(${THUMB_SIZE - 10}px)`,
+        '& .MuiSwitch-thumb:before': {
+          backgroundImage: checkedThumbSvg ?? dissatisfiedIconSvg,
+        },
+        '& + .MuiSwitch-track': {
+          opacity: 1,
+          backgroundColor: 'var(--switch-checked-track)',
+          boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.28)',
+          ...theme.applyStyles('dark', {
+            backgroundColor: 'var(--switch-checked-track)',
+            boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.38)',
+          }),
+        },
       },
     },
-  },
-  '& .MuiSwitch-thumb': {
-    backgroundColor: 'var(--switch-blue-thumb)',
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    '&::before': {
-      content: "''",
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-      left: 0,
-      top: 0,
-      backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'center',
-      backgroundImage: uncheckedThumbSvg ?? satisfiedIconSvg,
+    '& .MuiSwitch-thumb': {
+      backgroundColor: 'var(--switch-unchecked-thumb)',
+      width: THUMB_SIZE,
+      height: THUMB_SIZE,
+      '&::before': {
+        content: "''",
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        left: 0,
+        top: 0,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        backgroundImage: uncheckedThumbSvg ?? satisfiedIconSvg,
+      },
+      ...theme.applyStyles('dark', {
+        backgroundColor: 'var(--switch-unchecked-thumb)',
+      }),
     },
-    ...theme.applyStyles('dark', {
-      backgroundColor: 'var(--switch-blue-thumb)',
-    }),
-  },
-  '& .MuiSwitch-switchBase.Mui-checked .MuiSwitch-thumb': {
-    backgroundColor: 'var(--switch-orange-thumb)',
-    ...theme.applyStyles('dark', {
-      backgroundColor: 'var(--switch-orange-thumb)',
-    }),
-  },
-  '& .MuiSwitch-track': {
-    opacity: 1,
-    backgroundColor: 'var(--switch-blue-track)',
-    borderRadius: ICON_SIZE / 2,
-    ...theme.applyStyles('dark', {
-      backgroundColor: 'var(--switch-blue-track)',
-    }),
-  },
-}));
+    '& .MuiSwitch-switchBase.Mui-checked .MuiSwitch-thumb': {
+      backgroundColor: 'var(--switch-checked-thumb)',
+      ...theme.applyStyles('dark', {
+        backgroundColor: 'var(--switch-checked-thumb)',
+      }),
+    },
+    '& .MuiSwitch-track': {
+      opacity: 1,
+      backgroundColor: 'var(--switch-unchecked-track)',
+      borderRadius: ICON_SIZE / 2,
+      boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.28)',
+      ...theme.applyStyles('dark', {
+        backgroundColor: 'var(--switch-unchecked-track)',
+        boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.38)',
+      }),
+    },
+  })
+);
 
 export default PrimarySwitch;

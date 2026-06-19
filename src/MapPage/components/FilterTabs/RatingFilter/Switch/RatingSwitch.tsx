@@ -1,6 +1,7 @@
 import Typography from '@mui/material/Typography';
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import PrimarySwitch from '../../../../../components/Switch/PrimarySwitch';
+import PrimarySwitch from '../../../../../components/Switch/PrimarySwitch.tsx';
+import { DIVERSITY_THUMB_SVG, POPULARITY_THUMB_SVG } from './Icons';
 import './Switch.css';
 
 const RatingSwitch: React.FC = () => {
@@ -13,15 +14,23 @@ const RatingSwitch: React.FC = () => {
   return (
     <div className="switch-row">
       <Typography variant="caption" className="switch-label left">
-        Pro Popularity
+        <span className="switch-label-stack">Favour</span>
+        <span className="switch-label-stack">Popularity</span>
       </Typography>
       <PrimarySwitch
         checked={scoreBasis === 2}
         onChange={handleChange}
+        uncheckedThumbSvg={POPULARITY_THUMB_SVG}
+        checkedThumbSvg={DIVERSITY_THUMB_SVG}
+        uncheckedThumbColor="#5f5f5f"
+        checkedThumbColor="#5f5f5f"
+        uncheckedTrackColor="#e3e3e3"
+        checkedTrackColor="#e3e3e3"
         slotProps={{ input: { 'aria-label': 'Toggle between popularity and independent rating basis' } }}
       />
       <Typography variant="caption" className="switch-label right">
-        Pro Diversity
+        <span className="switch-label-stack">Favour</span>
+        <span className="switch-label-stack">Diversity</span>
       </Typography>
     </div>
   );
