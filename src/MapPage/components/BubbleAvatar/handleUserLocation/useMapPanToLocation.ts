@@ -1,14 +1,16 @@
-import { useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import L from 'leaflet';
 
 import { type LatLng } from '../config';
+import { useAppUI } from '../../../../context/AppUIContext';
 
 type UseMapPanToLocationArgs = {
   mapRef: React.RefObject<L.Map | null>;
-  targetLatLng: LatLng | null;
-  token: number | null;
-  onReady: () => void;
 };
+type out = {
+  targetLatLng: LatLng | null;
+  programmaticFlightToken: number | null;
+}
 
 /**
  * Pure map navigation concern: pans the map to a target location and calls
@@ -17,12 +19,25 @@ type UseMapPanToLocationArgs = {
  */
 const useMapPanToLocation = ({
   mapRef,
-  targetLatLng,
-  token,
-  onReady,
-}: UseMapPanToLocationArgs) => {
-  const handledTokenRef = useRef<number | null>(null);
+}: UseMapPanToLocationArgs): out => {
 
+  // Handel Map Pan
+  const { liveLocation } = useAppUI();
+  // Token for flight triggered by geo location updates
+  const [programmaticFlightToken, setProgrammaticFlightToken] = useState<number | null>(null);
+  // Memoize targetLatLng to prevent unnecessary re-creation and infinite loops
+  const targetLatLng = useMemo(
+      () => liveLocation ? { lat: liveLocation.lat, lng: liveLocation.lng } : null,
+      [liveLocation?.lat, liveLocation?.lng]
+  );
+  const onReady = useCallback(() => {
+      setProgrammaticFlightToken(liveLocation?.token ?? null);
+  }, [liveLocation?.token]);
+
+  // useEffect to pan map to user location
+  // Token deduplication: only pan if the token is new and not already handled
+  const token = liveLocation?.token ?? null;
+  const handledTokenRef = useRef<number | null>(null);
   useEffect(() => {
     if (!targetLatLng || !token || handledTokenRef.current === token) {
       return;
@@ -61,6 +76,8 @@ const useMapPanToLocation = ({
       map.off('moveend', onMoveEnd);
     };
   }, [mapRef, targetLatLng, token, onReady]);
+
+  return {targetLatLng,programmaticFlightToken};
 };
 
 export default useMapPanToLocation;

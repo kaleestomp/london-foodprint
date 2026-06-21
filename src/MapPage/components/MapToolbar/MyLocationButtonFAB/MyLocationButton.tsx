@@ -35,6 +35,10 @@ const MyLocation: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
     setShowLoading(false);
   }, [state.status]);
 
+  // Handle location state changes
+  // Show error messages for errors, and handle success cases
+  // If the location is outside London, show a message. 
+  // Otherwise, call the onLiveLocationDrop callback.
   useEffect(() => {
     if (state.status === 'error') {
       setMessage(state.message);

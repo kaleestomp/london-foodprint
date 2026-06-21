@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 
 export const CUISINE_FILTER_OPTIONS = [
   
@@ -66,6 +66,10 @@ export type PriceRangeFilterOption = (typeof PRICE_RANGE_FILTER_OPTIONS)[number]
 export type PriceRangeInterval = [number, number];
 export type ScoreTierFilterOption = 0 | (typeof SCORE_TIER_FILTER_OPTIONS)[number];
 export type ScoreBasis = 0 | 1 | 2;
+export type SearchMask = {
+  center: { lat: number; lng: number };
+  radiusM: number;
+};
 
 type SearchFiltersContextType = {
   cuisines: CuisineFilterOption[];
@@ -77,6 +81,7 @@ type SearchFiltersContextType = {
   priceRangeInterval: PriceRangeInterval | null;
   effectivePriceRanges: PriceRangeFilterOption[];
   scoreTier: ScoreTierFilterOption;
+  searchMask: SearchMask | null;
   toggleCuisine: (value: CuisineFilterOption) => void;
   clearCuisines: () => void;
   setCuisineSelectionMode: (value: CuisineSelectionMode) => void;
@@ -85,6 +90,7 @@ type SearchFiltersContextType = {
   setPriceRange: (value: PriceRangeFilterOption | null) => void;
   setPriceRangeInterval: (value: PriceRangeInterval | null) => void;
   setScoreTier: (value: ScoreTierFilterOption) => void;
+  setSearchMask: Dispatch<SetStateAction<SearchMask | null>>;
   resetFilters: () => void;
 };
 
@@ -97,6 +103,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   const [venueType, setVenueType] = useState<VenueTypeFilterOption | null>(null);
   const [priceRangeInterval, setPriceRangeInterval] = useState<PriceRangeInterval | null>(null);
   const [scoreTier, setScoreTier] = useState<ScoreTierFilterOption>(3);
+  const [searchMask, setSearchMask] = useState<SearchMask | null>(null);
 
   const effectivePriceRanges = useMemo<PriceRangeFilterOption[]>(() => {
     if (!priceRangeInterval) return [];
@@ -123,6 +130,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
     priceRangeInterval,
     effectivePriceRanges,
     scoreTier,
+    searchMask,
     toggleCuisine: (value: CuisineFilterOption) => {
       setCuisines((prev) => {
         const next = prev.includes(value)
@@ -150,6 +158,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
     },
     setPriceRangeInterval,
     setScoreTier,
+    setSearchMask,
     resetFilters: () => {
       setCuisines([]);
       setCuisineSelectionMode('include');
@@ -157,8 +166,14 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
       setVenueType(null);
       setPriceRangeInterval(null);
       setScoreTier(3);
+      setSearchMask(null);
     },
-  }), [cuisineSelectionMode, cuisines, scoreBasis, venueType, priceRange, priceRangeInterval, effectivePriceRanges, scoreTier]);
+  }), [
+    cuisineSelectionMode, cuisines, 
+    scoreBasis, venueType, priceRange, 
+    priceRangeInterval, effectivePriceRanges, 
+    scoreTier, searchMask
+  ]);
 
   return (
     <SearchFiltersContext.Provider value={exposed}>

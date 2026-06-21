@@ -1,9 +1,8 @@
-import React, { useRef, useState } from 'react'; 
+import React, { useRef } from 'react'; 
 import L from 'leaflet';
 
 import Map from './components/Map/Map'; 
 import Loading from '../components/Loading/Loading';
-import { type LatLng } from './components/BubbleAvatar/config';
 import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 import IPLocationHandler from './components/Map/IPLocationHandler/IPLocationHandler';
 import { useAppUI } from '../context/AppUIContext';
@@ -17,9 +16,7 @@ const MapPage: React.FC = () => {
 
   const { isLoading } = useAppUI()!;
   const mapRef = useRef<L.Map | null>(null);
-  const [searchMask, setSearchMask] = useState<{ center: LatLng; radiusM: number } | null>(null);
-  const { liveLocation } = useAppUI();
-  
+  // console.log('liveLocation:', liveLocation);
   IPLocationHandler({ mapRef });
 
   return (
@@ -28,10 +25,10 @@ const MapPage: React.FC = () => {
         <Loading loading={isLoading} />
         <div className='map-card-viewport'>
           <div className='map-canvas-wrapper'>
-            <Map mapRef={mapRef} searchMask={searchMask} />
+            <Map mapRef={mapRef} />
             <PullDownPanel mapRef={mapRef} />
             <RestaurantInfoPanel mapRef={mapRef} />
-            <BubbleAvatar mapRef={mapRef} setSearchMask={setSearchMask} liveLocation={liveLocation} />
+            <BubbleAvatar mapRef={mapRef} />
           </div>
         </div>
       </div>
