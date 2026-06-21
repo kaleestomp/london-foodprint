@@ -1,14 +1,17 @@
 .bubble-avatar-root {
-  --bubble-avatar-home-size: 90px;  /* 64 */
-  --bubble-avatar-eye-height: 18px;
-  --bubble-avatar-eye-width: 12px;
-  --bubble-avatar-eye-gap: 18px;
+  --bubble-avatar-home-size: 80px;  /* 64 */
+  --bubble-avatar-eye-height: 17px;
+  --bubble-avatar-eye-width: 11px;
+  --bubble-avatar-eye-gap: 17px;
 
+  --bubble-avatar-home-position-right: 50%;
+  --bubble-avatar-home-position-margin-right: calc(var(--bubble-avatar-home-size) / -2);
+  --bubble-avatar-bottom-offset: 30px;
+  
   --bubble-avatar-drop-ring-size: 120px;
-  --bubble-avatar-bottom-offset: 60px;
   --bubble-avatar-edge-scale: 0.85;
 
-  --bubble-avatar-pin-scale: 0.625;
+  --bubble-avatar-pin-scale: 0.625; /* .625 */
 
   --bubble-avatar-shadow:
     0 2px 32px rgba(0, 0, 0, 0.5),
@@ -24,4 +27,11 @@
   --bubble-avatar-ring-color: #ba160c;
   --bubble-avatar-bg-color: rgb(255, 255, 255);
   --bubble-avatar-bg-blur: blur(24px);
+}
+
+@media (max-width: 959px) {
+  .bubble-avatar-root  {
+    --bubble-avatar-home-position-right: var(--bubble-avatar-bottom-offset);
+    --bubble-avatar-home-position-margin-right: 0;
+  }
 }

@@ -3,8 +3,8 @@ export type Point = { x: number; y: number };
 
 /** Screen coordinates of BubbleButton's fixed home centre */
 export const getHomeCenter = (): Point => ({
-  x: window.innerWidth / 2,
-  y: window.innerHeight - 88 - 45, // bottom: 88px + half of 90px height
+  x: window.innerWidth <= 959 ? window.innerWidth - 70 : window.innerWidth / 2,
+  y: window.innerHeight - 70,
 });
 
 /** Interaction Spec */
@@ -21,7 +21,7 @@ export const SEARCH_RADIUS = 1000;
 
 /** Animation Specs */
 export const JITTER = 0.55; // random jitter for x/y gaze offsets
-export const MAX_OFFSET = 16; // px — max pupil travel in any direction
+export const MAX_OFFSET = 15; // px — max pupil travel in any direction
 
 export const DRAG_EYE_MOVE_FREQUENCY = [500, 1000];
 export const DRAG_EYE_MOVE_MULTIPLIERS = [0.6, 1.0]; // random multiplier for each step of the gaze travel

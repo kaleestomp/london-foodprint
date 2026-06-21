@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import useEyeGaze from '../useEyeAnimations/useEyeGaze';
+import useEyeGaze from '../BubbleEyes/useEyeGaze';
 import './BubbleAvatarPin.css';
 
 /**

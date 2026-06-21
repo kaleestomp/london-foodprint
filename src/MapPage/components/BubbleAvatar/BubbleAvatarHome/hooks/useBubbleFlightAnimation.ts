@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { getHomeCenter, type Point } from '../config';
+import { getHomeCenter, type Point } from '../../config';
 
 type UseBubbleFlightAnimationArgs = {
   pickupFrom?: Point;

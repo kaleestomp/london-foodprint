@@ -4,6 +4,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import L from 'leaflet';
 
 import BubbleAvatarPin from '../BubbleAvatarPin/BubbleAvatarPin';
+import getPinSizeFromCss from './getPinSizeFromCss';
 import addPlaceMarkers from '../../Map/DataLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
 import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
@@ -11,8 +12,6 @@ import { SCORE_TIER_THRESHOLD_MAP, useSearchFilters } from '../../../../context/
 import { type LatLng, SEARCH_RADIUS, LONGPRESS_MS, ZOOM_LEVEL, CIRCLE_COLOR, DROP_ENTRY_DELAY_MS } from '../config';
 
 const CIRCLE_ENTRY_MS = 280;
-const PIN_SCALE = 0.625;
-const PIN_SIZE = 90 * PIN_SCALE; // 56.25px
 
 /**
  * Manages all Leaflet layers for the dropped bubble avatar.
@@ -149,11 +148,12 @@ const useBubbleDrop = (
     }
 
     // 3. Avatar marker — interactive: true lets Leaflet block map-pan on press
+    const pinSize = getPinSizeFromCss();
     const icon = L.divIcon({
       className: 'bubble-avatar-leaflet-icon',
       html:      '<div class="bubble-avatar-root"></div>',
-      iconSize:   [PIN_SIZE, PIN_SIZE],
-      iconAnchor: [PIN_SIZE / 2, PIN_SIZE / 2],
+      iconSize:   [pinSize, pinSize],
+      iconAnchor: [pinSize / 2, pinSize / 2],
     });
     const marker = L.marker([lat, lng], {
       icon,

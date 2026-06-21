@@ -1,14 +1,15 @@
 /* ── BubbleButton ────────────────────────────────────────────────────────────
    Fixed at the bottom-centre of the viewport, hovering above the map.
    Framer Motion owns the CSS transform (via x/y motion values), so we centre
-   the 64 px circle with left + negative margin rather than translateX(-50%).
+   the 64 px circle with right + negative margin rather than translateX(50%).
    ──────────────────────────────────────────────────────────────────────────── */
 
 .bubble-btn {
   position: fixed;
   bottom: var(--bubble-avatar-bottom-offset);
-  left: 50%;
-  margin-left: calc(var(--bubble-avatar-home-size) / -2); /* half of size → true centre without transform */
+  right: var(--bubble-avatar-home-position-right);
+  margin-right: var(--bubble-avatar-home-position-margin-right);
+  /* half of size → true centre without transform */
 
   width: var(--bubble-avatar-home-size);
   height: var(--bubble-avatar-home-size);
@@ -18,7 +19,7 @@
   box-shadow: var(--bubble-avatar-shadow);
 
   cursor: grab;
-  z-index: 1100;               /* above toolbar (z-index 1000) */
+  z-index: 900;               /* above toolbar (z-index 1000) */
   touch-action: none;          /* required for Framer Motion pointer capture */
 
   display: flex;
@@ -41,53 +42,10 @@
 .bubble-btn-drop-ring {
   position: fixed;
   pointer-events: none;
-  z-index: 1099;
+  z-index: 899;
   width: var(--bubble-avatar-drop-ring-size);
   height: var(--bubble-avatar-drop-ring-size);
   color: var(--bubble-avatar-ring-color);
   overflow: visible;
   animation: drop-ring-pulse 1.4s ease-in-out infinite;
-}
-
-/* ── Face ─────────────────────────────────────────────────────────────────── */
-
-/* Inner wrapper – bob animation runs here so it doesn't conflict with drag x/y */
-.bubble-inner {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;        /* drag events captured by outer .bubble-btn */
-}
-
-.bubble-face {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-top: -4px;            /* nudge face slightly above dead-centre */
-}
-
-.bubble-eyes {
-  display: flex;
-  gap: 13px;
-}
-
-.bubble-eye {
-  width: var(--bubble-avatar-eye-width);
-  height: var(--bubble-avatar-eye-height);
-  border-radius: calc(var(--bubble-avatar-eye-width) / 2);           /* fully rounded caps on a vertical pill */
-  background: var(--bubble-avatar-eye-color);
-  flex-shrink: 0;
-  transform-origin: center center;
-}
-
-/* Cartoon-style smiling eyes when avatar is picked up/dragging */
-.bubble-eye.is-smile {
-  width: var(--bubble-avatar-eye-width);
-  height: var(--bubble-avatar-eye-width);
-  border-bottom: 2.5px solid var(--bubble-avatar-eye-color);
-  border-radius: 20px 20px 0 0;
 }

@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { getHomeCenter, HOME_SNAP_RADIUS } from '../config';
+import { getHomeCenter, HOME_SNAP_RADIUS } from '../../config';
 
 type Point = { x: number; y: number };
 

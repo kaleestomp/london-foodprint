@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
-import DashedCircle from '../DashedCircle/DashedCircle';
+import DashedCircle from '../Searchmask/DashedCircle';
 import './BubbleHomeGhost.css';
 
 type Props = {

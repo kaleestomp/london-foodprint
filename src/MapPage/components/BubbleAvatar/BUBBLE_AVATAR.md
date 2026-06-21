@@ -1,6 +1,6 @@
 # BubbleAvatar — Design & Implementation Notes
 
-> Created: 2026-06-12 | Last updated: 2026-06-13
+> Created: 2026-06-12 | Last updated: 2026-06-21
 
 ---
 
@@ -15,31 +15,55 @@ Visually it is a frosted-glass circle containing two pill-shaped eyes that blink
 ## File Structure
 
 ```
-src/Page1/components/BubbleAvatar/
+src/MapPage/components/BubbleAvatar/
 │
-├── config.ts                          ← shared constants: LatLng, HOME_SNAP_RADIUS, getHomeCenter()
+├── BubbleAvatar.tsx                   ← root component: assembles all sub-components; wraps children in BubbleAvatarStateProvider
+├── BubbleAvatar.css                   ← CSS custom properties scope (.bubble-avatar-root): sizes, colours, shadows
+├── BubbleAvatarStateContext.tsx       ← shared state context: droppedPos, pickupPos, isDragging, isNearHome, flyInFrom + all handlers
+├── config.ts                          ← shared constants: LatLng, HOME_SNAP_RADIUS, getHomeCenter(), SEARCH_RADIUS, etc.
+├── cssCustomProperties.ts             ← generic helper: readCssCustomProperties() — reads CSS vars from a scoped probe element
 │
 ├── BubbleAvatarHome/                  ← the draggable home button (Framer Motion)
-│   ├── BubbleAvatarHome.tsx           ← component: motion.div drag shell + face + drop-ring
-│   ├── BubbleAvatarHome.css           ← fixed positioning, eye shape, drop-ring keyframes
-│   └── useHomeProximity.ts            ← hook: fires onNearHomeChange as drag enters/leaves snap zone
+│   ├── BubbleAvatarHome.tsx           ← component: motion.div drag shell; reads context; delegates all concerns to hooks
+│   ├── BubbleAvatarHome.css           ← fixed positioning, drop-ring keyframes
+│   └── hooks/                         ← all BubbleAvatarHome-specific hooks
+│       ├── useBubbleFlightAnimation.ts ← computes Framer Motion initial/animate/transition for fly-in and fly-out
+│       ├── useBubbleStyle.ts           ← returns bubbleStyle CSSProperties from a style keyword (default|pickup|raw-drag)
+│       ├── useCoarsePointer.ts         ← detects (pointer: coarse) and listens for changes
+│       ├── useHomeProximity.ts         ← fires onNearHomeChange as drag enters/leaves home snap zone
+│       ├── usePickupBootstrap.ts       ← bootstraps Framer or raw drag on pickup; resolves pointer-up fallback
+│       ├── useRawPointerDrag.ts        ← raw pointer event drag path used on coarse/touch pointers
+│       └── useResolvePickupWithoutDrag.ts ← resolves pickup drop if Framer drag never started
+│
+├── BubbleEyes/                        ← eye rendering and animation
+│   ├── BubbleEyes.tsx                 ← component: renders both eye motion.divs; accepts pre-computed eye state
+│   ├── BubbleEyes.css
+│   ├── useBubbleHomeEyes.ts           ← composer: routes between idle and drag eye state for BubbleAvatarHome
+│   ├── useEyeGaze.ts                  ← composer: calls useBlink + useIdleGaze; used by Pin and Home idle mode
+│   ├── useBlink.ts                    ← hook: owns blink cycle (random interval timer loop)
+│   ├── useIdleGaze.ts                 ← hook: idle gaze direction (cursor tracking + random scheduler)
+│   ├── useCuriousGaze.ts              ← hook: cursor-tracking variant of gaze
+│   └── useSmileGaze.ts                ← hook: randomised scanning gaze active only while dragging/pickup-pending
 │
 ├── useDragAndDrop/
 │   ├── useBubbleDrag.ts               ← hook: Framer Motion drag lifecycle (disable Leaflet, lat/lng conversion)
-│   └── useBubbleDrop.ts               ← hook: reactive Leaflet layer manager (circle, avatar pin, place markers)
+│   ├── useBubbleDrop.ts               ← hook: reactive Leaflet layer manager (circle, avatar pin, place markers)
+│   └── getPinSizeFromCss.ts           ← reads --bubble-avatar-home-size × --bubble-avatar-pin-scale from CSS
 │
-├── useEyeAnimations/
-│   ├── useEyeGaze.ts                  ← composer: calls useBlink + useGaze, used by Pin and Home idle mode
-│   ├── useBubbleHomeEyes.ts           ← composer: routes between idle (useEyeGaze) and drag (useSmileGaze) eye state
-│   ├── useBlink.ts                    ← hook: owns blink cycle (random interval timer loop)
-│   ├── useGaze.ts                     ← hook: owns idle gaze direction (cursor tracking + random scheduler)
-│   └── useSmileGaze.ts                ← hook: randomised scanning gaze active only while dragging/pickup-pending
+├── handleUserLocation/
+│   ├── useHandleUserLocation.ts       ← composer: wires map pan and bubble flight for auto-location flow
+│   ├── useMapPanToLocation.ts         ← hook: watches location trigger, pans map, emits targetLatLng + flight token
+│   └── useFlyBubbleToLocation.ts      ← hook: converts target lat/lng to screen coords, drives fly-out + drop
+│
+├── Searchmask/
+│   ├── useUpdateSearchMask.ts         ← hook: pushes droppedPos → searchMask into SearchFiltersContext
+│   └── DashedCircle.tsx               ← reusable SVG dashed ring (drop-ring overlay, pickup-pending indicator)
 │
 ├── BubbleAvatarPin/                   ← smaller avatar rendered inside a Leaflet DivIcon on the map
 │   ├── BubbleAvatarPin.tsx
 │   └── BubbleAvatarPin.css
 │
-├── BubbleHomeGhost/                   ← reset-home control with dashed ring shown while avatar is away from home
+├── BubbleHomeGhost/                   ← reset-home control shown while avatar is away from home
 │   ├── BubbleHomeGhost.tsx
 │   └── BubbleHomeGhost.css
 │
@@ -47,48 +71,34 @@ src/Page1/components/BubbleAvatar/
 │   ├── BubbleEdgeIndicator.tsx
 │   └── BubbleEdgeIndicator.css
 │
-└── BubbleCarryOverlay/                ← unused; superseded by unified Framer Motion drag (retained for reference)
+└── DashedCircle/                      ← (legacy path; canonical version now in Searchmask/)
 ```
 
-`BubbleAvatar`'s pieces are assembled in `MapCard.tsx`:
+`BubbleAvatar` is assembled inside `MapPage.tsx`, wrapped in `BubbleAvatarStateProvider`:
 
 ```tsx
-// MapCard.tsx (simplified)
-<Map mapRef={mapRef} searchMask={searchMask} />
-<MapToolbar mapRef={mapRef} />
-<BubbleAvatar mapRef={mapRef} setSearchMask={setSearchMask} />
-
-// BubbleAvatar owns droppedPos/pickupPos/ghost state internally and pushes
-// only searchMask up to MapCard via setSearchMask.
+// MapPage.tsx (simplified)
+<BubbleAvatarStateProvider>
+  <BubbleAvatar mapRef={mapRef} />
+</BubbleAvatarStateProvider>
 ```
 
 ---
 
 ## State Ownership
 
-Current ownership split:
+All BubbleAvatar state is now centralised in `BubbleAvatarStateContext` and consumed via `useBubbleAvatarState()`. `MapPage` wraps `BubbleAvatar` in `BubbleAvatarStateProvider`.
 
 | Owner | State | Purpose |
 |---|---|---|
-| `MapCard` | `searchMask: { center, radiusM } \| null` | Mask passed into DataLayer so tile density/place pins inside bubble radius are filtered out |
-| `BubbleAvatar` | `droppedPos: LatLng \| null` | Whether avatar is on map and where |
-| `BubbleAvatar` | `pickupPos: {x,y} \| null` | Screen coordinate used to remount `BubbleAvatarHome` in pickup mode |
-| `BubbleAvatar` | `flyInFrom: {x,y} \| null` | Edge screen coordinate for reset-home fly-in animation; cleared after animation completes |
-| `BubbleAvatar` | `isDraggingButton: boolean` | Shows/hides `BubbleHomeGhost` |
-| `BubbleAvatar` | `isNearHome: boolean` | Home-snap state used by reset-home ring scale and drag drop-ring suppression |
+| `BubbleAvatarStateContext` | `droppedPos: LatLng \| null` | World coordinates of current drop |
+| `BubbleAvatarStateContext` | `pickupPos: Point \| null` | Screen coordinate for pickup-mode remount |
+| `BubbleAvatarStateContext` | `isDragging: boolean` | Whether the avatar is actively being dragged |
+| `BubbleAvatarStateContext` | `isNearHome: boolean` | Home-snap proximity, drives ghost ring scale and drop-ring suppression |
+| `BubbleAvatarStateContext` | `flyInFrom: Point \| null` | Source screen position for reset fly-in animation |
+| `SearchFiltersContext` | `searchMask` | Avatar drop position pushed into global filter context via `useUpdateSearchMask` |
 
-`BubbleAvatar` publishes `searchMask` upward with a guarded effect:
-
-```tsx
-const searchMask = useMemo(
-  () => (droppedPos ? { center: droppedPos, radiusM: SEARCH_RADIUS } : null),
-  [droppedPos],
-);
-
-useEffect(() => {
-  setSearchMask(searchMask);
-}, [searchMask, setSearchMask]);
-```
+`searchMask` is no longer lifted to `MapPage` props — `useUpdateSearchMask` writes it directly into `SearchFiltersContext`, removing the prop-drilling chain that previously went through `MapCard → Map → DataLayer`.
 
 ---
 
@@ -106,15 +116,27 @@ It provides:
 
 ## Positioning
 
-`BubbleAvatarHome` is `position: fixed; bottom: 88px; left: 50%` with `margin-left: -32px` (half of the 64 px diameter). Using a negative margin instead of `translateX(-50%)` keeps Framer Motion's own transform axis clean — if `translateX` were already set in CSS, `dragSnapToOrigin` would fight it.
+`BubbleAvatarHome` is `position: fixed; bottom: var(--bubble-avatar-bottom-offset); left: 50%` centred with `margin-left: calc(var(--bubble-avatar-home-size) / -2)`. Using a negative margin instead of `translateX(-50%)` keeps Framer Motion's own transform axis clean.
 
-In **pickup mode**, CSS positioning is overridden inline:
+All sizing tokens come from CSS custom properties on `.bubble-avatar-root` in `BubbleAvatar.css`:
+
+| Token | Default | Use |
+|---|---|---|
+| `--bubble-avatar-home-size` | 80 px | Home button diameter |
+| `--bubble-avatar-pin-scale` | 0.625 | Pin size as a fraction of home size |
+| `--bubble-avatar-bottom-offset` | 56 px | Fixed bottom offset |
+| `--bubble-avatar-drop-ring-size` | 120 px | Drop-ring SVG viewport |
+
+In **pickup mode** and **raw drag mode**, the inline style is computed by `useBubbleStyle` and always uses the CSS variable for centering:
+
 ```tsx
-const pickupStyle = pickupFrom
-  ? { bottom: 'auto', left: pickupFrom.x - 32, top: pickupFrom.y - 32, marginLeft: 0 }
-  : undefined;
+left: `calc(${pos.x}px - (var(--bubble-avatar-home-size) / 2))`
+top:  `calc(${pos.y}px - (var(--bubble-avatar-home-size) / 2))`
 ```
-The 32 px offset centres the 64 px circle on the pointer.
+
+This means the centering adapts automatically if the CSS token changes (e.g. for different viewport sizes), with no JS changes needed.
+
+`getPinSizeFromCss()` (in `useDragAndDrop/`) reads `--bubble-avatar-home-size × --bubble-avatar-pin-scale` at drop time via `readCssCustomProperties()` to compute the Leaflet `iconSize`. The generic `readCssCustomProperties(propertyNames, { scopeClassName, fallbackValues })` helper lives in `cssCustomProperties.ts` and can be reused anywhere CSS vars need to be read from a class scope.
 
 ---
 
@@ -122,26 +144,62 @@ The 32 px offset centres the 64 px circle on the pointer.
 
 | Event | Behaviour |
 |---|---|
-| `onDragStart` | `isDragging = true`; `map.dragging.disable()` so Leaflet pan doesn't compete |
+| `onDragStart` | `isDragging = true` (context); `map.dragging.disable()` |
+| `handleDragStartAtPoint(x,y)` | Same as above, also sets `dragPos` — used by raw drag path |
 | `onDrag` | Updates `dragPos` (used to position the drop-ring overlay) |
-| `onDragEnd` — near home | Near-home check runs **first** (see below); calls `onCancel()` to snap back |
-| `onDragEnd` — on map | Converts `info.point` to lat/lng via `map.containerPointToLatLng()`; calls `onDrop(lat, lng)` |
-| `onDragEnd` — off map | `onCancel()` called; in home mode, Framer Motion's `dragSnapToOrigin` springs the bubble back |
+| `onDragEnd` — near home | Near-home check runs **first**; calls `onCancel()` to snap back |
+| `onDragEnd` — on map | Converts `info.point` to lat/lng; calls `onDrop(lat, lng)` |
+| `onDragEnd` — off map | `onCancel()` called; Framer Motion's `dragSnapToOrigin` springs back |
 
 **Critical ordering — near-home check before map-bounds check:**  
-The home button sits inside the map container's bounding rect. Without checking home-proximity first, releasing near home would incorrectly register as a map drop. The check order is: near-home → on-map → cancel.
+The home button sits inside the map container's bounding rect. Without checking home-proximity first, releasing near home would incorrectly register as a map drop.
 
 **Key Framer Motion props:**
 ```tsx
 drag
 dragControls={dragControls}
-dragSnapToOrigin={!pickupFrom}      // only snap home when not in pickup mode
-dragElastic={0.12}                   // rubber-band resistance
-dragMomentum={false}                 // no coasting after release
+dragSnapToOrigin={!pickupPos}
+dragElastic={isCoarsePointer ? 0.02 : 0.12}
+dragMomentum={false}
 dragTransition={{ bounceStiffness: 320, bounceDamping: 28 }}
-whileTap={{ scale: 0.88 }}
-whileDrag={{ scale: 1.18, boxShadow: '...' }}
+whileTap={{ scale: isCoarsePointer ? 0.96 : 0.88 }}
+whileDrag={whileDragVisual}   // coarse: subtle lift; fine: larger scale + deep shadow
 ```
+
+## Coarse Pointer / Raw Drag Path
+
+On touch/coarse-pointer devices, Framer Motion drag events are unreliable. `useCoarsePointer` detects `(pointer: coarse)` and listens for changes. When `rawDragEnabled` is true:
+
+- `drag={false}` — Framer drag is disabled on the `motion.div`.
+- `onPointerDown` starts `useRawPointerDrag`, which tracks `pointermove`/`pointerup`/`pointercancel` on `window` using `pointerId` for correct multi-touch isolation.
+- `handleDragStartAtPoint(x, y)` is called instead of `handleDragStart` so `isDragging` and `dragPos` are set correctly from the first point.
+- `bubbleStyle` uses the `'raw-drag'` keyword so the element is positioned absolutely under the pointer during drag.
+- Visual feedback (scale, shadow) uses the coarse variant in `whileDragVisual`.
+
+## Pickup Bootstrap (`usePickupBootstrap.ts`)
+
+When `pickupPos` is set (map avatar long-pressed), `BubbleAvatarHome` remounts at that screen coordinate. `usePickupBootstrap` then:
+
+1. **Framer path**: fires `dragControls.start(new PointerEvent(...))` in a `requestAnimationFrame` to resume the already-held gesture.
+2. **Raw path**: calls `startRawDrag(pickupPos.x, pickupPos.y)` immediately.
+3. **Fallback**: if neither drag path started before `pointerup`, calls `resolvePickupWithoutDrag` so the avatar is never left hovering.
+4. **Guard reset**: `firedPickupRef` is reset to `false` whenever `pickupPos` clears, so subsequent pickups bootstrap correctly.
+
+## Bubble Style (`useBubbleStyle.ts`)
+
+The caller chooses a style keyword outside the hook:
+
+```tsx
+const styleKeyword = rawDragEnabled && isDragging && dragPos
+  ? 'raw-drag' : pickupPos ? 'pickup' : 'default';
+const bubbleStyle = useBubbleStyle({ styleKeyword, pickupPos, dragPos });
+```
+
+| Keyword | Result |
+|---|---|
+| `'default'` | `undefined` — CSS handles fixed positioning |
+| `'pickup'` | `position: fixed` at `pickupPos`, CSS-variable centering |
+| `'raw-drag'` | `position: fixed` at `dragPos`, CSS-variable centering |
 
 ---
 
@@ -221,42 +279,20 @@ When `BubbleAvatarHome` is remounted with a `flyInFrom` prop, the `motion.div` s
 
 ## Eye Animation Architecture
 
-All eye state flows from `useEyeGaze` (composer), called in both `BubbleAvatarHome` and `BubbleAvatarPin`:
+Eye rendering is now split between `BubbleEyes/` (component + hooks) and `BubbleAvatarHome` (which imports it as a sub-component):
 
 ```
-useEyeGaze(bubbleRef)
-  ├── useBlink()          → { isBlinking }
-  └── useGaze(bubbleRef)  → { gaze: { x, y } }
+BubbleEyes/
+  BubbleEyes.tsx           ← motion.div pair; accepts pre-computed eye state props
+  useBubbleHomeEyes.ts     ← composer: routes idle vs drag eye state
+  useEyeGaze.ts            ← composer: calls useBlink + useIdleGaze
+  useBlink.ts              ← owns blink cycle (random interval loop)
+  useIdleGaze.ts           ← cursor tracking + random gaze scheduler
+  useCuriousGaze.ts        ← cursor-tracking-only gaze variant
+  useSmileGaze.ts          ← random scanning gaze for drag/pickup-pending state
 ```
 
-### `useBlink.ts`
-- Owns `isBlinking: boolean`
-- Nested `setTimeout` loops: outer schedules next blink (1.8–3.8 s random), inner reopens eyes after 140 ms
-- Completely independent — no inputs, no shared state
-
-### `useGaze.ts`
-- Owns `gaze: { x, y }` (pixel offsets, max ±4 px)
-- Two tightly-coupled concerns kept in one hook because they share `mouseRef` (separating would pass a ref across hook boundaries for no gain):
-  1. **Passive cursor tracking** — `window.addEventListener('mousemove', { passive: true })` stores position in a `ref` (zero re-renders)
-  2. **Random gaze scheduler** — fires every 1.4–4.2 s; rolls:
-     - 40% → look at cursor
-     - 18% → glance left
-     - 18% → glance right
-     - 12% → glance down
-     - 12% → centre
-- Cursor-to-gaze: unit vector from bubble rect centre to mouse, scaled by `min(1, dist / 120)` so movement is subtler up close
-
-### Eye state → `scaleY` on `motion.div`
-
-| Condition | scaleY |
-|---|---|
-| Dragging (home button) | 1.4 — wide-eyed |
-| Blinking | 0.08 — squished closed |
-| Normal | 1.0 |
-
-Right eye has a 40 ms `delay` on blink close only, producing a natural sequential blink.
-
-In `BubbleAvatarPin`, the wide-eyed state is not applied (avatar is stationary on the map). Gaze travel is multiplied by 0.6 to match the smaller pin size.
+`BubbleAvatarHome` renders `<BubbleEyes />` as a self-contained sub-component, keeping eye concerns out of the drag shell entirely.
 
 ---
 
@@ -291,15 +327,68 @@ The `key={pickupPos ? 'pickup' : 'home'}` prop on `BubbleAvatarHome` forces Reac
 
 ## Known Issues / Future Work
 
-- `BubbleCarryOverlay/` — dead code folder, superseded by unified Framer Motion drag. Safe to delete from the filesystem.
-- `useBubbleDrop` disables `map.dragging` on avatar `pointerdown` to win gesture arbitration against Leaflet pan-detection. This is intentional; pan is restored in release handlers, long-press handoff, and cleanup as defense in depth.
-- `config.ts` — `BubbleAvatar.ts` barrel file exists but is currently empty; imports come directly from sub-paths.
+- `useBubbleDrop` disables `map.dragging` on avatar `pointerdown` to win gesture arbitration against Leaflet pan-detection. Pan is restored in release handlers, long-press handoff, and cleanup as defense in depth.
+- `readCssCustomProperties` is called once per drop event, not continuously — no performance concern in practice. If CSS vars could change dynamically (e.g. theme switches), a cached/reactive version should be considered.
+- `DashedCircle` exists in two locations (`Searchmask/` and legacy `DashedCircle/`). The canonical version is in `Searchmask/`; the legacy folder can be removed once all imports are updated.
+
+---
+
+## Session Log (2026-06-21) — Architecture Refactor
+
+### Shared state extracted to context
+
+`BubbleAvatarStateContext` was introduced to centralise all shared bubble state (`droppedPos`, `pickupPos`, `isDragging`, `isNearHome`, `flyInFrom`) and handlers. `BubbleAvatarStateProvider` wraps `BubbleAvatar` in `MapPage`. All previously prop-drilled state is now consumed via `useBubbleAvatarState()`.
+
+### searchMask moved to SearchFiltersContext
+
+`searchMask` is no longer lifted to `MapPage`. `useUpdateSearchMask` writes it directly into `SearchFiltersContext`, eliminating the `MapCard → BubbleAvatar` prop pair.
+
+### BubbleAvatarHome concerns extracted to hooks/
+
+All inline logic in `BubbleAvatarHome.tsx` was incrementally extracted into focused hooks under `BubbleAvatarHome/hooks/`:
+
+| Hook | Concern |
+|---|---|
+| `useBubbleFlightAnimation` | Framer Motion initial/animate/transition for fly-in and fly-out |
+| `useBubbleStyle` | CSS positioning style based on style keyword input |
+| `useCoarsePointer` | `(pointer: coarse)` media query state + listener |
+| `useHomeProximity` | Near-home distance check, fires callback on transitions only |
+| `usePickupBootstrap` | Framer/raw drag start on pickup; pointer-up fallback; guard reset |
+| `useRawPointerDrag` | Raw pointer event drag lifecycle for touch devices |
+| `useResolvePickupWithoutDrag` | Resolves drop if Framer drag never fired before release |
+
+### Mobile pickup regression identified and fixed
+
+After extracting `useRawPointerDrag`, `startRawDrag` was calling `handleDragMoveToPoint` instead of `handleDragStartAtPoint`. This meant `isDragging` was never set to `true` on mobile, breaking the entire coarse-pointer drag path. Fixed by adding `handleDragStartAtPoint` to the hook signature and calling it from `startRawDrag`.
+
+Also fixed: `firedPickupRef` in `usePickupBootstrap` was never reset between pickup cycles, silently breaking any second pickup. A `useEffect` on `pickupPos` now resets the guard when pickup mode clears.
+
+### Bubble centering uses CSS variables
+
+The hardcoded `32px` centering offset in `pickupStyle` and `rawDragStyle` was replaced with:
+```
+calc(Xpx - (var(--bubble-avatar-home-size) / 2))
+```
+This makes positioning correct across viewport sizes if the CSS token changes.
+
+### Eye rendering extracted to BubbleEyes/
+
+Eye `motion.div` rendering was moved out of `BubbleAvatarHome` into a dedicated `BubbleEyes` component. Eye animation hooks were reorganised under `BubbleEyes/`. `BubbleAvatarHome` now renders `<BubbleEyes />` as a sub-component.
+
+### Pin size reads from CSS
+
+`useBubbleDrop` previously had a hardcoded `PIN_SCALE = 0.625`. This is now computed at drop time by `getPinSizeFromCss()`, which reads `--bubble-avatar-home-size` and `--bubble-avatar-pin-scale` from a probe element. The underlying probe logic was extracted into a generic reusable helper `readCssCustomProperties()` in `cssCustomProperties.ts`.
+
+### Fly-out / auto-location wiring
+
+`handleUserLocation/` was introduced to decouple the user-location flow from `BubbleAvatar.tsx`:
+- `useMapPanToLocation` watches a location trigger, pans the map, and emits a `programmaticFlightToken` to prevent repeated flights.
+- `useFlyBubbleToLocation` converts the target lat/lng to screen coordinates and drives the bubble fly-out animation + auto-drop.
+- `useHandleUserLocation` composes both and returns only what `BubbleAvatar.tsx` needs.
 
 ---
 
 ## Session Log (2026-06-13)
-
-Detailed record of what happened in this debugging/finalization session.
 
 ### 1. Documentation + API location audit
 
@@ -429,21 +518,25 @@ Visual behavior refinements:
 
 | Parameter | Location | Current value | Effect of increasing |
 |---|---|---|---|
-| Blink interval | `useEyeAnimations/useBlink.ts` | 1.8–3.8 s | Less frequent blinks |
-| Blink closed duration | `useEyeAnimations/useBlink.ts` | 140 ms | Slower blink |
-| Gaze interval | `useEyeAnimations/useGaze.ts` | 1.4–4.2 s | Less frequent glances |
-| Gaze max travel | `useEyeAnimations/useGaze.ts` `MAX_OFFSET` | 4 px | Wider eye movement |
-| Gaze full-travel distance | `useEyeAnimations/useGaze.ts` | 120 px | Later reaching full travel |
-| Drag snap stiffness | `BubbleAvatarHome/BubbleAvatarHome.tsx` | 320 | Faster spring-back |
-| Drag snap damping | `BubbleAvatarHome/BubbleAvatarHome.tsx` | 28 | Less bounce on snap |
-| Drag elastic | `BubbleAvatarHome/BubbleAvatarHome.tsx` | 0.12 | More rubber-band feel |
+| Blink interval | `BubbleEyes/useBlink.ts` | 1.8–3.8 s | Less frequent blinks |
+| Blink closed duration | `BubbleEyes/useBlink.ts` | 140 ms | Slower blink |
+| Gaze interval | `BubbleEyes/useIdleGaze.ts` | 1.4–4.2 s | Less frequent glances |
+| Gaze max travel | `BubbleEyes/useIdleGaze.ts` `MAX_OFFSET` | 4 px | Wider eye movement |
+| Gaze full-travel distance | `BubbleEyes/useIdleGaze.ts` | 120 px | Later reaching full travel |
+| Drag snap stiffness | `BubbleAvatarHome/hooks/useBubbleFlightAnimation.ts` | 320 | Faster spring-back |
+| Drag snap damping | `BubbleAvatarHome/hooks/useBubbleFlightAnimation.ts` | 28 | Less bounce on snap |
+| Drag elastic (fine) | `BubbleAvatarHome/BubbleAvatarHome.tsx` | 0.12 | More rubber-band feel |
+| Drag elastic (coarse) | `BubbleAvatarHome/BubbleAvatarHome.tsx` | 0.02 | More rubber-band feel on touch |
+| Home button size | `BubbleAvatar.css` `--bubble-avatar-home-size` | 80 px | Larger avatar; auto-updates centering and pin size |
+| Pin size scale | `BubbleAvatar.css` `--bubble-avatar-pin-scale` | 0.625 | Larger map pin; auto-updates Leaflet iconSize |
 | Search radius | `config.ts` `SEARCH_RADIUS` | 500 m | Larger masked/search area |
-| Avatar press delay | `config.ts` `LONG_PRESS_MS` | 150 ms | Harder to trigger pickup |
+| Avatar press delay | `config.ts` `LONGPRESS_MS` | 150 ms | Harder to trigger pickup |
+| Drop entry delay | `config.ts` `DROP_ENTRY_DELAY_MS` | 200 ms | Longer wait before circle appears after zoom |
 
 ---
 
 ## Next Steps (optional)
 
-- Delete `BubbleCarryOverlay/` from filesystem to finish dead-code cleanup.
-- If needed, move `SearchMask` type to `BubbleAvatar/config.ts` so `MapCard`, `Map`, and `DataLayer` import one shared type.
-- Consider replacing the `setTimeout(..., 0)` teardown with a small root-manager utility if future React strict/concurrent behavior changes.
+- Consolidate `DashedCircle` — remove the legacy `DashedCircle/` folder once all imports point to `Searchmask/DashedCircle.tsx`.
+- If CSS vars are ever made responsive (e.g. different size at a breakpoint), `getPinSizeFromCss` will automatically pick up the correct computed value since it reads at drop time, not at module load.
+- Consider replacing the `setTimeout(..., 0)` teardown in `useBubbleDrop` with a small root-manager utility if future React strict/concurrent behavior changes.

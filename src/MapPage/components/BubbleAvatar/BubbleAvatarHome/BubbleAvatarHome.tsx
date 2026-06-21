@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
-import L from 'leaflet';
 import useBubbleDrag from '../useDragAndDrop/useBubbleDrag';
-import useHomeProximity from './useHomeProximity';
-import useBubbleHomeEyes from '../useEyeAnimations/useBubbleHomeEyes';
-import useBubbleFlightAnimation from './useBubbleFlightAnimation';
+import useHomeProximity from './hooks/useHomeProximity';
+import useBubbleFlightAnimation from './hooks/useBubbleFlightAnimation';
+import useResolvePickupWithoutDrag from './hooks/useResolvePickupWithoutDrag';
+import usePickupBootstrap from './hooks/usePickupBootstrap';
+import useCoarsePointer from './hooks/useCoarsePointer';
+import useRawPointerDrag from './hooks/useRawPointerDrag';
+import useBubbleStyle from './hooks/useBubbleStyle';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
-import { getHomeCenter, HOME_SNAP_RADIUS } from '../config';
-import DashedCircle from '../DashedCircle/DashedCircle';
+import DashedCircle from '../Searchmask/DashedCircle';
+import BubbleEyes from '../BubbleEyes/BubbleEyes';
 import './BubbleAvatarHome.css';
 
 type Props = {
@@ -23,7 +26,9 @@ type Props = {
 };
 
 const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
+  // Get Fly Animation State from Prop
   const { flyInFrom, flyOutTo, onFlyOutComplete } = flight ?? {};
+  // Get Bubble State from Context
   const {
     pickupPos,
     isDragging,
@@ -32,17 +37,29 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
     handleDrop,
     handleDropCancel,
   } = useBubbleAvatarState();
-  const bubbleRef = useRef<HTMLDivElement>(null);
-  const dragControls = useDragControls();
-  const firedPickupRef = useRef(false);
-  const rawDragPointerIdRef = useRef<number | null>(null);
-  const rawDragActiveRef = useRef(false);
 
+  // Resolves pickup mode when pointer is released before drag starts. Prevents a "hovering" avatar
+  const resolvePickupWithoutDrag = useResolvePickupWithoutDrag(mapRef, handleDrop, handleDropCancel);
+
+  // Get Flight Animation Controls
+  const {
+    initial,
+    animate,
+    transition,
+    dragEnabled,
+    handleAnimationComplete,
+  } = useBubbleFlightAnimation({
+    pickupFrom: pickupPos ?? undefined,
+    flyInFrom,
+    flyOutTo,
+    onFlyOutComplete,
+  });
+
+  // Get Drag Controls
   const dragDropCallback = useCallback(
     (lat: number, lng: number) => handleDrop(lat, lng),
     [handleDrop],
   );
-
   const {
     dragPos,
     hasDragStarted,
@@ -58,176 +75,39 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
   // Detect when drag enters/leaves the home snap zone and UPDATE CONTEXT.
   useHomeProximity(isDragging, dragPos, setIsNearHome);
 
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  const dragControls = useDragControls();
   const isPickupPending = !!pickupPos && !isDragging;
-  const isVisuallyDragging = isDragging || isPickupPending;
 
-  // Resolves pickup mode when pointer is released before Framer drag starts.
-  // This prevents a "hovering" avatar when pickup succeeds but drag events don't fire.
-  const resolvePickupWithoutDrag = useCallback((x: number, y: number) => {
-    const map = mapRef.current;
-    if (!map) {
-      handleDropCancel();
-      return;
-    }
 
-    const home = getHomeCenter();
-    const distToHome = Math.sqrt((x - home.x) ** 2 + (y - home.y) ** 2);
-
-    // Near home: cancel pickup and return to home button.
-    if (distToHome < HOME_SNAP_RADIUS) {
-      handleDropCancel();
-      return;
-    }
-
-    const mapRect = map.getContainer().getBoundingClientRect();
-    const droppedOnMap =
-      x >= mapRect.left && x <= mapRect.right &&
-      y >= mapRect.top && y <= mapRect.bottom;
-
-    if (droppedOnMap) {
-      const leafletPoint = L.point(x - mapRect.left, y - mapRect.top);
-      const latLng = map.containerPointToLatLng(leafletPoint);
-      handleDrop(latLng.lat, latLng.lng);
-    } else {
-      handleDropCancel();
-    }
-  }, [mapRef, handleDrop, handleDropCancel]);
-
-  const {
-    initial,
-    animate,
-    transition,
-    dragEnabled,
-    handleAnimationComplete,
-  } = useBubbleFlightAnimation({
-    pickupFrom: pickupPos ?? undefined,
-    flyInFrom,
-    flyOutTo,
-    onFlyOutComplete,
-  });
-
-  const { isSmileEye, eyeScaleY, eyeX, eyeY, isBlinking } = useBubbleHomeEyes({
-    bubbleRef,
+  // Detect input capability so drag UX can adapt for touch/coarse pointers.
+  const isCoarsePointer = useCoarsePointer();
+  const rawDragEnabled = isCoarsePointer && dragEnabled;
+  // Provide a raw pointer drag path used on coarse pointers instead of Framer drag events.
+  const { startRawDrag } = useRawPointerDrag(
+    rawDragEnabled,
     isDragging,
-    isVisuallyDragging,
-  });
-
-  const [isCoarsePointer, setIsCoarsePointer] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches,
+    handleDragStartAtPoint,
+    handleDragMoveToPoint,
+    handleDragEndAtPoint,
   );
 
-  useEffect(() => {
-    const media = window.matchMedia('(pointer: coarse)');
-    const update = () => setIsCoarsePointer(media.matches);
-    update();
-    media.addEventListener('change', update);
-    return () => media.removeEventListener('change', update);
-  }, []);
+  // Bootstrap pickup-mode drag and resolve pointer-up fallback if drag never starts.
+  usePickupBootstrap(
+    pickupPos,
+    rawDragEnabled,
+    dragControls,
+    resetDragStarted,
+    startRawDrag,
+    hasDragStarted,
+    resolvePickupWithoutDrag,
+  );
 
-  const rawDragEnabled = isCoarsePointer && dragEnabled;
-
-  const endRawDrag = useCallback((x: number, y: number) => {
-    rawDragActiveRef.current = false;
-    rawDragPointerIdRef.current = null;
-    handleDragEndAtPoint(x, y);
-  }, [handleDragEndAtPoint]);
-
-  const startRawDrag = useCallback((x: number, y: number, pointerId?: number) => {
-    rawDragActiveRef.current = true;
-    rawDragPointerIdRef.current = pointerId ?? null;
-    handleDragStartAtPoint(x, y);
-  }, [handleDragStartAtPoint]);
-
-  useEffect(() => {
-    if (!rawDragEnabled || !isDragging || !rawDragActiveRef.current) {
-      return;
-    }
-
-    const onPointerMove = (event: PointerEvent) => {
-      const activePointerId = rawDragPointerIdRef.current;
-      if (activePointerId != null && event.pointerId !== activePointerId) {
-        return;
-      }
-
-      if (activePointerId == null) {
-        rawDragPointerIdRef.current = event.pointerId;
-      }
-
-      handleDragMoveToPoint(event.clientX, event.clientY);
-    };
-
-    const onPointerEnd = (event: PointerEvent) => {
-      const activePointerId = rawDragPointerIdRef.current;
-      if (activePointerId != null && event.pointerId !== activePointerId) {
-        return;
-      }
-
-      endRawDrag(event.clientX, event.clientY);
-    };
-
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerEnd);
-    window.addEventListener('pointercancel', onPointerEnd);
-
-    return () => {
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerup', onPointerEnd);
-      window.removeEventListener('pointercancel', onPointerEnd);
-    };
-  }, [endRawDrag, handleDragMoveToPoint, isDragging, rawDragEnabled]);
-
-  // When mounted at a pickup position, programmatically start the Framer Motion
-  // drag using the real pointer coordinates. The user's pointer is still held
-  // down at pickupPos, so dragControls.start() picks up the live gesture.
-  useEffect(() => {
-    if (rawDragEnabled) return;
-    if (!pickupPos || firedPickupRef.current) return;
-    firedPickupRef.current = true;
-    resetDragStarted();
-    requestAnimationFrame(() => {
-      dragControls.start(
-        new PointerEvent('pointerdown', {
-          bubbles: true,
-          cancelable: true,
-          clientX: pickupPos.x,
-          clientY: pickupPos.y,
-          pointerId: 1,
-          isPrimary: true,
-        }),
-      );
-    });
-  }, [pickupPos, dragControls, rawDragEnabled, resetDragStarted]);
-
-  useEffect(() => {
-    if (!rawDragEnabled || !pickupPos || firedPickupRef.current) return;
-    firedPickupRef.current = true;
-    startRawDrag(pickupPos.x, pickupPos.y);
-  }, [pickupPos, rawDragEnabled, startRawDrag]);
-
-  // If pickup mode was entered but Framer drag never started (e.g. pointer timing
-  // edge case), resolve on pointerup so avatar never stays hovering.
-  useEffect(() => {
-    if (rawDragEnabled) return;
-    if (!pickupPos) return;
-
-    const onPointerUp = (e: PointerEvent) => {
-      if (hasDragStarted()) return;
-      resolvePickupWithoutDrag(e.clientX, e.clientY);
-    };
-
-    window.addEventListener('pointerup', onPointerUp, { once: true });
-    return () => window.removeEventListener('pointerup', onPointerUp);
-  }, [pickupPos, rawDragEnabled, resolvePickupWithoutDrag, hasDragStarted]);
-
-  // Override CSS positioning when mounted at a pickup location.
-  // The 32 px offset centres the 64 px circle on the pointer.
-  const pickupStyle = pickupPos
-    ? { bottom: 'auto' as const, left: pickupPos.x - 32, top: pickupPos.y - 32, marginLeft: 0 }
-    : undefined;
-  const rawDragStyle = rawDragEnabled && isDragging && dragPos
-    ? { bottom: 'auto' as const, left: dragPos.x - 32, top: dragPos.y - 32, marginLeft: 0 }
-    : undefined;
-  const bubbleStyle = rawDragStyle ?? pickupStyle;
+  // Compute the bubble style based on drag/pickup state
+  const style = rawDragEnabled && isDragging && dragPos
+    ? 'raw-drag' : pickupPos
+    ? 'pickup' : undefined;
+  const bubbleStyle = useBubbleStyle({ style, pickupPos, dragPos});
 
   const whileDragVisual = useMemo(
     () => (isCoarsePointer
@@ -266,35 +146,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
         role="button"
         aria-label="Drag to explore an area"
       >
-        <div className="bubble-inner">
-          <div className="bubble-face">
-            <div className="bubble-eyes">
-
-              {/* Left eye */}
-              <motion.div
-                className={`bubble-eye${isSmileEye ? ' is-smile' : ''}`}
-                animate={{ x: eyeX, y: eyeY, scaleY: eyeScaleY }}
-                transition={{
-                  x: { type: 'spring', stiffness: 200, damping: 20 },
-                  y: { type: 'spring', stiffness: 200, damping: 20 },
-                  scaleY: { duration: 0.13 },
-                }}
-              />
-
-              {/* Right eye — 40 ms stagger on blink close only */}
-              <motion.div
-                className={`bubble-eye${isSmileEye ? ' is-smile' : ''}`}
-                animate={{ x: eyeX, y: eyeY, scaleY: eyeScaleY }}
-                transition={{
-                  x: { type: 'spring', stiffness: 200, damping: 20 },
-                  y: { type: 'spring', stiffness: 200, damping: 20 },
-                  scaleY: { duration: 0.13, delay: isBlinking ? 0.04 : 0 },
-                }}
-              />
-
-            </div>
-          </div>
-        </div>
+        <BubbleEyes bubbleRef={bubbleRef} pickupPos={pickupPos} isDragging={isDragging} />
       </motion.div>
 
       {/* ── Drop-ring overlay (follows pointer while dragging) ───────────── */}

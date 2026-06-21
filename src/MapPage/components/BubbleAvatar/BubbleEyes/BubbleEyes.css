@@ -1,0 +1,42 @@
+/* ── Face ─────────────────────────────────────────────────────────────────── */
+
+/* Inner wrapper – bob animation runs here so it doesn't conflict with drag x/y */
+.bubble-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;        /* drag events captured by outer .bubble-btn */
+}
+
+.bubble-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: -4px;            /* nudge face slightly above dead-centre */
+}
+
+.bubble-eyes {
+  display: flex;
+  gap: 13px;
+}
+
+.bubble-eye {
+  width: var(--bubble-avatar-eye-width);
+  height: var(--bubble-avatar-eye-height);
+  border-radius: calc(var(--bubble-avatar-eye-width) / 2);           /* fully rounded caps on a vertical pill */
+  background: var(--bubble-avatar-eye-color);
+  flex-shrink: 0;
+  transform-origin: center center;
+}
+
+/* Cartoon-style smiling eyes when avatar is picked up/dragging */
+.bubble-eye.is-smile {
+  width: var(--bubble-avatar-eye-width);
+  height: var(--bubble-avatar-eye-width);
+  border-bottom: 2.5px solid var(--bubble-avatar-eye-color);
+  border-radius: 20px 20px 0 0;
+}

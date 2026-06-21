@@ -1,9 +1,6 @@
 import { useEffect, useMemo } from 'react'; 
-
-import { type LatLng, SEARCH_RADIUS } from './config';
-import { useSearchFilters } from '../../../context/SearchFiltersContext';
-
-import './BubbleAvatar.css';
+import { type LatLng, SEARCH_RADIUS } from '../config';
+import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 
 const useUpdateSearchMask = (droppedPos: LatLng | null) => { 
 
