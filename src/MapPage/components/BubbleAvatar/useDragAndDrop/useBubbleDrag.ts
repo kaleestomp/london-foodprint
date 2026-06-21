@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { type PanInfo } from 'framer-motion';
 import L from 'leaflet';
 import { getHomeCenter, HOME_SNAP_RADIUS } from '../config';
+import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 
 /**
  * Handles the drag lifecycle for BubbleButton:
@@ -18,16 +19,25 @@ const useBubbleDrag = (
   onDrop: (lat: number, lng: number) => void,
   onCancel?: () => void,
 ) => {
-  const [isDragging, setIsDragging] = useState(false);
+  const { isDragging, setIsDragging } = useBubbleAvatarState();
+  const hasDragStartedRef = useRef(false);
   // Tracks the last pointer position during drag for the drop-ring overlay
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
 
+  const resetDragStarted = useCallback(() => {
+    hasDragStartedRef.current = false;
+  }, []);
+
+  const hasDragStarted = useCallback(() => hasDragStartedRef.current, []);
+
   const handleDragStart = useCallback(() => {
+    hasDragStartedRef.current = true;
     setIsDragging(true);
     mapRef.current?.dragging.disable();
   }, [mapRef]);
 
   const handleDragStartAtPoint = useCallback((x: number, y: number) => {
+    hasDragStartedRef.current = true;
     setIsDragging(true);
     setDragPos({ x, y });
     mapRef.current?.dragging.disable();
@@ -89,6 +99,8 @@ const useBubbleDrag = (
   return {
     isDragging,
     dragPos,
+    hasDragStarted,
+    resetDragStarted,
     handleDragStart,
     handleDragStartAtPoint,
     handleDrag,

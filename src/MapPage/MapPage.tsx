@@ -9,6 +9,7 @@ import { useAppUI } from '../context/AppUIContext';
 import PullDownPanel from './components/PullDownPanel/PullDownPanel';
 import RestaurantInfoPanel from './components/RestaurantInfoPanel/RestaurantInfoPanel';
 import { PlacesQueryProvider } from './context/PlacesQueryContext';
+import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
 
 import './MapPage.css';
 
@@ -28,7 +29,9 @@ const MapPage: React.FC = () => {
             <Map mapRef={mapRef} />
             <PullDownPanel mapRef={mapRef} />
             <RestaurantInfoPanel mapRef={mapRef} />
-            <BubbleAvatar mapRef={mapRef} />
+            <BubbleAvatarStateProvider>
+              <BubbleAvatar mapRef={mapRef} />
+            </BubbleAvatarStateProvider>
           </div>
         </div>
       </div>

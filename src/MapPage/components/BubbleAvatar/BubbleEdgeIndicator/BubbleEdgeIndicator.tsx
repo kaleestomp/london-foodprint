@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import L from 'leaflet';
-import { type LatLng, LONGPRESS_MS, INDICATOR_R } from '../config';
+import { LONGPRESS_MS, INDICATOR_R } from '../config';
+import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import './BubbleEdgeIndicator.css';
 
 type Edge = 'top' | 'bottom' | 'left' | 'right';
@@ -55,10 +56,7 @@ const computeEdgeState = (
 };
 
 type Props = {
-  mapRef:    React.RefObject<L.Map | null>;
-  droppedPos: LatLng;
-  /** Clears the map avatar; receives edge-indicator screen coords for BubbleButton placement */
-  onPickup:  (x: number, y: number) => void;
+  mapRef: React.RefObject<L.Map | null>;
 };
 
 /**
@@ -67,22 +65,23 @@ type Props = {
  *  - Tap/click          → map.setView() back to avatar
  *  - Long press (LONGPRESS_MS ms) → pick up the avatar (same state as map long-press)
  */
-const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef, droppedPos, onPickup }) => {
+const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
+  const { droppedPos, handlePickup } = useBubbleAvatarState();
   const [edgeState, setEdgeState] = useState<EdgeState>(null);
 
   // Stable refs — avoid re-registering map listeners when callbacks change
-  const onPickupRef    = useRef(onPickup);
+  const handlePickupRef = useRef(handlePickup);
   const edgeStateRef   = useRef(edgeState);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wasLongPress   = useRef(false);
 
-  useEffect(() => { onPickupRef.current  = onPickup;   }, [onPickup]);
+  useEffect(() => { handlePickupRef.current = handlePickup; }, [handlePickup]);
   useEffect(() => { edgeStateRef.current = edgeState;  }, [edgeState]);
 
   // ── Track avatar screen position on every map move ─────────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !droppedPos) return;
 
     const update = () => {
       const pt   = map.latLngToContainerPoint([droppedPos.lat, droppedPos.lng]);
@@ -120,7 +119,7 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef, droppedPos, onPickup }) 
       wasLongPress.current = true;
       longPressTimer.current = null;
       const state = edgeStateRef.current;
-      if (state) onPickupRef.current(state.x, state.y);
+      if (state) handlePickupRef.current(state.x, state.y);
     }, LONGPRESS_MS);
   }, []);
 
@@ -128,7 +127,7 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef, droppedPos, onPickup }) 
     cancelLongPress();
     if (wasLongPress.current) return; // long-press already handled
     const map = mapRef.current;
-    if (map) map.setView([droppedPos.lat, droppedPos.lng], 16, { animate: true });
+    if (map && droppedPos) map.setView([droppedPos.lat, droppedPos.lng], 16, { animate: true });
   }, [mapRef, droppedPos, cancelLongPress]);
 
   return (
