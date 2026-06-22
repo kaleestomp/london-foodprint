@@ -15,6 +15,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@maplibre/maplibre-gl-leaflet": "^0.1.3",
     "@maptiler/leaflet-maptilersdk": "^4.1.1",
     "@maptiler/sdk": "^4.0.2",
     "@mui/icons-material": "^9.0.1",
@@ -28,6 +29,7 @@
     "h3-js": "^4.4.0",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
+    "maplibre-gl": "^5.24.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-echarts": "^0.0.1",

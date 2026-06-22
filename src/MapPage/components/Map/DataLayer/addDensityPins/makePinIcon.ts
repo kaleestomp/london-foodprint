@@ -9,10 +9,10 @@ interface PinAnim {
 // Per-resolution pin size range [minW, maxW] in pixels. Height = width * 1.25.
 export const DEFAULT_PIN_RANGE: [number, number] = [20, 48];
 export const PIN_RANGE_BY_RESOLUTION: Record<number, [number, number]> = {
-  7:  [22, 85],
-  8:  [22, 70],
-  9:  [22, 55],
-  10: [22, 40],
+  7:  [22, 62],
+  8:  [22, 52],
+  9:  [22, 42],
+  10: [22, 32],
 };
 
 const makePinIcon = (count: number, w: number, h: number, anim: PinAnim): L.DivIcon => {

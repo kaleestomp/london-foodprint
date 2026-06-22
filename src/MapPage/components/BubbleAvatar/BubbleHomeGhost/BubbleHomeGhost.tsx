@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
+import { useRestaurantPanelSnapState } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
+import { getHomeCenter } from '../config';
 import DashedCircle from '../Searchmask/DashedCircle';
 import './BubbleHomeGhost.css';
 
@@ -16,10 +19,24 @@ type Props = {
  */
 const BubbleHomeGhost: React.FC<Props> = ({ onResetHome }) => {
   const { isNearHome } = useBubbleAvatarState();
+  const { isMobile, translateY } = useRestaurantPanelSnapState();
+  const homeCenter = useMemo(
+    () => getHomeCenter(isMobile ? translateY : undefined),
+    [isMobile, translateY],
+  );
+  const ghostStyle = useMemo(() => {
+    if (!isMobile) return undefined;
+
+    return {
+      bottom: 'auto',
+      top: `calc(${homeCenter.y}px - (var(--bubble-avatar-home-size) / 2))`,
+    };
+  }, [homeCenter.y, isMobile]);
   
   return (
     <motion.button
       className="bubble-home-reset"
+      style={ghostStyle}
       onClick={onResetHome}
       aria-label="Return avatar to home"
       title="Return avatar home"

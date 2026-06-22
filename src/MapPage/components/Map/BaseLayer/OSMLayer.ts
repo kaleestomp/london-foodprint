@@ -1,13 +1,12 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet.heat';
-import '@maplibre/maplibre-gl-leaflet';
-import 'maplibre-gl/dist/maplibre-gl.css';
 
 import useMapResizeSync from './useMapResizeSync'; 
 import { LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM, LONDON_MAX_ZOOM, LONDON_BOUNDS } from '../MapTemplate'; 
 
-const OPEN_FREE_MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/fiord';
+const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): { 
     mapContainerRef: React.RefObject<HTMLDivElement | null>; 
@@ -35,11 +34,14 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
       maxZoom: LONDON_MAX_ZOOM,
     }).setView(LONDON_CENTER, LONDON_INITIAL_ZOOM);
     mapRef.current = map;
-    (L as typeof L & {
-      maplibreGL: (options: { style: string }) => L.Layer;
-    }).maplibreGL({
-      style: OPEN_FREE_MAP_STYLE_URL,
+    // 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
+    L.tileLayer(TILE_URL, {
+      minZoom: 0,
+      maxZoom: 20,
+      attribution: TILE_ATTRIBUTION,
+      subdomains: ['a', 'b', 'c']
     }).addTo(map);
+    // '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     const cleanupResizeSync = setupMapResizeSync(map, mapContainer);
     return () => {
       cleanupResizeSync();

@@ -6,7 +6,7 @@ export const getHomeCenter = (mobilePanelTranslateY?: number): Point => ({
   x: window.innerWidth <= 959 ? window.innerWidth - 70 : window.innerWidth / 2,
   y:
     window.innerWidth <= 959 && typeof mobilePanelTranslateY === 'number'
-      ? mobilePanelTranslateY - 25
+      ? mobilePanelTranslateY - 25 // + 2
       : window.innerHeight - 70,
 });
 
