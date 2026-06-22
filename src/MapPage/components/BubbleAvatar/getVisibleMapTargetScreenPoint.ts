@@ -2,7 +2,7 @@ import L from 'leaflet';
 
 import { type Point } from './config';
 
-const TOP_PADDING = 96;
+const TOP_PADDING = 80;
 
 const getVisibleMapTargetScreenPoint = (
   map: L.Map,

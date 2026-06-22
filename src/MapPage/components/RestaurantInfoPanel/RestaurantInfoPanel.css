@@ -14,6 +14,7 @@
   overflow: hidden;
   backdrop-filter: var(--app-floating-card-backdrop-filter);
   -webkit-backdrop-filter: var(--app-floating-card-backdrop-filter);
+  border-radius: 22px 22px 0 0;
 }
 
 .restaurant-sheet-header {

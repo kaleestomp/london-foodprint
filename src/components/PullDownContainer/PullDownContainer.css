@@ -30,6 +30,8 @@
   box-shadow: var(--pull-down-shadow);
   backdrop-filter: var(--pull-down-surface-backdrop);
   -webkit-backdrop-filter: var(--pull-down-surface-backdrop);
+  /* border-radius: 0 0 36px 36px;
+  margin-inline: 18px; */
 }
 
 .pull-down-container.is-open .pull-down-header::after {
