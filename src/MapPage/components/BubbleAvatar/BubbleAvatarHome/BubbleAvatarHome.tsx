@@ -4,11 +4,14 @@ import useBubbleDrag from '../useDragAndDrop/useBubbleDrag';
 import useHomeProximity from './hooks/useHomeProximity';
 import useBubbleFlightAnimation from './hooks/useBubbleFlightAnimation';
 import useResolvePickupWithoutDrag from './hooks/useResolvePickupWithoutDrag';
+import useIsDropOnRestaurantPanel from './hooks/useIsDropOnRestaurantPanel';
 import usePickupBootstrap from './hooks/usePickupBootstrap';
 import useCoarsePointer from './hooks/useCoarsePointer';
 import useRawPointerDrag from './hooks/useRawPointerDrag';
 import useBubbleStyle from './hooks/useBubbleStyle';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
+import { useRestaurantPanelSnapState } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
+import { getHomeCenter } from '../config';
 import DashedCircle from '../Searchmask/DashedCircle';
 import BubbleEyes from '../BubbleEyes/BubbleEyes';
 import './BubbleAvatarHome.css';
@@ -37,9 +40,25 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
     handleDrop,
     handleDropCancel,
   } = useBubbleAvatarState();
+  const { isMobile, translateY, panelHeight } = useRestaurantPanelSnapState();
+  const homeCenter = useMemo(
+    () => getHomeCenter(isMobile ? translateY : undefined),
+    [isMobile, translateY],
+  );
+  const isDropOnRestaurantPanel = useIsDropOnRestaurantPanel({
+    isMobile,
+    translateY,
+    panelHeight,
+  });
 
   // Resolves pickup mode when pointer is released before drag starts. Prevents a "hovering" avatar
-  const resolvePickupWithoutDrag = useResolvePickupWithoutDrag(mapRef, handleDrop, handleDropCancel);
+  const resolvePickupWithoutDrag = useResolvePickupWithoutDrag(
+    mapRef,
+    handleDrop,
+    handleDropCancel,
+    homeCenter,
+    isDropOnRestaurantPanel,
+  );
 
   // Get Flight Animation Controls
   const {
@@ -53,6 +72,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
     flyInFrom,
     flyOutTo,
     onFlyOutComplete,
+    homeCenter,
   });
 
   // Get Drag Controls
@@ -70,10 +90,16 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
     handleDragMoveToPoint,
     handleDragEnd,
     handleDragEndAtPoint,
-  } = useBubbleDrag(mapRef, dragDropCallback, handleDropCancel);
+  } = useBubbleDrag(
+    mapRef,
+    dragDropCallback,
+    homeCenter,
+    handleDropCancel,
+    isDropOnRestaurantPanel,
+  );
 
   // Detect when drag enters/leaves the home snap zone and UPDATE CONTEXT.
-  useHomeProximity(isDragging, dragPos, setIsNearHome);
+  useHomeProximity(isDragging, dragPos, homeCenter, setIsNearHome);
 
   const bubbleRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
@@ -106,8 +132,10 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
   // Compute the bubble style based on drag/pickup state
   const style = rawDragEnabled && isDragging && dragPos
     ? 'raw-drag' : pickupPos
-    ? 'pickup' : undefined;
-  const bubbleStyle = useBubbleStyle({ style, pickupPos, dragPos});
+    ? 'pickup' : isMobile
+    ? 'mobile-home'
+    : undefined;
+  const bubbleStyle = useBubbleStyle({ style, homeCenter, pickupPos, dragPos });
 
   const whileDragVisual = useMemo(
     () => (isCoarsePointer

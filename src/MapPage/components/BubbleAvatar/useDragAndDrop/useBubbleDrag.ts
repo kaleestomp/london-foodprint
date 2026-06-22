@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { type PanInfo } from 'framer-motion';
 import L from 'leaflet';
-import { getHomeCenter, HOME_SNAP_RADIUS } from '../config';
+import { HOME_SNAP_RADIUS, type Point } from '../config';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 
 /**
@@ -17,7 +17,9 @@ import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 const useBubbleDrag = (
   mapRef: React.RefObject<L.Map | null>,
   onDrop: (lat: number, lng: number) => void,
+  homeCenter: Point,
   onCancel?: () => void,
+  isDropBlocked?: (point: Point) => boolean,
 ) => {
   const { isDragging, setIsDragging } = useBubbleAvatarState();
   const hasDragStartedRef = useRef(false);
@@ -62,10 +64,15 @@ const useBubbleDrag = (
       // ── Near-home check (highest priority) ──────────────────────────────
       // Must run before the map-bounds check because the home position sits
       // inside the map container rect.
-      const home = getHomeCenter();
+      const home = homeCenter;
       const distToHome = Math.sqrt((x - home.x) ** 2 + (y - home.y) ** 2);
       if (distToHome < HOME_SNAP_RADIUS) {
         onCancel?.(); // return home
+        return;
+      }
+
+      if (isDropBlocked?.({ x, y })) {
+        onCancel?.();
         return;
       }
 
@@ -86,7 +93,7 @@ const useBubbleDrag = (
         onCancel?.();
       }
     },
-    [mapRef, onDrop, onCancel],
+    [mapRef, onDrop, onCancel, homeCenter, isDropBlocked],
   );
 
   const handleDragEnd = useCallback(

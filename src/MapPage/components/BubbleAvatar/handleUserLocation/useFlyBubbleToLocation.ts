@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'; 
 import L from 'leaflet';
 
+import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
 import { type LatLng, type Point } from '../config';
+import { useRestaurantPanelSnapState } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
 
 type props = {
     mapRef: React.RefObject<L.Map | null>;
@@ -19,6 +21,7 @@ const useFlyBubbleToLocation = ({
     handleDrop,
     resetBubbleToHome,
  }: props) => { 
+     const { isMobile, panelHeight, translateY } = useRestaurantPanelSnapState();
 
     // Handel Fly Bubble to User Location Logic (LIVE / GEOSEARCH)
     // ==========================================================
@@ -33,6 +36,7 @@ const useFlyBubbleToLocation = ({
         const rect = map.getContainer().getBoundingClientRect();
         const latLng = L.latLng(targetLatLng.lat, targetLatLng.lng);
         const point = map.latLngToContainerPoint(latLng);
+        const targetScreenPoint = getVisibleMapTargetScreenPoint(map, isMobile, panelHeight, translateY);
         const resetFrom = droppedPos
             ? (() => {
                 const droppedPoint = map.latLngToContainerPoint(
@@ -48,10 +52,10 @@ const useFlyBubbleToLocation = ({
         resetBubbleToHome(resetFrom); // Swap with undefined to disable fly-in animation
         pendingTargetLatLngRef.current = { lat: latLng.lat, lng: latLng.lng };
         setFlyOutTo({
-            x: rect.left + point.x,
-            y: rect.top + point.y,
+            x: targetScreenPoint?.x ?? rect.left + point.x,
+            y: targetScreenPoint?.y ?? rect.top + point.y,
         });
-    }, [mapRef, targetLatLng, droppedPos, resetBubbleToHome]);
+    }, [mapRef, targetLatLng, droppedPos, resetBubbleToHome, isMobile, panelHeight, translateY]);
     
     // Handle the drop pin logic when the flight animation completes
     const dropOnEndFlight = useCallback(() => {

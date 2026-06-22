@@ -1,7 +1,9 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import L from 'leaflet';
 
 import { type LatLng } from '../config';
+import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
+import useMapViewportNavigation from '../useDragAndDrop/useMapViewportNavigation';
+import { useRestaurantPanelSnapState } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
 import { useAppUI } from '../../../../context/AppUIContext';
 
 type UseMapPanToLocationArgs = {
@@ -20,6 +22,8 @@ type out = {
 const useMapPanToLocation = ({
   mapRef,
 }: UseMapPanToLocationArgs): out => {
+  const { focusMap } = useMapViewportNavigation({ mapRef });
+  const { isMobile, panelHeight, translateY } = useRestaurantPanelSnapState();
 
   // Handel Map Pan
   const { liveLocation } = useAppUI();
@@ -46,36 +50,19 @@ const useMapPanToLocation = ({
     handledTokenRef.current = token;
 
     const map = mapRef.current;
-    if (!map) {
-      onReady();
-      return;
-    }
+    const targetScreenPoint = map
+      ? getVisibleMapTargetScreenPoint(map, isMobile, panelHeight, translateY)
+      : undefined;
 
-    const latLng = L.latLng(targetLatLng.lat, targetLatLng.lng);
-    let cancelled = false;
-
-    // If already at target, proceed immediately
-    if (map.getCenter().distanceTo(latLng) < 1) {
-      onReady();
-      return () => { cancelled = true; };
-    }
-
-    // Pan to target and call onReady when settled
-    const onMoveEnd = () => {
-      map.off('moveend', onMoveEnd);
-      if (!cancelled) {
-        onReady();
-      }
-    };
-
-    map.on('moveend', onMoveEnd);
-    map.panTo(latLng, { animate: true });
-
-    return () => {
-      cancelled = true;
-      map.off('moveend', onMoveEnd);
-    };
-  }, [mapRef, targetLatLng, token, onReady]);
+    return focusMap({
+      target: targetLatLng,
+      method: 'pan',
+      animate: true,
+      onSettled: onReady,
+      skipIfWithinMeters: 1,
+      targetScreenPoint,
+    });
+  }, [targetLatLng, token, onReady, focusMap, isMobile, panelHeight, translateY, mapRef]);
 
   return {targetLatLng,programmaticFlightToken};
 };

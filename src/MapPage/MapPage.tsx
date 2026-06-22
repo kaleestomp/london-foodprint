@@ -8,6 +8,7 @@ import IPLocationHandler from './components/Map/IPLocationHandler/IPLocationHand
 import { useAppUI } from '../context/AppUIContext';
 import PullDownPanel from './components/PullDownPanel/PullDownPanel';
 import RestaurantInfoPanel from './components/RestaurantInfoPanel/RestaurantInfoPanel';
+import { RestaurantPanelSnapProvider } from './components/RestaurantInfoPanel/RestaurantPanelSnapContext';
 import { PlacesQueryProvider } from './context/PlacesQueryContext';
 import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
 
@@ -28,10 +29,12 @@ const MapPage: React.FC = () => {
           <div className='map-canvas-wrapper'>
             <Map mapRef={mapRef} />
             <PullDownPanel mapRef={mapRef} />
-            <RestaurantInfoPanel mapRef={mapRef} />
-            <BubbleAvatarStateProvider>
-              <BubbleAvatar mapRef={mapRef} />
-            </BubbleAvatarStateProvider>
+            <RestaurantPanelSnapProvider>
+              <RestaurantInfoPanel mapRef={mapRef} />
+              <BubbleAvatarStateProvider>
+                <BubbleAvatar mapRef={mapRef} />
+              </BubbleAvatarStateProvider>
+            </RestaurantPanelSnapProvider>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type L from 'leaflet';
 import Typography from '@mui/material/Typography';
-import useRestaurantPanelSnap from './useRestaurantPanelSnap';
+import { useRestaurantPanelSnapState } from './RestaurantPanelSnapContext';
 import useRequestPlacesList from '../../request/useRequestPlacesList/useRequestPlacesList';
 import useRequestPlaceDetail from '../../request/useRequestPlaceDetail/useRequestPlaceDetail';
 import { usePlacesQuery } from '../../context/PlacesQueryContext';
@@ -20,7 +20,7 @@ const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0, mapRef }
     isMobile,
     panelHeight,
     translateY,
-  } = useRestaurantPanelSnap();
+  } = useRestaurantPanelSnapState();
   const { lastTilesParams, selectedPlaceId } = usePlacesQuery();
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier } = useSearchFilters();
   const [page, setPage] = useState(1);

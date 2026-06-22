@@ -1,7 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { getHomeCenter, HOME_SNAP_RADIUS } from '../../config';
-
-type Point = { x: number; y: number };
+import { HOME_SNAP_RADIUS, type Point } from '../../config';
 
 /**
  * Fires onNearHomeChange(true/false) as the drag position enters or leaves
@@ -10,6 +8,7 @@ type Point = { x: number; y: number };
 const useHomeProximity = (
   isDragging: boolean,
   dragPos: Point | null,
+  homeCenter: Point,
   onNearHomeChange?: (near: boolean) => void,
 ) => {
   const prevRef = useRef(false);
@@ -23,14 +22,13 @@ const useHomeProximity = (
       return;
     }
 
-    const home = getHomeCenter();
-    const near = Math.sqrt((dragPos.x - home.x) ** 2 + (dragPos.y - home.y) ** 2) < HOME_SNAP_RADIUS;
+    const near = Math.sqrt((dragPos.x - homeCenter.x) ** 2 + (dragPos.y - homeCenter.y) ** 2) < HOME_SNAP_RADIUS;
 
     if (near !== prevRef.current) {
       prevRef.current = near;
       onNearHomeChange?.(near);
     }
-  }, [isDragging, dragPos, onNearHomeChange]);
+  }, [isDragging, dragPos, onNearHomeChange, homeCenter]);
 };
 
 export default useHomeProximity;

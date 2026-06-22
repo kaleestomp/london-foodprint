@@ -1,8 +1,6 @@
 import { useCallback } from 'react';
 import L from 'leaflet';
-import { getHomeCenter, HOME_SNAP_RADIUS } from '../../config';
-
-type Point = { x: number; y: number };
+import { HOME_SNAP_RADIUS, type Point } from '../../config';
 
 /**
  * Resolves pickup mode when pointer is released before drag starts.
@@ -12,6 +10,8 @@ const useResolvePickupWithoutDrag = (
   mapRef: React.RefObject<L.Map | null>,
   handleDrop: (lat: number, lng: number) => void,
   handleDropCancel: () => void,
+  homeCenter: Point,
+  isDropBlocked?: (point: Point) => boolean,
 ) => {
     
   return useCallback((point: Point) => {
@@ -21,11 +21,15 @@ const useResolvePickupWithoutDrag = (
       return;
     }
 
-    const home = getHomeCenter();
-    const distToHome = Math.sqrt((point.x - home.x) ** 2 + (point.y - home.y) ** 2);
+    const distToHome = Math.sqrt((point.x - homeCenter.x) ** 2 + (point.y - homeCenter.y) ** 2);
 
     // Near home: cancel pickup and return to home button.
     if (distToHome < HOME_SNAP_RADIUS) {
+      handleDropCancel();
+      return;
+    }
+
+    if (isDropBlocked?.(point)) {
       handleDropCancel();
       return;
     }
@@ -43,7 +47,7 @@ const useResolvePickupWithoutDrag = (
     }
 
     handleDropCancel();
-  }, [mapRef, handleDrop, handleDropCancel]);
+  }, [mapRef, handleDrop, handleDropCancel, homeCenter, isDropBlocked]);
 };
 
 export default useResolvePickupWithoutDrag;

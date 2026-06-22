@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { getHomeCenter, type Point } from '../../config';
+import { type Point } from '../../config';
 
 type UseBubbleFlightAnimationArgs = {
   pickupFrom?: Point;
@@ -8,6 +8,7 @@ type UseBubbleFlightAnimationArgs = {
   flyOutTo?: Point;
   onFlyInComplete?: () => void;
   onFlyOutComplete?: () => void;
+  homeCenter: Point;
 };
 
 const useBubbleFlightAnimation = ({
@@ -16,11 +17,10 @@ const useBubbleFlightAnimation = ({
   flyOutTo,
   onFlyInComplete,
   onFlyOutComplete,
+  homeCenter,
 }: UseBubbleFlightAnimationArgs) => {
   const flyInCompletedRef = useRef(false);
   const flyOutCompletedRef = useRef(false);
-
-  const homeCenter = getHomeCenter();
   const shouldFlyIn = !pickupFrom && !!flyInFrom;
   const flyInOffset = shouldFlyIn && flyInFrom
     ? { x: flyInFrom.x - homeCenter.x, y: flyInFrom.y - homeCenter.y }
@@ -31,11 +31,11 @@ const useBubbleFlightAnimation = ({
 
   useEffect(() => {
     flyInCompletedRef.current = false;
-  }, [flyInFrom]);
+  }, [flyInFrom, homeCenter]);
 
   useEffect(() => {
     flyOutCompletedRef.current = false;
-  }, [flyOutTo]);
+  }, [flyOutTo, homeCenter]);
 
   return {
     initial: flyInOffset ? { x: flyInOffset.x, y: flyInOffset.y, opacity: 0 } : false,

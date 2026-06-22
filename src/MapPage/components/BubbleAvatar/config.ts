@@ -2,9 +2,12 @@ export type LatLng = { lat: number; lng: number };
 export type Point = { x: number; y: number };
 
 /** Screen coordinates of BubbleButton's fixed home centre */
-export const getHomeCenter = (): Point => ({
+export const getHomeCenter = (mobilePanelTranslateY?: number): Point => ({
   x: window.innerWidth <= 959 ? window.innerWidth - 70 : window.innerWidth / 2,
-  y: window.innerHeight - 70,
+  y:
+    window.innerWidth <= 959 && typeof mobilePanelTranslateY === 'number'
+      ? mobilePanelTranslateY - 25
+      : window.innerHeight - 70,
 });
 
 /** Interaction Spec */

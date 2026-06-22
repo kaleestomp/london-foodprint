@@ -9,7 +9,10 @@ import addPlaceMarkers from '../../Map/DataLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
 import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
 import { SCORE_TIER_THRESHOLD_MAP, useSearchFilters } from '../../../../context/SearchFiltersContext';
+import { useRestaurantPanelSnapState } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
+import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
 import { type LatLng, SEARCH_RADIUS, LONGPRESS_MS, ZOOM_LEVEL, CIRCLE_COLOR, DROP_ENTRY_DELAY_MS } from '../config';
+import useMapViewportNavigation from './useMapViewportNavigation';
 
 const CIRCLE_ENTRY_MS = 280;
 
@@ -27,15 +30,21 @@ const useBubbleDrop = (
   /** Clears the map avatar; receives screen coords so MapCard can reposition BubbleButton */
   onPickup:    (x: number, y: number) => void,
 ) => {
+  const { focusMap } = useMapViewportNavigation({ mapRef });
+  const { isMobile, panelHeight, translateY } = useRestaurantPanelSnapState();
   const { effectiveCuisines, venueType, effectivePriceRanges, scoreTier, scoreBasis } = useSearchFilters();
   const circleRef      = useRef<L.Circle | null>(null);
   const markerRef      = useRef<L.Marker | null>(null);
   const reactRootRef   = useRef<Root | null>(null);
   const placesLayerRef = useRef<L.LayerGroup | null>(null);
   const entryDelayRef  = useRef(0);
+  const panelMetricsRef = useRef({ isMobile, panelHeight, translateY });
   // Keep onPickup fresh without invalidating the main effect
   const onPickupRef    = useRef(onPickup);
   useEffect(() => { onPickupRef.current = onPickup; }, [onPickup]);
+  useEffect(() => {
+    panelMetricsRef.current = { isMobile, panelHeight, translateY };
+  }, [isMobile, panelHeight, translateY]);
 
   // Fetch nearby places via the shared request hook (caches results, handles abort)
   const { res: nearbyRes } = useRequestNearby(
@@ -107,12 +116,31 @@ const useBubbleDrop = (
     let pressTimer: ReturnType<typeof setTimeout> | null = null;
     let circleAnimFrame: number | null = null;
     let circleStartTimer: ReturnType<typeof setTimeout> | null = null;
+    const {
+      isMobile: isMobileAtDrop,
+      panelHeight: panelHeightAtDrop,
+      translateY: translateYAtDrop,
+    } = panelMetricsRef.current;
 
     const entryDelayMs = map.getZoom() !== ZOOM_LEVEL ? DROP_ENTRY_DELAY_MS : 0;
     entryDelayRef.current = entryDelayMs;
 
+    const targetScreenPoint = getVisibleMapTargetScreenPoint(
+      map,
+      isMobileAtDrop,
+      panelHeightAtDrop,
+      translateYAtDrop,
+    );
+
     // 1. Zoom
-    map.setView([lat, lng], ZOOM_LEVEL, { animate: true });
+    // map.setView([lat, lng], ZOOM_LEVEL, { animate: true });
+    focusMap({
+      target: { lat, lng },
+      method: 'setView',
+      zoom: ZOOM_LEVEL,
+      animate: true,
+      targetScreenPoint,
+    });
 
     // 2. Dashed 1 km circle — created invisible (radius 1, opacity 0) so no
     //    flash occurs before the entry delay fires.
@@ -229,7 +257,7 @@ const useBubbleDrop = (
       map.dragging.enable();
       clearAll(map);
     };
-  }, [droppedPos, mapRef, clearAll]);
+  }, [droppedPos, mapRef, clearAll, focusMap]);
 };
 
 export default useBubbleDrop;
