@@ -25,19 +25,22 @@ const makePinIcon = (count: number, w: number, h: number, anim: PinAnim): L.DivI
     const styleExtra = startOffset
         ? `animation-delay:${staggerMs}ms;--fly-dx:${startOffset.dx.toFixed(1)}px;--fly-dy:${startOffset.dy.toFixed(1)}px`
         : `animation-delay:${staggerMs}ms`;
-
+    // <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 40 50" style="overflow:visible;display:block">
+    // <path d="M20,2 C10,2 2,10 2,20 C2,30 10,40 20,48 C30,40 38,30 38,20 C38,10 30,2 20,2 Z"
+    //   fill="#1a936f" stroke="white" stroke-width="2.5"/>
     return L.divIcon({
         className: '',
         iconSize: [w, h],
-        iconAnchor: [w / 2, h],
-        popupAnchor: [0, -h],
+        iconAnchor: [w / 2, h / 2], //[w / 2, h]
+        popupAnchor: [0, 0], //[0, -h]
         html: `<div class="density-pin ${animClass}" style="${styleExtra}">
-      <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 40 50" style="overflow:visible;display:block">
-        <path d="M20,2 C10,2 2,10 2,20 C2,30 10,40 20,48 C30,40 38,30 38,20 C38,10 30,2 20,2 Z"
-              fill="#1a936f" stroke="white" stroke-width="2.5"/>
-        <text x="20" y="21" text-anchor="middle" dominant-baseline="central"
-              fill="white" font-family="system-ui,sans-serif" font-size="${fs}" font-weight="700">${label}</text>
-      </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 40 40" style="overflow:visible;display:block">
+          <circle cx="20" cy="20" r="20" fill="#ffffff00" stroke="white" stroke-width="0.25" stroke-dasharray="3 2"/>
+          <text x="20" y="20" text-anchor="middle" dominant-baseline="central"
+            fill="white" font-family="system-ui,sans-serif" font-size="${fs}" font-weight="700">
+              ${label}
+          </text>
+        </svg>
     </div>`,
     });
 };

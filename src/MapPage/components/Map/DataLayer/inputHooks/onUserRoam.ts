@@ -31,9 +31,9 @@ const onUserRoam = (
         ne_lat: b.getNorth(),
         ne_lng: b.getEast(),
         res: res,
-        // At past 18 Zoom, always request individual places directly,
+        // At past 17 Zoom, always request individual places directly,
         // bypassing the density table regardless of place count.
-        ...(zoom >= 18 ? { places_only: true } : {}),
+        ...(zoom >= 17 ? { places_only: true } : {}),
       });
     };
 
