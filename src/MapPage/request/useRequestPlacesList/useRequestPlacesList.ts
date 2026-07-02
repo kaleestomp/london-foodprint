@@ -11,6 +11,9 @@ export interface PlacesListParams {
   sw_lng: number;
   ne_lat: number;
   ne_lng: number;
+  center_lat?: number;
+  center_lng?: number;
+  radius_m?: number;
   cuisines?: string[];
   cost?: string[];
   venue_type?: string;
@@ -31,6 +34,16 @@ const buildQueryKey = (params: PlacesListParams): string => {
     score_tier: String(params.score_tier ?? 0),
     page: String(params.page ?? 1),
   });
+
+  if (
+    typeof params.center_lat === 'number'
+    && typeof params.center_lng === 'number'
+    && typeof params.radius_m === 'number'
+  ) {
+    qs.set('center_lat', String(params.center_lat));
+    qs.set('center_lng', String(params.center_lng));
+    qs.set('radius_m', String(params.radius_m));
+  }
 
   for (const cost of [...(params.cost ?? [])].sort((a, b) => a.localeCompare(b))) {
     qs.append('cost', cost);

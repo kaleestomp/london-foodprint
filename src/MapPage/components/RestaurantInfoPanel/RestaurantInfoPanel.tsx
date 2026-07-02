@@ -1,63 +1,35 @@
-import { useEffect, useMemo, useState } from 'react';
-import type L from 'leaflet';
 import Typography from '@mui/material/Typography';
 import { useRestaurantPanelSnapState } from './RestaurantPanelSnapContext';
-import useRequestPlacesList from '../../request/useRequestPlacesList/useRequestPlacesList';
 import useRequestPlaceDetail from '../../request/useRequestPlaceDetail/useRequestPlaceDetail';
-import { usePlacesQuery } from '../../context/PlacesQueryContext';
-import { useSearchFilters } from '../../../context/SearchFiltersContext';
+import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
+import usePanelListQuery from './usePanelListQuery';
 import './RestaurantInfoPanel.css';
 
 type Props = {
   desktopTopOffsetPx?: number;
-  mapRef: React.RefObject<L.Map | null>;
 };
 
-const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0, mapRef }) => {
+const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0 }) => {
   const {
+    snapState,
+    handlePanelPointerDown,
     handleHandlePointerDown,
     isDragging,
     isMobile,
+    isPanelOpen,
     panelHeight,
     translateY,
   } = useRestaurantPanelSnapState();
-  const { lastTilesParams, selectedPlaceId } = usePlacesQuery();
-  const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier } = useSearchFilters();
-  const [page, setPage] = useState(1);
-
-  const boundsParams = useMemo(() => {
-    const map = mapRef.current;
-    if (!map) return null;
-    const b = map.getBounds();
-    return {
-      sw_lat: b.getSouth(),
-      sw_lng: b.getWest(),
-      ne_lat: b.getNorth(),
-      ne_lng: b.getEast(),
-    };
-  }, [mapRef.current, lastTilesParams]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [lastTilesParams, effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier]);
-
-  const { status: listStatus, res: listRes } = useRequestPlacesList(
-    boundsParams ? {
-      ...boundsParams,
-      cuisines: effectiveCuisines,
-      cost: effectivePriceRanges,
-      venue_type: venueType ?? '',
-      score_basis: scoreBasis,
-      score_tier: scoreTier,
-      page,
-      enabled: true,
-    } : null,
-  );
-
+  const { selectedPlaceId } = usePlaceSelection();
+  const { listStatus, listRes, page, setPage } = usePanelListQuery(isPanelOpen);
   const { status: detailStatus, res: detailRes } = useRequestPlaceDetail(selectedPlaceId);
 
   const content = (
-    <div className="restaurant-panel-scroll-content">
+    // overflowY is suppressed outside full state so touch drags move the panel, not the list
+    <div
+      className="restaurant-panel-scroll-content"
+      style={{ overflowY: snapState === 'full' ? undefined : 'hidden' }}
+    >
       <Typography variant="subtitle2" color="text.secondary">Ranked Restaurants</Typography>
       {listStatus === 'loading' && (
         <Typography variant="body2" color="text.secondary">Loading ranked places...</Typography>
@@ -143,6 +115,7 @@ const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0, mapRef }
         transition: isDragging ? 'none' : 'transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)',
       }}
       aria-label="Area restaurants panel"
+      onPointerDownCapture={handlePanelPointerDown}
     >
       <div
         className="restaurant-sheet-header"

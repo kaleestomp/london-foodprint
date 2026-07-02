@@ -4,13 +4,15 @@ import {
   MOBILE_BREAKPOINT,
   MOBILE_ENTER_BREAKPOINT,
   MOBILE_EXIT_BREAKPOINT,
-  MOBILE_MAX_BOTTOM_GAP_PX,
+  MOBILE_FULL_TOP_GAP_PX,
   MOBILE_PEEK_PX,
-  MOBILE_SNAP_LARGE_RATIO,
-  MOBILE_SNAP_MID_RATIO,
+  MOBILE_PREVIEW_RATIO,
   RESIZE_HEIGHT_JITTER_PX,
   RESIZE_WIDTH_JITTER_PX,
+  TAP_THRESHOLD_PX,
 } from './config';
+
+export type SnapState = 'closed' | 'preview' | 'full';
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -25,18 +27,24 @@ const useRestaurantPanelSnap = () => {
   const [isMobile, setIsMobile] = useState(() =>
     (typeof window !== 'undefined' ? window.innerWidth : 1280) < MOBILE_BREAKPOINT,
   );
-  const [snapIndex, setSnapIndex] = useState(0);
+  const [snapState, setSnapState] = useState<SnapState>('closed');
   const [translateY, setTranslateY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
   const dragStartYRef = useRef(0);
   const dragStartTranslateRef = useRef(0);
+  const dragCurrentTranslateRef = useRef(0);
+  const dragStartStateRef = useRef<SnapState>('closed');
+  // Always-fresh refs so stable callbacks can read current values without stale closures
+  const translateYRef = useRef(translateY);
+  const snapStateRef = useRef(snapState);
+  useEffect(() => { translateYRef.current = translateY; }, [translateY]);
+  useEffect(() => { snapStateRef.current = snapState; }, [snapState]);
 
   useEffect(() => {
     const media = window.matchMedia(COARSE_POINTER_QUERY);
     const updateCoarsePointer = () => setIsCoarsePointer(media.matches);
     updateCoarsePointer();
-
     media.addEventListener('change', updateCoarsePointer);
     return () => media.removeEventListener('change', updateCoarsePointer);
   }, []);
@@ -47,22 +55,15 @@ const useRestaurantPanelSnap = () => {
         width: window.innerWidth,
         height: window.visualViewport?.height ?? window.innerHeight,
       };
-
       setViewport((prev) => {
         const widthDelta = Math.abs(prev.width - next.width);
         const heightDelta = Math.abs(prev.height - next.height);
-
-        if (widthDelta < RESIZE_WIDTH_JITTER_PX && heightDelta < RESIZE_HEIGHT_JITTER_PX) {
-          return prev;
-        }
-
+        if (widthDelta < RESIZE_WIDTH_JITTER_PX && heightDelta < RESIZE_HEIGHT_JITTER_PX) return prev;
         return next;
       });
     };
-
     window.addEventListener('resize', onResize);
     window.visualViewport?.addEventListener('resize', onResize);
-
     return () => {
       window.removeEventListener('resize', onResize);
       window.visualViewport?.removeEventListener('resize', onResize);
@@ -74,7 +75,6 @@ const useRestaurantPanelSnap = () => {
       setIsMobile(true);
       return;
     }
-
     setIsMobile((prev) => {
       if (prev) return viewport.width < MOBILE_EXIT_BREAKPOINT;
       return viewport.width <= MOBILE_ENTER_BREAKPOINT;
@@ -83,82 +83,106 @@ const useRestaurantPanelSnap = () => {
 
   const metrics = useMemo(() => {
     const sheetHeight = viewport.height;
-    const maxVisibleHeight = Math.max(MOBILE_PEEK_PX, viewport.height - MOBILE_MAX_BOTTOM_GAP_PX);
-    const visibleHeights = [
-      MOBILE_PEEK_PX,
-      Math.round(viewport.height * MOBILE_SNAP_MID_RATIO),
-      Math.round(viewport.height * MOBILE_SNAP_LARGE_RATIO),
-      maxVisibleHeight,
-    ];
-    const offsets = visibleHeights.map((visible) => Math.max(0, sheetHeight - visible));
-
+    const fullVisible = Math.max(MOBILE_PEEK_PX, viewport.height - MOBILE_FULL_TOP_GAP_PX);
+    const snapOffsets: Record<SnapState, number> = {
+      closed:  Math.max(0, sheetHeight - MOBILE_PEEK_PX),
+      preview: Math.max(0, sheetHeight - Math.round(viewport.height * MOBILE_PREVIEW_RATIO)),
+      full:    Math.max(0, sheetHeight - fullVisible),
+    };
     return {
-      maxOffset: offsets[0],
-      minOffset: offsets[offsets.length - 1],
-      offsets,
+      snapOffsets,
+      maxOffset: snapOffsets.closed,
+      minOffset: snapOffsets.full,
       sheetHeight,
     };
   }, [viewport.height]);
 
+  // Keep translateY in sync with snapState whenever not mid-drag
   useEffect(() => {
     if (!isMobile || isDragging) return;
+    setTranslateY(metrics.snapOffsets[snapState]);
+  }, [isDragging, isMobile, metrics.snapOffsets, snapState]);
 
-    const target = metrics.offsets[Math.min(snapIndex, metrics.offsets.length - 1)] ?? metrics.maxOffset;
-    setTranslateY(target);
-  }, [isDragging, isMobile, metrics.maxOffset, metrics.offsets, snapIndex]);
-
-  const handlePointerMove = useCallback((event: PointerEvent) => {
-    const deltaY = event.clientY - dragStartYRef.current;
-    const next = clamp(dragStartTranslateRef.current + deltaY, metrics.minOffset, metrics.maxOffset);
-    setTranslateY(next);
-  }, [metrics.maxOffset, metrics.minOffset]);
-
-  const handlePointerUp = useCallback(() => {
-    if (!isDragging) return;
-
-    let nearestIndex = 0;
-    let nearestDistance = Number.POSITIVE_INFINITY;
-
-    for (let i = 0; i < metrics.offsets.length; i += 1) {
-      const distance = Math.abs(metrics.offsets[i] - translateY);
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearestIndex = i;
-      }
-    }
-
-    setSnapIndex(nearestIndex);
-    setTranslateY(metrics.offsets[nearestIndex]);
-    setIsDragging(false);
-  }, [isDragging, metrics.offsets, translateY]);
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-    window.addEventListener('pointercancel', handlePointerUp);
-
-    return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('pointercancel', handlePointerUp);
-    };
-  }, [handlePointerMove, handlePointerUp]);
-
-  const handleHandlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!isMobile) return;
-
+  // Stable helper: capture the pointer and register drag listeners synchronously on window.
+  // This ensures pointer move events are captured immediately without async delay.
+  const startDrag = useCallback((clientY: number, pointerId: number, element: Element) => {
     setIsDragging(true);
-    dragStartYRef.current = event.clientY;
-    dragStartTranslateRef.current = translateY;
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
+    dragStartYRef.current = clientY;
+    dragStartTranslateRef.current = translateYRef.current;
+    dragCurrentTranslateRef.current = translateYRef.current;
+    dragStartStateRef.current = snapStateRef.current;
+    (element as HTMLElement).setPointerCapture(pointerId);
+
+    // Define move/end handlers with closure over initial state
+    const onMove = (event: PointerEvent) => {
+      const deltaY = event.clientY - dragStartYRef.current;
+      const next = clamp(dragStartTranslateRef.current + deltaY, metrics.minOffset, metrics.maxOffset);
+      dragCurrentTranslateRef.current = next;
+      setTranslateY(next);
+    };
+
+    const onEnd = () => {
+      // Clean up listeners immediately
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onEnd);
+      window.removeEventListener('pointercancel', onEnd);
+
+      const movedDistance = Math.abs(dragCurrentTranslateRef.current - dragStartTranslateRef.current);
+      let targetState: SnapState;
+
+      if (movedDistance < TAP_THRESHOLD_PX) {
+        // Tap with no real movement: advance to next state
+        const current = snapStateRef.current;
+        targetState = current === 'closed' ? 'preview' : 'full';
+      } else {
+        // Drag: commit to the adjacent state based on direction from the state where drag started.
+        const deltaY = dragCurrentTranslateRef.current - dragStartTranslateRef.current;
+        const startState = dragStartStateRef.current;
+
+        if (deltaY > 0) {
+          targetState = startState === 'full' ? 'preview' : 'closed';
+        } else {
+          targetState = startState === 'closed' ? 'preview' : 'full';
+        }
+      }
+
+      setSnapState(targetState);
+      setTranslateY(metrics.snapOffsets[targetState]);
+      setIsDragging(false);
+    };
+
+    // Register listeners synchronously on window to capture all pointer move events
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onEnd);
+    window.addEventListener('pointercancel', onEnd);
+  }, [metrics.minOffset, metrics.maxOffset, metrics.snapOffsets]);
+
+  // Whole-panel drag — active in closed and preview states.
+  // Capturing the pointer means the panel moves instead of the content scrolling.
+  const handlePanelPointerDown = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    const target = event.target;
+    const targetElement = target instanceof Element ? target : null;
+    if (!isMobile || snapStateRef.current === 'full') return;
+    if (targetElement?.closest('.restaurant-sheet-header')) return;
+    if (targetElement?.closest('a, button, input, textarea, select, label, [role="button"]')) return;
+    startDrag(event.clientY, event.pointerId, event.currentTarget);
+  }, [isMobile, startDrag]);
+
+  // Handle-only drag — active in all states; the primary drag trigger in full state.
+  // stopPropagation prevents the panel-wide handler from also firing.
+  const handleHandlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isMobile) return;
+    event.stopPropagation();
+    startDrag(event.clientY, event.pointerId, event.currentTarget);
+  }, [isMobile, startDrag]);
 
   return {
+    snapState,
+    handlePanelPointerDown,
     handleHandlePointerDown,
     isDragging,
     isMobile,
+    isPanelOpen: !isMobile || snapState !== 'closed',
     panelHeight: metrics.sheetHeight,
     translateY,
   };

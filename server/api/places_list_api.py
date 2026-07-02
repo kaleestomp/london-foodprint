@@ -15,6 +15,9 @@ async def get_places_list(
     sw_lng: float = Query(...),
     ne_lat: float = Query(...),
     ne_lng: float = Query(...),
+    center_lat: float | None = Query(default=None),
+    center_lng: float | None = Query(default=None),
+    radius_m: float | None = Query(default=None, gt=0),
     cuisine: list[str] | None = Query(default=None),
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
@@ -30,6 +33,7 @@ async def get_places_list(
     sort_column = rank_column if rank_column in allowed_rank_columns else "normal_1"
     tier_column = get_score_basis_column(score_basis)
     offset = (page - 1) * PAGE_SIZE
+    has_circle_filter = center_lat is not None and center_lng is not None and radius_m is not None
 
     sql = f"""
         SELECT
@@ -52,10 +56,22 @@ async def get_places_list(
                 OR cost = ''
                 OR LOWER(cost) = 'unspecified'
               )
-                    AND {tier_column} >= $8
+          AND (
+                NOT $8::BOOLEAN
+                OR (
+                    6371000 * 2 * ASIN(
+                        SQRT(
+                            POWER(SIN(RADIANS((lat - $9) / 2)), 2)
+                            + COS(RADIANS($9)) * COS(RADIANS(lat))
+                            * POWER(SIN(RADIANS((lon - $10) / 2)), 2)
+                        )
+                    ) <= $11
+                )
+              )
+          AND {tier_column} >= $12
                 ORDER BY {sort_column} DESC
         LIMIT {PAGE_SIZE}
-        OFFSET $9
+        OFFSET $13
     """
 
     async with request.app.state.pool.acquire() as conn:
@@ -68,6 +84,10 @@ async def get_places_list(
             cuisine_values,
             venue_value,
             cost_values,
+            has_circle_filter,
+            center_lat if center_lat is not None else 0.0,
+            center_lng if center_lng is not None else 0.0,
+            radius_m if radius_m is not None else 0.0,
             score_tier,
             offset,
         )

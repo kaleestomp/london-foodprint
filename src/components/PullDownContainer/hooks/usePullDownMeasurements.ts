@@ -3,14 +3,12 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 type UsePullDownMeasurementsParams = {
   children: ReactNode;
   isOpen: boolean;
-  mobileBottomGapPx: number;
   onDesktopHeightChange?: (heightPx: number) => void;
 };
 
 const usePullDownMeasurements = ({
   children,
   isOpen,
-  mobileBottomGapPx,
   onDesktopHeightChange,
 }: UsePullDownMeasurementsParams) => {
   const DESKTOP_BREAKPOINT_PX = 960;
@@ -47,7 +45,7 @@ const usePullDownMeasurements = ({
       window.removeEventListener('resize', measureLayout);
       window.visualViewport?.removeEventListener('resize', measureLayout);
     };
-  }, [mobileBottomGapPx]);
+  }, []);
 
   useEffect(() => {
     const contentElement = contentRef.current;

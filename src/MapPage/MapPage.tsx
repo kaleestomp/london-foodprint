@@ -9,7 +9,8 @@ import { useAppUI } from '../context/AppUIContext';
 import PullDownPanel from './components/PullDownPanel/PullDownPanel';
 import RestaurantInfoPanel from './components/RestaurantInfoPanel/RestaurantInfoPanel';
 import { RestaurantPanelSnapProvider } from './components/RestaurantInfoPanel/RestaurantPanelSnapContext';
-import { PlacesQueryProvider } from './context/PlacesQueryContext';
+import { TileQueryProvider } from '../context/TileQueryContext';
+import { PlaceSelectionProvider } from '../context/PlaceSelectionContext';
 import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
 
 import './MapPage.css';
@@ -22,23 +23,23 @@ const MapPage: React.FC = () => {
   IPLocationHandler({ mapRef });
 
   return (
-    <PlacesQueryProvider>
-      <div className="map-page-container">
-        <Loading loading={isLoading} />
-        <div className='map-card-viewport'>
-          <div className='map-canvas-wrapper'>
+    <div className="map-page-container">
+      <Loading loading={isLoading} />
+      <div className='map-card-viewport'>
+        <TileQueryProvider>
+          <PlaceSelectionProvider>
             <Map mapRef={mapRef} />
             <PullDownPanel mapRef={mapRef} />
             <RestaurantPanelSnapProvider>
-              <RestaurantInfoPanel mapRef={mapRef} />
+              <RestaurantInfoPanel />
               <BubbleAvatarStateProvider>
                 <BubbleAvatar mapRef={mapRef} />
               </BubbleAvatarStateProvider>
             </RestaurantPanelSnapProvider>
-          </div>
-        </div>
+          </PlaceSelectionProvider>
+        </TileQueryProvider>
       </div>
-    </PlacesQueryProvider>
+    </div>
   );
 };
 

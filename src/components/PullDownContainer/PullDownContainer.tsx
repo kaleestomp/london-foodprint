@@ -28,7 +28,6 @@ const PullDownContainer: React.FC<Props> = ({
   } = usePullDownMeasurements({
     children,
     isOpen,
-    mobileBottomGapPx,
     onDesktopHeightChange,
   });
 

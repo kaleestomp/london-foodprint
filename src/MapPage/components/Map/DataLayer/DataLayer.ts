@@ -9,7 +9,8 @@ import { type SearchMask, filterDensityOutsideMask, filterPlacesOutsideMask } fr
 import addDebugTileOverlay from './utils/addDebugTileOverlay';
 import useCheckMaskChanged from './LayerStates/checkMaskChanged';
 import useBuildFilterKey from './LayerStates/buildFilterKey';
-import { usePlacesQuery } from '../../../context/PlacesQueryContext';
+import { useTileQuery } from '../../../../context/TileQueryContext';
+import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 
 // DEBUG Layers that only shows in local dev
 const DEBUG_TILE_OVERLAY = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_TILE_OVERLAY === 'true';
@@ -25,7 +26,11 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
   } = useSearchFilters();
 
   const { status, res, queryKey, responseKey, requestParams } = callRequestTiles(mapRef);
-  const { setLastTilesParams, setSelectedPlaceId } = usePlacesQuery();
+  const { setLastTilesParams } = useTileQuery();
+  const { setSelectedPlaceId } = usePlaceSelection();
+  useEffect(() => {
+    setLastTilesParams(requestParams);
+  }, [requestParams, setLastTilesParams]);
   // console.log(responseKey)
 
   // Create a persistent LayerGroup for Markers
@@ -50,10 +55,7 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
   const checkMaskChanged = useCheckMaskChanged();
   const buildFilterKey = useBuildFilterKey();
 
-  useEffect(() => {
-    setLastTilesParams(requestParams);
-  }, [requestParams, setLastTilesParams]);
-
+  
   useEffect(() => {
     if (!mapRef.current || status !== 'success' || !res || !layerRef.current) return;
     if (responseKey !== queryKey) return;
