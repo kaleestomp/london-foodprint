@@ -51,13 +51,6 @@ export const CUISINE_FILTER_OPTIONS = [
 export const VENUE_TYPE_FILTER_OPTIONS = ['Dine-In', 'Takeaway'] as const;
 export const PRICE_RANGE_FILTER_OPTIONS = ['<10', '10+', '20+', '40+', '60+', '100+'] as const;
 export const SCORE_TIER_FILTER_OPTIONS = [1, 2, 3, 4] as const;
-export const SCORE_TIER_THRESHOLD_MAP = {
-  0: 0,
-  1: 1,
-  2: 2,
-  3: 3,
-  4: 4,
-} as const;
 
 export type CuisineFilterOption = (typeof CUISINE_FILTER_OPTIONS)[number];
 export type CuisineSelectionMode = 'include' | 'exclude';

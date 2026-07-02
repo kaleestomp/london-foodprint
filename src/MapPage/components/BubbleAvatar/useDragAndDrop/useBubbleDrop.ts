@@ -8,7 +8,7 @@ import getPinSizeFromCss from './getPinSizeFromCss';
 import addPlaceMarkers from '../../Map/DataLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
 import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
-import { SCORE_TIER_THRESHOLD_MAP, useSearchFilters } from '../../../../context/SearchFiltersContext';
+import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import { useRestaurantPanelSnapState } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
 import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
 import { type LatLng, SEARCH_RADIUS, LONGPRESS_MS, ZOOM_LEVEL, CIRCLE_COLOR, DROP_ENTRY_DELAY_MS } from '../config';
@@ -56,7 +56,7 @@ const useBubbleDrop = (
       venue_type: venueType ?? '',
       cost: effectivePriceRanges,
       score_basis: scoreBasis,
-      rank_threshold: SCORE_TIER_THRESHOLD_MAP[scoreTier],
+      score_tier: scoreTier,
     } : null,
   );
 

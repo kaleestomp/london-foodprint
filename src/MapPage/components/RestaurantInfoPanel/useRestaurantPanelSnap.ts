@@ -35,11 +35,6 @@ const useRestaurantPanelSnap = () => {
   const dragStartTranslateRef = useRef(0);
   const dragCurrentTranslateRef = useRef(0);
   const dragStartStateRef = useRef<SnapState>('closed');
-  // Always-fresh refs so stable callbacks can read current values without stale closures
-  const translateYRef = useRef(translateY);
-  const snapStateRef = useRef(snapState);
-  useEffect(() => { translateYRef.current = translateY; }, [translateY]);
-  useEffect(() => { snapStateRef.current = snapState; }, [snapState]);
 
   useEffect(() => {
     const media = window.matchMedia(COARSE_POINTER_QUERY);
@@ -108,9 +103,9 @@ const useRestaurantPanelSnap = () => {
   const startDrag = useCallback((clientY: number, pointerId: number, element: Element) => {
     setIsDragging(true);
     dragStartYRef.current = clientY;
-    dragStartTranslateRef.current = translateYRef.current;
-    dragCurrentTranslateRef.current = translateYRef.current;
-    dragStartStateRef.current = snapStateRef.current;
+    dragStartTranslateRef.current = translateY;
+    dragCurrentTranslateRef.current = translateY;
+    dragStartStateRef.current = snapState;
     (element as HTMLElement).setPointerCapture(pointerId);
 
     // Define move/end handlers with closure over initial state
@@ -132,7 +127,7 @@ const useRestaurantPanelSnap = () => {
 
       if (movedDistance < TAP_THRESHOLD_PX) {
         // Tap with no real movement: advance to next state
-        const current = snapStateRef.current;
+        const current = dragStartStateRef.current;
         targetState = current === 'closed' ? 'preview' : 'full';
       } else {
         // Drag: commit to the adjacent state based on direction from the state where drag started.
@@ -155,18 +150,18 @@ const useRestaurantPanelSnap = () => {
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onEnd);
     window.addEventListener('pointercancel', onEnd);
-  }, [metrics.minOffset, metrics.maxOffset, metrics.snapOffsets]);
+  }, [metrics.minOffset, metrics.maxOffset, metrics.snapOffsets, snapState, translateY]);
 
   // Whole-panel drag — active in closed and preview states.
   // Capturing the pointer means the panel moves instead of the content scrolling.
   const handlePanelPointerDown = useCallback((event: ReactPointerEvent<HTMLElement>) => {
     const target = event.target;
     const targetElement = target instanceof Element ? target : null;
-    if (!isMobile || snapStateRef.current === 'full') return;
+    if (!isMobile || snapState === 'full') return;
     if (targetElement?.closest('.restaurant-sheet-header')) return;
     if (targetElement?.closest('a, button, input, textarea, select, label, [role="button"]')) return;
     startDrag(event.clientY, event.pointerId, event.currentTarget);
-  }, [isMobile, startDrag]);
+  }, [isMobile, snapState, startDrag]);
 
   // Handle-only drag — active in all states; the primary drag trigger in full state.
   // stopPropagation prevents the panel-wide handler from also firing.

@@ -9,6 +9,22 @@ type Props = {
   desktopTopOffsetPx?: number;
 };
 
+type ExternalLinksProps = {
+  googleMapsUri?: string | null;
+  websiteUri?: string | null;
+};
+
+const ExternalLinks: React.FC<ExternalLinksProps> = ({ googleMapsUri, websiteUri }) => (
+  <div style={{ display: 'flex', gap: 10 }}>
+    {googleMapsUri && (
+      <a href={googleMapsUri} target="_blank" rel="noreferrer">Map</a>
+    )}
+    {websiteUri && (
+      <a href={websiteUri} target="_blank" rel="noreferrer">Website</a>
+    )}
+  </div>
+);
+
 const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0 }) => {
   const {
     snapState,
@@ -23,18 +39,21 @@ const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0 }) => {
   const { selectedPlaceId } = usePlaceSelection();
   const { listStatus, listRes, page, setPage } = usePanelListQuery(isPanelOpen);
   const { status: detailStatus, res: detailRes } = useRequestPlaceDetail(selectedPlaceId);
+  const showEmptyList = listStatus !== 'loading' && (!listRes || listRes.data.length === 0);
+  const canGoNextPage = Boolean(listRes && listRes.data.length >= 20);
+  const scrollOverflowY = snapState === 'full' ? undefined : 'hidden';
 
   const content = (
     // overflowY is suppressed outside full state so touch drags move the panel, not the list
     <div
       className="restaurant-panel-scroll-content"
-      style={{ overflowY: snapState === 'full' ? undefined : 'hidden' }}
+      style={{ overflowY: scrollOverflowY }}
     >
       <Typography variant="subtitle2" color="text.secondary">Ranked Restaurants</Typography>
       {listStatus === 'loading' && (
         <Typography variant="body2" color="text.secondary">Loading ranked places...</Typography>
       )}
-      {listStatus !== 'loading' && (!listRes || listRes.data.length === 0) && (
+      {showEmptyList && (
         <Typography variant="body2" color="text.secondary">No places found in current view.</Typography>
       )}
       {listRes?.data.map((row, idx) => (
@@ -45,19 +64,12 @@ const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0 }) => {
           <Typography variant="caption" color="text.secondary">
             {row.cuisine_type ?? 'Unspecified'} · {row.venue_type ?? 'Unspecified'} · {row.is_chain ? 'Chain' : 'Independent'}
           </Typography>
-          <div style={{ display: 'flex', gap: 10 }}>
-            {row.google_maps_uri && (
-              <a href={row.google_maps_uri} target="_blank" rel="noreferrer">Map</a>
-            )}
-            {row.website_uri && (
-              <a href={row.website_uri} target="_blank" rel="noreferrer">Website</a>
-            )}
-          </div>
+          <ExternalLinks googleMapsUri={row.google_maps_uri} websiteUri={row.website_uri} />
         </div>
       ))}
       <div style={{ display: 'flex', gap: 8, paddingTop: 8 }}>
         <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Prev</button>
-        <button type="button" onClick={() => setPage((p) => p + 1)} disabled={!listRes || listRes.data.length < 20}>Next</button>
+        <button type="button" onClick={() => setPage((p) => p + 1)} disabled={!canGoNextPage}>Next</button>
       </div>
 
       <div style={{ marginTop: 16 }}>
@@ -77,14 +89,7 @@ const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0 }) => {
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
               Address: {detailRes.short_formatted_address ?? 'N/A'} · Postcode: {detailRes.pcd ?? 'N/A'}
             </Typography>
-            <div style={{ display: 'flex', gap: 10 }}>
-              {detailRes.google_maps_uri && (
-                <a href={detailRes.google_maps_uri} target="_blank" rel="noreferrer">Map</a>
-              )}
-              {detailRes.website_uri && (
-                <a href={detailRes.website_uri} target="_blank" rel="noreferrer">Website</a>
-              )}
-            </div>
+            <ExternalLinks googleMapsUri={detailRes.google_maps_uri} websiteUri={detailRes.website_uri} />
           </div>
         )}
       </div>
