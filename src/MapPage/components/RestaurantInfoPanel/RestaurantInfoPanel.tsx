@@ -30,6 +30,10 @@ const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0 }) => {
     snapState,
     handlePanelPointerDown,
     handleHandlePointerDown,
+    handleContentPointerDown,
+    handleContentPointerMove,
+    handleContentPointerUp,
+    handleContentPointerCancel,
     isDragging,
     isMobile,
     isPanelOpen,
@@ -48,6 +52,10 @@ const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0 }) => {
     <div
       className="restaurant-panel-scroll-content"
       style={{ overflowY: scrollOverflowY }}
+      onPointerDown={handleContentPointerDown}
+      onPointerMove={handleContentPointerMove}
+      onPointerUp={handleContentPointerUp}
+      onPointerCancel={handleContentPointerCancel}
     >
       <Typography variant="subtitle2" color="text.secondary">Ranked Restaurants</Typography>
       {listStatus === 'loading' && (
@@ -117,7 +125,7 @@ const RestaurantInfoPanel: React.FC<Props> = ({ desktopTopOffsetPx = 0 }) => {
       style={{
         height: panelHeight,
         transform: `translateY(${translateY}px)`,
-        transition: isDragging ? 'none' : 'transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+        transition: isDragging ? 'none' : 'transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1)',
       }}
       aria-label="Area restaurants panel"
       onPointerDownCapture={handlePanelPointerDown}

@@ -13,6 +13,7 @@ import {
 } from './config';
 
 export type SnapState = 'closed' | 'preview' | 'full';
+type DragSource = 'panel' | 'handle' | 'content';
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -31,10 +32,12 @@ const useRestaurantPanelSnap = () => {
   const [translateY, setTranslateY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  const dragStartYRef = useRef(0);
-  const dragStartTranslateRef = useRef(0);
   const dragCurrentTranslateRef = useRef(0);
-  const dragStartStateRef = useRef<SnapState>('closed');
+  const contentPullRef = useRef<{ armed: boolean; startY: number; pointerId: number | null }>({
+    armed: false,
+    startY: 0,
+    pointerId: null,
+  });
 
   useEffect(() => {
     const media = window.matchMedia(COARSE_POINTER_QUERY);
@@ -100,18 +103,22 @@ const useRestaurantPanelSnap = () => {
 
   // Stable helper: capture the pointer and register drag listeners synchronously on window.
   // This ensures pointer move events are captured immediately without async delay.
-  const startDrag = useCallback((clientY: number, pointerId: number, element: Element) => {
+  const startDrag = useCallback((
+    clientY: number,
+    pointerId: number,
+    element: Element,
+    source: DragSource,
+  ) => {
+    const startTranslate = translateY;
+    const startState = snapState;
     setIsDragging(true);
-    dragStartYRef.current = clientY;
-    dragStartTranslateRef.current = translateY;
-    dragCurrentTranslateRef.current = translateY;
-    dragStartStateRef.current = snapState;
+    dragCurrentTranslateRef.current = startTranslate;
     (element as HTMLElement).setPointerCapture(pointerId);
 
     // Define move/end handlers with closure over initial state
     const onMove = (event: PointerEvent) => {
-      const deltaY = event.clientY - dragStartYRef.current;
-      const next = clamp(dragStartTranslateRef.current + deltaY, metrics.minOffset, metrics.maxOffset);
+      const deltaY = event.clientY - clientY;
+      const next = clamp(startTranslate + deltaY, metrics.minOffset, metrics.maxOffset);
       dragCurrentTranslateRef.current = next;
       setTranslateY(next);
     };
@@ -122,17 +129,21 @@ const useRestaurantPanelSnap = () => {
       window.removeEventListener('pointerup', onEnd);
       window.removeEventListener('pointercancel', onEnd);
 
-      const movedDistance = Math.abs(dragCurrentTranslateRef.current - dragStartTranslateRef.current);
+      const movedDistance = Math.abs(dragCurrentTranslateRef.current - startTranslate);
       let targetState: SnapState;
 
       if (movedDistance < TAP_THRESHOLD_PX) {
-        // Tap with no real movement: advance to next state
-        const current = dragStartStateRef.current;
-        targetState = current === 'closed' ? 'preview' : 'full';
+        // Disable tap-advance for preview taps coming from non-handle areas.
+        if (startState === 'preview' && source !== 'handle') {
+          targetState = 'preview';
+        } else {
+          // Tap with no real movement: advance to next state
+          const current = startState;
+          targetState = current === 'closed' ? 'preview' : 'full';
+        }
       } else {
         // Drag: commit to the adjacent state based on direction from the state where drag started.
-        const deltaY = dragCurrentTranslateRef.current - dragStartTranslateRef.current;
-        const startState = dragStartStateRef.current;
+        const deltaY = dragCurrentTranslateRef.current - startTranslate;
 
         if (deltaY > 0) {
           targetState = startState === 'full' ? 'preview' : 'closed';
@@ -160,7 +171,7 @@ const useRestaurantPanelSnap = () => {
     if (!isMobile || snapState === 'full') return;
     if (targetElement?.closest('.restaurant-sheet-header')) return;
     if (targetElement?.closest('a, button, input, textarea, select, label, [role="button"]')) return;
-    startDrag(event.clientY, event.pointerId, event.currentTarget);
+    startDrag(event.clientY, event.pointerId, event.currentTarget, 'panel');
   }, [isMobile, snapState, startDrag]);
 
   // Handle-only drag — active in all states; the primary drag trigger in full state.
@@ -168,13 +179,50 @@ const useRestaurantPanelSnap = () => {
   const handleHandlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (!isMobile) return;
     event.stopPropagation();
-    startDrag(event.clientY, event.pointerId, event.currentTarget);
+    startDrag(event.clientY, event.pointerId, event.currentTarget, 'handle');
   }, [isMobile, startDrag]);
+
+  // In full state, allow pull-down from list content only when scrolled to top.
+  const handleContentPointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isMobile || snapState !== 'full') return;
+    const target = event.target;
+    const targetElement = target instanceof Element ? target : null;
+    if (targetElement?.closest('a, button, input, textarea, select, label, [role="button"]')) return;
+    if (event.currentTarget.scrollTop > 0) return;
+    contentPullRef.current.armed = true;
+    contentPullRef.current.startY = event.clientY;
+    contentPullRef.current.pointerId = event.pointerId;
+  }, [isMobile, snapState]);
+
+  const handleContentPointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!contentPullRef.current.armed) return;
+    if (contentPullRef.current.pointerId !== event.pointerId) return;
+    if (event.currentTarget.scrollTop > 0) {
+      contentPullRef.current.armed = false;
+      contentPullRef.current.pointerId = null;
+      return;
+    }
+    const deltaY = event.clientY - contentPullRef.current.startY;
+    if (deltaY <= TAP_THRESHOLD_PX) return;
+    event.preventDefault();
+    startDrag(contentPullRef.current.startY, event.pointerId, event.currentTarget, 'content');
+    contentPullRef.current.armed = false;
+    contentPullRef.current.pointerId = null;
+  }, [startDrag]);
+
+  const clearContentPullArmed = useCallback(() => {
+    contentPullRef.current.armed = false;
+    contentPullRef.current.pointerId = null;
+  }, []);
 
   return {
     snapState,
     handlePanelPointerDown,
     handleHandlePointerDown,
+    handleContentPointerDown,
+    handleContentPointerMove,
+    handleContentPointerUp: clearContentPullArmed,
+    handleContentPointerCancel: clearContentPullArmed,
     isDragging,
     isMobile,
     isPanelOpen: !isMobile || snapState !== 'closed',
