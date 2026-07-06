@@ -9,6 +9,7 @@ import { useAppUI } from '../context/AppUIContext';
 import PullDownPanel from './components/PullDownPanel/PullDownPanel';
 import RestaurantInfoPanel from './components/RestaurantInfoPanel/RestaurantInfoPanel';
 import { RestaurantPanelSnapProvider } from './components/RestaurantInfoPanel/RestaurantPanelSnapContext';
+import PanelSnapMapViewportSync from './components/RestaurantInfoPanel/PanelSnapMapViewportSync.tsx';
 import { TileQueryProvider } from '../context/TileQueryContext';
 import { PlaceSelectionProvider } from '../context/PlaceSelectionContext';
 import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
@@ -31,6 +32,7 @@ const MapPage: React.FC = () => {
             <Map mapRef={mapRef} />
             <PullDownPanel mapRef={mapRef} />
             <RestaurantPanelSnapProvider>
+              <PanelSnapMapViewportSync mapRef={mapRef} />
               <RestaurantInfoPanel />
               <BubbleAvatarStateProvider>
                 <BubbleAvatar mapRef={mapRef} />
