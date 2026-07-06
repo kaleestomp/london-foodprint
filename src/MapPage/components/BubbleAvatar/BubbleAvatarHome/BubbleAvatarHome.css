@@ -43,6 +43,7 @@
   position: fixed;
   pointer-events: none;
   z-index: 899;
+  /* animation: drop-ring-pulse 1.4s ease-in-out infinite; */
 }
 
 .bubble-btn-drop-ring {
@@ -50,6 +51,6 @@
   height: var(--bubble-avatar-drop-ring-size);
   color: var(--bubble-avatar-ring-color);
   overflow: visible;
-  animation: drop-ring-pulse 1.4s ease-in-out infinite;
+  animation: drop-ring-pulse 1.6s ease-in-out infinite;
   display: block;
 }

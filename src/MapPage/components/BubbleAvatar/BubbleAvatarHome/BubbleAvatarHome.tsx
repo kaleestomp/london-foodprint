@@ -13,6 +13,8 @@ import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useRestaurantPanelMetrics } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
 import { getHomeCenter } from '../config';
 import DashedCircle from '../Searchmask/DashedCircle';
+import Badge from '../Badge/Badge';
+import useDragRestaurantCount from '../Badge/useDragRestaurantCount';
 import BubbleEyes from '../BubbleEyes/BubbleEyes';
 import './BubbleAvatarHome.css';
 
@@ -146,6 +148,12 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
     [isCoarsePointer],
   );
 
+  const { count: dragRestaurantCount, isLoading: isDragCountLoading } = useDragRestaurantCount({
+    mapRef,
+    pointer: dragMotion.pointer,
+    isActive: isDragging && !isNearHome,
+  });
+
   return (
     <>
       {/* ── Floating bubble ─────────────────────────────────────────────── */}
@@ -186,6 +194,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
           style={{ left: dragMotion.pointer.x, top: dragMotion.pointer.y }}
         >
           <DashedCircle className="bubble-btn-drop-ring" />
+          <Badge count={dragRestaurantCount} isLoading={isDragCountLoading} />
         </motion.div>
       )}
 
