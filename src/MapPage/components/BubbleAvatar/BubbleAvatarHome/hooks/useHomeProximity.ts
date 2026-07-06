@@ -1,5 +1,11 @@
 import { useRef, useEffect } from 'react';
+import { type MotionValue, useMotionValueEvent } from 'framer-motion';
 import { HOME_SNAP_RADIUS, type Point } from '../../config';
+
+type PointerMotion = {
+  x: MotionValue<number>;
+  y: MotionValue<number>;
+};
 
 /**
  * Fires onNearHomeChange(true/false) as the drag position enters or leaves
@@ -7,28 +13,38 @@ import { HOME_SNAP_RADIUS, type Point } from '../../config';
  */
 const useHomeProximity = (
   isDragging: boolean,
-  dragPos: Point | null,
+  pointer: PointerMotion,
   homeCenter: Point,
-  onNearHomeChange?: (near: boolean) => void,
+  setNearHome?: (near: boolean) => void,
 ) => {
   const prevRef = useRef(false);
 
-  useEffect(() => {
-    if (!isDragging || !dragPos) {
-      if (prevRef.current) {
-        prevRef.current = false;
-        onNearHomeChange?.(false);
-      }
-      return;
-    }
+  const updateNearHome = () => {
+    if (!isDragging) return;
 
-    const near = Math.sqrt((dragPos.x - homeCenter.x) ** 2 + (dragPos.y - homeCenter.y) ** 2) < HOME_SNAP_RADIUS;
+    const x = pointer.x.get();
+    const y = pointer.y.get();
+    const near = Math.sqrt((x - homeCenter.x) ** 2 + (y - homeCenter.y) ** 2) < HOME_SNAP_RADIUS;
 
     if (near !== prevRef.current) {
       prevRef.current = near;
-      onNearHomeChange?.(near);
+      setNearHome?.(near);
     }
-  }, [isDragging, dragPos, onNearHomeChange, homeCenter]);
+  };
+
+  useMotionValueEvent(pointer.x, 'change', updateNearHome);
+  useMotionValueEvent(pointer.y, 'change', updateNearHome);
+
+  useEffect(() => {
+    if (!isDragging) {
+      if (prevRef.current) {
+        prevRef.current = false;
+        setNearHome?.(false);
+      }
+      return;
+    }
+    updateNearHome();
+  }, [homeCenter, isDragging, pointer, setNearHome]);
 };
 
 export default useHomeProximity;

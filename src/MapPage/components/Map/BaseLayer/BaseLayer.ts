@@ -8,6 +8,7 @@ import useMapResizeSync from './useMapResizeSync';
 import { LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM, LONDON_MAX_ZOOM, LONDON_BOUNDS } from '../MapTemplate'; 
 
 const OPEN_FREE_MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/fiord';
+const DISABLE_BASE_LAYER = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_DISABLE_BASE_LAYER === 'true';
 
 const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): { 
     mapContainerRef: React.RefObject<HTMLDivElement | null>; 
@@ -35,11 +36,13 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
       maxZoom: LONDON_MAX_ZOOM,
     }).setView(LONDON_CENTER, LONDON_INITIAL_ZOOM);
     mapRef.current = map;
-    (L as typeof L & {
-      maplibreGL: (options: { style: string }) => L.Layer;
-    }).maplibreGL({
-      style: OPEN_FREE_MAP_STYLE_URL,
-    }).addTo(map);
+    if (!DISABLE_BASE_LAYER) {
+      (L as typeof L & {
+        maplibreGL: (options: { style: string }) => L.Layer;
+      }).maplibreGL({
+        style: OPEN_FREE_MAP_STYLE_URL,
+      }).addTo(map);
+    }
     const cleanupResizeSync = setupMapResizeSync(map, mapContainer);
     return () => {
       cleanupResizeSync();

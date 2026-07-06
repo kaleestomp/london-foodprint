@@ -1,8 +1,9 @@
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { type PanInfo } from 'framer-motion';
 import L from 'leaflet';
 import { HOME_SNAP_RADIUS, type Point } from '../config';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
+import useDragMotionValues from './useDragMotionValues';
 
 /**
  * Handles the drag lifecycle for BubbleButton:
@@ -21,10 +22,15 @@ const useBubbleDrag = (
   onCancel?: () => void,
   isDropBlocked?: (point: Point) => boolean,
 ) => {
-  const { isDragging, setIsDragging } = useBubbleAvatarState();
+  const { isDragging, beginDragging, endDragging } = useBubbleAvatarState();
   const hasDragStartedRef = useRef(false);
-  // Tracks the last pointer position during drag for the drop-ring overlay
-  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const {
+    dragMotion,
+    beginAt,
+    updatePointer,
+    updateRawOffset,
+    reset: resetDragMotion,
+  } = useDragMotionValues();
 
   const resetDragStarted = useCallback(() => {
     hasDragStartedRef.current = false;
@@ -34,31 +40,32 @@ const useBubbleDrag = (
 
   const handleDragStart = useCallback(() => {
     hasDragStartedRef.current = true;
-    setIsDragging(true);
+    beginDragging();
     mapRef.current?.dragging.disable();
-  }, [mapRef]);
+  }, [beginDragging, mapRef]);
 
   const handleDragStartAtPoint = useCallback((x: number, y: number) => {
     hasDragStartedRef.current = true;
-    setIsDragging(true);
-    setDragPos({ x, y });
+    beginDragging();
+    beginAt(x, y);
     mapRef.current?.dragging.disable();
-  }, [mapRef]);
+  }, [beginAt, beginDragging, mapRef]);
 
   const handleDrag = useCallback(
     (_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      setDragPos({ x: info.point.x, y: info.point.y });
+      updatePointer(info.point.x, info.point.y);
     },
-    [],
+    [updatePointer],
   );
 
   const handleDragMoveToPoint = useCallback((x: number, y: number) => {
-    setDragPos({ x, y });
-  }, []);
+    updatePointer(x, y);
+    updateRawOffset(x, y);
+  }, [updatePointer, updateRawOffset]);
 
   const finalizeDragAtPoint = useCallback((x: number, y: number) => {
-      setIsDragging(false);
-      setDragPos(null);
+      endDragging();
+      resetDragMotion();
       mapRef.current?.dragging.enable();
 
       // ── Near-home check (highest priority) ──────────────────────────────
@@ -93,7 +100,7 @@ const useBubbleDrag = (
         onCancel?.();
       }
     },
-    [mapRef, onDrop, onCancel, homeCenter, isDropBlocked],
+    [endDragging, homeCenter, isDropBlocked, mapRef, onCancel, onDrop, resetDragMotion],
   );
 
   const handleDragEnd = useCallback(
@@ -105,7 +112,7 @@ const useBubbleDrag = (
 
   return {
     isDragging,
-    dragPos,
+    dragMotion,
     hasDragStarted,
     resetDragStarted,
     handleDragStart,

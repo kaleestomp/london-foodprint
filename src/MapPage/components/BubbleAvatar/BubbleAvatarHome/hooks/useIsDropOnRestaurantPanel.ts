@@ -16,8 +16,9 @@ const useIsDropOnRestaurantPanel = ({
   return useCallback((point: Point) => {
     if (!isMobile) return false;
 
-    const panelTop = Math.max(0, translateY);
-    const panelBottom = panelTop + Math.max(0, panelHeight);
+    const safePanelHeight = Math.max(0, panelHeight);
+    const panelTop = Math.max(0, window.innerHeight - safePanelHeight + Math.max(0, translateY));
+    const panelBottom = panelTop + safePanelHeight;
 
     return (
       point.x >= 0 &&

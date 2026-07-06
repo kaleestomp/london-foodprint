@@ -14,12 +14,17 @@ interface BubbleAvatarState {
 
   /** Whether the button is currently being dragged by the user */
   isDragging: boolean;
-  setIsDragging: Dispatch<SetStateAction<boolean>>;
+
+  /** Start/stop drag without exposing the raw setter */
+  beginDragging: () => void;
+  endDragging: () => void;
 
   /** Whether the button is currently near its home position
    *  (used to determine whether to show the ghost) */
   isNearHome: boolean;
-  setIsNearHome: Dispatch<SetStateAction<boolean>>;
+
+  /** Update near-home state without exposing the raw setter */
+  setNearHome: Dispatch<SetStateAction<boolean>>;
 
   /** Screen coordinate where the button should fly in from when returning home */
   flyInFrom: Point | null;
@@ -61,6 +66,14 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
     setIsDragging(false);
   }, []);
 
+  const beginDragging = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+
+  const endDragging = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
   const handleDrop = useCallback((lat: number, lng: number) => {
     setDroppedPos({ lat, lng });
     setPickupPos(null);
@@ -83,9 +96,10 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
     droppedPos,
     pickupPos,
     isDragging,
-    setIsDragging,
+    beginDragging,
+    endDragging,
     isNearHome,
-    setIsNearHome,
+    setNearHome: setIsNearHome,
     flyInFrom,
     resetBubbleToHome,
     handleDrop,
@@ -95,7 +109,8 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
     droppedPos,
     pickupPos,
     isDragging,
-    setIsDragging,
+    beginDragging,
+    endDragging,
     isNearHome,
     setIsNearHome,
     flyInFrom,

@@ -5,16 +5,15 @@ type Point = { x: number; y: number };
 
 type HomeCenter = Point;
 
-export type BubbleStyleKeyword = 'default' | 'mobile-home' | 'pickup' | 'raw-drag';
+export type BubbleStyleKeyword = 'default' | 'mobile-home' | 'pickup';
 
 type Args = {
   style: BubbleStyleKeyword | undefined;
   homeCenter: HomeCenter | null;
   pickupPos: Point | null;
-  dragPos: Point | null;
 };
 
-const useBubbleStyle = ({ style: styleKeyword, homeCenter, pickupPos, dragPos }: Args): CSSProperties | undefined => {
+const useBubbleStyle = ({ style: styleKeyword, homeCenter, pickupPos }: Args): CSSProperties | undefined => {
   return useMemo(() => {
     if (styleKeyword === 'mobile-home' && homeCenter) {
       return {
@@ -32,17 +31,8 @@ const useBubbleStyle = ({ style: styleKeyword, homeCenter, pickupPos, dragPos }:
       };
     }
 
-    if (styleKeyword === 'raw-drag' && dragPos) {
-      return {
-        bottom: 'auto',
-        left: `calc(${dragPos.x}px - (var(--bubble-avatar-home-size) / 2))`,
-        top: `calc(${dragPos.y}px - (var(--bubble-avatar-home-size) / 2))`,
-        marginLeft: 0,
-      };
-    }
-
     return undefined;
-  }, [styleKeyword, homeCenter, pickupPos, dragPos]);
+  }, [styleKeyword, homeCenter, pickupPos]);
 };
 
 export default useBubbleStyle;

@@ -21,7 +21,7 @@ const useSmileGaze = (isActive: boolean): Point => {
       return;
     }
 
-    let timer: number | null = null;
+    let timer: ReturnType<typeof setTimeout>;
 
     const scheduleNext = () => {
       const delayMs = MIN_MS + Math.random() * (MAX_MS - MIN_MS); // 250-500 ms
@@ -41,7 +41,7 @@ const useSmileGaze = (isActive: boolean): Point => {
 
     scheduleNext();
     return () => {
-      if (timer !== null) window.clearTimeout(timer);
+      clearTimeout(timer);
     };
   }, [isActive]);
 

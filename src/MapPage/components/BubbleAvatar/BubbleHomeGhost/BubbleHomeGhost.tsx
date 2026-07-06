@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
-import { useRestaurantPanelSnapState } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
+import { useRestaurantPanelMetrics } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
 import { getHomeCenter } from '../config';
 import DashedCircle from '../Searchmask/DashedCircle';
 import './BubbleHomeGhost.css';
@@ -19,10 +19,10 @@ type Props = {
  */
 const BubbleHomeGhost: React.FC<Props> = ({ onResetHome }) => {
   const { isNearHome } = useBubbleAvatarState();
-  const { isMobile, translateY } = useRestaurantPanelSnapState();
+  const { isMobile, translateY, panelHeight } = useRestaurantPanelMetrics();
   const homeCenter = useMemo(
-    () => getHomeCenter(isMobile ? translateY : undefined),
-    [isMobile, translateY],
+    () => getHomeCenter(isMobile ? { translateY, panelHeight } : undefined),
+    [isMobile, panelHeight, translateY],
   );
   const ghostStyle = useMemo(() => {
     if (!isMobile) return undefined;

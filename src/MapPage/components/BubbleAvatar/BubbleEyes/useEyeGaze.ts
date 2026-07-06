@@ -15,9 +15,12 @@ const useEyeGaze = (
   mode: EyeGazeMode = 'idle',
 ) => {
   const { isBlinking } = useBlink();
-  const { gaze: idleGaze } = useIdleGaze(bubbleRef);
-  const smileGaze = useSmileGaze(mode === 'smile');
-  const { gaze: curiousGaze } = useCuriousGaze(bubbleRef);
+  const isIdleMode = mode === 'idle';
+  const isSmileMode = mode === 'smile';
+  const isCuriousMode = mode === 'curious';
+  const { gaze: idleGaze } = useIdleGaze(bubbleRef, isIdleMode);
+  const smileGaze = useSmileGaze(isSmileMode);
+  const { gaze: curiousGaze } = useCuriousGaze(bubbleRef, isCuriousMode);
 
   const gaze: Point =
     mode === 'smile' ? smileGaze

@@ -5,6 +5,7 @@ import { type TileDensity } from '../../../../request/useRequestTiles/request';
 import addDensityPins from '../addDensityPins/addDensityPins';
 import computeExplodeOffsets from './computeExplodeOffsets'; // remove import to disable explode
 import computeMergeOffsets from './computeMergeOffsets';   // remove import to disable merge
+import { type SearchMask } from '../LayerStates/filterTileOutsideMask';
 
 const EXIT_DELAY = 280;
 
@@ -54,6 +55,21 @@ const useDensityPinLayer = (
       undefined, map.getCenter(),
     );
     created.forEach(({ tile, marker }) => markersByTileRef.current.set(tile, marker));
+  };
+
+  const setMaskVisibility = (searchMask: SearchMask | null): void => {
+    const center = searchMask ? L.latLng(searchMask.center.lat, searchMask.center.lng) : null;
+
+    markersByTileRef.current.forEach((marker) => {
+      if (!searchMask || !center) {
+        marker.setOpacity(1);
+        return;
+      }
+
+      const distance = marker.getLatLng().distanceTo(center);
+      const hidden = distance <= searchMask.radiusM;
+      marker.setOpacity(hidden ? 0 : 1);
+    });
   };
 
   /**
@@ -124,6 +140,7 @@ const useDensityPinLayer = (
     cancelTimer,
     resetState,
     addPins,
+    setMaskVisibility,
     transitionRes,
   };
 };

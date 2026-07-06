@@ -9,12 +9,12 @@ import addPlaceMarkers from '../../Map/DataLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
 import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import { useRestaurantPanelSnapState } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
+import { useRestaurantPanelMetrics } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
 import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
-import { type LatLng, SEARCH_RADIUS, LONGPRESS_MS, ZOOM_LEVEL, CIRCLE_COLOR, DROP_ENTRY_DELAY_MS } from '../config';
+import { type LatLng, SEARCH_RADIUS, ZOOM_LEVEL, DROP_ENTRY_DELAY_MS } from '../config';
 import useMapViewportNavigation from './useMapViewportNavigation';
-
-const CIRCLE_ENTRY_MS = 280;
+import setupBubbleDropCircle from './setupBubbleDropCircle';
+import setupBubbleDropLongPress from './setupBubbleDropLongPress';
 
 /**
  * Manages all Leaflet layers for the dropped bubble avatar.
@@ -31,9 +31,8 @@ const useBubbleDrop = (
   onPickup:    (x: number, y: number) => void,
 ) => {
   const { focusMap } = useMapViewportNavigation({ mapRef });
-  const { isMobile, panelHeight, translateY } = useRestaurantPanelSnapState();
+  const { isMobile, panelHeight, translateY } = useRestaurantPanelMetrics();
   const { effectiveCuisines, venueType, effectivePriceRanges, scoreTier, scoreBasis } = useSearchFilters();
-  const circleRef      = useRef<L.Circle | null>(null);
   const markerRef      = useRef<L.Marker | null>(null);
   const reactRootRef   = useRef<Root | null>(null);
   const placesLayerRef = useRef<L.LayerGroup | null>(null);
@@ -65,18 +64,15 @@ const useBubbleDrop = (
   const clearAll = useCallback((map: L.Map) => {
     const root = reactRootRef.current;
     const marker = markerRef.current;
-    const circle = circleRef.current;
     const placesLayer = placesLayerRef.current;
 
     reactRootRef.current = null;
     markerRef.current = null;
-    circleRef.current = null;
     placesLayerRef.current = null;
 
     window.setTimeout(() => {
       if (root) root.unmount();
       if (marker) map.removeLayer(marker);
-      if (circle) map.removeLayer(circle);
       if (placesLayer) map.removeLayer(placesLayer);
     }, 0);
   }, []);
@@ -113,9 +109,7 @@ const useBubbleDrop = (
     if (!map || !droppedPos) return;
 
     const { lat, lng } = droppedPos;
-    let pressTimer: ReturnType<typeof setTimeout> | null = null;
-    let circleAnimFrame: number | null = null;
-    let circleStartTimer: ReturnType<typeof setTimeout> | null = null;
+    let cleanupCircle = () => {};
     const {
       isMobile: isMobileAtDrop,
       panelHeight: panelHeightAtDrop,
@@ -142,38 +136,14 @@ const useBubbleDrop = (
       targetScreenPoint,
     });
 
-    // 2. Dashed 1 km circle — created invisible (radius 1, opacity 0) so no
-    //    flash occurs before the entry delay fires.
-    const circle = L.circle([lat, lng], {
-      radius:    1,
-      color:     CIRCLE_COLOR,
-      weight:    4.0,
-      fill:      false,
-      dashArray: '10 10',
-      opacity:   0,
-    }).addTo(map);
-    circleRef.current = circle;
-
-    const startCircleIn = () => {
-      const startTs = performance.now();
-      const animateCircleIn = (ts: number) => {
-        const t = Math.min((ts - startTs) / CIRCLE_ENTRY_MS, 1);
-        const eased = 1 - (1 - t) ** 3;
-        circle.setRadius(Math.max(1, SEARCH_RADIUS * eased));
-        circle.setStyle({ opacity: 0.16 + 0.84 * eased });
-
-        if (t < 1) {
-          circleAnimFrame = window.requestAnimationFrame(animateCircleIn);
-        }
-      };
-
-      circleAnimFrame = window.requestAnimationFrame(animateCircleIn);
-    };
-    if (entryDelayMs > 0) {
-      circleStartTimer = setTimeout(startCircleIn, entryDelayMs);
-    } else {
-      startCircleIn();
-    }
+    // 2. Dashed 1 km circle — delegated to a helper that owns creation,
+    //    entry animation, and cleanup.
+    cleanupCircle = setupBubbleDropCircle({
+      map,
+      lat,
+      lng,
+      entryDelayMs,
+    });
 
     // 3. Avatar marker — interactive: true lets Leaflet block map-pan on press
     const pinSize = getPinSizeFromCss();
@@ -189,6 +159,7 @@ const useBubbleDrop = (
       zIndexOffset: 10000,
     }).addTo(map);
     markerRef.current = marker;
+    let removeLongPress = () => {};
 
     const markerEl = marker.getElement();
     if (markerEl) {
@@ -200,58 +171,18 @@ const useBubbleDrop = (
         root.render(createElement(BubbleAvatarPin));
       }
 
-      // Long-press: hold → pick up avatar
-      // Three Leaflet-specific measures for responsiveness:
-      //   1. preventDefault()         — stops browser context-menu / scroll gesture consuming the event
-      //   2. setPointerCapture()      — we receive pointermove/up even if pointer leaves the element
-      //   3. dragging.disable() NOW   — Leaflet's pan-detection starts on the very first pointerdown;
-      //      deferring to the timer means a 250 ms window where Leaflet wins the gesture
-      let startX = 0, startY = 0;
-
-      const cancelPress = () => {
-        if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-      };
-
-      markerEl.addEventListener('pointerdown', (e: PointerEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        markerEl.setPointerCapture(e.pointerId); // capture before Leaflet can intercept
-        // NOTE: map.dragging.disable() is called here to win the gesture race against
-        // Leaflet's pan-detection. This means if the long-press is cancelled (short tap),
-        // we re-enable via releasePress. If Leaflet ever acquires pan in other contexts
-        // this may need revisiting — tracked as a known trade-off.
-        map.dragging.disable();
-        startX = e.clientX; startY = e.clientY;
-        pressTimer = setTimeout(() => {
-          pressTimer = null;
-          // Marker cleanup may happen before pointerup fires, so make sure
-          // map panning is re-enabled before we hand control back to React.
-          map.dragging.enable();
-          onPickupRef.current(e.clientX, e.clientY);
-        }, LONGPRESS_MS);
+      removeLongPress = setupBubbleDropLongPress({
+        markerEl,
+        map,
+        onPickup: onPickupRef.current,
       });
-
-      markerEl.addEventListener('pointermove', (e: PointerEvent) => {
-        if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
-          cancelPress();
-        }
-      });
-
-      const releasePress = () => {
-        cancelPress();
-        map.dragging.enable(); // re-enable if long-press didn't fire
-      };
-
-      markerEl.addEventListener('pointerup',     releasePress);
-      markerEl.addEventListener('pointercancel', releasePress);
     }
 
     // Cleanup: runs when droppedPos changes or component unmounts
     // Places layer is managed by the nearbyRes effect above.
     return () => {
-      if (pressTimer) clearTimeout(pressTimer);
-      if (circleStartTimer) clearTimeout(circleStartTimer);
-      if (circleAnimFrame !== null) window.cancelAnimationFrame(circleAnimFrame);
+      cleanupCircle();
+      removeLongPress();
       // Defensive: if the marker was removed before pointerup/pointercancel,
       // Leaflet dragging can remain disabled.
       map.dragging.enable();

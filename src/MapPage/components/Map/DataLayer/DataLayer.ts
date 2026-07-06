@@ -5,9 +5,8 @@ import callRequestTiles from './inputHooks/callRequestTiles';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import createPersistentLayer from './LayerStates/createPersistentLayer';
 import usePinAnimations from './pinAnimations/usePinAnimations';
-import { type SearchMask, filterDensityOutsideMask, filterPlacesOutsideMask } from './LayerStates/filterTileOutsideMask';
+import { type SearchMask, filterPlacesOutsideMask } from './LayerStates/filterTileOutsideMask';
 import addDebugTileOverlay from './utils/addDebugTileOverlay';
-import useCheckMaskChanged from './LayerStates/checkMaskChanged';
 import useBuildFilterKey from './LayerStates/buildFilterKey';
 import { useTileQuery } from '../../../../context/TileQueryContext';
 import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
@@ -15,7 +14,11 @@ import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 // DEBUG Layers that only shows in local dev
 const DEBUG_TILE_OVERLAY = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_TILE_OVERLAY === 'true';
 
-const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask | null = null): void => {
+const DataLayer = (
+  mapRef: React.RefObject<L.Map | null>,
+  searchMask: SearchMask | null = null,
+  enabled = true,
+): void => {
 
   const { 
     cuisineSelectionMode, // Include / Exclude
@@ -25,7 +28,7 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
     scoreBasis, scoreTier 
   } = useSearchFilters();
 
-  const { status, res, queryKey, responseKey, requestParams } = callRequestTiles(mapRef);
+  const { status, res, queryKey, responseKey, requestParams } = callRequestTiles(mapRef, enabled);
   const { setLastTilesParams } = useTileQuery();
   const { setSelectedPlaceId } = usePlaceSelection();
   useEffect(() => {
@@ -40,6 +43,7 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
   const { 
     currentResRef, 
     addPins, 
+    setMaskVisibility,
     transitionRes, 
     transitionToPlaces, 
     transitionFromPlaces, 
@@ -50,63 +54,61 @@ const DataLayer = (mapRef: React.RefObject<L.Map | null>, searchMask: SearchMask
 
   // Tracks the last rendered mode so we can detect places → tiles transitions.
   const prevModeRef = useRef<'tiles' | 'places' | null>(null);
-
-  // Owns refs for mask and filter change detection
-  const checkMaskChanged = useCheckMaskChanged();
   const buildFilterKey = useBuildFilterKey();
 
   
   useEffect(() => {
+    if (!enabled) return;
     if (!mapRef.current || status !== 'success' || !res || !layerRef.current) return;
     if (responseKey !== queryKey) return;
 
-    const maskChanged = checkMaskChanged(searchMask);
     const { changed: filterChanged } = buildFilterKey(
       cuisineSelectionMode, effectiveCuisines,
       venueType, effectivePriceRanges,
       scoreBasis, scoreTier,
     );
-    const reconcileLayer = maskChanged || filterChanged;
 
     // Places mode — mask out pins inside the bubble radius to avoid duplicates with BubbleAvatar.
     if (res.mode === 'places') {
       prevModeRef.current = 'places';
       const filteredPlaces = filterPlacesOutsideMask(res.data, searchMask);
-      transitionToPlaces(filteredPlaces, { replaceAll: reconcileLayer });
+      transitionToPlaces(filteredPlaces, { replaceAll: filterChanged });
       return;
     }
 
-    const filteredTiles = filterDensityOutsideMask(res.data, searchMask);
-    
+    const densityTiles = res.data;
+
     // Coming back from places mode — animate place markers out, then show density pins.
     if (!DEBUG_TILE_OVERLAY && prevModeRef.current === 'places') {
-      transitionFromPlaces(res.resolution, filteredTiles);
+      transitionFromPlaces(res.resolution, densityTiles);
+      setMaskVisibility(searchMask);
       prevModeRef.current = 'tiles';
       return;
     } else if (DEBUG_TILE_OVERLAY) {
       // Reset pin-layer refs too — otherwise places mode can skip rendering stale markers.
       clearAll();
-      addDebugTileOverlay(mapRef.current, layerRef.current, filteredTiles);
+      addDebugTileOverlay(mapRef.current, layerRef.current, densityTiles);
       prevModeRef.current = 'tiles';
       return;
     }
     prevModeRef.current = 'tiles';
 
-    // Force full reconcile on mask/filter change so stale in-radius markers are removed.
-    if (reconcileLayer) {
-      transitionRes(res.resolution, filteredTiles);
-      return;
-    }
     if (res.resolution !== currentResRef.current) {
-      transitionRes(res.resolution, filteredTiles);
+      transitionRes(res.resolution, densityTiles);
     } else {
-      addPins(filteredTiles, res.resolution);
+      if (filterChanged) {
+        transitionRes(res.resolution, densityTiles);
+      } else {
+        addPins(densityTiles, res.resolution);
+      }
     }
 
+    setMaskVisibility(searchMask);
+
   }, [
-    res, status, searchMask, cuisineSelectionMode, 
+    enabled, res, status, searchMask, cuisineSelectionMode, 
     effectiveCuisines, venueType, effectivePriceRanges, 
-    scoreBasis, scoreTier, queryKey, responseKey
+    scoreBasis, scoreTier, queryKey, responseKey, setMaskVisibility
   ]);
 
 };

@@ -4,18 +4,21 @@ import {
   MOBILE_BREAKPOINT,
   MOBILE_ENTER_BREAKPOINT,
   MOBILE_EXIT_BREAKPOINT,
-  MOBILE_FULL_TOP_GAP_PX,
   MOBILE_PEEK_PX,
-  MOBILE_PREVIEW_RATIO,
   RESIZE_HEIGHT_JITTER_PX,
   RESIZE_WIDTH_JITTER_PX,
   TAP_THRESHOLD_PX,
 } from './config';
 
-export type SnapState = 'closed' | 'preview' | 'full';
+export type SnapState = 'closed' | 'open';
 type DragSource = 'panel' | 'handle' | 'content';
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const MOBILE_OPEN_HEIGHT_RATIO = 0.5;
+const getClosedOffsetForHeight = (viewportHeight: number) => {
+  const sheetHeight = Math.max(MOBILE_PEEK_PX, Math.round(viewportHeight * MOBILE_OPEN_HEIGHT_RATIO));
+  return Math.max(0, sheetHeight - MOBILE_PEEK_PX);
+};
 
 const useRestaurantPanelSnap = () => {
   const [viewport, setViewport] = useState({
@@ -29,7 +32,11 @@ const useRestaurantPanelSnap = () => {
     (typeof window !== 'undefined' ? window.innerWidth : 1280) < MOBILE_BREAKPOINT,
   );
   const [snapState, setSnapState] = useState<SnapState>('closed');
-  const [translateY, setTranslateY] = useState(0);
+  const [translateY, setTranslateY] = useState(() =>
+    typeof window !== 'undefined'
+      ? getClosedOffsetForHeight(window.visualViewport?.height ?? window.innerHeight)
+      : getClosedOffsetForHeight(800),
+  );
   const [isDragging, setIsDragging] = useState(false);
 
   const dragCurrentTranslateRef = useRef(0);
@@ -80,17 +87,15 @@ const useRestaurantPanelSnap = () => {
   }, [isCoarsePointer, viewport.width]);
 
   const metrics = useMemo(() => {
-    const sheetHeight = viewport.height;
-    const fullVisible = Math.max(MOBILE_PEEK_PX, viewport.height - MOBILE_FULL_TOP_GAP_PX);
+    const sheetHeight = Math.max(MOBILE_PEEK_PX, Math.round(viewport.height * MOBILE_OPEN_HEIGHT_RATIO));
     const snapOffsets: Record<SnapState, number> = {
-      closed:  Math.max(0, sheetHeight - MOBILE_PEEK_PX),
-      preview: Math.max(0, sheetHeight - Math.round(viewport.height * MOBILE_PREVIEW_RATIO)),
-      full:    Math.max(0, sheetHeight - fullVisible),
+      closed: Math.max(0, sheetHeight - MOBILE_PEEK_PX),
+      open: 0,
     };
     return {
       snapOffsets,
       maxOffset: snapOffsets.closed,
-      minOffset: snapOffsets.full,
+      minOffset: snapOffsets.open,
       sheetHeight,
     };
   }, [viewport.height]);
@@ -110,7 +115,6 @@ const useRestaurantPanelSnap = () => {
     source: DragSource,
   ) => {
     const startTranslate = translateY;
-    const startState = snapState;
     setIsDragging(true);
     dragCurrentTranslateRef.current = startTranslate;
     (element as HTMLElement).setPointerCapture(pointerId);
@@ -129,27 +133,17 @@ const useRestaurantPanelSnap = () => {
       window.removeEventListener('pointerup', onEnd);
       window.removeEventListener('pointercancel', onEnd);
 
-      const movedDistance = Math.abs(dragCurrentTranslateRef.current - startTranslate);
-      let targetState: SnapState;
+      const deltaY = dragCurrentTranslateRef.current - startTranslate;
+      const midpoint = (metrics.maxOffset + metrics.minOffset) / 2;
+      const hasMovedEnough = Math.abs(deltaY) > TAP_THRESHOLD_PX;
 
-      if (movedDistance < TAP_THRESHOLD_PX) {
-        // Disable tap-advance for preview taps coming from non-handle areas.
-        if (startState === 'preview' && source !== 'handle') {
-          targetState = 'preview';
-        } else {
-          // Tap with no real movement: advance to next state
-          const current = startState;
-          targetState = current === 'closed' ? 'preview' : 'full';
-        }
-      } else {
-        // Drag: commit to the adjacent state based on direction from the state where drag started.
-        const deltaY = dragCurrentTranslateRef.current - startTranslate;
+      let targetState: SnapState = dragCurrentTranslateRef.current > midpoint ? 'closed' : 'open';
+      if (hasMovedEnough) {
+        targetState = deltaY > 0 ? 'closed' : 'open';
+      }
 
-        if (deltaY > 0) {
-          targetState = startState === 'full' ? 'preview' : 'closed';
-        } else {
-          targetState = startState === 'closed' ? 'preview' : 'full';
-        }
+      if (source === 'panel' && deltaY <= 0 && hasMovedEnough) {
+        targetState = 'open';
       }
 
       setSnapState(targetState);
@@ -161,14 +155,14 @@ const useRestaurantPanelSnap = () => {
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onEnd);
     window.addEventListener('pointercancel', onEnd);
-  }, [metrics.minOffset, metrics.maxOffset, metrics.snapOffsets, snapState, translateY]);
+  }, [metrics.minOffset, metrics.maxOffset, metrics.snapOffsets, translateY]);
 
-  // Whole-panel drag — active in closed and preview states.
+  // Whole-panel drag — active in closed state.
   // Capturing the pointer means the panel moves instead of the content scrolling.
   const handlePanelPointerDown = useCallback((event: ReactPointerEvent<HTMLElement>) => {
     const target = event.target;
     const targetElement = target instanceof Element ? target : null;
-    if (!isMobile || snapState === 'full') return;
+    if (!isMobile || snapState === 'open') return;
     if (targetElement?.closest('.restaurant-sheet-header')) return;
     if (targetElement?.closest('a, button, input, textarea, select, label, [role="button"]')) return;
     startDrag(event.clientY, event.pointerId, event.currentTarget, 'panel');
@@ -182,9 +176,9 @@ const useRestaurantPanelSnap = () => {
     startDrag(event.clientY, event.pointerId, event.currentTarget, 'handle');
   }, [isMobile, startDrag]);
 
-  // In full state, allow pull-down from list content only when scrolled to top.
+  // In open state, allow pull-down from list content only when scrolled to top.
   const handleContentPointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!isMobile || snapState !== 'full') return;
+    if (!isMobile || snapState !== 'open') return;
     const target = event.target;
     const targetElement = target instanceof Element ? target : null;
     if (targetElement?.closest('a, button, input, textarea, select, label, [role="button"]')) return;

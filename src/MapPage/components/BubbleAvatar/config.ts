@@ -1,15 +1,6 @@
 export type LatLng = { lat: number; lng: number };
 export type Point = { x: number; y: number };
 
-/** Screen coordinates of BubbleButton's fixed home centre */
-export const getHomeCenter = (mobilePanelTranslateY?: number): Point => ({
-  x: window.innerWidth <= 959 ? window.innerWidth - 70 : window.innerWidth / 2,
-  y:
-    window.innerWidth <= 959 && typeof mobilePanelTranslateY === 'number'
-      ? mobilePanelTranslateY - 25 // + 2
-      : window.innerHeight - 70,
-});
-
 /** Interaction Spec */
 export const HOME_SNAP_RADIUS = 80;
 export const LONGPRESS_MS = 150;
@@ -20,7 +11,7 @@ export const DROP_ENTRY_DELAY_MS = 200;
 // Bubble centre sits this many px from the viewport edge
 export const INDICATOR_R = 26 + 14; // half of 52px + breathing room
 export const CIRCLE_COLOR = '#ba160c'; // iOS system blue, for now at least
-export const SEARCH_RADIUS = 1000;
+export const SEARCH_RADIUS = 800;
 
 /** Animation Specs */
 export const JITTER = 0.55; // random jitter for x/y gaze offsets
@@ -67,3 +58,24 @@ export const EYE_GAZE_ON_PIN: Point[] = [
   { x: 0, y: MAX_OFFSET },
   { x: 0, y: -MAX_OFFSET },
 ];
+
+/** Screen coordinates of BubbleButton's fixed home centre */
+export const getHomeCenter = (
+  mobilePanel?: { translateY: number; panelHeight: number },
+): Point => {
+  const isMobile = window.innerWidth <= 959;
+  const x = isMobile ? window.innerWidth - 70 : window.innerWidth / 2;
+
+  if (isMobile && mobilePanel) {
+    const bubbleBottomOffset = Math.max(16, mobilePanel.panelHeight - mobilePanel.translateY + 10);
+    return {
+      x,
+      y: window.innerHeight - bubbleBottomOffset - 40,
+    };
+  }
+
+  return {
+    x,
+    y: window.innerHeight - 70,
+  };
+};

@@ -39,13 +39,17 @@
   50%  { transform: translate(-50%, -50%) scale(1.5);    opacity: 1.0; }
   100% { transform: translate(-50%, -50%) scale(1.25); opacity: 1.0; }
 }
-.bubble-btn-drop-ring {
+.bubble-btn-drop-ring-shell {
   position: fixed;
   pointer-events: none;
   z-index: 899;
+}
+
+.bubble-btn-drop-ring {
   width: var(--bubble-avatar-drop-ring-size);
   height: var(--bubble-avatar-drop-ring-size);
   color: var(--bubble-avatar-ring-color);
   overflow: visible;
   animation: drop-ring-pulse 1.4s ease-in-out infinite;
+  display: block;
 }

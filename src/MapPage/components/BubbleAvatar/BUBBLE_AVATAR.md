@@ -1,6 +1,6 @@
 # BubbleAvatar — Design & Implementation Notes
 
-> Created: 2026-06-12 | Last updated: 2026-06-21
+> Created: 2026-06-12 | Last updated: 2026-07-06
 
 ---
 
@@ -28,9 +28,9 @@ src/MapPage/components/BubbleAvatar/
 │   ├── BubbleAvatarHome.css           ← fixed positioning, drop-ring keyframes
 │   └── hooks/                         ← all BubbleAvatarHome-specific hooks
 │       ├── useBubbleFlightAnimation.ts ← computes Framer Motion initial/animate/transition for fly-in and fly-out
-│       ├── useBubbleStyle.ts           ← returns bubbleStyle CSSProperties from a style keyword (default|pickup|raw-drag)
+│       ├── useBubbleStyle.ts           ← returns stable bubbleStyle CSSProperties from style keyword (default|mobile-home|pickup)
 │       ├── useCoarsePointer.ts         ← detects (pointer: coarse) and listens for changes
-│       ├── useHomeProximity.ts         ← fires onNearHomeChange as drag enters/leaves home snap zone
+│       ├── useHomeProximity.ts         ← subscribes to drag MotionValues; fires onNearHomeChange on threshold transitions
 │       ├── usePickupBootstrap.ts       ← bootstraps Framer or raw drag on pickup; resolves pointer-up fallback
 │       ├── useRawPointerDrag.ts        ← raw pointer event drag path used on coarse/touch pointers
 │       └── useResolvePickupWithoutDrag.ts ← resolves pickup drop if Framer drag never started
@@ -46,7 +46,10 @@ src/MapPage/components/BubbleAvatar/
 │   └── useSmileGaze.ts                ← hook: randomised scanning gaze active only while dragging/pickup-pending
 │
 ├── useDragAndDrop/
-│   ├── useBubbleDrag.ts               ← hook: Framer Motion drag lifecycle (disable Leaflet, lat/lng conversion)
+│   ├── useDragMotionValues.ts         ← hook: owns drag MotionValues + raw-drag anchor ref (pointer + offset channels)
+│   ├── useBubbleDrag.ts               ← hook: Framer/raw drag lifecycle + map drop semantics; delegates motion-value management
+│   ├── setupBubbleDropCircle.ts       ← helper: owns dropped-circle creation, entry animation, and teardown
+│   ├── setupBubbleDropLongPress.ts    ← helper: isolates long-press pickup listener wiring for dropped avatar marker
 │   ├── useBubbleDrop.ts               ← hook: reactive Leaflet layer manager (circle, avatar pin, place markers)
 │   └── getPinSizeFromCss.ts           ← reads --bubble-avatar-home-size × --bubble-avatar-pin-scale from CSS
 │
@@ -127,7 +130,7 @@ All sizing tokens come from CSS custom properties on `.bubble-avatar-root` in `B
 | `--bubble-avatar-bottom-offset` | 56 px | Fixed bottom offset |
 | `--bubble-avatar-drop-ring-size` | 120 px | Drop-ring SVG viewport |
 
-In **pickup mode** and **raw drag mode**, the inline style is computed by `useBubbleStyle` and always uses the CSS variable for centering:
+In **pickup mode**, the inline style is computed by `useBubbleStyle` and uses the CSS variable for centering:
 
 ```tsx
 left: `calc(${pos.x}px - (var(--bubble-avatar-home-size) / 2))`
@@ -135,6 +138,8 @@ top:  `calc(${pos.y}px - (var(--bubble-avatar-home-size) / 2))`
 ```
 
 This means the centering adapts automatically if the CSS token changes (e.g. for different viewport sizes), with no JS changes needed.
+
+As of 2026-07-06, high-frequency raw drag movement is no longer represented by a `'raw-drag'` style keyword. Live movement is applied via Framer Motion values (`x/y`) managed in `useDragMotionValues`, while `useBubbleStyle` handles only stable placement modes.
 
 `getPinSizeFromCss()` (in `useDragAndDrop/`) reads `--bubble-avatar-home-size × --bubble-avatar-pin-scale` at drop time via `readCssCustomProperties()` to compute the Leaflet `iconSize`. The generic `readCssCustomProperties(propertyNames, { scopeClassName, fallbackValues })` helper lives in `cssCustomProperties.ts` and can be reused anywhere CSS vars need to be read from a class scope.
 
@@ -145,8 +150,8 @@ This means the centering adapts automatically if the CSS token changes (e.g. for
 | Event | Behaviour |
 |---|---|
 | `onDragStart` | `isDragging = true` (context); `map.dragging.disable()` |
-| `handleDragStartAtPoint(x,y)` | Same as above, also sets `dragPos` — used by raw drag path |
-| `onDrag` | Updates `dragPos` (used to position the drop-ring overlay) |
+| `handleDragStartAtPoint(x,y)` | Same as above; initializes drag MotionValues and raw-drag anchor |
+| `onDrag` | Updates drag pointer MotionValues (`dragMotion.pointer.x/y`) |
 | `onDragEnd` — near home | Near-home check runs **first**; calls `onCancel()` to snap back |
 | `onDragEnd` — on map | Converts `info.point` to lat/lng; calls `onDrop(lat, lng)` |
 | `onDragEnd` — off map | `onCancel()` called; Framer Motion's `dragSnapToOrigin` springs back |
@@ -172,8 +177,8 @@ On touch/coarse-pointer devices, Framer Motion drag events are unreliable. `useC
 
 - `drag={false}` — Framer drag is disabled on the `motion.div`.
 - `onPointerDown` starts `useRawPointerDrag`, which tracks `pointermove`/`pointerup`/`pointercancel` on `window` using `pointerId` for correct multi-touch isolation.
-- `handleDragStartAtPoint(x, y)` is called instead of `handleDragStart` so `isDragging` and `dragPos` are set correctly from the first point.
-- `bubbleStyle` uses the `'raw-drag'` keyword so the element is positioned absolutely under the pointer during drag.
+- `handleDragStartAtPoint(x, y)` is called instead of `handleDragStart` so `isDragging` and drag MotionValues are initialized from the first point.
+- Raw movement is applied through `dragMotion.rawOffset.x/y` on the `motion.div` style (no per-frame React state updates).
 - Visual feedback (scale, shadow) uses the coarse variant in `whileDragVisual`.
 
 ## Pickup Bootstrap (`usePickupBootstrap.ts`)
@@ -190,22 +195,23 @@ When `pickupPos` is set (map avatar long-pressed), `BubbleAvatarHome` remounts a
 The caller chooses a style keyword outside the hook:
 
 ```tsx
-const styleKeyword = rawDragEnabled && isDragging && dragPos
-  ? 'raw-drag' : pickupPos ? 'pickup' : 'default';
-const bubbleStyle = useBubbleStyle({ styleKeyword, pickupPos, dragPos });
+const styleKeyword = pickupPos ? 'pickup' : isMobile ? 'mobile-home' : 'default';
+const bubbleStyle = useBubbleStyle({ styleKeyword, pickupPos, homeCenter });
 ```
 
 | Keyword | Result |
 |---|---|
 | `'default'` | `undefined` — CSS handles fixed positioning |
+| `'mobile-home'` | mobile home placement from `homeCenter` |
 | `'pickup'` | `position: fixed` at `pickupPos`, CSS-variable centering |
-| `'raw-drag'` | `position: fixed` at `dragPos`, CSS-variable centering |
+
+`'raw-drag'` was removed because live raw-drag displacement is now provided by MotionValues.
 
 ---
 
 ## Drop-Ring Overlay
 
-While dragging, a pulsing dashed ring follows the cursor (`@keyframes drop-ring-pulse` in CSS). It is a separate `div` rendered conditionally — `position: fixed` at `dragPos.x / dragPos.y`, centred via `translate(-50%, -50%)`.
+While dragging, a pulsing dashed ring follows the cursor (`@keyframes drop-ring-pulse` in CSS). It is rendered in a fixed-position shell (`.bubble-btn-drop-ring-shell`) whose `left/top` are driven by drag MotionValues.
 
 When the drag enters the home snap zone (`isNearHome === true`), this pulsing ring is intentionally hidden so the home-target reset ring remains the primary visual cue.
 
@@ -255,8 +261,8 @@ Markers are sorted radially from the drop centre and each receives an `animation
 
 Extracted hook that owns the near-home detection logic.
 
-- Inputs: `isDragging`, `dragPos`, `onNearHomeChange?`
-- Single `useEffect` — computes Euclidean distance to `getHomeCenter()` on every `dragPos` update; fires `onNearHomeChange` only on transitions (via `prevRef`) to avoid unnecessary renders
+- Inputs: `isDragging`, `dragMotion.pointer`, `onNearHomeChange?`
+- Uses `useMotionValueEvent` subscriptions and computes Euclidean distance to `getHomeCenter()` on pointer motion updates; fires `onNearHomeChange` only on transitions (via `prevRef`) to avoid unnecessary updates
 - Resets to `false` automatically when `isDragging` becomes false
 
 ---
@@ -330,6 +336,26 @@ The `key={pickupPos ? 'pickup' : 'home'}` prop on `BubbleAvatarHome` forces Reac
 - `useBubbleDrop` disables `map.dragging` on avatar `pointerdown` to win gesture arbitration against Leaflet pan-detection. Pan is restored in release handlers, long-press handoff, and cleanup as defense in depth.
 - `readCssCustomProperties` is called once per drop event, not continuously — no performance concern in practice. If CSS vars could change dynamically (e.g. theme switches), a cached/reactive version should be considered.
 - `DashedCircle` exists in two locations (`Searchmask/` and legacy `DashedCircle/`). The canonical version is in `Searchmask/`; the legacy folder can be removed once all imports are updated.
+
+---
+
+## Session Log (2026-07-06) — Drag Runtime Performance Migration
+
+### `dragPos` React state removed from high-frequency drag path
+
+`useBubbleDrag` previously updated `dragPos` with React `setState` on every pointer move (`onDrag` and raw-pointer move path). This caused render/reconciliation work during active drag frames.
+
+Refactor summary:
+- Added `useDragMotionValues.ts` to own drag MotionValues and raw-drag anchor ref.
+- `useBubbleDrag` now delegates pointer/offset creation and updates to `useDragMotionValues`.
+- `BubbleAvatarHome` now reads grouped `dragMotion` and applies raw drag displacement via MotionValues (`style={{ x, y }}`).
+- `useHomeProximity` switched from React-state dependency to MotionValue subscriptions.
+- `useBubbleStyle` removed `'raw-drag'` keyword branch.
+
+Rationale:
+- MotionValues update outside the React render cycle, reducing per-frame main-thread pressure during drag.
+
+Detailed migration notes are documented in `DRAG_MOTIONVALUE_MIGRATION.md`.
 
 ---
 

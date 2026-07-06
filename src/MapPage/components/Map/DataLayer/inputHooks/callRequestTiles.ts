@@ -14,7 +14,7 @@ type Response = {
   requestParams: TilesParams | null;
 };
 
-const callRequestTiles = (mapRef: React.RefObject<L.Map | null>): Response => {
+const callRequestTiles = (mapRef: React.RefObject<L.Map | null>, enabled = true): Response => {
 
   // Get Current Viewport Params (bounds, zoom)
   const viewportParams = onUserRoam(mapRef);
@@ -29,6 +29,7 @@ const callRequestTiles = (mapRef: React.RefObject<L.Map | null>): Response => {
 
   // Assemble API Request Params
   const requestParams = useMemo(() => {
+    if (!enabled) return null;
     if (!viewportParams) return null;
     return {
       ...viewportParams,
@@ -41,14 +42,16 @@ const callRequestTiles = (mapRef: React.RefObject<L.Map | null>): Response => {
   }, [
     viewportParams, effectiveCuisines, 
     venueType, effectivePriceRanges, 
-    scoreBasis, scoreTier
+    scoreBasis, scoreTier, enabled
   ]);
 
   // Call Request
   const { status, res, queryKey, responseKey } = useRequestTiles(requestParams);
   
   // Delay Loading Screen (if applicable)
-  delayLoadingScreen(status);
+  if (enabled) {
+    delayLoadingScreen(status);
+  }
   
   return { status, res, queryKey, responseKey, requestParams };
 };

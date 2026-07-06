@@ -1,206 +1,220 @@
-# Frontend Map — DataLayer Architecture & Session Notes
+# Frontend Map DataLayer Architecture
 
-**Last updated:** 2026-06-12  
-**Purpose:** Handover document for resuming DataLayer development in a new session.
+**Last updated:** 2026-07-06  
+**Purpose:** Current handover note for the frontend map data layer, bubble mask behavior, and pin rendering flow.
 
 ---
 
 ## 1. What the DataLayer does
 
-`DataLayer` is a React hook (not a component) mounted inside the Leaflet `MapCard`. It:
+`DataLayer` is a React hook mounted inside the Leaflet `Map` wrapper. It orchestrates three responsibilities:
 
-1. Watches the map viewport (zoom + pan) via `onUserRoam`
-2. Fires API requests to `/api/tiles` via `useRequestTiles`
-3. Renders either **density pins** (H3 tile counts, res 7–9) or **place marker pins** (individual restaurants, res 10) onto a persistent `L.LayerGroup`
-4. Animates transitions between resolution levels and between modes
+1. Reads the current map viewport and converts it into `/api/tiles` request params via `onUserRoam`
+2. Renders backend tile results into persistent Leaflet marker layers
+3. Keeps the search bubble mask behavior visually correct without forcing full density-pin rebuilds
 
-The API backend decides which mode to return based on the `res` and `places_only` params.
-
----
-
-## 2. File structure
-
-```
-src/Page1/components/MapCard/Map/DataLayer/
-│
-├── DataLayer.ts                        ← main hook / orchestrator
-│
-├── addDensityPins/
-│   ├── addDensityPins.ts               ← creates L.Marker instances at H3 centroids
-│   └── makePinIcon.ts                  ← SVG teardrop icon factory (green #1a936f)
-│
-├── addPlacePins/
-│   ├── addPlaceMarkers.ts              ← creates L.Marker instances for place pins
-│   └── makePlacePinIcon.ts             ← SVG pin factory (dark teal #114b5f, white dot)
-│
-├── pinAnimations/
-│   ├── usePinAnimations.ts             ← thin orchestrator hook (~35 lines)
-│   ├── useDensityPinLayer.ts           ← density pin lifecycle
-│   ├── usePlacePinLayer.ts             ← place pin lifecycle
-│   ├── computeExplodeOffsets.ts        ← zoom-in fly-in offsets (child from parent)
-│   ├── computeMergeOffsets.ts          ← zoom-out fly-out offsets (child toward parent)
-│   └── densityPin.css                  ← all animation CSS keyframes + classes
-│
-└── utils/
-    ├── onUserRoam.ts                   ← debounced viewport → TilesParams
-    ├── zoomToResolution.ts             ← PINS_ZOOM_TO_RES table
-    ├── createPersistentLayer.ts        ← persistent L.LayerGroup (never removed from map)
-    └── delayLoadingScreen.ts           ← delays loading indicator to avoid flash
-```
+The backend decides whether `/api/tiles` returns density tiles or place previews based on the query params, especially `res` and `places_only`.
 
 ---
 
-## 3. Key design decisions
+## 2. Current architecture at a glance
 
-### H3 resolution table (frontend-owned)
-```ts
-// zoomToResolution.ts
-PINS_ZOOM_TO_RES = [[12,7], [14,8], [16,9], [18,10]]
-// Leaflet zoom → H3 resolution
-```
+### Map stack
+- [Map.tsx](../src/MapPage/components/Map/Map.tsx) mounts the base map and the data layer hook
+- [BaseLayer.ts](../src/MapPage/components/Map/BaseLayer/BaseLayer.ts) owns the Leaflet map instance and base layer
+- [DataLayer.ts](../src/MapPage/components/Map/DataLayer/DataLayer.ts) owns tile fetching, filter reconciliation, and layer orchestration
+- [BubbleAvatar](../src/MapPage/components/BubbleAvatar/BubbleAvatar.tsx) updates the active search mask when the bubble is dropped or removed
 
-### places_only override
-`onUserRoam` sets `places_only: true` when `res >= 10`. The backend then skips the density query and returns up to 100 individual places instead.
-
-### Persistent layer
-`createPersistentLayer` attaches a single `L.LayerGroup` to the map once and never removes it. Markers are individually added/removed. This prevents flicker between pan updates.
-
-### Pin rendering
-Both density and place pins use `L.divIcon` with an inline SVG teardrop. They are zoom-invariant (screen-pixel size, not geo-scaled). CSS animation classes are toggled on the `.density-pin` wrapper `<div>`.
+### Main data flow
+1. `onUserRoam` converts viewport changes into `TilesParams`
+2. `callRequestTiles` fetches `/api/tiles`
+3. `DataLayer` decides whether the response is density mode or places mode
+4. `usePinAnimations` coordinates animated marker lifecycles for both modes
+5. Bubble-mask changes update marker visibility, not the viewport or the tile request key
 
 ---
 
-## 4. Animation system
-
-### CSS classes (densityPin.css)
-
-| Class | Animation | Duration | When |
-|---|---|---|---|
-| `density-pin-enter` | pin-pop (scale bounce) | 0.3s | New pin appears |
-| `density-pin-fly-in` | pin-fly-in (slide from offset) | 0.4s | Zoom-in or density→places |
-| `density-pin-exit` | pin-collapse (scale down) | 0.25s | Generic remove |
-| `density-pin-burst` | pin-burst (scale up then fade) | 0.28s | Zoom-in outgoing / density→places outgoing |
-| `density-pin-fly-out` | pin-fly-out (slide toward `--merge-dx/dy`) | 0.35s | Zoom-out / places→density |
-
-CSS vars `--fly-dx/dy` (fly-in) and `--merge-dx/dy` (fly-out) set per-marker screen offsets.
-
-### Resolution transitions (`useDensityPinLayer.transitionRes`)
-- **Zoom-in**: old pins burst, new child pins fly in from parent screen position (`computeExplodeOffsets`)
-- **Zoom-out**: old pins fly toward parent centroid (`computeMergeOffsets`), new parent pins pop in; removal deferred 280ms for animation
-
-### Mode transitions
-- **Density → places** (`transitionToPlaces`, first call): density pins burst, place pins fly in from their H3 host tile
-- **Places pan** (`transitionToPlaces`, subsequent calls): new IDs only, existing markers persist
-- **Places → density** (`transitionFromPlaces`): place pins fly to H3 centroid, new density pins added immediately, places removed after 400ms
-
----
-
-## 5. Hook architecture
-
-### `usePinAnimations` (orchestrator)
-Composes the two layer hooks and exposes a clean API to `DataLayer`:
-
-```ts
-{
-  currentResRef,        // current H3 resolution (from density layer)
-  addPins,              // incremental add on pan (same res)
-  transitionRes,        // animated res change
-  transitionToPlaces,   // density→places or places-pan
-  transitionFromPlaces, // places→density
-  clearAll,             // instant wipe of all layers
-}
-```
-
-### `useDensityPinLayer`
-Owns:
-- `renderedTilesRef` — Set of H3 tile IDs already in the layer (dedup key)
-- `currentResRef` — current resolution
-- `markersByTileRef` — Map<tileId, L.Marker>
-- `cleanupTimerRef` + `pendingRemovalRef` — deferred removal with cancel-flush safety
-
-Exposes all four refs + `cancelTimer` + `resetState` to the place layer for cross-layer coordination.
-
-### `usePlacePinLayer`
-Owns:
-- `placeMarkersByIdRef` — Map<placeId, L.Marker>
-- `cleanupTimerRef` + `pendingRemovalRef`
-
-Receives `density` (a `DensityRefs` interface) to coordinate cleanup.  
-Internally calls `addPlaceMarkers` — **`DataLayer` does not call `addPlaceMarkers` directly**.
-
----
-
-## 6. DataLayer control flow
+## 3. Important files
 
 ```
-useEffect fires when `res` changes
-│
-├── mode === 'tiles'
-│   ├── prevMode was 'places' → transitionFromPlaces(res.resolution, res.data)
-│   ├── resolution changed    → transitionRes(res.resolution, res.data)
-│   └── same resolution       → addPins(res.data, res.resolution)   ← incremental, dedup by tile
-│
-└── mode === 'places'
-    └── transitionToPlaces(res.data)
-        ├── first entry (no place markers tracked) → burst density, fly-in places
-        └── pan (markers already tracked)          → add new IDs only, persist old ones
+src/MapPage/components/Map/
+├── Map.tsx                           ← map composition entry point
+├── BaseLayer/
+│   ├── BaseLayer.ts                  ← creates the Leaflet map and attaches the basemap layer
+│   ├── OSMLayer.ts                   ← optional OSM raster basemap implementation
+│   └── useMapResizeSync.ts           ← invalidates map size on container resize
+└── DataLayer/
+    ├── DataLayer.ts                  ← main orchestrator hook
+    ├── inputHooks/
+    │   ├── onUserRoam.ts             ← viewport → TilesParams
+    │   ├── callRequestTiles.ts       ← wraps useRequestTiles and loading-state handling
+    │   └── delayLoadingScreen.ts     ← avoids flashing loading UI
+    ├── LayerStates/
+    │   ├── buildFilterKey.ts         ← stable filter key for reconciliation decisions
+    │   ├── checkMaskChanged.ts       ← previous mask tracker (still available, but no longer part of density rebuild logic)
+    │   └── filterTileOutsideMask.ts  ← mask-based filtering helpers
+    ├── pinAnimations/
+    │   ├── usePinAnimations.ts       ← thin orchestrator over density/place layer hooks
+    │   ├── useDensityPinLayer.ts     ← density marker lifecycle + visibility toggling
+    │   ├── usePlacePinLayer.ts       ← place marker lifecycle
+    │   ├── computeExplodeOffsets.ts   ← zoom-in screen-space offsets
+    │   ├── computeMergeOffsets.ts     ← zoom-out screen-space offsets
+    │   └── densityPin.css            ← density animation classes
+    ├── addDensityPins/
+    │   ├── addDensityPins.ts          ← creates H3 density markers
+    │   └── makePinIcon.ts             ← density pin SVG/icon factory
+    ├── addPlacePins/
+    │   ├── addPlaceMarkers.ts         ← creates restaurant place markers
+    │   └── makePlacePinIcon.ts        ← place pin SVG/icon factory
+    └── utils/
+        └── addDebugTileOverlay.ts     ← debug-only H3 polygon overlay
 ```
 
 ---
 
-## 7. Bugs fixed in this session (2026-06-12)
+## 4. Request pipeline
 
-### Bug 1 — Orphaned pins on fast zoom (race condition)
-**Root cause:** `cancelTimer()` cleared the `setTimeout` but dropped the `outgoing` markers that were waiting in the deferred callback closure. They were already removed from `markersByTileRef` so nothing would ever remove them.
+### Viewport-driven tile fetch
+`onUserRoam` listens to `moveend` and `zoomend`, then updates viewport bounds and H3 resolution.
 
-**Fix:** Added `pendingRemovalRef` to both `useDensityPinLayer` and `usePlacePinLayer`. Pending-removal markers are stored there before every `setTimeout`. If `cancelTimer` fires first, it flushes them immediately via `layer.removeLayer()`.
+- The request only changes when the map viewport changes
+- The bubble search mask does **not** enter the tile request params
+- `places_only: true` is added when zoom reaches the place-preview threshold
 
----
+### Request wrapper
+`callRequestTiles` merges:
+- viewport params from `onUserRoam`
+- effective filter state from `SearchFiltersContext`
+- the loading-state delay helper
 
-### Bug 2 — Place markers accumulating on pan at res 10 (main persisting-pin bug)
-**Root cause:** `transitionToPlaces` was called on every API response in places mode, including pans. It had no concept of "already in places mode" — it would call `addPlaceMarkers` for all 100 places every time. The old 100 markers were overwritten in `placeMarkersByIdRef` (so the refs were lost) but remained in the `LayerGroup` with no path to removal.
-
-**Fix:** `transitionToPlaces` now checks `placeMarkersByIdRef.current.size === 0` to detect first-entry vs pan. On pan it only adds place IDs not already tracked — existing markers persist. `addPlaceMarkers` was moved inside `usePlacePinLayer` (DataLayer no longer calls it directly). The now-unnecessary `registerPlaceMarkers` function was removed entirely.
-
----
-
-### Bug 3 — Density pins orphaned after places→tiles→pan
-**Root cause:** `transitionFromPlaces` created density pins using a local `renderedSet = new Set<string>()` but never wrote it back to `density.renderedTilesRef`. So the next `addPins` call saw an empty `renderedTilesRef`, re-created markers for all existing tiles, overwrote `markersByTileRef` with new references, and left the original markers stranded in the layer forever.
-
-**Fix:** `useDensityPinLayer` now exposes `renderedTilesRef`. `transitionFromPlaces` sets `density.renderedTilesRef.current = renderedSet` after adding new density pins, keeping the dedup set in sync.
+`DataLayer` also stores the last tile viewport in `TileQueryContext` so the restaurant list can fall back to viewport bounds when the bubble mask is absent.
 
 ---
 
-## 8. Current state — what works
+## 5. Bubble mask behavior
 
-- [x] Density pins at H3 res 7, 8, 9 — parametric SVG size based on count
-- [x] Place pins at res 10 — dark teal SVG teardrop, popup on click
-- [x] Zoom-in transition: burst + child fly-in from parent
-- [x] Zoom-out transition: merge fly-out + parent pop-in
-- [x] Density → places: burst + fly-in from host tile
-- [x] Places → density: fly-out to tile centroid + density pop-in
-- [x] Places pan: existing markers persist, new IDs appended
-- [x] Density pan (same res): incremental add, already-rendered tiles skipped
-- [x] Fast-zoom race condition: pending removals flushed on cancel
+### How the mask is set
+`BubbleAvatar` calls [useUpdateSearchMask](../src/MapPage/components/BubbleAvatar/Searchmask/useUpdateSearchMask.ts) whenever `droppedPos` changes.
+
+- If the bubble is active, `searchMask = { center, radiusM }`
+- If the bubble is removed, `searchMask = null`
+
+### Current design goal
+The mask should affect visibility, not trigger a fresh density pin rebuild.
+
+### What happens now
+- Density tiles stay in memory inside the persistent marker layer
+- A mask change calls `setMaskVisibility(searchMask)`
+- Each density marker simply gets `opacity: 0` or `opacity: 1` depending on whether it falls inside the bubble radius
+- This preserves the "hide pins under the bubble" behavior while avoiding a full layer rebuild when the bubble is removed
+
+### Places mode behavior
+Places mode still filters out place previews that fall inside the mask via `filterPlacesOutsideMask`.
+
+That means:
+- bubble active -> places inside the bubble are hidden
+- bubble removed -> the hidden places can become visible again
 
 ---
 
-## 9. Not yet built / possible next steps
+## 6. Persistent layer model
 
-- **Side panel / detail card** — `isSideCardVisible` exists in `AppUIContext.tsx` but clicking a place pin doesn't open anything yet. The backend has a `/api/place/{id}` endpoint ready.
-- **Filter UI** — `TilesParams` supports `cuisine`, `cost`, `venue_type`, `score_tier`, `confidence` but there is no UI to set them yet.
-- **Place marker remove on res change** — when zooming out from res 10, `transitionFromPlaces` handles the animated exit, but zooming back in while in places mode does not currently remove old place markers before adding new ones (would need `transitionToPlaces` first-entry detection to also run when res changes while in places mode — currently `prevModeRef` gates this via `transitionFromPlaces`).
-- **Frontend deployment** — only the backend is deployed to Render; frontend runs locally on `http://localhost:5173`.
-- **Nearby API endpoint** — `/api/nearby` exists on the backend but is not wired to the frontend.
+`createPersistentLayer` creates one `L.LayerGroup` and attaches it to the map once.
+
+Why this matters:
+- marker animation state is preserved across updates
+- markers can be individually hidden, animated, or removed
+- the app avoids tearing down the entire layer on every response
+
+This is the main reason the app can now keep density tiles resident and only toggle their visibility when the bubble mask changes.
 
 ---
 
-## 10. Backend notes (brief)
+## 7. Pin rendering and animation
 
-- FastAPI on Render.com
-- `server/server.py` — app entry point
-- `/api/tiles` params: `res: int` (7–10), `places_only: bool`, `zoom: int`, `lat/lng bounds`, `cuisine`, `cost`, `venue_type`, `score_basis`, `confidence`, `score_tier`
-- `/api/place/{id}` — detail fetch (not yet wired to frontend)
-- Database: Neon (serverless PostgreSQL). Tables: `places`, `h3_density`
-- ETL: `server/db/etl_load.py` — run from `server/` with venv active
-- Server venv: `server/venv` — activate with `server\venv\Scripts\Activate.ps1`
+### Density pins
+- Created by [addDensityPins.ts](../src/MapPage/components/Map/DataLayer/addDensityPins/addDensityPins.ts)
+- Deduplicated by tile id via `renderedTilesRef`
+- Animated by `useDensityPinLayer`
+- `setMaskVisibility` changes opacity without rebuilding markers
+
+### Place pins
+- Created by [addPlaceMarkers.ts](../src/MapPage/components/Map/DataLayer/addPlacePins/addPlaceMarkers.ts)
+- Managed by `usePlacePinLayer`
+- First entry into places mode bursts density pins and flies place markers in
+- Subsequent calls in places mode only append new place ids
+
+### Resolution transitions
+`useDensityPinLayer.transitionRes` still owns the animated density-resolution swap:
+- zoom-in: old pins burst and new child pins fly in
+- zoom-out: old pins fly toward parent centroids and removal is deferred for the exit animation
+
+This is distinct from bubble-mask changes. Mask changes should now be visibility-only.
+
+---
+
+## 8. Control flow in `DataLayer`
+
+```text
+useEffect runs when response, filters, or mask change
+│
+├── If response.mode === 'places'
+│   ├── filter places outside the bubble mask
+│   └── transitionToPlaces(filteredPlaces)
+│
+└── If response.mode === 'tiles'
+    ├── if returning from places mode → transitionFromPlaces(...)
+    ├── if resolution changed → transitionRes(...)
+    ├── otherwise addPins(...) for same-resolution incremental adds
+    └── in all cases, call setMaskVisibility(searchMask)
+```
+
+Important detail:
+- The app no longer uses bubble-mask changes as a reason to rebuild density markers
+- The mask only affects opacity
+- Filter changes can still cause a resolution-level reconcile when needed
+
+---
+
+## 9. Debug switches
+
+These env flags are useful when profiling frame drops:
+
+- `VITE_DEBUG_DISABLE_BASE_LAYER=true` disables the basemap layer
+- `VITE_DEBUG_DISABLE_DATA_LAYER=true` disables the tile request / marker orchestration path
+- `VITE_DEBUG_TILE_OVERLAY=true` replaces the normal density rendering path with the debug polygon overlay
+
+Recommended profiling order:
+1. Basemap off
+2. Data layer off
+3. Debug overlay on
+4. Normal mode
+
+That makes it easier to separate network latency, basemap decode/paint cost, and marker churn.
+
+---
+
+## 10. Current behavior summary
+
+- [x] Viewport changes drive `/api/tiles` requests
+- [x] Bubble mask is separate from tile request params
+- [x] Bubble removal no longer forces a full density marker rebuild
+- [x] Density markers are kept resident and hidden with opacity
+- [x] Places mode still hides items inside the bubble mask
+- [x] Persistent layer group prevents churn from remounting the whole layer
+- [x] Debug toggles exist for isolating basemap vs data-layer cost
+
+---
+
+## 11. Notes and caveats
+
+- `checkMaskChanged.ts` still exists, but the density path no longer relies on it for rebuild decisions
+- Filter changes can still trigger a stronger reconcile path than mask changes
+- The restaurant panel list has its own scope logic in [usePanelListQuery.ts](../src/MapPage/components/RestaurantInfoPanel/usePanelListQuery.ts) and can still fall back between bubble and viewport bounds independently of the map pins
+- `OSMLayer.ts` remains in the codebase as an alternate basemap implementation, but the app currently uses the MapLibre GL base layer in [BaseLayer.ts](../src/MapPage/components/Map/BaseLayer/BaseLayer.ts)
+
+---
+
+## 12. Session note
+
+The most important architectural shift since the earlier version of this document is that bubble-mask changes now affect marker visibility rather than marker identity. That is the key change that removed the forced re-render of density pins when the bubble is removed.

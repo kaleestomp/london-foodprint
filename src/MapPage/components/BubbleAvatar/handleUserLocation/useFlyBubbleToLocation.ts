@@ -3,7 +3,7 @@ import L from 'leaflet';
 
 import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
 import { type LatLng, type Point } from '../config';
-import { useRestaurantPanelSnapState } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
+import { useRestaurantPanelMetrics } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
 
 type props = {
     mapRef: React.RefObject<L.Map | null>;
@@ -21,7 +21,7 @@ const useFlyBubbleToLocation = ({
     handleDrop,
     resetBubbleToHome,
  }: props) => { 
-     const { isMobile, panelHeight, translateY } = useRestaurantPanelSnapState();
+     const { isMobile, panelHeight, translateY } = useRestaurantPanelMetrics();
 
     // Handel Fly Bubble to User Location Logic (LIVE / GEOSEARCH)
     // ==========================================================

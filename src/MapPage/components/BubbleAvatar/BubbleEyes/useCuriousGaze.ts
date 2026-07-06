@@ -18,18 +18,19 @@ const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
  * These are kept together because the scheduler reads the cursor ref directly;
  * separating them would require passing a ref between hooks for no real gain.
  */
-const useCuriousGaze = (bubbleRef: React.RefObject<HTMLDivElement | null>) => {
+const useCuriousGaze = (bubbleRef: React.RefObject<HTMLDivElement | null>, isActive = true) => {
   const [gaze, setGaze] = useState<Point>({ x: 0, y: 0 });
   const mouseRef = useRef<{ x: number; y: number } | null>(null);
 
   // ── Passive cursor tracking ──────────────────────────────────────────────
   useEffect(() => {
+    if (!isActive) return;
     const onMove = (e: MouseEvent) => {
       mouseRef.current = { x: e.clientX, y: e.clientY };
     };
     window.addEventListener('mousemove', onMove, { passive: true });
     return () => window.removeEventListener('mousemove', onMove);
-  }, []);
+  }, [isActive]);
 
   // ── Cursor-angle helper ──────────────────────────────────────────────────
   const gazeAtCursor = useCallback((): Point => {
@@ -53,6 +54,10 @@ const useCuriousGaze = (bubbleRef: React.RefObject<HTMLDivElement | null>) => {
 
   // ── Random gaze scheduler ────────────────────────────────────────────────
   useEffect(() => {
+    if (!isActive) {
+      setGaze({ x: 0, y: 0 });
+      return;
+    }
     let timer: ReturnType<typeof setTimeout>;
 
     const scheduleNext = () => {
@@ -73,7 +78,7 @@ const useCuriousGaze = (bubbleRef: React.RefObject<HTMLDivElement | null>) => {
 
     scheduleNext();
     return () => clearTimeout(timer);
-  }, [gazeAtCursor]);
+  }, [gazeAtCursor, isActive]);
 
   return { gaze };
 };

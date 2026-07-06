@@ -3,7 +3,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { type LatLng } from '../config';
 import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
 import useMapViewportNavigation from '../useDragAndDrop/useMapViewportNavigation';
-import { useRestaurantPanelSnapState } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
+import { useRestaurantPanelMetrics } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
 import { useAppUI } from '../../../../context/AppUIContext';
 
 type UseMapPanToLocationArgs = {
@@ -23,7 +23,7 @@ const useMapPanToLocation = ({
   mapRef,
 }: UseMapPanToLocationArgs): out => {
   const { focusMap } = useMapViewportNavigation({ mapRef });
-  const { isMobile, panelHeight, translateY } = useRestaurantPanelSnapState();
+  const { isMobile, panelHeight, translateY } = useRestaurantPanelMetrics();
 
   // Handel Map Pan
   const { liveLocation } = useAppUI();
