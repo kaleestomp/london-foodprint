@@ -1,0 +1,16 @@
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.switch-label {
+  min-width: 52px;
+}
+
+.switch-label--left {
+  text-align: right;
+}
+
+.switch-label--right {
+  text-align: left;
+}

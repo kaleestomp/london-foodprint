@@ -1,0 +1,11 @@
+.restaurant-bottom-toolbar-row {
+  position: absolute;
+  right: calc(var(--bubble-avatar-bottom-offset, 30px) + var(--bubble-avatar-home-size, 80px) + 12px);
+  bottom: var(--bottom-toolbar-offset, 30px);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  pointer-events: auto;
+}

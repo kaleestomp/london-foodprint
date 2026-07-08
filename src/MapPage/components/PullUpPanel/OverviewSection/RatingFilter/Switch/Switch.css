@@ -1,0 +1,24 @@
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.switch-label {
+  min-width: 52px;
+}
+
+.switch-label-stack {
+  display: block;
+  line-height: 1.05;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.left {
+  text-align: right;
+}
+
+.right {
+  text-align: left;
+}

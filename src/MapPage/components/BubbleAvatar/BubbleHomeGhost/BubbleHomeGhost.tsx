@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
-import { useRestaurantPanelMetrics } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
+import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
+import useIsMobile from '../../../../utils/browser/useIsMobile';
 import { getHomeCenter } from '../config';
 import DashedCircle from '../Searchmask/DashedCircle';
 import './BubbleHomeGhost.css';
@@ -18,8 +19,9 @@ type Props = {
  * enough to trigger snap-back behavior.
  */
 const BubbleHomeGhost: React.FC<Props> = ({ onResetHome }) => {
+  const isMobile = useIsMobile();
   const { isNearHome } = useBubbleAvatarState();
-  const { isMobile, translateY, panelHeight } = useRestaurantPanelMetrics();
+  const { translateY, panelHeight } = usePullUpPanelMetrics();
   const homeCenter = useMemo(
     () => getHomeCenter(isMobile ? { translateY, panelHeight } : undefined),
     [isMobile, panelHeight, translateY],

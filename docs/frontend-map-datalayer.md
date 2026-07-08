@@ -210,7 +210,7 @@ That makes it easier to separate network latency, basemap decode/paint cost, and
 
 - `checkMaskChanged.ts` still exists, but the density path no longer relies on it for rebuild decisions
 - Filter changes can still trigger a stronger reconcile path than mask changes
-- The restaurant panel list has its own scope logic in [usePanelListQuery.ts](../src/MapPage/components/RestaurantInfoPanel/usePanelListQuery.ts) and can still fall back between bubble and viewport bounds independently of the map pins
+- The restaurant panel list has its own scope logic in [usePullUpPanelListQuery.ts](../src/MapPage/components/PullUpPanel/RestaurantList/usePullUpPanelListQuery.ts) and can still fall back between bubble and viewport bounds independently of the map pins
 - `OSMLayer.ts` remains in the codebase as an alternate basemap implementation, but the app currently uses the MapLibre GL base layer in [BaseLayer.ts](../src/MapPage/components/Map/BaseLayer/BaseLayer.ts)
 
 ---

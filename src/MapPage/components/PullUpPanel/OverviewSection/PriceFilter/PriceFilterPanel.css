@@ -1,0 +1,33 @@
+.price-filter-panel {
+    width: 100%;
+    position: relative;
+    padding: 0 var(--app-layout-margin) 24px;
+    
+}
+
+.price-filter-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.price-filter-panel .title-label {
+  /* position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none; */
+
+  position: relative;
+  padding: 0 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  color: var(--app-text-color);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  /* line-height: 1.0; */
+  text-transform: uppercase;
+}

@@ -1,0 +1,17 @@
+.rating-filter-panel__content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  row-gap: 20px;
+  margin-top: 8px;
+  margin-bottom: -15px;
+}
+
+.rating-filter-panel__selection-note {
+  margin-top: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--mui-palette-text-secondary, rgba(0, 0, 0, 0.7));
+}

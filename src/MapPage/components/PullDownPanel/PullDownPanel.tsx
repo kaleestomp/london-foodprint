@@ -13,26 +13,20 @@ import MapToolbar from '../MapToolbar/MapToolbar';
 const PullDownPanel: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = ({ mapRef }) => { 
 
     const {
-        activeToolbarTab,
+        activeFilterTab,
         queueLiveLocationDrop,
         setActiveToolbarTab,
         toggleToolbarFilterTab,
     } = useAppUI();
     
     const topPanelContent =
-        activeToolbarTab === 'rating'
-            ? <RatingFilterPanel />
-            : activeToolbarTab === 'price'
-                ? <PriceFilterPanel mapRef={mapRef} />
-                : activeToolbarTab === 'cuisine'
-                    ? <CuisineFilterPanel mapRef={mapRef} />
-                    : activeToolbarTab === 'search'
-                        ? <GeoSearch mapRef={mapRef} onProgrammaticDrop={queueLiveLocationDrop} />
-                    : null;
+        activeFilterTab === 'search'
+            ? <GeoSearch mapRef={mapRef} onProgrammaticDrop={queueLiveLocationDrop} />
+            : null;
 
     return (<>
         <PullDownContainer
-            isOpen={activeToolbarTab !== null}
+            isOpen={activeFilterTab === 'search'}
             onClose={() => setActiveToolbarTab(null)}
         >
             {topPanelContent}
@@ -40,7 +34,7 @@ const PullDownPanel: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = ({ ma
         <MapToolbar
             mapRef={mapRef}
             onLiveLocationDrop={queueLiveLocationDrop}
-            activeFilterTab={activeToolbarTab}
+            activeFilterTab={activeFilterTab}
             onFilterTabToggle={toggleToolbarFilterTab}
         />
     </>);

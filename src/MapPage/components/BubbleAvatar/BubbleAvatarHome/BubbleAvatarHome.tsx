@@ -4,13 +4,14 @@ import useBubbleDrag from '../useDragAndDrop/useBubbleDrag';
 import useHomeProximity from './hooks/useHomeProximity';
 import useBubbleFlightAnimation from './hooks/useBubbleFlightAnimation';
 import useResolvePickupWithoutDrag from './hooks/useResolvePickupWithoutDrag';
-import useIsDropOnRestaurantPanel from './hooks/useIsDropOnRestaurantPanel';
+import useIsDropOnPullUpPanel from './hooks/useIsDropOnPullUpPanel';
 import usePickupBootstrap from './hooks/usePickupBootstrap';
 import useCoarsePointer from './hooks/useCoarsePointer';
 import useRawPointerDrag from './hooks/useRawPointerDrag';
 import useBubbleStyle from './hooks/useBubbleStyle';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
-import { useRestaurantPanelMetrics } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
+import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
+import useIsMobile from '../../../../utils/browser/useIsMobile';
 import { getHomeCenter } from '../config';
 import DashedCircle from '../Searchmask/DashedCircle';
 import Badge from '../Badge/Badge';
@@ -31,6 +32,7 @@ type Props = {
 };
 
 const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
+  const isMobile = useIsMobile();
   // Get Fly Animation State from Prop
   const { flyInFrom, flyOutTo, onFlyOutComplete } = flight ?? {};
   // Get Bubble State from Context
@@ -42,12 +44,12 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
     handleDrop,
     handleDropCancel,
   } = useBubbleAvatarState();
-  const { isMobile, translateY, panelHeight } = useRestaurantPanelMetrics();
+  const { translateY, panelHeight } = usePullUpPanelMetrics();
   const homeCenter = useMemo(
     () => getHomeCenter(isMobile ? { translateY, panelHeight } : undefined),
     [isMobile, panelHeight, translateY],
   );
-  const isDropOnRestaurantPanel = useIsDropOnRestaurantPanel({
+  const isDropOnPullUpPanel = useIsDropOnPullUpPanel({
     isMobile,
     translateY,
     panelHeight,
@@ -59,7 +61,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
     handleDrop,
     handleDropCancel,
     homeCenter,
-    isDropOnRestaurantPanel,
+    isDropOnPullUpPanel,
   );
 
   // Get Flight Animation Controls
@@ -97,7 +99,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
     dragDropCallback,
     homeCenter,
     handleDropCancel,
-    isDropOnRestaurantPanel,
+    isDropOnPullUpPanel,
   );
 
   // Detect when drag enters/leaves the home snap zone and UPDATE CONTEXT.

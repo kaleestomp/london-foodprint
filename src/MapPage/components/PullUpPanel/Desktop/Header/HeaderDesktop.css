@@ -1,0 +1,11 @@
+.restaurant-panel-header-desktop {
+  min-height: 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 18px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--app-text-color);
+  border-bottom: 1px solid var(--app-divider-color);
+}

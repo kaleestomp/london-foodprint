@@ -45,7 +45,7 @@ const MapToolbar: React.FC<Props> = ({
 
   return (
     <div className="map-toolbar">
-      <IconButton
+      {/* <IconButton
         className={`map-toolbar-fab ${activeFilterTab === 'rating' ? 'map-toolbar-fab-active' : ''}`}
         aria-label="Rating"
         onClick={() => onFilterTabToggle('rating')}
@@ -83,7 +83,7 @@ const MapToolbar: React.FC<Props> = ({
         >
           <RamenDiningIcon fontSize="medium" />
         </IconButton>
-      </Badge>
+      </Badge> */}
       <IconButton
         className={`map-toolbar-fab ${activeFilterTab === 'search' ? 'map-toolbar-fab-active' : ''}`}
         aria-label="Search"

@@ -1,0 +1,183 @@
+/* .restaurant-sheet-mobile {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 800;
+  background: var(--app-floating-card-bg);
+  box-shadow:
+    0 -2px 10px rgba(0, 0, 0, 0.08),
+    0 -14px 32px rgba(0, 0, 0, 0.18);
+  touch-action: none;
+  overflow: hidden;
+  backdrop-filter: var(--app-floating-card-backdrop-filter);
+  -webkit-backdrop-filter: var(--app-floating-card-backdrop-filter);
+  border-radius: 20px 20px 0 0;
+}
+
+.restaurant-sheet-header {
+  flex: 0 0 auto;
+  user-select: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.restaurant-sheet-handle-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 10px;
+  padding-bottom: 6px;
+}
+
+.restaurant-sheet-handle {
+  width: 38px;
+  height: 5px;
+  border-radius: 999px;
+  background: #c5cad3;
+}
+
+.restaurant-sheet-title-row {
+  padding: 0 18px 12px;
+}
+
+.restaurant-sheet-title {
+  min-height: 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #202124;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.restaurant-sheet-subtitle {
+  font-size: 12px;
+  color: #6c727c;
+  line-height: 1.4;
+}
+
+.restaurant-panel-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.restaurant-panel-scroll-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 10px 16px 24px;
+}
+
+.restaurant-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.restaurant-list-detail {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.restaurant-list-row {
+  display: block;
+  text-align: left;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.restaurant-list-row-title {
+  margin-bottom: 2px;
+}
+
+.restaurant-list-links {
+  display: flex;
+  gap: 10px;
+}
+
+.restaurant-list-links a {
+  color: #0a58b5;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.restaurant-list-links a:hover {
+  text-decoration: underline;
+}
+
+.restaurant-list-pagination {
+  display: flex;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.restaurant-list-pagination button {
+  border: 1px solid #d7dde6;
+  background: #fff;
+  border-radius: 8px;
+  min-height: 30px;
+  min-width: 64px;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.restaurant-list-pagination button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.restaurant-list-detail-body {
+  padding-top: 6px;
+}
+
+.restaurant-panel-desktop {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: var(--left-panel-width, clamp(300px, 30vw, 420px));
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 800;
+  background: var(--app-floating-card-bg); 
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 16px 38px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+  backdrop-filter: var(--app-floating-card-backdrop-filter);
+  -webkit-backdrop-filter: var(--app-floating-card-backdrop-filter);
+  transition: top 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.restaurant-panel-header-desktop {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #202124;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.restaurant-bottom-toolbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 950;
+  pointer-events: none;
+}
+
+@media (max-width: 959px) {
+  .restaurant-panel-desktop {
+    display: none;
+  }
+} */

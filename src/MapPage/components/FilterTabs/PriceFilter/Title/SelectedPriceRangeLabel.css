@@ -1,5 +1,5 @@
 .selected-price-range-label {
-  color: var(--app-menu-txt-color);
+  color: var(--app-text-color);
   text-align: left;
 
   display: flex;
@@ -7,5 +7,5 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--app-menu-txt-color);
+  color: var(--app-text-color);
 }

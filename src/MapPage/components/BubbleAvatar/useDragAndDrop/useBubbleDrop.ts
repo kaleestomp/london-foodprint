@@ -9,7 +9,8 @@ import addPlaceMarkers from '../../Map/DataLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
 import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import { useRestaurantPanelMetrics } from '../../RestaurantInfoPanel/RestaurantPanelSnapContext';
+import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
+import useIsMobile from '../../../../utils/browser/useIsMobile';
 import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
 import { type LatLng, SEARCH_RADIUS, ZOOM_LEVEL, DROP_ENTRY_DELAY_MS } from '../config';
 import useMapViewportNavigation from './useMapViewportNavigation';
@@ -31,7 +32,8 @@ const useBubbleDrop = (
   onPickup:    (x: number, y: number) => void,
 ) => {
   const { focusMap } = useMapViewportNavigation({ mapRef });
-  const { isMobile, panelHeight, translateY } = useRestaurantPanelMetrics();
+  const isMobile = useIsMobile();
+  const { panelHeight, translateY } = usePullUpPanelMetrics();
   const { effectiveCuisines, venueType, effectivePriceRanges, scoreTier, scoreBasis } = useSearchFilters();
   const markerRef      = useRef<L.Marker | null>(null);
   const reactRootRef   = useRef<Root | null>(null);

@@ -1,18 +1,20 @@
 import React, { useRef } from 'react'; 
 import L from 'leaflet';
 
+import { useAppUI } from '../context/AppUIContext';
+import { TileQueryProvider } from '../context/TileQueryContext';
+import { PlaceSelectionProvider } from '../context/PlaceSelectionContext';
+import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
+import { PullUpPanelSnapProvider } from './components/PullUpPanel/SnapHooks/PullUpPanelSnapContext.tsx';
+
 import Map from './components/Map/Map'; 
 import Loading from '../components/Loading/Loading';
 import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 import IPLocationHandler from './components/Map/IPLocationHandler/IPLocationHandler';
-import { useAppUI } from '../context/AppUIContext';
 import PullDownPanel from './components/PullDownPanel/PullDownPanel';
-import RestaurantInfoPanel from './components/RestaurantInfoPanel/RestaurantInfoPanel';
-import { RestaurantPanelSnapProvider } from './components/RestaurantInfoPanel/RestaurantPanelSnapContext';
-import PanelSnapMapViewportSync from './components/RestaurantInfoPanel/PanelSnapMapViewportSync.tsx';
-import { TileQueryProvider } from '../context/TileQueryContext';
-import { PlaceSelectionProvider } from '../context/PlaceSelectionContext';
-import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
+import PullUpPanel from './components/PullUpPanel/PullUpPanel';
+import PullUpPanelMapViewportSync from './components/MapViewportSync/PullUpPanelMapViewportSync.tsx';
+import BaseToolbar from './components/BaseToolbar/BaseToolbar';
 
 import './MapPage.css';
 
@@ -31,13 +33,14 @@ const MapPage: React.FC = () => {
           <PlaceSelectionProvider>
             <Map mapRef={mapRef} />
             <PullDownPanel mapRef={mapRef} />
-            <RestaurantPanelSnapProvider>
-              <PanelSnapMapViewportSync mapRef={mapRef} />
-              <RestaurantInfoPanel />
+            <PullUpPanelSnapProvider>
+              <PullUpPanelMapViewportSync mapRef={mapRef} />
+              <PullUpPanel mapRef={mapRef} />
+              <BaseToolbar />
               <BubbleAvatarStateProvider>
                 <BubbleAvatar mapRef={mapRef} />
               </BubbleAvatarStateProvider>
-            </RestaurantPanelSnapProvider>
+            </PullUpPanelSnapProvider>
           </PlaceSelectionProvider>
         </TileQueryProvider>
       </div>

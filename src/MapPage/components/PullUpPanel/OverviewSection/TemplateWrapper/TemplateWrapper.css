@@ -1,0 +1,34 @@
+.filter-tab-panel {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0px;
+  gap: 8px;
+}
+
+.filter-tab-panel__header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-inline: var(--app-layout-margin);
+  gap: 12px;
+}
+
+.filter-tab-panel__header-content {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  margin-bottom: 0;
+}
+
+.filter-tab-panel__title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  text-align: left;
+
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--app-text-color);
+}

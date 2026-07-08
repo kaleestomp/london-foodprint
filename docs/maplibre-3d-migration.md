@@ -60,7 +60,7 @@ To replicate the OpenFreeMap 3D experience, the app needs a **native `maplibregl
 | `useDensityPinLayer.ts` | Leaflet canvas heatmap | MapLibre heatmap layer |
 | `IPLocationHandler.ts` | `map.flyTo(L.LatLng)` | `map.flyTo({ center: [lng, lat] })` |
 | `GeoSearchHandler.ts` | Leaflet `fitBounds` | MapLibre `fitBounds` (same concept, different API) |
-| `mapRef` type | `React.RefObject<L.Map \| null>` | `React.RefObject<maplibregl.Map \| null>` — cascades to MapPage, BubbleAvatar, PullDownPanel, RestaurantInfoPanel, DataLayer |
+| `mapRef` type | `React.RefObject<L.Map \| null>` | `React.RefObject<maplibregl.Map \| null>` — cascades to MapPage, BubbleAvatar, PullDownPanel, PullUpPanel, DataLayer |
 | `LONDON_BOUNDS` | `L.LatLngBounds` | MapLibre `LngLatBoundsLike` (`[[sw_lng, sw_lat], [ne_lng, ne_lat]]`) |
 
 ### What stays the same

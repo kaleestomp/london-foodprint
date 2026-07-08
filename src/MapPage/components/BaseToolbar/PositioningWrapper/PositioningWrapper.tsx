@@ -1,0 +1,30 @@
+import type { CSSProperties, FC, ReactNode } from 'react';
+import useIsMobile from '../../../../utils/browser/useIsMobile';
+import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
+
+import './PositioningWrapper.css';
+
+type PositioningWrapperProps = { children: ReactNode };
+const PositioningWrapper: FC<PositioningWrapperProps> = ({ children }) => {
+  const isMobile = useIsMobile();
+  const { panelHeight, translateY } = usePullUpPanelMetrics();
+  const toolbarOffset = isMobile ? Math.max(16, panelHeight - translateY + 10) : 30;
+  const toolbarStyle: CSSProperties & Record<string, string | number> = {
+    bottom: 0,
+    '--bottom-toolbar-offset': `${toolbarOffset}px`,
+  };
+
+  if (!isMobile) return null;
+
+  return (
+    <div
+      className="restaurant-bottom-toolbar"
+      style={toolbarStyle}
+      aria-label="Map toolbar"
+    >
+      {children}
+    </div>
+  );
+};
+
+export default PositioningWrapper;
