@@ -1,0 +1,71 @@
+.geo-searchbar {
+  --geo-searchbar-height: var(--toolbar-height, 38px);
+  --geo-searchbar-bg: var(--toolbar-background);
+  --geo-searchbar-bg-hover: var(--toolbar-background-hover);
+  --geo-searchbar-bg-active: var(--toolbar-background-active);
+  --geo-searchbar-backdrop-filter: var(--toolbar-backdrop-filter);
+  --geo-searchbar-backdrop-filter-active: var(--toolbar-backdrop-filter-active);
+  --geo-searchbar-hover-transform: scale(1.01);
+
+  position: relative;
+  width: var(--geo-searchbar-height);
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  transition: width 220ms ease;
+}
+
+.geo-searchbar.is-expanded {
+  width: 100%;
+  max-width: 800px;
+}
+
+.geo-searchbar-shell {
+  min-height: var(--geo-searchbar-height);
+  border: 0;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  background: transparent;
+  color: var(--app-primary-black);
+  box-sizing: border-box;
+  transition: transform 120ms ease;
+}
+
+.geo-searchbar.is-collapsing .geo-searchbar-shell {
+  pointer-events: none;
+}
+
+.geo-searchbar-panel {
+  width: 100%;
+  background: var(--geo-searchbar-bg);
+  backdrop-filter: var(--geo-searchbar-backdrop-filter);
+  color: var(--app-primary-black);
+  border-radius: calc(var(--geo-searchbar-height) / 2);
+  overflow: hidden;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.geo-searchbar-panel:hover {
+  transform: var(--geo-searchbar-hover-transform);
+  background: var(--geo-searchbar-bg-hover);
+}
+
+.geo-searchbar-panel:focus-within {
+  outline: none;
+  background: var(--geo-searchbar-bg-active);
+  backdrop-filter: var(--geo-searchbar-backdrop-filter-active);
+}
+
+.geo-searchbar-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+

@@ -1,40 +1,42 @@
-import React from 'react'; 
+import React, { useEffect } from 'react';
 import L from 'leaflet';
 
 import PullDownContainer from '../../../components/PullDownContainer/PullDownContainer';
-import GeoSearch from '../GeosearchTab/GeoSearch';
+import GeoSearch from '../GeoSearchbar/legacy/GeoSearch';
 import { useAppUI } from '../../../context/AppUIContext';
-import MapToolbar from '../MapToolbar/MapToolbar';
+import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 
 
-const PullDownPanel: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = ({ mapRef }) => { 
+const PullDownPanel: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = ({ mapRef }) => {
 
     const {
-        activeFilterTab,
+        activeToolbarTab,
         queueLiveLocationDrop,
         setActiveToolbarTab,
-        toggleToolbarFilterTab,
     } = useAppUI();
+    const { isMobile, snapState } = usePullUpPanelSnapState();
+
+    // Close PullDownPanel when PullUpPanel opens and the user is on mobile
+    useEffect(() => {
+        if (!isMobile) return;
+        if (snapState !== 'open') return;
+        if (activeToolbarTab !== 'search') return;
+        setActiveToolbarTab(null);
+    }, [activeToolbarTab, isMobile, setActiveToolbarTab, snapState]);
     
     const topPanelContent =
-        activeFilterTab === 'search'
+        activeToolbarTab === 'search'
             ? <GeoSearch mapRef={mapRef} onProgrammaticDrop={queueLiveLocationDrop} />
             : null;
 
-    return (<>
+    return (
         <PullDownContainer
-            isOpen={activeFilterTab === 'search'}
+            isOpen={activeToolbarTab === 'search'}
             onClose={() => setActiveToolbarTab(null)}
         >
             {topPanelContent}
         </PullDownContainer>
-        <MapToolbar
-            mapRef={mapRef}
-            onLiveLocationDrop={queueLiveLocationDrop}
-            activeFilterTab={activeFilterTab}
-            onFilterTabToggle={toggleToolbarFilterTab}
-        />
-    </>);
+    );
 }
 
 export default PullDownPanel;

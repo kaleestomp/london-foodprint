@@ -15,6 +15,7 @@ import PullDownPanel from './components/PullDownPanel/PullDownPanel';
 import PullUpPanel from './components/PullUpPanel/PullUpPanel';
 import PullUpPanelMapViewportSync from './components/MapViewportSync/PullUpPanelMapViewportSync.tsx';
 import BaseToolbar from './components/BaseToolbar/BaseToolbar';
+import MapToolbar from './components/MapToolbar/MapToolbar';
 
 import './MapPage.css';
 
@@ -32,8 +33,9 @@ const MapPage: React.FC = () => {
         <TileQueryProvider>
           <PlaceSelectionProvider>
             <Map mapRef={mapRef} />
-            <PullDownPanel mapRef={mapRef} />
             <PullUpPanelSnapProvider>
+              <PullDownPanel mapRef={mapRef} />
+              <MapToolbar mapRef={mapRef} />
               <PullUpPanelMapViewportSync mapRef={mapRef} />
               <PullUpPanel mapRef={mapRef} />
               <BaseToolbar />

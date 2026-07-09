@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import L from 'leaflet';
-import { type LocationResult } from '../../GeosearchTab/useGeoSearch';
+import { type LocationResult } from '../../GeoSearchbar/fetchHooks/useGeoSearch';
 import useGeoSearchHandler from '../../Map/GeoSearchHandler/GeoSearchHandler';
-import useReverseGeocode from '../../GeosearchTab/useReverseGeocode';
+import useReverseGeocode from '../../GeoSearchbar/fetchHooks/useReverseGeocode';
 
 const usePinCarry = (mapRef: React.RefObject<L.Map | null>) => {
   const [carrying, setCarrying] = useState(false);

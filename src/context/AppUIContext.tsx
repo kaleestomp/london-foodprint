@@ -13,12 +13,11 @@ export type LiveLocation = {
 interface AppUIContextType { 
   isLoading: boolean;
   isSideCardVisible: boolean;
-  activeFilterTab: ToolbarFilterTab | null;
+  activeToolbarTab: ToolbarFilterTab | null;
   liveLocation: LiveLocation | null;
   colorMode: ColorMode;
   toggleLoading: (loading: boolean) => void;
   setActiveToolbarTab: (tab: ToolbarFilterTab | null) => void;
-  toggleToolbarFilterTab: (tab: ToolbarFilterTab) => void;
   queueLiveLocationDrop: (lat: number, lng: number) => void;
   setColorMode: (mode: ColorMode) => void;
   toggleColorMode: () => void;
@@ -27,27 +26,23 @@ interface AppUIContextType {
 const AppUIContext = createContext<AppUIContextType | null>(null);
 
 export const AppUIProvider = ({ children }: { children: ReactNode }) => {
-  const getInitialColorMode = (): ColorMode => {
-    if (typeof window === 'undefined') return 'light';
+  // const getInitialColorMode = (): ColorMode => {
+  //   if (typeof window === 'undefined') return 'light';
 
-    const storedMode = window.localStorage.getItem('app-color-mode');
-    if (storedMode === 'light' || storedMode === 'dark') return storedMode;
+  //   const storedMode = window.localStorage.getItem('app-color-mode');
+  //   if (storedMode === 'light' || storedMode === 'dark') return storedMode;
 
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  };
+  //   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  // };
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSideCardVisible] = useState(true);
-  const [activeFilterTab, setActiveToolbarTab] = useState<ToolbarFilterTab | null>(null);
+  const [activeToolbarTab, setActiveToolbarTab] = useState<ToolbarFilterTab | null>(null);
   const [liveLocation, setLiveLocation] = useState<LiveLocation | null>(null);
-  const [colorMode, setColorMode] = useState<ColorMode>(getInitialColorMode);
+  const [colorMode, setColorMode] = useState<ColorMode>('light'); //getInitialColorMode
 
   const toggleLoading = useCallback((loading: boolean) => {
     setIsLoading((prev) => (prev === loading ? prev : loading));
-  }, []);
-
-  const toggleToolbarFilterTab = useCallback((tab: ToolbarFilterTab) => {
-    setActiveToolbarTab((prev) => (prev === tab ? null : tab));
   }, []);
 
   const queueLiveLocationDrop = useCallback((lat: number, lng: number) => {
@@ -61,17 +56,16 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
   const exposed = useMemo<AppUIContextType>(() => ({ 
     isLoading,
     isSideCardVisible,
-    activeFilterTab,
+    activeToolbarTab,
     liveLocation,
     colorMode,
     toggleLoading,
     setActiveToolbarTab,
-    toggleToolbarFilterTab,
     queueLiveLocationDrop,
     setColorMode,
     toggleColorMode,
   }), [
-    activeFilterTab,
+    activeToolbarTab,
     colorMode,
     isLoading,
     isSideCardVisible,
@@ -80,7 +74,6 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
     setColorMode,
     toggleLoading,
     toggleColorMode,
-    toggleToolbarFilterTab,
   ]);
 
   return (

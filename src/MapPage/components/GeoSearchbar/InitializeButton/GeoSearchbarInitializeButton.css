@@ -1,0 +1,19 @@
+.geo-searchbar-shell.geo-searchbar-collapse-btn {
+  width: var(--geo-searchbar-height);
+  min-width: var(--geo-searchbar-height);
+  border-radius: 50%;
+  padding: 0;
+  justify-content: center;
+  cursor: pointer;
+  background: var(--geo-searchbar-bg);
+  backdrop-filter: var(--geo-searchbar-backdrop-filter);
+  box-shadow: var(--geo-searchbar-shadow);
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.geo-searchbar-shell.geo-searchbar-collapse-btn:hover {
+  transform: var(--geo-searchbar-hover-transform);
+  box-shadow: var(--geo-searchbar-shadow-active);
+  background: var(--geo-searchbar-bg-hover);
+  backdrop-filter: var(--geo-searchbar-backdrop-filter-active);
+}

@@ -1,4 +1,4 @@
-import { type LocationResult } from './useGeoSearch';
+import { type LocationResult } from '../fetchHooks/useGeoSearch';
 
 type Props = {
   suggestions: LocationResult[];

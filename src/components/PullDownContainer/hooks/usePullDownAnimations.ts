@@ -7,7 +7,7 @@ type UsePullDownAnimationsParams = {
 };
 
 const CLOSE_THRESHOLD_PX = 56;
-const MAX_DOWNWARD_NUDGE_PX = 16;
+const MAX_DOWNWARD_NUDGE_PX = 0;
 const FLY_MS = 320;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));

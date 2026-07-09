@@ -1,0 +1,37 @@
+.geo-searchbar-my-location-btn {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.geo-searchbar-my-location-btn .MuiSvgIcon-root {
+  font-size: 20px;
+}
+
+.geo-searchbar-my-location-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.geo-searchbar-my-location-btn:active {
+  transform: scale(0.96);
+}
+
+.geo-searchbar-my-location-btn:focus-visible {
+  outline: 2px solid var(--app-primary-blue);
+  outline-offset: 1px;
+}
+
+.geo-searchbar-my-location-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}

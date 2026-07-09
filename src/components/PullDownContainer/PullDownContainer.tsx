@@ -62,7 +62,6 @@ const PullDownContainer: React.FC<Props> = ({
       }}
       aria-hidden={!isOpen}
     >
-      <div className="pull-down-header" aria-hidden="true" />
       <div
         className="pull-down-content-shell"
         style={{
@@ -80,14 +79,14 @@ const PullDownContainer: React.FC<Props> = ({
               {children}
             </div>
           </div>
-          {isPanelRendered ? (
+          <div className="pull-down-handle-zone" aria-hidden="true">
             <div
-              className="pull-down-handle-zone"
+              className="pull-down-handle-wrap"
               onPointerDown={handleHandlePointerDown}
             >
               <div className="pull-down-handle" />
             </div>
-          ) : null}
+          </div>
         </div>
       </div>
     </section>

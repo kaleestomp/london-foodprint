@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LONDON_BOUNDS } from '../Map/MapTemplate';
+import { LONDON_BOUNDS } from '../../Map/MapTemplate';
 
 export type LocationResult = {
   place_id: number;

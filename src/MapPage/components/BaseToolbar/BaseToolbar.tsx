@@ -11,21 +11,18 @@ import getCuisineCountLabel from './getCuisineCountLabel';
 
 import './BaseToolbar.css';
 
-type Props = { };
-const BaseToolbar: FC<Props> = () => {
-  const { activeFilterTab, setActiveToolbarTab } = useAppUI();
+const BaseToolbar: FC = () => {
+  const { activeToolbarTab, setActiveToolbarTab } = useAppUI();
   const { openPanel } = usePullUpPanelSnapState();
 
   const openFilterTab = (tab: 'rating' | 'cuisine' | 'price') => {
-    if (activeFilterTab === tab) {
+    if (activeToolbarTab === tab) {
       setActiveToolbarTab(null);
       return;
     }
-
     setActiveToolbarTab(tab);
     openPanel();
   };
-
   const priceRangeLabel = getPriceRangeLabel();
   const cuisineCountLabel = getCuisineCountLabel();
 
@@ -36,21 +33,21 @@ const BaseToolbar: FC<Props> = () => {
           icon={<StarBorderIcon fontSize="small" />}
           text="5+"
           ariaLabel="Open rating filters"
-          isActive={activeFilterTab === 'rating'}
+          isActive={activeToolbarTab === 'rating'}
           onClick={() => openFilterTab('rating')}
         />
         <PillButton
           icon={<RamenDiningIcon fontSize="small" />}
           text={cuisineCountLabel}
           ariaLabel="Open cuisine filters"
-          isActive={activeFilterTab === 'cuisine'}
+          isActive={activeToolbarTab === 'cuisine'}
           onClick={() => openFilterTab('cuisine')}
         />
         <PillButton
           icon={<CurrencyPoundIcon fontSize="small" />}
           text={priceRangeLabel}
           ariaLabel="Open budget filters"
-          isActive={activeFilterTab === 'price'}
+          isActive={activeToolbarTab === 'price'}
           onClick={() => openFilterTab('price')}
         />
       </div>

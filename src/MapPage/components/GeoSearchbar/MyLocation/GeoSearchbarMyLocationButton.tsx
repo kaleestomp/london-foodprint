@@ -1,21 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
-import IconButton from '@mui/material/IconButton';
 import Snackbar from '@mui/material/Snackbar';
-// import NearMeIcon from '@mui/icons-material/NearMe';
-import L from 'leaflet';
-import useMyLocation from '../../../request/useMyLocation/useMyLocation';
-import { LONDON_BOUNDS } from '../Map/MapTemplate';
-import AnimatedLoadingDots from '../../../components/LoadingDots/AnimatedLoadingDots';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
-import './GeoSearch.css';
+import L from 'leaflet';
+import useMyLocation from '../../../../request/useMyLocation/useMyLocation';
+import { LONDON_BOUNDS } from '../../Map/MapTemplate';
+import AnimatedLoadingDots from '../../../../components/LoadingDots/AnimatedLoadingDots';
+
+import './GeoSearchbarMyLocationButton.css';
 
 type Props = {
   mapRef: React.RefObject<L.Map | null>;
   onLiveLocationDrop: (lat: number, lng: number) => void | Promise<void>;
 };
 
-const MyLocationButton: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
-
+const GeoSearchbarMyLocationButton: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
   const { state, locate } = useMyLocation();
   const [message, setMessage] = useState<string | null>(null);
   const [showLoading, setShowLoading] = useState(false);
@@ -28,7 +26,6 @@ const MyLocationButton: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
     void onLiveLocationDrop(lat, lon);
   }, [onLiveLocationDrop]);
 
-  // Delay loading animation by 100ms to avoid flashing for fast requests
   useEffect(() => {
     if (state.status === 'loading') {
       const timer = setTimeout(() => setShowLoading(true), 100);
@@ -43,7 +40,9 @@ const MyLocationButton: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
       return;
     }
 
-    if (state.status !== 'success') { return; }
+    if (state.status !== 'success') {
+      return;
+    }
 
     if (!LONDON_BOUNDS.contains(L.latLng(state.lat, state.lon))) {
       handleOutsideLondon();
@@ -55,19 +54,19 @@ const MyLocationButton: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
 
   return (
     <>
-      <IconButton
-        className="geo-search-my-location-btn"
+      <button
+        type="button"
+        className="geo-searchbar-my-location-btn"
         aria-label="My location"
         onClick={locate}
         disabled={state.status === 'loading' || !mapRef.current}
-        size="small"
       >
         {showLoading ? (
-          <AnimatedLoadingDots size="medium" />
+          <AnimatedLoadingDots size="small" />
         ) : (
-          <MyLocationOutlinedIcon fontSize="medium" />
+          <MyLocationOutlinedIcon fontSize="small" />
         )}
-      </IconButton>
+      </button>
       <Snackbar
         open={message !== null}
         autoHideDuration={2600}
@@ -79,4 +78,4 @@ const MyLocationButton: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
   );
 };
 
-export default MyLocationButton;
+export default GeoSearchbarMyLocationButton;

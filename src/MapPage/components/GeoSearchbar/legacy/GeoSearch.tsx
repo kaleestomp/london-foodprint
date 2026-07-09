@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import useGeoSearch, { type LocationResult } from './useGeoSearch';
-import useReverseGeocode from './useReverseGeocode';
+import useGeoSearch, { type LocationResult } from '../fetchHooks/useGeoSearch';
+import useReverseGeocode from '../fetchHooks/useReverseGeocode';
 import GeoSearchDropdown from './GeoSearchDropdown';
 import MyLocationButton from './MyLocationButton';
 

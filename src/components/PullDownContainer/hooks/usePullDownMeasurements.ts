@@ -12,7 +12,6 @@ const usePullDownMeasurements = ({
   onDesktopHeightChange,
 }: UsePullDownMeasurementsParams) => {
   const DESKTOP_BREAKPOINT_PX = 960;
-  const FALLBACK_HEADER_HEIGHT_PX = 96;
 
   const containerRef = useRef<HTMLElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -78,13 +77,6 @@ const usePullDownMeasurements = ({
       return;
     }
 
-    const readHeaderHeight = () => {
-      const resolved = Number.parseFloat(
-        window.getComputedStyle(element).getPropertyValue('--pull-down-header-height'),
-      );
-      return Number.isFinite(resolved) ? resolved : FALLBACK_HEADER_HEIGHT_PX;
-    };
-
     const publishTargetHeight = () => {
       const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT_PX;
       if (!isDesktop) {
@@ -92,8 +84,7 @@ const usePullDownMeasurements = ({
         return;
       }
 
-      const headerHeight = readHeaderHeight();
-      const targetHeight = Math.ceil(headerHeight + (isOpen ? expandedContentHeight : 0));
+      const targetHeight = Math.ceil(isOpen ? expandedContentHeight : 0);
       onDesktopHeightChange(targetHeight);
     };
 

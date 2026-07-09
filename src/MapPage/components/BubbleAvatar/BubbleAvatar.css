@@ -6,7 +6,7 @@
 
   --bubble-avatar-home-position-right: 50%;
   --bubble-avatar-home-position-margin-right: calc(var(--bubble-avatar-home-size) / -2);
-  --bubble-avatar-bottom-offset: 30px;
+  --bubble-avatar-bottom-offset: var(--app-layout-margin);
   
   --bubble-avatar-drop-ring-size: 120px;
   --bubble-avatar-edge-scale: 0.85;

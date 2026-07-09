@@ -1,0 +1,34 @@
+.map-toolbar-layers-btn {
+  width: var(--toolbar-height);
+  height: var(--toolbar-height);
+  min-width: var(--toolbar-height);
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: var(--toolbar-background);
+  backdrop-filter: var(--toolbar-backdrop-filter);
+  color: var(--toolbar-icon-color);
+  box-sizing: border-box;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.map-toolbar-layers-btn:hover {
+  transform: scale(1.01);
+  background: var(--toolbar-background-hover);
+}
+
+.map-toolbar-layers-btn:focus-visible {
+  outline: none;
+  background: var(--toolbar-background-active);
+  backdrop-filter: var(--toolbar-backdrop-filter-active);
+  box-shadow: var(--toolbar-shadow-active);
+}
+
+.map-toolbar-layers-btn svg {
+  width: 20px;
+  height: 20px;
+}

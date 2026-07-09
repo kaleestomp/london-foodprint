@@ -17,13 +17,13 @@
     0 16px 38px rgba(0, 0, 0, 0.16);
   --app-floating-card-shadow-inset: inset 2px 5px 10px rgba(5, 5, 5, 0.145);
 
-  --app-glass-card-bg: var(--app-paper-color);
-  /* --app-glass-card-bg: linear-gradient(
+  /* --app-glass-card-bg: var(--app-paper-color); */
+  --app-glass-card-bg: linear-gradient(
     165deg,
     rgba(226, 236, 255, 0.52) 0%,
     rgba(255, 255, 255, 0.16) 100%
-  ); */
-  --app-glass-card-bg-2: var(--app-paper-color);
+  );
+  --app-glass-card-bg-2: transparent;
   --app-glass-card-border: 1px solid rgba(255, 255, 255, 0.55);
   --app-glass-card-highlight: rgba(255, 255, 255, 0.72);
   --app-glass-card-box-shadow:  
@@ -43,12 +43,12 @@
   
   --app-paper-color: #e0e0e0;
   --app-primary-black: #30333a;
+  --app-toolbar-icon-color: var(--app-primary-black);
   --app-primary-blue: rgb(31, 130, 192);
   --app-secondary-blue: rgb(146, 199, 249);
   --app-primary-grey: rgb(120, 120, 120);
   --app-secondary-grey: rgb(200, 200, 200);
   --app-tertiary-grey: rgb(240, 240, 240);
-  --app-menu-txt-color: rgba(255, 255, 255, 0.6);
 }
 
 html[data-theme='dark'] {
@@ -74,6 +74,7 @@ html[data-theme='dark'] {
   --app-faint-outline-color: rgba(255, 255, 255, 0.2);
   --app-floating-card-backdrop-filter: blur(18px) saturate(1.15);
   --app-sheet-handle-color: #677284;
+  --app-toolbar-icon-color: var(--app-paper-color);
 }
 
 @media (max-width: 959px) {

@@ -10,10 +10,10 @@ type EdgeState = { x: number; y: number; edge: Edge } | null;
 
 // Visual offset calibration: top/left appears more inset than expected while
 // right/bottom appears less inset (can overflow). Gate inset scaling by side.
-const EDGE_INSET_TL_SCALE = 0.45;
-const EDGE_INSET_BR_SCALE = 2.4;
+const EDGE_INSET_TL_SCALE = 0.3;
+const EDGE_INSET_BR_SCALE = 2.0;
 const EDGE_INSET_LEFT = INDICATOR_R * EDGE_INSET_TL_SCALE;
-const EDGE_INSET_TOP = INDICATOR_R * EDGE_INSET_TL_SCALE + 80;
+const EDGE_INSET_TOP = INDICATOR_R * EDGE_INSET_TL_SCALE;
 const EDGE_INSET_RIGHT = INDICATOR_R * EDGE_INSET_BR_SCALE;
 const EDGE_INSET_BOTTOM = INDICATOR_R * EDGE_INSET_BR_SCALE;
 
