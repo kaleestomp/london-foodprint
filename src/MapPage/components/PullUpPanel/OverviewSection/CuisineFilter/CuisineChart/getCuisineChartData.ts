@@ -5,9 +5,9 @@ import {
     CUISINE_FILTER_OPTIONS,
     type CuisineFilterOption,
     useSearchFilters,
-} from '../../../../../context/SearchFiltersContext';
-import onUserRoam from '../../../Map/DataLayer/inputHooks/onUserRoam';
-import useRequestCuisineHistogram from '../../../../request/useRequestCuisineHistogram/useRequestCuisineHistogram';
+} from '../../../../../../context/SearchFiltersContext';
+import onUserRoam from '../../../../Map/DataLayer/inputHooks/onUserRoam';
+import useRequestCuisineHistogram from '../../../../../request/useRequestCuisineHistogram/useRequestCuisineHistogram';
 
 import './CuisineChart.css';
 

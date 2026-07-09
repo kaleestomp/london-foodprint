@@ -1,17 +1,10 @@
-import { useId } from 'react';
 import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
 import L from 'leaflet';
 
 import { type ToolbarFilterTab } from '../../../context/AppUIContext';
-import { useSearchFilters } from '../../../context/SearchFiltersContext';
 
 import MyLocationButton from './MyLocationButtonFAB/MyLocationButton';
-import RamenDiningIcon from '@mui/icons-material/RamenDining';
-import CurrencyPoundIcon from '@mui/icons-material/CurrencyPound';
 import SearchIcon from '@mui/icons-material/Search';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { T1Icon, T2Icon, T3Icon, T4Icon } from '../FilterTabs/RatingFilter/RatingBar/RatingIcons';
 
 import './MapToolbar.css';
 
@@ -28,21 +21,6 @@ const MapToolbar: React.FC<Props> = ({
   activeFilterTab,
   onFilterTabToggle,
 }) => {
-  const { cuisines, cuisineSelectionMode, scoreTier } = useSearchFilters();
-  const halfDiamondClipId = useId().replace(/:/g, '-');
-  const cuisineCount = cuisines.length;
-  const cuisineBadgeColor = cuisineSelectionMode === 'exclude' ? 'warning' : 'primary';
-
-  const ratingIcon = scoreTier === 2
-    ? <T2Icon clipId={halfDiamondClipId} />
-    : scoreTier === 3
-      ? <T3Icon />
-      : scoreTier === 4
-        ? <T4Icon />
-        : scoreTier === 1
-          ? <T1Icon />
-          : <StarBorderIcon fontSize="medium" />;
-
   return (
     <div className="map-toolbar">
       {/* <IconButton

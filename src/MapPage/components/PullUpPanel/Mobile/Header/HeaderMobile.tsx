@@ -1,5 +1,4 @@
 import type { FC, PointerEvent as ReactPointerEvent } from 'react';
-import DarkModeToggle from '../../Toggle/DarkModeToggle';
 
 import './HeaderMobile.css';
 

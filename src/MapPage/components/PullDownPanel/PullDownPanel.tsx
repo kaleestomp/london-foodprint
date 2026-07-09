@@ -2,9 +2,6 @@ import React from 'react';
 import L from 'leaflet';
 
 import PullDownContainer from '../../../components/PullDownContainer/PullDownContainer';
-import RatingFilterPanel from '../FilterTabs/RatingFilter/RatingFilterPanel';
-import PriceFilterPanel from '../FilterTabs/PriceFilter/PriceFilterPanel';
-import CuisineFilterPanel from '../FilterTabs/CuisineFilter/CuisineFilterPanel';
 import GeoSearch from '../GeosearchTab/GeoSearch';
 import { useAppUI } from '../../../context/AppUIContext';
 import MapToolbar from '../MapToolbar/MapToolbar';

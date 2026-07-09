@@ -1,5 +1,5 @@
 import Typography from '@mui/material/Typography';
-import PrimarySwitch from '../../../../../components/Switch/PrimarySwitch';
+import PrimarySwitch from '../../../../../../components/Switch/PrimarySwitch';
 import './Switch.css';
 
 type Props = {

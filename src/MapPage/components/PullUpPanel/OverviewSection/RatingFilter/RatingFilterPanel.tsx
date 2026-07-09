@@ -14,7 +14,6 @@ const RatingFilterPanel: React.FC = () => {
   return (
     <TemplateWrapper
       title="Ratings"
-      className="rating-filter-panel"
       headerContent={<RatingSwitch />}
     >
       <div className="rating-filter-panel__content">

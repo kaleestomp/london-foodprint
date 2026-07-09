@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-import DarkModeToggle from '../../Toggle/DarkModeToggle';
 
 import './HeaderDesktop.css';
 

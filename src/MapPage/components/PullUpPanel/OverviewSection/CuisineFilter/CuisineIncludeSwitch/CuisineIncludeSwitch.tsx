@@ -1,4 +1,3 @@
-import Typography from '@mui/material/Typography';
 import { useSearchFilters } from '../../../../../../context/SearchFiltersContext';
 import MaterialUISwitch from '../../../../../../components/Switch/MaterialUISwitch';
 import './Switch.css';

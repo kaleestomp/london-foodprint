@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
-import type { FC } from 'react';
 import { useSearchFilters } from '../../../context/SearchFiltersContext';
 
-type Props = {};
-const getCuisineCountLabel: FC<Props> = () => {
+const getCuisineCountLabel = (): string => {
     const { cuisines, cuisineSelectionMode } = useSearchFilters();
     return useMemo(() => {
         if (cuisines.length === 0) return 'any';

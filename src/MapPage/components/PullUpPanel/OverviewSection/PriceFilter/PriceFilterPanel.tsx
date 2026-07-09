@@ -1,6 +1,5 @@
 import type L from 'leaflet';
 
-import getPriceRangeLabel from './Title/getPriceRangeLabel';
 import PriceChart from './PriceChart/PriceChart';
 import PriceSlider from './Slider/PriceSlider';
 
@@ -12,7 +11,6 @@ type Props = {
 };
 
 const PriceFilterPanel: React.FC<Props> = ({ mapRef }) => {
-  // const priceRangeLabel = getPriceRangeLabel();
   return (
     <div className="price-filter-panel">
       <Typography className="title-label">
