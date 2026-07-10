@@ -8,7 +8,7 @@ from api.tile_api.tile_cache import (
     _get_or_set_cached,
     _run_singleflight,
 )
-from api.tile_api.sql import PLACES_SQL, TILES_SQL
+from api.tile_api.sql import PLACES_SQL, TILES_SQL, SINGLETON_SQL
 from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
 from api.map_util.map_util import (
     PAGE_SIZE_ON_ZOOM,
@@ -153,10 +153,37 @@ async def get_tiles(
 
         return await _get_or_set_cached(places_cache_key, produce_places_fallback)
 
+    # Enrich singleton tiles (count=1) with the actual place lat/lon.
+    singleton_tiles = [row["tile"] for row in tile_rows if int(row["count"]) == 1]
+    singleton_map: dict[str, dict] = {}
+    if singleton_tiles:
+        async with request.app.state.pool.acquire() as conn:
+            s_rows = await conn.fetch(
+                SINGLETON_SQL.format(rank_column=tier_column),
+                singleton_tiles,
+                cuisine_values,
+                venue_value,
+                cost_values,
+                score_tier,
+            )
+        for s in s_rows:
+            singleton_map[s["tile"]] = {
+                "id":  s["id"],
+                "lat": s["lat"],
+                "lon": s["lon"],
+            }
+
+    tile_data = []
+    for row in tile_rows:
+        entry = dict(row)
+        if int(entry["count"]) == 1:
+            entry["singleton"] = singleton_map.get(entry["tile"])
+        tile_data.append(entry)
+
     payload = {
         "mode": "tiles",
         "resolution": resolution,
-        "data": [dict(row) for row in tile_rows],
+        "data": tile_data,
     }
     await _set_cached(tiles_cache_key, payload)
     return payload

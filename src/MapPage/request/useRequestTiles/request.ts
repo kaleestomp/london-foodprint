@@ -3,6 +3,7 @@ import { apiBasePromise } from '../../../utils/apiBase';
 export interface TileDensity {
   tile: string;
   count: number;
+  singleton?: { id: string; lat: number; lon: number } | null;
 }
 export interface TilePlacePreview {
   id: string;

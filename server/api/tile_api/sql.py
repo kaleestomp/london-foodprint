@@ -58,3 +58,26 @@ TILES_SQL = """
     GROUP BY tile
 """
 
+# Fetches the single place's location for tiles whose aggregated count = 1.
+# Called only on the singleton-tile subset returned by TILES_SQL, so the
+# ANY() list is always small and hits the existing idx_places_h3_r10 index.
+SINGLETON_SQL = """
+    SELECT
+        h3_r10 AS tile,
+        id,
+        lat,
+        lon
+    FROM places
+    WHERE h3_r10 = ANY($1::TEXT[])
+      AND (COALESCE(array_length($2::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($2::TEXT[]))
+      AND ($3 = '' OR venue_type = $3)
+      AND (
+            COALESCE(array_length($4::TEXT[], 1), 0) = 0
+            OR cost = ANY($4::TEXT[])
+            OR cost IS NULL
+            OR cost = ''
+            OR LOWER(cost) = 'unspecified'
+          )
+      AND {rank_column} >= $5
+"""
+

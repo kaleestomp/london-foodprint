@@ -4,6 +4,7 @@ import L from 'leaflet';
 import { type TilesParams } from '../../../../request/useRequestTiles/useRequestTiles';
 import zoomToResolution from '../utils/zoomToResolution';
 
+const ZOOM_THRESHOLD_FOR_PLACES_ONLY = 16;
 /**
  * Tracks map viewport and emits TilesParams whenever the user pans or zooms.
  * `resolveRes` converts the current Leaflet zoom level to the H3 resolution
@@ -31,9 +32,9 @@ const onUserRoam = (
         ne_lat: b.getNorth(),
         ne_lng: b.getEast(),
         res: res,
-        // At past 17 Zoom, always request individual places directly,
+        // At past 16 Zoom, always request individual places directly,
         // bypassing the density table regardless of place count.
-        ...(zoom >= 17 ? { places_only: true } : {}),
+        ...(zoom >= ZOOM_THRESHOLD_FOR_PLACES_ONLY ? { places_only: true } : {}),
       });
     };
 

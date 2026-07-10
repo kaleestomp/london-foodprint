@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from api.map_util.tile_snapping import outer_inner_tiles_for_bbox
 
 PAGE_SIZE_ON_ZOOM = 20
-PAGE_SIZE_ON_REQUEST = 80
+PAGE_SIZE_ON_REQUEST = 200
 
 def zoom_to_resolution(zoom: int) -> int:
     if zoom <= 9:

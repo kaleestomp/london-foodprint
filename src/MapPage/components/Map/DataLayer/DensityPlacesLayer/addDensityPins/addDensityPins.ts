@@ -2,6 +2,7 @@ import L from 'leaflet';
 import { cellToLatLng } from 'h3-js';
 import { type TileDensity } from '../../../../../request/useRequestTiles/request';
 import makePinIcon, {countToSize, PIN_RANGE_BY_RESOLUTION, DEFAULT_PIN_RANGE} from './makePinIcon';
+import makePlacePinIcon from '../addPlacePins/makePlacePinIcon';
 
 const STAGGER_STEP_MS = 0; //25
 const STAGGER_CAP    = 20; // stagger capped at the 20th pin → max 500ms //20
@@ -39,16 +40,29 @@ const addDensityPins = (
 
   const [minW, maxW] = PIN_RANGE_BY_RESOLUTION[resolution] ?? DEFAULT_PIN_RANGE;
   // maxCount from the full response batch keeps sizes consistent across the viewport.
-  const maxCount = tiles.reduce((m, d) => Math.max(m, d.count), 1);
+  // Exclude singletons from the maxCount so they don't deflate density-marker sizing.
+  const maxCount = tiles.reduce((m, d) => d.count > 1 ? Math.max(m, d.count) : m, 1);
   const created: Array<{ tile: string; marker: L.Marker }> = [];
 
   newTiles.forEach((d, i) => {
     rendered.add(d.tile);
+    const staggerMs = Math.min(i, STAGGER_CAP) * STAGGER_STEP_MS;
+    const startOffset = startOffsets?.get(d.tile);
+
+    // Singleton tile: plot a place marker at the actual place location.
+    if (d.count === 1 && d.singleton) {
+      const { lat, lon } = d.singleton;
+      const icon = makePlacePinIcon({ staggerMs, startOffset });
+      const marker = L.marker([lat, lon], { icon }).addTo(layer);
+      created.push({ tile: d.tile, marker });
+      return;
+    }
+
+    // Multi-count tile: plot density marker at H3 centroid.
     const [lat, lng] = cellToLatLng(d.tile);
     const [w, h] = countToSize(d.count, maxCount, minW, maxW);
-    const staggerMs = Math.min(i, STAGGER_CAP) * STAGGER_STEP_MS;
     const marker = L.marker([lat, lng], {
-      icon: makePinIcon(d.count, w, h, { staggerMs, startOffset: startOffsets?.get(d.tile) }),
+      icon: makePinIcon(d.count, w, h, { staggerMs, startOffset }),
     });
     marker.addTo(layer);
     created.push({ tile: d.tile, marker });
