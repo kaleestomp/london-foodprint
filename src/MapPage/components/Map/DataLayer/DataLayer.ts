@@ -11,7 +11,7 @@ import useBuildFilterKey from './LayerStates/buildFilterKey';
 import { useTileQuery } from '../../../../context/TileQueryContext';
 import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 import useRequestTopPlaces from '../../../request/useRequestTopPlaces/useRequestTopPlaces';
-import addTopPlaceMarkers from './addTopPlacePins/addTopPlaceMarkers';
+import syncTopPlaceMarkers, { type TopPlaceMarkerCache } from './addTopPlacePins/addTopPlaceMarkers';
 import './addTopPlacePins/topPlacePin.css';
 
 // DEBUG Layers that only shows in local dev
@@ -59,6 +59,7 @@ const DataLayer = (
   const prevModeRef = useRef<'tiles' | 'places' | null>(null);
   const buildFilterKey = useBuildFilterKey();
   const topPlacesLayerRef = useRef<L.LayerGroup | null>(null);
+  const topPlaceCacheRef = useRef<TopPlaceMarkerCache>(new Map());
   const topPlaceMarkersRef = useRef<Map<string, L.Marker>>(new Map());
 
   const topPlacesParams = useMemo(() => {
@@ -95,6 +96,10 @@ const DataLayer = (
     topPlacesLayerRef.current = layer;
 
     return () => {
+      topPlaceCacheRef.current.forEach((entry) => {
+        entry.marker.remove();
+      });
+      topPlaceCacheRef.current.clear();
       topPlaceMarkersRef.current.clear();
       topPlacesLayerRef.current = null;
       layer.remove();
@@ -104,16 +109,15 @@ const DataLayer = (
   useEffect(() => {
     const layer = topPlacesLayerRef.current;
     if (!enabled || !layer) return;
-    if (topPlacesStatus !== 'success' || !topPlacesRes) {
-      layer.clearLayers();
-      topPlaceMarkersRef.current.clear();
-      return;
-    }
+    if (topPlacesStatus !== 'success' || !topPlacesRes) return;
     if (topPlacesResponseKey !== topPlacesQueryKey) return;
 
-    layer.clearLayers();
-    const created = addTopPlaceMarkers(layer, topPlacesRes.data, (placeId) => setSelectedPlaceId(placeId));
-    topPlaceMarkersRef.current = new Map(created.map(({ id, marker }) => [id, marker]));
+    topPlaceMarkersRef.current = syncTopPlaceMarkers(
+      layer,
+      topPlacesRes.data,
+      topPlaceCacheRef.current,
+      (placeId) => setSelectedPlaceId(placeId),
+    );
   }, [
     enabled,
     topPlacesStatus,
@@ -128,18 +132,34 @@ const DataLayer = (
       const motion = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-motion');
       if (!motion) return;
 
-      motion.classList.remove('is-jumping', 'is-floating');
-      if (!selectedPlaceId || placeId !== selectedPlaceId) return;
+      motion.classList.remove('is-selected');
+      if (!selectedPlaceId || placeId !== selectedPlaceId) {
+        marker.closePopup();
+        return;
+      }
 
-      // Restart jump animation whenever this place is selected.
-      void motion.offsetWidth;
-      motion.classList.add('is-jumping');
-      motion.addEventListener('animationend', () => {
-        motion.classList.remove('is-jumping');
-        motion.classList.add('is-floating');
-      }, { once: true });
+      // Selected top-place pins should only run idle floating animation.
+      motion.classList.add('is-selected');
+      marker.openPopup();
     });
   }, [selectedPlaceId, topPlacesResponseKey]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const map = mapRef.current;
+    if (!map) return;
+
+    const handleMapClick = () => {
+      if (selectedPlaceId) {
+        setSelectedPlaceId(null);
+      }
+    };
+
+    map.on('click', handleMapClick);
+    return () => {
+      map.off('click', handleMapClick);
+    };
+  }, [enabled, mapRef, selectedPlaceId, setSelectedPlaceId]);
 
   
   useEffect(() => {

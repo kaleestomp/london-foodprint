@@ -1,7 +1,24 @@
 import L from 'leaflet';
 
 import type { TopPlaceItem } from '../../../../request/useRequestTopPlaces/request';
-import makeTopPlacePinIcon from './makeTopPlacePinIcon';
+import makeTopPlacePinIcon, {
+  animateTopPlacePinExit,
+  clearTopPlacePinTransitions,
+  restartTopPlacePinEnter,
+  setTopPlaceMarkerHighlighted,
+} from './makeTopPlacePinIcon';
+
+const TOP_PLACE_PIN_CACHE_TTL_MS = 30 * 1000;
+const TOP_PLACE_PIN_EXIT_MS = 360;
+
+type TopPlaceCacheEntry = {
+  marker: L.Marker;
+  highlighted: boolean;
+  lastSeenAt: number;
+  removalTimer?: ReturnType<typeof setTimeout> | null;
+};
+
+export type TopPlaceMarkerCache = Map<string, TopPlaceCacheEntry>;
 
 const resolveHighlightCount = (count: number): number => {
   if (count <= 0) return 0;
@@ -9,31 +26,101 @@ const resolveHighlightCount = (count: number): number => {
   return Math.min(count, Math.max(1, Math.ceil(count * 0.3)));
 };
 
-const addTopPlaceMarkers = (
+const syncTopPlaceMarkers = (
   layer: L.LayerGroup,
   data: TopPlaceItem[],
+  cache: TopPlaceMarkerCache,
   onPlaceClick?: (placeId: string) => void,
-): Array<{ id: string; marker: L.Marker }> => {
-  if (!Array.isArray(data) || !layer) return [];
+): Map<string, L.Marker> => {
+  if (!Array.isArray(data) || !layer) return new Map();
 
+  const now = Date.now();
   const highlightCount = resolveHighlightCount(data.length);
-  const created: Array<{ id: string; marker: L.Marker }> = [];
+  const activeMarkers = new Map<string, L.Marker>();
 
   data.forEach((place, idx) => {
     const highlighted = idx < highlightCount;
-    const marker = L.marker([place.lat, place.lon], {
+    const cached = cache.get(place.id);
+    const rankText = place.rank != null ? `Rank ${place.rank.toFixed(3)}` : 'Rank unknown';
+    const popupHtml = `<strong>${place.id}</strong><br/>${rankText}`;
+    const marker = cached?.marker ?? L.marker([place.lat, place.lon], {
       icon: makeTopPlacePinIcon({ highlighted }),
       zIndexOffset: highlighted ? 1600 : 1400,
-    }).addTo(layer);
+    });
 
-    if (onPlaceClick) {
-      marker.on('click', () => onPlaceClick(place.id));
+    if (marker.getPopup()) {
+      marker.setPopupContent(popupHtml);
+    } else {
+      marker.bindPopup(popupHtml);
     }
 
-    created.push({ id: place.id, marker });
+    if (cached?.removalTimer) {
+      clearTimeout(cached.removalTimer);
+      cached.removalTimer = null;
+    }
+
+    if (!cached && onPlaceClick) {
+      marker.on('click', (event) => {
+        L.DomEvent.stopPropagation(event);
+        onPlaceClick(place.id);
+      });
+    }
+
+    const wasOnLayer = layer.hasLayer(marker);
+    if (!wasOnLayer) {
+      marker.addTo(layer);
+    }
+
+    if (cached && !wasOnLayer) {
+      clearTopPlacePinTransitions(marker);
+      restartTopPlacePinEnter(marker);
+    }
+
+    const latLng = marker.getLatLng();
+    if (latLng.lat !== place.lat || latLng.lng !== place.lon) {
+      marker.setLatLng([place.lat, place.lon]);
+    }
+
+    if (cached) {
+      if (cached.highlighted !== highlighted) {
+        setTopPlaceMarkerHighlighted(marker, highlighted, true);
+        marker.setZIndexOffset(highlighted ? 1600 : 1400);
+      }
+      cached.highlighted = highlighted;
+      cached.lastSeenAt = now;
+    } else {
+      cache.set(place.id, {
+        marker,
+        highlighted,
+        lastSeenAt: now,
+      });
+    }
+
+    activeMarkers.set(place.id, marker);
   });
 
-  return created;
+  for (const [placeId, entry] of cache) {
+    const isActive = activeMarkers.has(placeId);
+    if (!isActive && layer.hasLayer(entry.marker) && !entry.removalTimer) {
+      animateTopPlacePinExit(entry.marker);
+      entry.removalTimer = setTimeout(() => {
+        if (layer.hasLayer(entry.marker)) {
+          layer.removeLayer(entry.marker);
+        }
+        entry.removalTimer = null;
+      }, TOP_PLACE_PIN_EXIT_MS);
+    }
+
+    if (!isActive && now - entry.lastSeenAt > TOP_PLACE_PIN_CACHE_TTL_MS) {
+      if (entry.removalTimer) {
+        clearTimeout(entry.removalTimer);
+      }
+      entry.marker.remove();
+      cache.delete(placeId);
+    }
+  }
+
+  return activeMarkers;
 };
 
-export default addTopPlaceMarkers;
+export default syncTopPlaceMarkers;
