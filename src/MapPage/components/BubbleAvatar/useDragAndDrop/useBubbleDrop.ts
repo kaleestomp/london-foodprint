@@ -8,6 +8,7 @@ import getPinSizeFromCss from './getPinSizeFromCss';
 import addPlaceMarkers from '../../Map/DataLayer/DensityPlacesLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
 import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
+import selectTopRankedPlaces from '../../../utils/selectTopRankedPlaces';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import useIsMobile from '../../../../utils/browser/useIsMobile';
@@ -48,7 +49,11 @@ const useBubbleDrop = (
   }, [isMobile, panelHeight, translateY]);
 
   // Fetch nearby places via the shared request hook (caches results, handles abort)
-  const { res: nearbyRes } = useRequestNearby(
+  const {
+    res: nearbyRes,
+    queryKey: nearbyQueryKey,
+    responseKey: nearbyResponseKey,
+  } = useRequestNearby(
     droppedPos ? {
       lat: droppedPos.lat,
       lng: droppedPos.lng,
@@ -83,18 +88,22 @@ const useBubbleDrop = (
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !nearbyRes || !droppedPos) return;
+    if (nearbyResponseKey !== nearbyQueryKey) return;
     if (placesLayerRef.current) {
       map.removeLayer(placesLayerRef.current);
       placesLayerRef.current = null;
     }
     const layer = L.layerGroup().addTo(map);
     placesLayerRef.current = layer;
-    const previewPlaces: TilePlacePreview[] = nearbyRes.data.map((place) => ({
+    const topNearbyIds = new Set(selectTopRankedPlaces(nearbyRes.data, 10).map((place) => place.id));
+    const previewPlaces: TilePlacePreview[] = nearbyRes.data
+      .filter((place) => !topNearbyIds.has(place.id))
+      .map((place) => ({
       id: place.id,
       lat: place.lat,
       lon: place.lon,
       tier: place.rank,
-    }));
+      }));
     addPlaceMarkers(
       layer,
       previewPlaces,
@@ -103,7 +112,7 @@ const useBubbleDrop = (
       L.latLng(droppedPos.lat, droppedPos.lng),
       entryDelayRef.current,
     );
-  }, [nearbyRes, mapRef, droppedPos]);
+  }, [nearbyRes, nearbyQueryKey, nearbyResponseKey, mapRef, droppedPos]);
 
   // ── React to droppedPos changes ────────────────────────────────────────
   useEffect(() => {

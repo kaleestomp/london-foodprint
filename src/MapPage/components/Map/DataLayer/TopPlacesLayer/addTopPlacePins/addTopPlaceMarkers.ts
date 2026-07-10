@@ -35,10 +35,14 @@ const syncTopPlaceMarkers = (
   data: TopPlaceItem[],
   cache: TopPlaceMarkerCache,
   onPlaceClick?: (placeId: string) => void,
+  options: {
+    bubbleTopPlaceIds?: Set<string>;
+  } = {},
 ): Map<string, L.Marker> => {
   if (!Array.isArray(data) || !layer) return new Map();
 
   const now = Date.now();
+  const bubbleTopPlaceIds = options.bubbleTopPlaceIds;
   const highlightCount = resolveHighlightCount(data.length);
   const activeMarkers = new Map<string, L.Marker>();
 
@@ -60,6 +64,9 @@ const syncTopPlaceMarkers = (
 
     if (cached) {
       cancelScheduledRemoval(cached);
+      // Marker can be reactivated while still on-layer with an exit class
+      // applied from a previous frame; clear stale transitions so it stays visible.
+      clearTopPlacePinTransitions(marker);
     }
 
     if (!cached && onPlaceClick) {
@@ -82,6 +89,11 @@ const syncTopPlaceMarkers = (
     const latLng = marker.getLatLng();
     if (latLng.lat !== place.lat || latLng.lng !== place.lon) {
       marker.setLatLng([place.lat, place.lon]);
+    }
+
+    const shell = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-shell');
+    if (shell) {
+      shell.classList.toggle('top-place-pin-shell--bubble', !!bubbleTopPlaceIds?.has(place.id));
     }
 
     if (cached) {

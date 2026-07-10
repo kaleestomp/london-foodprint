@@ -99,6 +99,17 @@
     filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.80));
 }
 
+
+
+.top-place-pin-shell--bubble .top-place-pin-svg path {
+    stroke: #66d9ff;
+    stroke-width: 0.7;
+}
+.top-place-pin-shell--bubble {
+    filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.42));
+}
+
+
 .top-place-pin-motion {
     transform-origin: center;
     animation: top-place-pin-idle-float 1.6s ease-in-out infinite;

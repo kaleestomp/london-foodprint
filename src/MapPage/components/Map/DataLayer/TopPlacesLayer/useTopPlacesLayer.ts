@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../request/useRequestTopPlaces/useRequestTopPlaces';
+import { type TopPlaceItem } from '../../../../request/useRequestTopPlaces/request';
+import { type NearbyPlace } from '../../../../request/useRequestNearby/request';
+import useRequestNearby from '../../../../request/useRequestNearby/useRequestNearby';
 import syncTopPlaceMarkers, { type TopPlaceMarkerCache } from './addTopPlacePins/addTopPlaceMarkers';
 import useTopPlacesViewport from './useTopPlacesViewport';
+import { type SearchMask } from '../LayerStates/filterTileOutsideMask';
+import selectTopRankedPlaces from '../../../../utils/selectTopRankedPlaces';
 import './addTopPlacePins/topPlacePin.css';
 
 type UseTopPlacesLayerArgs = {
@@ -30,11 +35,14 @@ const useTopPlacesLayer = ({
     venueType,
     scoreBasis,
     scoreTier,
+    searchMask,
   } = useSearchFilters();
 
   const topPlacesLayerRef = useRef<L.LayerGroup | null>(null);
   const topPlaceCacheRef = useRef<TopPlaceMarkerCache>(new Map());
   const topPlaceMarkersRef = useRef<Map<string, L.Marker>>(new Map());
+  const [viewportTopPlaces, setViewportTopPlaces] = useState<TopPlaceItem[]>([]);
+  const [bubbleTopPlaces, setBubbleTopPlaces] = useState<Array<{ id: string; lat: number; lon: number; rank: number | null }>>([]);
 
   const viewportParams = useTopPlacesViewport(mapRef, enabled, debounceMs);
 
@@ -71,6 +79,75 @@ const useTopPlacesLayer = ({
     responseKey: topPlacesResponseKey,
   } = useRequestTopPlaces(topPlacesParams, { debounceMs: 0 });
 
+  // Keep viewport top places sticky through in-flight pan requests so markers
+  // don't disappear when the viewport query key changes before success.
+  useEffect(() => {
+    if (!enabled) {
+      setViewportTopPlaces([]);
+      return;
+    }
+    if (topPlacesStatus !== 'success' || !topPlacesRes) return;
+    if (topPlacesResponseKey !== topPlacesQueryKey) return;
+
+    setViewportTopPlaces(topPlacesRes.data);
+  }, [
+    enabled,
+    topPlacesStatus,
+    topPlacesRes,
+    topPlacesQueryKey,
+    topPlacesResponseKey,
+  ]);
+
+  const nearbyParams = useMemo(() => {
+    if (!enabled || !searchMask) return null;
+
+    return {
+      lat: searchMask.center.lat,
+      lng: searchMask.center.lng,
+      radius_m: searchMask.radiusM,
+      cuisines: effectiveCuisines,
+      venue_type: venueType ?? '',
+      cost: effectivePriceRanges,
+      score_basis: scoreBasis,
+      score_tier: scoreTier,
+    };
+  }, [
+    enabled,
+    searchMask,
+    effectiveCuisines,
+    venueType,
+    effectivePriceRanges,
+    scoreBasis,
+    scoreTier,
+  ]);
+
+  const {
+    status: nearbyStatus,
+    res: nearbyRes,
+    queryKey: nearbyQueryKey,
+    responseKey: nearbyResponseKey,
+  } = useRequestNearby(nearbyParams);
+
+  // Keep bubble top places sticky between nearby requests so they persist
+  // through viewport-driven top-place churn and refresh only on new nearby data.
+  useEffect(() => {
+    if (!enabled || !searchMask) {
+      setBubbleTopPlaces([]);
+      return;
+    }
+    if (nearbyStatus !== 'success' || !nearbyRes) return;
+    if (nearbyResponseKey !== nearbyQueryKey) return;
+
+    setBubbleTopPlaces(selectTopRankedPlaces(nearbyRes.data, 10).map(mapNearbyToTopPlace));
+  }, [
+    enabled,
+    searchMask,
+    nearbyStatus,
+    nearbyRes,
+    nearbyQueryKey,
+    nearbyResponseKey,
+  ]);
+
   useEffect(() => {
     if (!enabled) return;
     const map = mapRef.current;
@@ -93,23 +170,25 @@ const useTopPlacesLayer = ({
   useEffect(() => {
     const layer = topPlacesLayerRef.current;
     if (!enabled || !layer) return;
-    if (topPlacesStatus !== 'success' || !topPlacesRes) return;
-    if (topPlacesResponseKey !== topPlacesQueryKey) return;
+    const maskedViewportTopPlaces = filterViewportTopPlacesOutsideMask(viewportTopPlaces, searchMask);
 
-    onActiveTopPlaceIdsChange?.(topPlacesRes.data.map((place) => place.id));
+    const bubbleTopPlaceIds = new Set(bubbleTopPlaces.map((place) => place.id));
+
+    const mergedTopPlaces = mergeTopPlacesById(maskedViewportTopPlaces, bubbleTopPlaces);
+    onActiveTopPlaceIdsChange?.(mergedTopPlaces.map((place) => place.id));
 
     topPlaceMarkersRef.current = syncTopPlaceMarkers(
       layer,
-      topPlacesRes.data,
+      mergedTopPlaces,
       topPlaceCacheRef.current,
       (placeId) => setSelectedPlaceId(placeId),
+      { bubbleTopPlaceIds },
     );
   }, [
     enabled,
-    topPlacesStatus,
-    topPlacesRes,
-    topPlacesQueryKey,
-    topPlacesResponseKey,
+    searchMask,
+    viewportTopPlaces,
+    bubbleTopPlaces,
     setSelectedPlaceId,
     onActiveTopPlaceIdsChange,
   ]);
@@ -156,6 +235,31 @@ const useTopPlacesLayer = ({
       map.off('click', handleMapClick);
     };
   }, [enabled, mapRef, selectedPlaceId, setSelectedPlaceId]);
+};
+
+const filterViewportTopPlacesOutsideMask = <T extends { lat: number; lon: number }>(
+  places: T[],
+  searchMask: SearchMask | null,
+): T[] => {
+  if (!searchMask) return places;
+
+  const center = L.latLng(searchMask.center.lat, searchMask.center.lng);
+  return places.filter((place) => L.latLng(place.lat, place.lon).distanceTo(center) > searchMask.radiusM);
+};
+
+const mapNearbyToTopPlace = (place: NearbyPlace) => ({
+  id: place.id,
+  lat: place.lat,
+  lon: place.lon,
+  rank: place.rank,
+});
+
+const mergeTopPlacesById = <T extends { id: string }>(left: T[], right: T[]): T[] => {
+  const merged = new Map<string, T>();
+  [...left, ...right].forEach((place) => {
+    merged.set(place.id, place);
+  });
+  return [...merged.values()];
 };
 
 export default useTopPlacesLayer;

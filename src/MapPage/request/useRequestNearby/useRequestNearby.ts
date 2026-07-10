@@ -44,10 +44,13 @@ const useRequestNearby = (params: NearbyParams | null): {
   status: RequestStatus;
   error: Error | null;
   res: NearbyResponse | null;
+  queryKey: string;
+  responseKey: string;
 } => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [res, setRes] = useState<NearbyResponse | null>(null);
+  const [responseKey, setResponseKey] = useState('');
   const latestRequestIdRef = useRef(0);
 
   const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
@@ -91,6 +94,7 @@ const useRequestNearby = (params: NearbyParams | null): {
 
     if (!queryKey) {
       setRes(null);
+      setResponseKey('');
       setError(null);
       setIsLoading(false);
       return () => {
@@ -102,6 +106,7 @@ const useRequestNearby = (params: NearbyParams | null): {
     sendRequest(queryKey, controller.signal, isActiveRef, requestId).then((data) => {
       if (isActiveRef.current && latestRequestIdRef.current === requestId && data !== null) {
         setRes(data);
+        setResponseKey(queryKey);
       }
     });
 
@@ -113,7 +118,7 @@ const useRequestNearby = (params: NearbyParams | null): {
 
   const status: RequestStatus = isLoading ? 'loading' : error ? 'error' : res ? 'success' : 'empty';
 
-  return { status, error, res };
+  return { status, error, res, queryKey, responseKey };
 };
 
 export default useRequestNearby;
