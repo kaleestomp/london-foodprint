@@ -10,7 +10,8 @@
   gap: var(--app-toolbar-button-gap); 
   width: min(520px, calc(100vw - (var(--app-layout-margin) * 2)));
 
-  --toolbar-height: 40px;
+  --toolbar-height: 45px;
+  --toolbar-icon-size: 25px;
   --toolbar-shadow: none;
   --toolbar-shadow-active: var(--app-glass-card-box-shadow);
   --toolbar-background: rgba(255, 255, 255, 0.24);

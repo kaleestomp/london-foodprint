@@ -1,11 +1,13 @@
 .geo-searchbar {
   --geo-searchbar-height: var(--toolbar-height, 38px);
+  --geo-searchbar-active-height: calc(var(--toolbar-height, 38px) * 1.2);
   --geo-searchbar-bg: var(--toolbar-background);
   --geo-searchbar-bg-hover: var(--toolbar-background-hover);
   --geo-searchbar-bg-active: var(--toolbar-background-active);
   --geo-searchbar-backdrop-filter: var(--toolbar-backdrop-filter);
   --geo-searchbar-backdrop-filter-active: var(--toolbar-backdrop-filter-active);
   --geo-searchbar-hover-transform: scale(1.01);
+  --geo-searchbar-icon-size: var(--toolbar-icon-size, 20px);
 
   position: relative;
   width: var(--geo-searchbar-height);
@@ -61,11 +63,15 @@
 }
 
 .geo-searchbar-icon {
-  width: 18px;
-  height: 18px;
+  width: var(--geo-searchbar-icon-size);
+  height: var(--geo-searchbar-icon-size);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+.geo-searchbar-icon svg {
+  width: var(--geo-searchbar-icon-size);
+  height: var(--geo-searchbar-icon-size);
 }
 

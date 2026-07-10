@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { type TilePlacePreview } from '../../../../request/useRequestTiles/request';
+import { type TilePlacePreview } from '../../../../../request/useRequestTiles/request';
 import makePlacePinIcon from './makePlacePinIcon';
 
 const STAGGER_STEP_MS = 28;

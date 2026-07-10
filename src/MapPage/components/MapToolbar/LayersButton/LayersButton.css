@@ -29,6 +29,6 @@
 }
 
 .map-toolbar-layers-btn svg {
-  width: 20px;
-  height: 20px;
+  width: var(--toolbar-icon-size);
+  height: var(--toolbar-icon-size);
 }

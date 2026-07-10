@@ -1,8 +1,8 @@
 import L from 'leaflet';
 
 import './densityPin.css';
-import useDensityPinLayer from './useDensityPinLayer';
-import usePlacePinLayer from './usePlacePinLayer';
+import useDensityPinLayer from '../addDensityPins/useDensityPinLayer';
+import usePlacePinLayer from '../addPlacePins/usePlacePinLayer';
 
 /**
  * Thin orchestrator composing density-pin and place-pin animation layers.
@@ -32,6 +32,7 @@ const usePinAnimations = (
     transitionRes:        density.transitionRes,
     transitionToPlaces:   places.transitionToPlaces,
     transitionFromPlaces: places.transitionFromPlaces,
+    removePlaceMarkersByIds: places.removePlaceMarkersByIds,
     clearAll,
   };
 };

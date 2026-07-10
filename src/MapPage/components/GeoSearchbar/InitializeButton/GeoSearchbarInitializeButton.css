@@ -17,3 +17,7 @@
   background: var(--geo-searchbar-bg-hover);
   backdrop-filter: var(--geo-searchbar-backdrop-filter-active);
 }
+.geo-searchbar-shell.geo-searchbar-collapse-btn svg {
+  width: var(--geo-searchbar-icon-size);
+  height: var(--geo-searchbar-icon-size);
+}

@@ -2,12 +2,13 @@ import { useMemo } from 'react';
 
 import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
 import type { TilesParams } from '../../../../request/useRequestTiles/useRequestTiles';
+import type { RequestStatus } from '../../../../request/useRequestTiles/useRequestTiles';
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
 import delayLoadingScreen from './delayLoadingScreen';
 import onUserRoam from './onUserRoam';
 
 type Response = {
-  status: string;
+  status: RequestStatus;
   res: any;
   queryKey: string;
   responseKey: string;

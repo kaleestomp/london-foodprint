@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import { cellToParent, cellToLatLng } from 'h3-js';
-import { type TileDensity } from '../../../../request/useRequestTiles/request';
+import { type TileDensity } from '../../../../../request/useRequestTiles/request';
 
 /**
  * Computes per-tile screen-space fly-in offsets for the zoom-in "explode" effect.

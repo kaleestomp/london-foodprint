@@ -1,11 +1,15 @@
 import { useRef } from 'react';
 import L from 'leaflet';
 
-import { type TileDensity } from '../../../../request/useRequestTiles/request';
-import addDensityPins from '../addDensityPins/addDensityPins';
-import computeExplodeOffsets from './computeExplodeOffsets'; // remove import to disable explode
-import computeMergeOffsets from './computeMergeOffsets';   // remove import to disable merge
-import { type SearchMask } from '../LayerStates/filterTileOutsideMask';
+import { type TileDensity } from '../../../../../request/useRequestTiles/request';
+import addDensityPins from './addDensityPins';
+import computeExplodeOffsets from '../animation/computeExplodeOffsets'; // remove import to disable explode
+import computeMergeOffsets from '../animation/computeMergeOffsets';   // remove import to disable merge
+import { type SearchMask } from '../../LayerStates/filterTileOutsideMask';
+import {
+  cancelDeferredLayerRemoval,
+  scheduleDeferredLayerRemoval,
+} from '../lifecycle/densityPlacesMarkerLifecycle';
 
 const EXIT_DELAY = 280;
 
@@ -24,18 +28,15 @@ const useDensityPinLayer = (
   const renderedTilesRef = useRef<Set<string>>(new Set());
   const currentResRef    = useRef<number | null>(null);
   const markersByTileRef = useRef<Map<string, L.Marker>>(new Map());
-  const cleanupTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingRemovalRef  = useRef<L.Marker[]>([]);
+  const cleanupTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingRemovalRef = useRef<L.Marker[]>([]);
 
   const cancelTimer = () => {
-    if (cleanupTimerRef.current) {
-      clearTimeout(cleanupTimerRef.current);
-      cleanupTimerRef.current = null;
-      // Flush any markers that were waiting on the deferred cleanup.
-      const layer = layerRef.current;
-      if (layer) pendingRemovalRef.current.forEach((m) => layer.removeLayer(m));
-      pendingRemovalRef.current = [];
-    }
+    cancelDeferredLayerRemoval({
+      layer: layerRef.current,
+      timerRef: cleanupTimerRef,
+      pendingRef: pendingRemovalRef,
+    });
   };
 
   const resetState = () => {
@@ -125,12 +126,13 @@ const useDensityPinLayer = (
     created.forEach(({ tile, marker }) => markersByTileRef.current.set(tile, marker));
 
     const exitDelay = zoomingIn ? 0 : EXIT_DELAY;
-    pendingRemovalRef.current = Array.from(outgoing.values());
-    cleanupTimerRef.current = setTimeout(() => {
-      outgoing.forEach((marker) => layer.removeLayer(marker));
-      pendingRemovalRef.current = [];
-      cleanupTimerRef.current = null;
-    }, exitDelay);
+    scheduleDeferredLayerRemoval({
+      layer,
+      markers: Array.from(outgoing.values()),
+      delayMs: exitDelay,
+      timerRef: cleanupTimerRef,
+      pendingRef: pendingRemovalRef,
+    });
   };
 
   return {

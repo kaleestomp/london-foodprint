@@ -1,7 +1,8 @@
 .geo-searchbar-my-location-btn {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
+  --geo-searchbar-my-location-btn-size: calc(var(--geo-searchbar-height) - 18px);
+  width: var(--geo-searchbar-my-location-btn-size);
+  height: var(--geo-searchbar-my-location-btn-size);
+  min-width: var(--geo-searchbar-my-location-btn-size);
   border: 0;
   border-radius: 50%;
   padding: 0;
@@ -15,7 +16,7 @@
 }
 
 .geo-searchbar-my-location-btn .MuiSvgIcon-root {
-  font-size: 20px;
+  font-size: var(--geo-searchbar-icon-size);
 }
 
 .geo-searchbar-my-location-btn:hover {

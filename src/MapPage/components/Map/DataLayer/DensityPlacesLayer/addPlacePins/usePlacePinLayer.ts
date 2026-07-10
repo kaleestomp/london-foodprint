@@ -2,9 +2,13 @@ import { useRef } from 'react';
 import L from 'leaflet';
 import { latLngToCell, cellToLatLng } from 'h3-js';
 
-import { type TileDensity, type TilePlacePreview } from '../../../../request/useRequestTiles/request';
+import { type TileDensity, type TilePlacePreview } from '../../../../../request/useRequestTiles/request';
 import addDensityPins from '../addDensityPins/addDensityPins';
-import addPlaceMarkers from '../addPlacePins/addPlaceMarkers';
+import addPlaceMarkers from './addPlaceMarkers';
+import {
+  cancelDeferredLayerRemoval,
+  scheduleDeferredLayerRemoval,
+} from '../lifecycle/densityPlacesMarkerLifecycle';
 
 interface DensityRefs {
   currentResRef:    React.RefObject<number | null>;
@@ -31,18 +35,27 @@ const usePlacePinLayer = (
   const pendingRemovalRef    = useRef<L.Marker[]>([]);
 
   const cancelTimer = () => {
-    if (cleanupTimerRef.current) {
-      clearTimeout(cleanupTimerRef.current);
-      cleanupTimerRef.current = null;
-      // Flush any markers that were waiting on the deferred cleanup.
-      const layer = layerRef.current;
-      if (layer) pendingRemovalRef.current.forEach((m) => layer.removeLayer(m));
-      pendingRemovalRef.current = [];
-    }
+    cancelDeferredLayerRemoval({
+      layer: layerRef.current,
+      timerRef: cleanupTimerRef,
+      pendingRef: pendingRemovalRef,
+    });
   };
 
   const resetState = () => {
     placeMarkersByIdRef.current = new Map();
+  };
+
+  const removePlaceMarkersByIds = (placeIds: Iterable<string>): void => {
+    const layer = layerRef.current;
+    if (!layer) return;
+
+    for (const placeId of placeIds) {
+      const marker = placeMarkersByIdRef.current.get(placeId);
+      if (!marker) continue;
+      layer.removeLayer(marker);
+      placeMarkersByIdRef.current.delete(placeId);
+    }
   };
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -176,15 +189,22 @@ const usePlacePinLayer = (
     // every tile, orphaning the originals in the layer with no way to remove them.
     density.renderedTilesRef.current = renderedSet;
 
-    pendingRemovalRef.current = Array.from(outgoingPlaces.values());
-    cleanupTimerRef.current = setTimeout(() => {
-      outgoingPlaces.forEach((m) => layer.removeLayer(m));
-      pendingRemovalRef.current = [];
-      cleanupTimerRef.current = null;
-    }, 400);
+    scheduleDeferredLayerRemoval({
+      layer,
+      markers: Array.from(outgoingPlaces.values()),
+      delayMs: 400,
+      timerRef: cleanupTimerRef,
+      pendingRef: pendingRemovalRef,
+    });
   };
 
-  return { transitionToPlaces, transitionFromPlaces, cancelTimer, resetState };
+  return {
+    transitionToPlaces,
+    transitionFromPlaces,
+    removePlaceMarkersByIds,
+    cancelTimer,
+    resetState,
+  };
 };
 
 export default usePlacePinLayer;

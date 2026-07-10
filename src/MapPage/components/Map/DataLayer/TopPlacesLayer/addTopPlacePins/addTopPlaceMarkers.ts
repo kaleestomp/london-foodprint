@@ -1,24 +1,28 @@
 import L from 'leaflet';
 
-import type { TopPlaceItem } from '../../../../request/useRequestTopPlaces/request';
+import type { TopPlaceItem } from '../../../../../request/useRequestTopPlaces/request';
 import makeTopPlacePinIcon, {
   animateTopPlacePinExit,
   clearTopPlacePinTransitions,
   restartTopPlacePinEnter,
   setTopPlaceMarkerHighlighted,
 } from './makeTopPlacePinIcon';
+import {
+  cancelScheduledRemoval,
+  markMarkerSeen,
+  pruneInactiveExpiredEntries,
+  scheduleExitRemoval,
+  type TopPlacesLifecycleCache,
+} from './topPlacesMarkerLifecycle';
 
 const TOP_PLACE_PIN_CACHE_TTL_MS = 30 * 1000;
 const TOP_PLACE_PIN_EXIT_MS = 360;
 
-type TopPlaceCacheEntry = {
-  marker: L.Marker;
+type TopPlaceMarkerState = {
   highlighted: boolean;
-  lastSeenAt: number;
-  removalTimer?: ReturnType<typeof setTimeout> | null;
 };
 
-export type TopPlaceMarkerCache = Map<string, TopPlaceCacheEntry>;
+export type TopPlaceMarkerCache = TopPlacesLifecycleCache<TopPlaceMarkerState>;
 
 const resolveHighlightCount = (count: number): number => {
   if (count <= 0) return 0;
@@ -54,9 +58,8 @@ const syncTopPlaceMarkers = (
       marker.bindPopup(popupHtml);
     }
 
-    if (cached?.removalTimer) {
-      clearTimeout(cached.removalTimer);
-      cached.removalTimer = null;
+    if (cached) {
+      cancelScheduledRemoval(cached);
     }
 
     if (!cached && onPlaceClick) {
@@ -82,43 +85,44 @@ const syncTopPlaceMarkers = (
     }
 
     if (cached) {
-      if (cached.highlighted !== highlighted) {
+      if (cached.state.highlighted !== highlighted) {
         setTopPlaceMarkerHighlighted(marker, highlighted, true);
         marker.setZIndexOffset(highlighted ? 1600 : 1400);
       }
-      cached.highlighted = highlighted;
-      cached.lastSeenAt = now;
-    } else {
-      cache.set(place.id, {
-        marker,
-        highlighted,
-        lastSeenAt: now,
-      });
     }
+
+    markMarkerSeen({
+      cache,
+      key: place.id,
+      marker,
+      state: { highlighted },
+      now,
+    });
 
     activeMarkers.set(place.id, marker);
   });
 
   for (const [placeId, entry] of cache) {
     const isActive = activeMarkers.has(placeId);
-    if (!isActive && layer.hasLayer(entry.marker) && !entry.removalTimer) {
-      animateTopPlacePinExit(entry.marker);
-      entry.removalTimer = setTimeout(() => {
-        if (layer.hasLayer(entry.marker)) {
-          layer.removeLayer(entry.marker);
-        }
-        entry.removalTimer = null;
-      }, TOP_PLACE_PIN_EXIT_MS);
-    }
-
-    if (!isActive && now - entry.lastSeenAt > TOP_PLACE_PIN_CACHE_TTL_MS) {
-      if (entry.removalTimer) {
-        clearTimeout(entry.removalTimer);
-      }
-      entry.marker.remove();
-      cache.delete(placeId);
+    if (!isActive && layer.hasLayer(entry.marker)) {
+      scheduleExitRemoval({
+        layer,
+        entry,
+        delayMs: TOP_PLACE_PIN_EXIT_MS,
+        onExit: animateTopPlacePinExit,
+      });
     }
   }
+
+  pruneInactiveExpiredEntries({
+    cache,
+    activeKeys: new Set(activeMarkers.keys()),
+    now,
+    ttlMs: TOP_PLACE_PIN_CACHE_TTL_MS,
+    onPrune: (entry) => {
+      entry.marker.remove();
+    },
+  });
 
   return activeMarkers;
 };

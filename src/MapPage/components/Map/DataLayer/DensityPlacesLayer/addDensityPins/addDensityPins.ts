@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import { cellToLatLng } from 'h3-js';
-import { type TileDensity } from '../../../../request/useRequestTiles/request';
+import { type TileDensity } from '../../../../../request/useRequestTiles/request';
 import makePinIcon, {countToSize, PIN_RANGE_BY_RESOLUTION, DEFAULT_PIN_RANGE} from './makePinIcon';
 
 const STAGGER_STEP_MS = 0; //25
