@@ -1,5 +1,6 @@
 from typing import Any
 
+import h3
 from fastapi import APIRouter, HTTPException, Query, Request
 from api.cache_keys import build_viewbbox_endpoint_cache_key
 from api.tile_api.tile_cache import (
@@ -15,6 +16,26 @@ from api.map_util.map_util import (
     PAGE_SIZE_ON_REQUEST,
     h3_cells_for_bbox,
 )
+def _expand_to_r10(tiles: list[str], resolution: int) -> tuple[list[str], dict[str, str]]:
+    """
+    Expand a list of H3 tiles at any resolution to their res-10 descendants.
+    Returns:
+      r10_cells  - flat list of all res-10 cell IDs to query against h3_r10
+      reverse    - maps each r10 cell back to its parent singleton tile ID
+    At resolution == 10 the tiles are already r10 cells; no expansion needed.
+    """
+    if resolution == 10:
+        return tiles, {t: t for t in tiles}
+    r10_cells: list[str] = []
+    reverse: dict[str, str] = {}
+    for tile in tiles:
+        children = list(h3.cell_to_children(tile, 10))
+        r10_cells.extend(children)
+        for child in children:
+            reverse[child] = tile
+    return r10_cells, reverse
+
+
 router = APIRouter()
 
 @router.get("/api/tiles")
@@ -154,24 +175,29 @@ async def get_tiles(
         return await _get_or_set_cached(places_cache_key, produce_places_fallback)
 
     # Enrich singleton tiles (count=1) with the actual place lat/lon.
+    # At res < 10, tile IDs are coarse H3 parents — expand to r10 children
+    # so SINGLETON_SQL (which matches on h3_r10) can find the place.
     singleton_tiles = [row["tile"] for row in tile_rows if int(row["count"]) == 1]
     singleton_map: dict[str, dict] = {}
     if singleton_tiles:
+        r10_cells, r10_to_tile = _expand_to_r10(singleton_tiles, resolution)
         async with request.app.state.pool.acquire() as conn:
             s_rows = await conn.fetch(
                 SINGLETON_SQL.format(rank_column=tier_column),
-                singleton_tiles,
+                r10_cells,
                 cuisine_values,
                 venue_value,
                 cost_values,
                 score_tier,
             )
         for s in s_rows:
-            singleton_map[s["tile"]] = {
-                "id":  s["id"],
-                "lat": s["lat"],
-                "lon": s["lon"],
-            }
+            parent_tile = r10_to_tile.get(s["tile"])
+            if parent_tile and parent_tile not in singleton_map:
+                singleton_map[parent_tile] = {
+                    "id":  s["id"],
+                    "lat": s["lat"],
+                    "lon": s["lon"],
+                }
 
     tile_data = []
     for row in tile_rows:

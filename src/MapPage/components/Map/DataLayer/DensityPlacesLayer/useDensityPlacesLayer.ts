@@ -57,6 +57,14 @@ const useDensityPlacesLayer = ({
   const prevTopPlaceIdsKeyRef = useRef('');
   const buildFilterKey = useBuildFilterKey();
 
+  // Clear all markers when the request is suppressed (e.g. zoomed out past threshold).
+  useEffect(() => {
+    if (!enabled || requestParams !== null) return;
+    clearAll();
+    prevModeRef.current = null;
+    prevTopPlaceIdsKeyRef.current = '';
+  }, [enabled, requestParams, clearAll]);
+
   
 
   useEffect(() => {
