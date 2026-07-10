@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from server.api.map_util.tile_snapping import outer_inner_tiles_for_bbox
+from api.map_util.tile_snapping import outer_inner_tiles_for_bbox
 
 PAGE_SIZE_ON_ZOOM = 20
 PAGE_SIZE_ON_REQUEST = 80

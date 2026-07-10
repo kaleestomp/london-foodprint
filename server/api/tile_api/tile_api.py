@@ -10,7 +10,7 @@ from api.tile_api.tile_cache import (
 )
 from api.tile_api.sql import PLACES_SQL, TILES_SQL
 from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
-from server.api.map_util.map_util import (
+from api.map_util.map_util import (
     PAGE_SIZE_ON_ZOOM,
     PAGE_SIZE_ON_REQUEST,
     h3_cells_for_bbox,

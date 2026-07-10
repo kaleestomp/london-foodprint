@@ -1,4 +1,4 @@
-from server.api.map_util.map_util import PAGE_SIZE_ON_ZOOM, PAGE_SIZE_ON_REQUEST
+from api.map_util.map_util import PAGE_SIZE_ON_ZOOM, PAGE_SIZE_ON_REQUEST
 
 # Retrieves lightweight place pin rows within a bounding box, optionally filtered by cuisine type,
 # venue type, and cost tier. Returns only pin essentials: id, lat, lon, and tier (0-4) based on
