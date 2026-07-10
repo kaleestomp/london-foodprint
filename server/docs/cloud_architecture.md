@@ -259,15 +259,7 @@ Padding per resolution (in `map_common.py`):
 - The true count of places within the exact bbox is what the places query returns; using `inner_count` as the total misleads the frontend.
 
 **Regression validation:**
-A reconciliation script validates that tile counts are internally consistent. Run it manually to verify deployed queries:
-```powershell
-python server/api_test/reconcile_tiles_places.py
-```
-Checks two invariants:
-1. `inner_count` from tiles query closely matches the actual place query result (sanity bound: ±10%).
-2. Mode switch is deterministic: `inner_count > PAGE_SIZE` → tiles mode, else → places mode.
-
-Exit code 0 = pass, 1 = fail (see stdout for details).
+The historical reconciliation script has been retired. Validation should now be done via endpoint-level integration checks against `/api/tiles` and `/api/places/top`.
 
 **Cache:** 60s in-process TTL (`tile_cache.py`, env var `TILES_CACHE_TTL_SECONDS`).
 - `tiles` responses use cache key: sorted `outer_tiles` + all filter dimensions.

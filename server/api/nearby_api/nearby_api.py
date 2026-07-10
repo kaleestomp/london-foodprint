@@ -5,7 +5,7 @@ import h3
 from fastapi import APIRouter, Query, Request
 from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
 from api.nearby_api.sql import SQL_NEARBY
-from api.map_common import PAGE_SIZE_ON_REQUEST
+from server.api.map_util.map_util import PAGE_SIZE_ON_REQUEST
 
 router = APIRouter()
 

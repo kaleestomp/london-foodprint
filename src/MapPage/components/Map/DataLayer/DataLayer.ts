@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
 
 import callRequestTiles from './inputHooks/callRequestTiles';
@@ -10,6 +10,9 @@ import addDebugTileOverlay from './utils/addDebugTileOverlay';
 import useBuildFilterKey from './LayerStates/buildFilterKey';
 import { useTileQuery } from '../../../../context/TileQueryContext';
 import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
+import useRequestTopPlaces from '../../../request/useRequestTopPlaces/useRequestTopPlaces';
+import addTopPlaceMarkers from './addTopPlacePins/addTopPlaceMarkers';
+import './addTopPlacePins/topPlacePin.css';
 
 // DEBUG Layers that only shows in local dev
 const DEBUG_TILE_OVERLAY = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_TILE_OVERLAY === 'true';
@@ -30,7 +33,7 @@ const DataLayer = (
 
   const { status, res, queryKey, responseKey, requestParams } = callRequestTiles(mapRef, enabled);
   const { setLastTilesParams } = useTileQuery();
-  const { setSelectedPlaceId } = usePlaceSelection();
+  const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
   useEffect(() => {
     setLastTilesParams(requestParams);
   }, [requestParams, setLastTilesParams]);
@@ -55,6 +58,88 @@ const DataLayer = (
   // Tracks the last rendered mode so we can detect places → tiles transitions.
   const prevModeRef = useRef<'tiles' | 'places' | null>(null);
   const buildFilterKey = useBuildFilterKey();
+  const topPlacesLayerRef = useRef<L.LayerGroup | null>(null);
+  const topPlaceMarkersRef = useRef<Map<string, L.Marker>>(new Map());
+
+  const topPlacesParams = useMemo(() => {
+    if (!enabled || !requestParams) return null;
+
+    return {
+      sw_lat: requestParams.sw_lat,
+      sw_lng: requestParams.sw_lng,
+      ne_lat: requestParams.ne_lat,
+      ne_lng: requestParams.ne_lng,
+      res: requestParams.res,
+      cuisines: requestParams.cuisines,
+      cost: requestParams.cost,
+      venue_type: requestParams.venue_type,
+      score_basis: requestParams.score_basis,
+      score_tier: requestParams.score_tier,
+      limit: 10,
+    };
+  }, [enabled, requestParams]);
+
+  const {
+    status: topPlacesStatus,
+    res: topPlacesRes,
+    queryKey: topPlacesQueryKey,
+    responseKey: topPlacesResponseKey,
+  } = useRequestTopPlaces(topPlacesParams, { debounceMs: 150 });
+
+  useEffect(() => {
+    if (!enabled) return;
+    const map = mapRef.current;
+    if (!map) return;
+
+    const layer = L.layerGroup().addTo(map);
+    topPlacesLayerRef.current = layer;
+
+    return () => {
+      topPlaceMarkersRef.current.clear();
+      topPlacesLayerRef.current = null;
+      layer.remove();
+    };
+  }, [enabled, mapRef]);
+
+  useEffect(() => {
+    const layer = topPlacesLayerRef.current;
+    if (!enabled || !layer) return;
+    if (topPlacesStatus !== 'success' || !topPlacesRes) {
+      layer.clearLayers();
+      topPlaceMarkersRef.current.clear();
+      return;
+    }
+    if (topPlacesResponseKey !== topPlacesQueryKey) return;
+
+    layer.clearLayers();
+    const created = addTopPlaceMarkers(layer, topPlacesRes.data, (placeId) => setSelectedPlaceId(placeId));
+    topPlaceMarkersRef.current = new Map(created.map(({ id, marker }) => [id, marker]));
+  }, [
+    enabled,
+    topPlacesStatus,
+    topPlacesRes,
+    topPlacesQueryKey,
+    topPlacesResponseKey,
+    setSelectedPlaceId,
+  ]);
+
+  useEffect(() => {
+    topPlaceMarkersRef.current.forEach((marker, placeId) => {
+      const motion = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-motion');
+      if (!motion) return;
+
+      motion.classList.remove('is-jumping', 'is-floating');
+      if (!selectedPlaceId || placeId !== selectedPlaceId) return;
+
+      // Restart jump animation whenever this place is selected.
+      void motion.offsetWidth;
+      motion.classList.add('is-jumping');
+      motion.addEventListener('animationend', () => {
+        motion.classList.remove('is-jumping');
+        motion.classList.add('is-floating');
+      }, { once: true });
+    });
+  }, [selectedPlaceId, topPlacesResponseKey]);
 
   
   useEffect(() => {

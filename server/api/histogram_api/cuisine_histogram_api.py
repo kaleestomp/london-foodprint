@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from api.cache_keys import build_viewbbox_endpoint_cache_key
 from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
 from api.histogram_api.sql import SQL_CITYWIDE_CUISINE, SQL_VIEW_CUISINE
 router = APIRouter()
@@ -42,12 +43,31 @@ async def get_cuisine_histogram(
     tier_column = get_score_basis_column(score_basis)
 
     if scope == "citywide":
-        cache_key = "|".join(["citywide", ",".join(sorted(cost_values)), venue_value, str(score_basis), str(score_tier)])
+        cache_key = build_viewbbox_endpoint_cache_key(
+            endpoint="citywide",
+            scope="citywide",
+            parts=[
+                ",".join(sorted(cost_values)),
+                venue_value,
+                str(score_basis),
+                str(score_tier),
+            ],
+        )
     else:
-        cache_key = "|".join([
-            "view", str(sw_lat), str(sw_lng), str(ne_lat), str(ne_lng),
-            ",".join(sorted(cost_values)), venue_value, str(score_basis), str(score_tier),
-        ])
+        cache_key = build_viewbbox_endpoint_cache_key(
+            endpoint="view",
+            scope="bbox_exact",
+            sw_lat=float(sw_lat),
+            sw_lng=float(sw_lng),
+            ne_lat=float(ne_lat),
+            ne_lng=float(ne_lng),
+            parts=[
+                ",".join(sorted(cost_values)),
+                venue_value,
+                str(score_basis),
+                str(score_tier),
+            ],
+        )
 
     now = time.time()
     async with _cache_lock:
