@@ -99,3 +99,27 @@ CREATE TABLE h3_density (
 
 -- Covers the tile endpoint query: WHERE resolution=? AND tile=ANY(?)
 CREATE INDEX idx_h3_density_lookup ON h3_density(resolution, tile);
+
+
+-- ─── TABLE 3: place_open_windows ─────────────────────────────────────────────
+-- One row per open-close interval per place, sourced from regularOpeningHours.
+-- Not all places have rows here; missing = no hours data available.
+-- Day encoding matches Google Places API: 0=Sun, 1=Mon, …, 6=Sat.
+-- cross-day periods (e.g. open Thu 23:00, close Fri 01:00) are stored by
+-- keeping the original open_day/close_day from the source data.
+
+DROP TABLE IF EXISTS place_open_windows;
+
+CREATE TABLE place_open_windows (
+    place_id     TEXT     NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+    open_day     SMALLINT NOT NULL CHECK (open_day  BETWEEN 0 AND 6),
+    open_minute  SMALLINT NOT NULL CHECK (open_minute  BETWEEN 0 AND 1439),
+    close_day    SMALLINT NOT NULL CHECK (close_day BETWEEN 0 AND 6),
+    close_minute SMALLINT NOT NULL CHECK (close_minute BETWEEN 0 AND 1439),
+    PRIMARY KEY (place_id, open_day, open_minute, close_day, close_minute)
+);
+
+-- Fast lookup for all windows belonging to a place (used by future open-now join)
+CREATE INDEX idx_pow_place_id  ON place_open_windows(place_id);
+-- Allows efficient open-now range scan across all places for a given day/minute
+CREATE INDEX idx_pow_open_slot ON place_open_windows(open_day, open_minute);

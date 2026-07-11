@@ -25,6 +25,7 @@ from db.etl.load_places import load_places
 from db.etl.build_h3_density import build_h3_density
 from db.etl.insert_places import insert_places
 from db.etl.insert_h3_density import insert_h3_density
+from db.etl.insert_open_windows import insert_open_windows
 
 H3_DENSITY_CSV = SERVER_ROOT / "out" / "h3_density.csv"
 
@@ -119,6 +120,9 @@ if __name__ == "__main__":
 
     print("Inserting places …")
     insert_places(cur, df)
+
+    print("Inserting open windows …")
+    insert_open_windows(cur)
 
     print("Inserting h3_density …")
     insert_h3_density(cur, density_df)
