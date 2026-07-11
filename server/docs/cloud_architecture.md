@@ -1,6 +1,6 @@
 ﻿# London Foodprint — Cloud Architecture Design
-**Last updated:** July 11, 2026  
-**Status:** NULL/sentinel architecture implemented. Ghost-tile bug fixed. All endpoints updated for NULL-aware filtering.
+**Last updated:** July 12, 2026  
+**Status:** NULL/sentinel architecture implemented. Ghost-tile bug fixed. All endpoints validated and updated for NULL-aware filtering. All endpoints now include score_tier bounds validation (0-4).
 
 ---
 
@@ -403,6 +403,101 @@ Returns list rows:
 
 ---
 
+## Validation & Architectural Clarifications (July 12, 2026 Audit)
+
+### 1. score_tier Validation (High Priority) ✅
+**Issue:** Missing bounds checking on `score_tier` parameter (should be 0-4).
+
+**Resolution:** All 6 endpoints now validate via Pydantic `Query(ge=0, le=4)`:
+- ✅ `/api/tiles` (tile_api.py)
+- ✅ `/api/places/list` (places_list_api.py)
+- ✅ `/api/places/top` (top_places_in_view_api.py)
+- ✅ `/api/nearby` (nearby_api.py)
+- ✅ `/api/cost_histogram` (price_histogram_api.py)
+- ✅ `/api/cuisine_histogram` (cuisine_histogram_api.py)
+
+**Why this matters:** Out-of-range `score_tier` values could silently return empty results or cause SQL errors. Validation now rejects invalid input at the HTTP layer before reaching the database.
+
+### 2. score_basis Double-Meaning Clarification ✅
+**Dual Role:** The `score_basis` parameter (0/1/2) serves TWO purposes:
+
+1. **Column Selection** — Which ranking column to use in SQL queries:
+   - `0` → `tier` (boosted/base ranking)
+   - `1` → `tier_d` (diversity-aware ranking)
+   - `2` → `tier_independent` (independent/unbiased ranking)
+
+2. **Filter Value** — Which pre-aggregated h3_density variant to query:
+   - The h3_density.score_basis column stores 0/1/2 to distinguish three aggregation modes
+   - `/api/tiles` filters h3_density by this int value directly
+
+**Why This Persists:** Pre-aggregation requires separating the h3_density table by score_basis at ETL time. Each score_basis variant has its own set of pre-computed tile densities. The column selector and filter value are tightly coupled and intentionally symmetric.
+
+**Documentation added to:** tile_api.py (comment in TILES_SQL call explaining score_basis dual role).
+
+### 3. rank_column vs. score_basis Independence in /api/places/list ✅
+**Design:** The `/api/places/list` endpoint has TWO intentionally independent ranking parameters:
+
+- **rank_column** (normal_1 or wilson_1): Controls `ORDER BY` and `SELECT` (sorting/display)
+- **score_basis** (0/1/2 → tier/tier_d/tier_independent): Controls `WHERE` clause filtering
+
+**Intentional Independence:** Users can combine them freely:
+- `rank_column="wilson_1"` with `score_basis=1` → sort by Wilson score, filter by diversity-aware tier
+- `rank_column="normal_1"` with `score_basis=2` → sort by base rank, filter by independent tier
+
+The ranking shown may not correspond to the filter tier if they mismatch. **This is intentional** — it allows exploring different ranking philosophies against different filtering criteria.
+
+**Documentation added to:** places_list_api.py (function docstring explaining the independence).
+
+### 4. Empty Filter Array Semantics (Fixed July 2026) ✅
+**Definition:** When the frontend sends NO filters (empty cuisine/cost array, `venue_type` not selected), the backend must show ALL places for that dimension.
+
+**Old (Broken) Logic:**
+```sql
+(CARDINALITY($5::TEXT[]) = 0 AND cuisine_type IS NULL)  -- only NULL cuisines ❌
+OR (CARDINALITY($5::TEXT[]) > 0 AND ...)
+```
+
+**New (Correct) Logic:**
+```sql
+CARDINALITY($5::TEXT[]) = 0  -- show ALL cuisines ✅
+OR (CARDINALITY($5::TEXT[]) > 0 AND ...)
+```
+
+**Root Cause of Ghost Tile Bug:** When no filters were selected, the old logic matched only places with NULL cuisine_type, returning 0-2 results instead of the full dataset. The map displayed only a handful of unspecified-cuisine places on load.
+
+**Fixed in 7 SQL Query Locations:**
+1. PLACES_SQL (tile_api/sql.py)
+2. SINGLETON_SQL (tile_api/sql.py)
+3. SQL_NEARBY (nearby_api/sql.py)
+4. TOP_PLACES_IN_VIEW_SQL (top_places_in_view_api/sql.py)
+5. places_list_api inline SQL
+6. SQL_CITYWIDE_PRICE, SQL_VIEW_PRICE (histogram_api/sql.py)
+7. SQL_CITYWIDE_CUISINE, SQL_VIEW_CUISINE (histogram_api/sql.py)
+
+**Verification:** All 8 endpoint files pass Python syntax validation with no errors.
+
+### 5. Frontend buildQueryKey Consistency (Verified July 12) ✅
+**All 6 frontend request hooks use consistent parameter encoding:**
+- ✅ useRequestTiles
+- ✅ useRequestTopPlaces
+- ✅ useRequestNearby
+- ✅ useRequestPlacesList
+- ✅ useRequestCuisineHistogram
+- ✅ useRequestPriceHistogram
+
+**Pattern:** URLSearchParams.append() for multi-value array parameters:
+```typescript
+for (const cuisine of (params.cuisines ?? []).slice().sort(...)) {
+  qs.append('cuisine', cuisine);
+}
+```
+
+**Empty array behavior:** No query params appended → backend receives `null` or `[]` → normalized to "show all" semantic. This is consistent and correct across all endpoints.
+
+**Response format:** All backend responses match frontend interface types exactly. No structural mismatches detected.
+
+---
+
 ## Migration Checklist
 
 ```
@@ -421,15 +516,16 @@ Returns list rows:
 [x] 13. (July 2026) Update ETL: load_places.py converts "Unspecified" → NULL; build_h3_density.py generates three row types
 [x] 14. (July 2026) Update all endpoints for NULL-aware filtering (normalize.py + SQL translation layer)
 [x] 15. (July 2026) Audit all API endpoints — verify compliance with new schema (6 endpoints updated, 0 regressions)
-[ ] 16. Create Neon project → add DATABASE_URL to .env
-[ ] 17. Run schema.sql against Neon (Neon SQL Editor or psql)
-[ ] 18. Run: python db/etl_load.py (new ETL will rebuild with NULL/sentinel architecture)
-[ ] 19. Verify: SELECT COUNT(*) FROM places; → ~13,092
-[ ] 20. Verify: SELECT COUNT(*) FROM h3_density; → ~2,123,754
-[ ] 21. Verify ghost tiles are eliminated: SELECT COUNT(*) FROM h3_density WHERE count >= 1 (all rows now have fetchable places)
-[ ] 22. Test all endpoints via api_test/backend_api_test.ipynb (requires non-corporate network or VPN bypass for port 5432)
-[ ] 23. Deploy FastAPI to Render.com, set DATABASE_URL env var
-[ ] 24. Wire React frontend to new endpoints
+[x] 16. (July 12, 2026) Validate score_tier bounds (0-4) on all endpoints; add architectural documentation for score_basis + rank_column independence
+[ ] 17. Create Neon project → add DATABASE_URL to .env
+[ ] 18. Run schema.sql against Neon (Neon SQL Editor or psql)
+[ ] 19. Run: python db/etl_load.py (new ETL will rebuild with NULL/sentinel architecture)
+[ ] 20. Verify: SELECT COUNT(*) FROM places; → ~13,092
+[ ] 21. Verify: SELECT COUNT(*) FROM h3_density; → ~2,123,754
+[ ] 22. Verify ghost tiles are eliminated: SELECT COUNT(*) FROM h3_density WHERE count >= 1 (all rows now have fetchable places)
+[ ] 23. Test all endpoints via api_test/backend_api_test.ipynb (requires non-corporate network or VPN bypass for port 5432)
+[ ] 24. Deploy FastAPI to Render.com, set DATABASE_URL env var
+[ ] 25. Wire React frontend to new endpoints
 ```
 
 ---

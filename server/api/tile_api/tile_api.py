@@ -50,7 +50,7 @@ async def get_tiles(
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=2),
-    score_tier: int = Query(default=0),
+    score_tier: int = Query(default=0, ge=0, le=4),
     places_only: bool = Query(default=False),
 ) -> dict[str, Any]:
     
@@ -131,6 +131,10 @@ async def get_tiles(
     # Coalesce concurrent misses by snapped tile key to avoid duplicate DB work.
     async def produce_tile_rows() -> Any:
         async with request.app.state.pool.acquire() as conn:
+            # ⚠️  score_basis has TWO meanings:
+            # 1. Selects ranking column (tier/tier_d/tier_independent) for places queries
+            # 2. Filters h3_density by score_basis int value (0, 1, or 2)
+            # The h3_density table pre-aggregates counts per (score_basis, ...) so we filter by the int.
             return await conn.fetch(
                 TILES_SQL,
                 resolution,

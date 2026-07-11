@@ -31,7 +31,7 @@ async def get_cost_histogram(
     cuisine: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=2),
-    score_tier: int = Query(default=0),
+    score_tier: int = Query(default=0, ge=0, le=4),
 ) -> dict[str, Any]:
     if scope not in {"view", "citywide"}:
         raise HTTPException(status_code=422, detail="scope must be 'view' or 'citywide'")

@@ -78,7 +78,6 @@ const useTopPlacesLayer = ({
     queryKey: topPlacesQueryKey,
     responseKey: topPlacesResponseKey,
   } = useRequestTopPlaces(topPlacesParams, { debounceMs: 0 });
-  console.log(topPlacesRes);
 
   // Keep viewport top places sticky through in-flight pan requests so markers
   // don't disappear when the viewport query key changes before success.

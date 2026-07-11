@@ -26,6 +26,20 @@ async def get_places_list(
     score_tier: int = Query(default=0, ge=0, le=4),
     page: int = Query(default=1, ge=1),
 ) -> dict[str, Any]:
+    """
+    Fetch paginated list of places with optional circle filter.
+    
+    ⚠️  IMPORTANT: This endpoint has TWO independent ranking parameters:
+    1. rank_column (normal_1 or wilson_1): Controls ORDER BY and SELECT (sorting)
+    2. score_basis (0/1/2 → tier/tier_d/tier_independent): Controls WHERE clause (filtering)
+    
+    These are INDEPENDENT. Selecting rank_column="wilson_1" with score_basis=1 will:
+    - ORDER/SELECT by: wilson_1 column (score basis 1)
+    - WHERE filter by: tier_d column (score basis 1, diversity-aware)
+    
+    If they mismatch, the ranking may not correspond to the filter tier. This is intentional
+    to allow exploring different ranking vs filtering combinations.
+    """
     # Normalize filters: empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
     cuisine_values = normalize_dimension_list(cuisine)
     cost_values = normalize_dimension_list(cost)

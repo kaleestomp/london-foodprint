@@ -22,7 +22,7 @@ async def get_top_places_in_view(
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=2),
-    score_tier: int = Query(default=0),
+    score_tier: int = Query(default=0, ge=0, le=4),
     limit: int = Query(default=10, ge=1, le=50),
 ) -> dict[str, Any]:
     # Normalize filters: empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
