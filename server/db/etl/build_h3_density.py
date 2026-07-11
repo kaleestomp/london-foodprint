@@ -62,9 +62,11 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
     for res in [7, 8, 9]:
         df[f"_t{res}"] = df["h3_r10"].apply(lambda t: h3.cell_to_parent(t, res))
 
-    cuisines    = sorted([c for c in df["cuisine_type"].dropna().unique() if c != ""]) + [""]
-    costs       = sorted([c for c in df["cost"].dropna().unique() if c != ""]) + [""]
-    venue_types = sorted([v for v in df["venue_type"].dropna().unique() if v != ""]) + [""]
+    # Extract concrete dimension values (exclude NULL), then add None to represent NULL/unspecified.
+    # This creates both concrete and NULL rows in h3_density for NULL-aware filtering.
+    cuisines    = sorted([c for c in df["cuisine_type"].dropna().unique() if c != ""]) + [None]
+    costs       = sorted([c for c in df["cost"].dropna().unique() if c != ""]) + [None]
+    venue_types = sorted([v for v in df["venue_type"].dropna().unique() if v != ""]) + [None]
     bases       = [0, 1, 2]    # score_basis
     score_tiers = [0, 1, 2, 3, 4] # output tiers: cumulative thresholds on input tier value
 
@@ -78,12 +80,20 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
             tile_col = "h3_r10" if res == 10 else f"_t{res}"
             for score_tier, cuisine, cost, venue in itertools.product(score_tiers, cuisines, costs, venue_types):
                 mask = pd.Series(True, index=df.index)
-                if cuisine:
+                # Apply dimension filters: None/NULL means "match NULL values only",
+                # concrete values mean exact match.
+                if cuisine is not None:
                     mask &= df["cuisine_type"] == cuisine
-                if cost:
+                else:
+                    mask &= df["cuisine_type"].isna()
+                if cost is not None:
                     mask &= df["cost"] == cost
-                if venue:
+                else:
+                    mask &= df["cost"].isna()
+                if venue is not None:
                     mask &= df["venue_type"] == venue
+                else:
+                    mask &= df["venue_type"].isna()
 
                 # Apply tier filter on the chosen tier column
                 tier_fn = TIER_FILTERS[score_tier]

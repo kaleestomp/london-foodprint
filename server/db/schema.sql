@@ -67,12 +67,14 @@ CREATE INDEX idx_places_wilson_1   ON places(cuisine_type, wilson_1 DESC);
 
 -- ─── TABLE 2: h3_density ─────────────────────────────────────────────────────
 -- Pre-aggregated counts per H3 tile, eliminating GROUP BY on every pan/zoom.
--- '' for cuisine_type / cost / venue_type = "all" (no filter on that dimension).
--- IMPORTANT QUERY INVARIANT:
+-- NULL for cuisine_type / cost / venue_type = unspecified/unknown (no data).
+-- Non-NULL values = explicit filter dimensions (e.g. 'Chinese', '20+', 'Dine-In').
+--
+-- QUERY INVARIANT:
 --   For each dimension (cuisine/cost/venue), queries must pick exactly one semantic set:
---   - no filter  => dimension = ''
---   - filtered   => dimension IN (<selected values>)
---   Never mix wildcard and concrete rows in the same query path, or counts will be over-summed.
+--   - no filter  => dimension IS NULL
+--   - filtered   => dimension IN (<selected values>) OR (dimension IS NULL if NULL is in filter set)
+--   This prevents over-counting and ensures correct aggregation.
 --
 -- score_tier uses CUMULATIVE thresholds (used as a pre-filter, not a display band):
 --   0 = all  |  1 = above avg  |  2 = strong  |  3 = top 10%  |  4 = top 5%
@@ -83,9 +85,9 @@ CREATE INDEX idx_places_wilson_1   ON places(cuisine_type, wilson_1 DESC);
 CREATE TABLE h3_density (
     tile            TEXT     NOT NULL,
     resolution      SMALLINT NOT NULL,  -- 7 | 8 | 9 | 10
-    cuisine_type    TEXT     NOT NULL DEFAULT '',
-    cost            TEXT     NOT NULL DEFAULT '',
-    venue_type      TEXT     NOT NULL DEFAULT '',   -- '' | 'Dine-In' | 'Takeaway'
+    cuisine_type    TEXT,                           -- NULL = unspecified/unknown
+    cost            TEXT,                           -- NULL = unspecified/unknown
+    venue_type      TEXT,                           -- NULL = unspecified/unknown; otherwise 'Dine-In', 'Takeaway', etc.
     score_basis     SMALLINT NOT NULL DEFAULT 0,    -- 0=base | 1=diversity-aware | 2=independent
     score_tier      SMALLINT NOT NULL DEFAULT 0,    -- cumulative: 0=all, 1=above avg, 2=strong, 3=top 10%, 4=top 5%
     count           INTEGER  NOT NULL,

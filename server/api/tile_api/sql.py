@@ -18,14 +18,23 @@ PLACES_SQL = """
     FROM places
     WHERE lat BETWEEN $1 AND $2
       AND lon BETWEEN $3 AND $4
-      AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
-      AND ($6 = '' OR venue_type = $6)
       AND (
-            COALESCE(array_length($7::TEXT[], 1), 0) = 0
-            OR cost = ANY($7::TEXT[])
-            OR cost IS NULL
-            OR cost = ''
-            OR LOWER(cost) = 'unspecified'
+            (CARDINALITY($5::TEXT[]) = 0 AND cuisine_type IS NULL)
+            OR (CARDINALITY($5::TEXT[]) > 0 AND (
+                  cuisine_type = ANY(ARRAY_REMOVE($5::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($5::TEXT[]) AND cuisine_type IS NULL)
+                ))
+          )
+      AND (
+            ($6 = '' AND venue_type IS NULL)
+            OR ($6 != '' AND venue_type = $6)
+          )
+      AND (
+            (CARDINALITY($7::TEXT[]) = 0 AND cost IS NULL)
+            OR (CARDINALITY($7::TEXT[]) > 0 AND (
+                  cost = ANY(ARRAY_REMOVE($7::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($7::TEXT[]) AND cost IS NULL)
+                ))
           )
       AND {rank_column} >= $8
     ORDER BY {rank_column} DESC
@@ -33,34 +42,43 @@ PLACES_SQL = """
 """
 
 # Aggregates place counts by H3 tile across the h3_density table. Filters by tile resolution, cuisine type,
-# cost tier, and venue type to avoid double counting. Returns (tile ID, aggregated count) pairs for heatmap rendering.
-# h3_density stores explicit wildcard rows (dimension='') for "no filter".
+# cost tier, and venue type to avoid double counting.
+# NULL marker ('__null__') in filter arrays triggers IS NULL condition; empty array matches only NULL values.
 # Query contract:
-# - if a filter list is empty, select only the wildcard row for that dimension;
-# - if a filter list is non-empty, select only matching concrete rows.
-# This avoids double counting when both wildcard + concrete rows coexist.
+# - if filter array is empty: select only rows where dimension IS NULL
+# - if filter array contains '__null__': select rows where dimension IS NULL OR dimension in concrete values
+# - if filter array has only concrete values: select only matching concrete rows
 TILES_SQL = """
     SELECT tile, SUM(count)::INT AS count
     FROM h3_density
     WHERE resolution = $1
       AND tile = ANY($2::TEXT[])
       AND (
-            (CARDINALITY($3::TEXT[]) = 0 AND cuisine_type = '')
-            OR (CARDINALITY($3::TEXT[]) > 0 AND cuisine_type = ANY($3::TEXT[]))
+            (CARDINALITY($3::TEXT[]) = 0 AND cuisine_type IS NULL)
+            OR (CARDINALITY($3::TEXT[]) > 0 AND (
+                  cuisine_type = ANY(ARRAY_REMOVE($3::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($3::TEXT[]) AND cuisine_type IS NULL)
+                ))
           )
       AND (
-            (CARDINALITY($4::TEXT[]) = 0 AND cost = '')
-            OR (CARDINALITY($4::TEXT[]) > 0 AND (cost = ANY($4::TEXT[]) OR LOWER(cost) = 'unspecified'))
+            (CARDINALITY($4::TEXT[]) = 0 AND cost IS NULL)
+            OR (CARDINALITY($4::TEXT[]) > 0 AND (
+                  cost = ANY(ARRAY_REMOVE($4::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($4::TEXT[]) AND cost IS NULL)
+                ))
           )
-      AND venue_type = $5
+      AND (
+            ($5 = '' AND venue_type IS NULL)
+            OR ($5 != '' AND venue_type = $5)
+          )
       AND score_basis = $6
       AND score_tier = $7
     GROUP BY tile
 """
 
 # Fetches the single place's location for tiles whose aggregated count = 1.
-# Called only on the singleton-tile subset returned by TILES_SQL, so the
-# ANY() list is always small and hits the existing idx_places_h3_r10 index.
+# Called only on the singleton-tile subset returned by TILES_SQL.
+# Applies same NULL-aware filtering as TILES_SQL to ensure the place matches its aggregated count.
 SINGLETON_SQL = """
     SELECT
         h3_r10 AS tile,
@@ -69,14 +87,23 @@ SINGLETON_SQL = """
         lon
     FROM places
     WHERE h3_r10 = ANY($1::TEXT[])
-      AND (COALESCE(array_length($2::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($2::TEXT[]))
-      AND ($3 = '' OR venue_type = $3)
       AND (
-            COALESCE(array_length($4::TEXT[], 1), 0) = 0
-            OR cost = ANY($4::TEXT[])
-            OR cost IS NULL
-            OR cost = ''
-            OR LOWER(cost) = 'unspecified'
+            (CARDINALITY($2::TEXT[]) = 0 AND cuisine_type IS NULL)
+            OR (CARDINALITY($2::TEXT[]) > 0 AND (
+                  cuisine_type = ANY(ARRAY_REMOVE($2::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($2::TEXT[]) AND cuisine_type IS NULL)
+                ))
+          )
+      AND (
+            ($3 = '' AND venue_type IS NULL)
+            OR ($3 != '' AND venue_type = $3)
+          )
+      AND (
+            (CARDINALITY($4::TEXT[]) = 0 AND cost IS NULL)
+            OR (CARDINALITY($4::TEXT[]) > 0 AND (
+                  cost = ANY(ARRAY_REMOVE($4::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($4::TEXT[]) AND cost IS NULL)
+                ))
           )
       AND {rank_column} >= $5
 """

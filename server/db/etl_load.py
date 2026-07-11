@@ -80,12 +80,13 @@ def _normalize_density_df(density_df: pd.DataFrame) -> pd.DataFrame:
             + ". Rebuild/export h3_density.csv with the latest build_h3_density logic."
         )
 
-    # Empty-string wildcard rows are written as blank cells in CSV and
-    # read back as NaN. Neon columns are NOT NULL, so restore them to "".
-    density_df[["cuisine_type", "cost", "venue_type"]] = (
-        density_df[["cuisine_type", "cost", "venue_type"]].fillna("")
-    )
-
+    # Note: blank cells in CSV become NaN on read. With fresh build_h3_density,
+    # wildcard rows are explicit "" strings; with cached CSV load, NaN→"" is intentional
+    # for empty-string wildcards. However, we now preserve NULL in cuisine/cost/venue
+    # to enable NULL-aware filtering. The database schema allows NULL.
+    # Only fill empty strings if actually reading from old CSV (shouldn't happen with
+    # fresh build). For now, preserve NaN as-is since build_h3_density produces explicit "".
+    
     return density_df[REQUIRED_DENSITY_COLS].copy()
 
 # ─── Main ─────────────────────────────────────────────────────────────────────

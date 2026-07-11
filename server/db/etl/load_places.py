@@ -11,9 +11,13 @@ def load_places() -> pd.DataFrame:
     # Keep all places — operational=False means temporarily closed, not permanently gone.
     # Frontend can style temporarily-closed pins differently.
     df["operational"] = df["operational"].fillna(True).astype(bool)
-    # Normalise nulls in filter columns to empty string (matches h3_density '' rows)
-    df["cuisineType"] = df["cuisineType"].fillna("Unspecified")
-    df["cost"]        = df["cost"].fillna("Unspecified")
-    df["venueType"]   = df["venueType"].fillna("Dine-In")
+    
+    # Normalize placeholder values to NULL for pure NULL semantics.
+    # CSV may contain "Unspecified" as a placeholder; convert to NULL to maintain
+    # architectural consistency throughout ETL pipeline.
+    df["cuisineType"] = df["cuisineType"].replace("Unspecified", pd.NA)
+    df["cost"]        = df["cost"].replace("Unspecified", pd.NA)
+    df["venueType"]   = df["venueType"].replace("Unspecified", pd.NA)
+    
     print(f"  {len(df):,} rows loaded ({df['operational'].sum():,} open, {(~df['operational']).sum():,} temporarily closed)")
     return df
