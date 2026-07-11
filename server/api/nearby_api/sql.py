@@ -18,15 +18,24 @@ SQL_NEARBY = """
             ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography,
             $4
         )
-                AND (COALESCE(array_length($5::TEXT[], 1), 0) = 0 OR cuisine_type = ANY($5::TEXT[]))
-                AND ($6 = '' OR venue_type = $6)
                 AND (
-                            COALESCE(array_length($7::TEXT[], 1), 0) = 0
-                            OR cost = ANY($7::TEXT[])
-                            OR cost IS NULL
-                            OR cost = ''
-                            OR LOWER(cost) = 'unspecified'
-                        )
+                      (CARDINALITY($5::TEXT[]) = 0 AND cuisine_type IS NULL)
+                      OR (CARDINALITY($5::TEXT[]) > 0 AND (
+                            cuisine_type = ANY(ARRAY_REMOVE($5::TEXT[], '__null__'))
+                            OR ('__null__' = ANY($5::TEXT[]) AND cuisine_type IS NULL)
+                          ))
+                    )
+                AND (
+                      ($6 = '' AND venue_type IS NULL)
+                      OR ($6 != '' AND venue_type = $6)
+                    )
+                AND (
+                      (CARDINALITY($7::TEXT[]) = 0 AND cost IS NULL)
+                      OR (CARDINALITY($7::TEXT[]) > 0 AND (
+                            cost = ANY(ARRAY_REMOVE($7::TEXT[], '__null__'))
+                            OR ('__null__' = ANY($7::TEXT[]) AND cost IS NULL)
+                          ))
+                    )
         AND {rank_column} >= $8
     ORDER BY {rank_column} DESC
     LIMIT {page_size}

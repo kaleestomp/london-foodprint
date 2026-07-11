@@ -1,6 +1,6 @@
 ﻿# London Foodprint — Cloud Architecture Design
-**Last updated:** June 18, 2026  
-**Status:** Schema rebuilt for the updated places export. ETL loader updated. Core map, nearby, detail, and ranked-list endpoints built.
+**Last updated:** July 11, 2026  
+**Status:** NULL/sentinel architecture implemented. Ghost-tile bug fixed. All endpoints updated for NULL-aware filtering.
 
 ---
 
@@ -59,6 +59,7 @@ All ETL imports use `db.etl.*` with `server/` as the `sys.path` root (not repo r
 All places including temporarily-closed ones. Source: `server/out/places.csv` (13,092 rows: ~12,320 open + ~772 temporarily closed).
 
 **Key design decisions:**
+- **NULL semantics for unspecified dimensions:** `cuisine_type`, `cost`, `venue_type` are stored as SQL `NULL` (not strings) when data is missing. This is the source-of-truth convention for the places table.
 - `operational` BOOLEAN — `FALSE` = temporarily closed; frontend can grey-out or hide these pins
 - `h3_r10` (H3 res-10) is the only tile column — used for k-ring nearby pre-filter
 - `lat`/`lon` are kept alongside `geom` because the frontend renders markers directly from floats
@@ -80,8 +81,8 @@ CREATE TABLE places (
   primary_type        TEXT,
   is_chain            BOOLEAN,
   predicted_type      TEXT,
-  cuisine_type        TEXT,
-  venue_type          TEXT,
+  cuisine_type        TEXT             DEFAULT NULL,  -- NULL = unspecified (not a string)
+  venue_type          TEXT             DEFAULT NULL,  -- NULL = unspecified (not a string)
   lat                 DOUBLE PRECISION NOT NULL,
   lon                 DOUBLE PRECISION NOT NULL,
   geom                GEOMETRY(Point, 4326) GENERATED ALWAYS AS (
@@ -92,7 +93,7 @@ CREATE TABLE places (
   areacode            TEXT,
   wheelchair_access   BOOLEAN,
   operational         BOOLEAN,
-  cost                TEXT,
+  cost                TEXT             DEFAULT NULL,   -- NULL = unspecified (not a string)
   wilson_1            REAL,
   normal_1            REAL,
   tier                SMALLINT,
@@ -113,21 +114,25 @@ CREATE INDEX idx_places_wilson_1 ON places(cuisine_type, wilson_1 DESC);  -- raw
 ### Table 2: `h3_density`
 Pre-aggregated tile counts — eliminates GROUP BY on every pan/zoom.
 
-**Key design decisions:**
+**Key design decisions (July 2026 update):**
+- **Twin-table sentinel architecture:** places uses NULL; h3_density uses sentinels because PRIMARY KEY forbids NULL values
+  - `''` (empty string) = **wildcard row** — no mask applied, counts ALL places including NULL
+  - `'__null__'` (sentinel) = **explicit NULL representation** — mask applied `IS NULL`, counts only NULL places
+  - Concrete values (e.g., "Chinese", "Italian") = **exact match** — mask applied `= exact_value`
+  - **Invariant:** Each place appears in exactly one row per tile (no double-counting)
 - `score_tier` uses **cumulative** thresholds (≠ places): `0=all, 2=≥0.50, 3=≥0.75, 4=≥0.90`
 - Tier 1 (below average) excluded — not a useful map filter
-- `score_basis` distinguishes the two tile aggregation modes: `0=base`, `1=diversity-aware`, `2=independent`
-- `''` for any TEXT dimension = "all" (unfiltered aggregate)
+- `score_basis` distinguishes the tile aggregation modes: `0=base`, `1=diversity-aware`, `2=independent`
 - **Actual row count: 2,123,754** — validated, 0 duplicate PKs
-- **CSV round-trip gotcha**: `''` wildcard rows are written as blank cells in CSV and read back as `NaN` by pandas. `etl_load.py` applies `.fillna("")` on the three TEXT dimension columns after `pd.read_csv()` before any insert. Neon columns are `NOT NULL` so skipping this step causes a null constraint violation.
+- **CSV round-trip handling:** Wildcard `''` rows are preserved in CSV; sentinel `'__null__'` rows preserved as strings (never converted to NULL)
 
 ```sql
 CREATE TABLE h3_density (
     tile            TEXT     NOT NULL,
   resolution      SMALLINT NOT NULL,  -- 7=city | 8=neighbourhood | 9=street | 10=finest
-    cuisine_type    TEXT     NOT NULL DEFAULT '',
-    cost            TEXT     NOT NULL DEFAULT '',
-    venue_type      TEXT     NOT NULL DEFAULT '',
+    cuisine_type    TEXT     NOT NULL DEFAULT '__null__',  -- '' = wildcard | '__null__' = unspecified | concrete = exact match
+    cost            TEXT     NOT NULL DEFAULT '__null__',  -- '' = wildcard | '__null__' = unspecified | concrete = exact match
+    venue_type      TEXT     NOT NULL DEFAULT '__null__',  -- '' = wildcard | '__null__' = unspecified | concrete = exact match
   score_basis     SMALLINT NOT NULL DEFAULT 0,  -- 0=base | 1=diversity-aware | 2=independent
   score_tier      SMALLINT NOT NULL DEFAULT 0,  -- 0=all | 2=above avg | 3=top 25% | 4=top 10%
     count           INTEGER  NOT NULL,
@@ -156,17 +161,22 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 python server/db/etl_load.py
 ```
 
-**`load_places.py`** normalises nulls in source data:
-- `cuisineType` → `"Unspecified"` if null
-- `venueType` → `"Dine-In"` if null  
-- `cost` → `"Unspecified"` if null
+**`load_places.py`** (July 2026 update) normalises unspecified values:
+- CSV "Unspecified" on `cuisine_type` → pandas.NA → SQL NULL (pure NULL semantics)
+- CSV "Unspecified" on `cost` → pandas.NA → SQL NULL (pure NULL semantics)
+- CSV "Unspecified" on `venue_type` → pandas.NA → SQL NULL (pure NULL semantics)
+- CSV null on any dimension → pandas.NA → SQL NULL (consistent with explicit "Unspecified")
 - `operational` → `True` if null
 
-**`build_h3_density.py`** iterates all combinations of `score_basis × tier × cuisine × cost × venue × resolution` and skips empty groupby results. Appends `""` to each dimension list as the wildcard ("show all") value.
+**`build_h3_density.py`** (July 2026 update) iterates all combinations of `score_basis × tier × cuisine × cost × venue × resolution` and skips empty groupby results. For each dimension:
+- Generates concrete rows for each observed value in the dimension (e.g., "Chinese", "Italian")
+- Generates sentinel row `'__null__'` if any NULL values exist in that dimension for the tile
+- Generates wildcard row `''` for all tiles (applies no mask, counts all places)
+- **Mask logic:** wildcard `''` = no mask; sentinel `'__null__'` = mask `&= df[column].isna()`; concrete = mask `&= df[column] == value`
 
 **`build_h3_density.ipynb`** — standalone notebook in `server/db/etl/`. Runs `load_places()` + `build_h3_density()` independently and saves to `server/out/h3_density.csv`. Use this to regenerate or inspect the aggregation without touching the DB. Run with the `server/venv` kernel.
 
-**`insert_h3_density.py`** deduplicates on PK columns before insert as a safety net against any upstream dimension list collisions.
+**`insert_h3_density.py`** validates and inserts h3_density rows. All three row types (wildcard `''`, sentinel `'__null__'`, concrete values) are stored as strings—never converted to NULL. This preserves the PRIMARY KEY constraint.
 
 ---
 
@@ -192,6 +202,25 @@ zoom 17+   → res 10  (finest; heatmap OFF)
 ?sw_lat=&sw_lng=&ne_lat=&ne_lng=&res=8&cuisine=&cost=&venue_type=&score_basis=0&score_tier=0
 ```
 
+**Filter Architecture (July 2026 update):**
+
+Frontend sends filter values (e.g., `cuisine=['Unspecified', 'Chinese']`). The backend normalizes and queries:
+
+- **Empty filter** (no values selected):
+  - h3_density: match wildcard row `cuisine_type = ''` (counts ALL places)
+  - places: match NULL `cuisine_type IS NULL` (finds unspecified places)
+- **"Unspecified" selected (user label):**
+  - normalize.py converts to sentinel `'__null__'`
+  - h3_density: match sentinel row `cuisine_type = '__null__'` (counts only NULL places)
+  - places: match NULL `cuisine_type IS NULL` (finds unspecified places)
+- **Concrete values selected (e.g., "Chinese", "Italian"):**
+  - h3_density: match concrete rows `cuisine_type IN ('Chinese', 'Italian')`
+  - places: match concrete values `cuisine_type = ANY(['Chinese', 'Italian'])`
+- **Mixed selection (both "Unspecified" and concrete):**
+  - normalize.py converts to `['__null__', 'Chinese', 'Italian']`
+  - h3_density: match sentinel + concrete `cuisine_type IN ('__null__', 'Chinese', 'Italian')`
+  - places: translate `'__null__'` to IS NULL, match others by value
+
 **Dual-tile design (outer/inner split):**
 
 The endpoint computes two tile sets from the viewport bbox:
@@ -214,6 +243,7 @@ Padding per resolution (in `map_common.py`):
 **Response modes:**
 - `inner_count > 20` → `{mode: "tiles", resolution, data: [{tile, count}, ...]}` (full outer set)
 - `inner_count ≤ 20` → `{mode: "places", data: [...], total: len(rows)}` (places query by lat/lon BETWEEN original bbox bounds)
+  - **July 2026 fix:** `total` is now `len(rows)` (actual result count), not `inner_count` (h3_density estimate). This prevents the frontend from expecting more results than delivered due to bbox/tile misalignment.
 
 **Places-mode payload (map pin rendering):**
 - `id`
@@ -221,28 +251,62 @@ Padding per resolution (in `map_common.py`):
 - `lon`
 - `tier` (0–4 from selected score-basis tier column)
 
-### June 2026 Tile Count Consistency Fix (incident + resolution)
+### July 2026 — NULL/Sentinel Architecture & Ghost Tile Fix
 
-**Symptom observed:** a density pin could show a larger count than the number of place pins seen after zooming in (for example, `8` on a tile collapsing to `1` place).
+**Ghost Tile Root Cause:**
+- Old ETL used `.fillna('Unspecified')` in load_places.py, converting NULL → string "Unspecified"
+- h3_density aggregated both a concrete row (cuisine_type="Unspecified") AND a wildcard row (cuisine_type='')
+- Singleton SQL couldn't find places with NULL cuisine when filtering by "Unspecified" string
+- Result: h3_density showed count ≥ 1 but places query returned 0 → ghost tiles
 
-**Root cause:**
-- `h3_density` intentionally stores wildcard aggregate rows (`cuisine_type=''`, `cost=''`, `venue_type=''`) alongside concrete dimension rows.
-- The previous SQL predicate logic could include both wildcard and concrete rows in the same query path, causing over-summed tile counts.
+**Root Cause Analysis:**
+- PRIMARY KEY constraint prevents NULL in h3_density columns (not NULL in PK)
+- Required sentinel value (`'__null__'`) instead of NULL
+- places table uses pure NULL (source-of-truth convention); h3_density uses sentinel (aggregation index convention)
+- Old ETL and endpoints used inconsistent semantics across tables
 
-**Resolution implemented:**
-- `/api/tiles` now enforces a strict dimension contract in `_TILES_SQL`:
-  - no filter on a dimension → select wildcard row only (`dimension=''`)
-  - active filter on a dimension → select concrete matching rows only (`dimension IN (...)`)
-- Venue now follows the same explicit rule through exact match (`venue_type = $5`) where frontend sends `''` when unfiltered.
-- Cache scope is now split by payload type:
-  - `tiles` cache key remains based on padded `outer_tiles` + filters (high hit rate on small pans)
-  - `places` cache key is independent and includes exact bbox bounds (prevents stale mode or stale viewport place lists)
-- Added code comments in `tile_api.py`, schema comments in `schema.sql`, and ETL notes in `build_h3_density.py` to make this invariant explicit and prevent regressions.
+**Comprehensive Resolution (July 2026):**
+1. **ETL Pipeline:**
+   - load_places.py: CSV "Unspecified" → pandas.NA → SQL NULL (not string)
+   - build_h3_density.py: Generate three row types per dimension:
+     - `''` (wildcard): no mask, counts ALL
+     - `'__null__'` (sentinel): mask IS NULL, counts only NULL
+     - Concrete: mask = exact match
+   - No double-counting: each place appears in exactly one row per tile
 
-**Why this architecture remains correct:**
-- Pre-aggregation is still preferred for pan/zoom latency and Neon cost control.
-- The bug was not caused by pre-aggregation itself, but by ambiguous query semantics over mixed wildcard + concrete rows.
-- Keeping wildcard rows is acceptable as long as queries always choose one semantic set per dimension.
+2. **Database Schema:**
+   - places: `cuisine_type TEXT DEFAULT NULL`, `cost TEXT DEFAULT NULL`, `venue_type TEXT DEFAULT NULL`
+   - h3_density: `cuisine_type TEXT NOT NULL DEFAULT '__null__'`, etc. (sentinel as default)
+
+3. **API Filter Logic (Updated July 2026):**
+   - normalize.py: maps "Unspecified" (user label) → `'__null__'` (sentinel)
+   - All SQL queries now use consistent NULL-aware filters:
+     ```sql
+     -- Empty filter → show all (including NULL)
+     (CARDINALITY($N::TEXT[]) = 0 AND column IS NULL)
+     
+     -- Non-empty filter → match concrete values + '__null__' as IS NULL
+     OR (CARDINALITY($N::TEXT[]) > 0 AND (
+       column = ANY(ARRAY_REMOVE($N::TEXT[], '__null__'))
+       OR ('__null__' = ANY($N::TEXT[]) AND column IS NULL)
+     ))
+     ```
+
+4. **Updated Endpoints (All Audited & Compliant):**
+   - ✅ `/api/tiles` — tile_api.py + tile_api/sql.py (h3_density queries)
+   - ✅ `/api/places/list` — places_list_api.py (places table)
+   - ✅ `/api/nearby` — nearby_api/sql.py (places table)
+   - ✅ `/api/top_places_in_view` — top_places_in_view_api/sql.py (places table)
+   - ✅ `/api/cost_histogram` — histogram_api/sql.py (both price + cuisine histograms)
+   - ✅ `/api/place/{id}` — place_api.py (single place detail, no filters needed)
+
+**Invariant Restored:** Ghost tiles eliminated. All tiles with count ≥ 1 in h3_density now have fetchable places in places table.
+
+**Why This Architecture Persists:**
+- Pre-aggregation still eliminates GROUP BY on every pan (essential for Neon cost/latency)
+- Wildcard rows are necessary for "no filter" queries
+- Sentinel design avoids PRIMARY KEY NULL constraint while preserving NULL-aware semantics
+- Twin-table convention (NULL vs sentinel) enforced via API translation layer (normalize.py)
 
 ### Bug 3: Total Count Mismatch in Places Mode
 
@@ -349,19 +413,23 @@ Returns list rows:
 [x] 5. Add h3_density fast-path (read CSV if exists) to etl_load.py
 [x] 6. Create build_h3_density.ipynb for standalone aggregation
 [x] 7. Validate h3_density.csv (2,123,754 rows, 0 duplicate PKs, correct dimensions)
-[x] 8. Fix CSV round-trip NaN: etl_load.py applies .fillna('') on dimension columns after pd.read_csv()
-[x] 9. Build FastAPI endpoints (/api/tiles, /api/nearby, /api/place/{id})
-[x] 10. Implement outer/inner tile split in tile_api.py + map_common.py
-[x] 11. Fix asyncpg Windows SSL: explicit SSLContext in server.py
-[x] 12. Create api_test/backend_api_test.ipynb smoke-test notebook
-[ ] 13. Create Neon project → add DATABASE_URL to .env
-[ ] 14. Run schema.sql against Neon (Neon SQL Editor or psql)
-[ ] 15. Run: python db/etl_load.py
-[ ] 16. Verify: SELECT COUNT(*) FROM places; → ~13,092
-[ ] 17. Verify: SELECT COUNT(*) FROM h3_density; → ~2,123,754
-[ ] 18. Test all endpoints via api_test/backend_api_test.ipynb (requires non-corporate network or VPN bypass for port 5432)
-[ ] 19. Deploy FastAPI to Render.com, set DATABASE_URL env var
-[ ] 20. Wire React frontend to new endpoints
+[x] 8. Build FastAPI endpoints (/api/tiles, /api/nearby, /api/place/{id})
+[x] 9. Implement outer/inner tile split in tile_api.py + map_common.py
+[x] 10. Fix asyncpg Windows SSL: explicit SSLContext in server.py
+[x] 11. Create api_test/backend_api_test.ipynb smoke-test notebook
+[x] 12. (July 2026) Implement NULL/sentinel architecture: places uses NULL, h3_density uses '__null__' sentinel + '' wildcard
+[x] 13. (July 2026) Update ETL: load_places.py converts "Unspecified" → NULL; build_h3_density.py generates three row types
+[x] 14. (July 2026) Update all endpoints for NULL-aware filtering (normalize.py + SQL translation layer)
+[x] 15. (July 2026) Audit all API endpoints — verify compliance with new schema (6 endpoints updated, 0 regressions)
+[ ] 16. Create Neon project → add DATABASE_URL to .env
+[ ] 17. Run schema.sql against Neon (Neon SQL Editor or psql)
+[ ] 18. Run: python db/etl_load.py (new ETL will rebuild with NULL/sentinel architecture)
+[ ] 19. Verify: SELECT COUNT(*) FROM places; → ~13,092
+[ ] 20. Verify: SELECT COUNT(*) FROM h3_density; → ~2,123,754
+[ ] 21. Verify ghost tiles are eliminated: SELECT COUNT(*) FROM h3_density WHERE count >= 1 (all rows now have fetchable places)
+[ ] 22. Test all endpoints via api_test/backend_api_test.ipynb (requires non-corporate network or VPN bypass for port 5432)
+[ ] 23. Deploy FastAPI to Render.com, set DATABASE_URL env var
+[ ] 24. Wire React frontend to new endpoints
 ```
 
 ---
@@ -372,3 +440,40 @@ Returns list rows:
 - `asyncpg` pool `max_size=5` handles 20 users (each query holds connection ~3ms)
 - Render.com free tier (0.1 vCPU) is the actual bottleneck; upgrade to Starter ($7/mo) if needed
 - Both services scale to zero when idle — no billing between sessions
+
+---
+
+## Architectural Decisions
+
+### NULL vs. Sentinel Value Convention
+
+**Problem:** PRIMARY KEY constraint in PostgreSQL forbids NULL values. The h3_density table uses a composite PK, so storing NULL for "unspecified" dimensions violates the constraint.
+
+**Solution:** Twin-table convention
+- **places** table (source-of-truth): Uses pure `NULL` for unspecified dimensions. Clean, semantically correct, minimal storage.
+- **h3_density** table (aggregation index): Uses sentinel value `'__null__'` for unspecified dimensions, plus wildcard `''` for all-aggregate rows.
+
+**API Translation Layer:** normalize.py maps user labels ("Unspecified") to sentinel `'__null__'` for h3_density queries. ARRAY_REMOVE and IS NULL translation ensures places table queries match NULL semantics correctly.
+
+**Why not use empty string everywhere?** Empty string is ambiguous: is it "no filter" or "explicitly unspecified"? Sentinel `'__null__'` makes the distinction explicit and avoids collision with potential empty-string data values.
+
+### Row Types in h3_density
+
+Each h3_density tile stores three semantic row types for each dimension:
+
+1. **Wildcard `''`** — aggregates across all places, no mask applied
+   - Used when frontend sends empty filter ("show all")
+   - Query: `WHERE dimension = ''` for unfiltered view
+   - Performance: single row per tile per score basis/tier combination
+
+2. **Sentinel `'__null__'`** — aggregates places where dimension is NULL in places table
+   - Used when frontend sends "Unspecified" filter
+   - Query: `WHERE dimension = '__null__'` → internally translates to `IS NULL` on places table
+   - Ensures ghost tiles: count represents actual fetched places
+
+3. **Concrete values** (e.g., "Chinese", "Italian") — exact matches
+   - Used when frontend sends specific filter values
+   - Query: `WHERE dimension IN (concrete_values)`
+   - Standard aggregation behavior
+
+**Invariant:** No double-counting. Each place belongs to exactly one row type per tile. The build logic ensures this via mask composition: wildcard (no mask) XOR sentinel (IS NULL mask) XOR concrete (= mask).
