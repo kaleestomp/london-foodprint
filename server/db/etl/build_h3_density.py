@@ -53,20 +53,23 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
     Pre-aggregate restaurant counts across all filter dimension combinations.
     Only non-zero count rows are returned.
 
-        Wildcard rows are intentional:
-            cuisine_type = '' / cost = '' / venue_type = '' means "all" on that dimension.
-        API queries must treat wildcard rows as a separate semantic scope from
-        concrete filter values to avoid double counting.
+    Unspecified/unknown values are stored as '__null__' sentinel string in h3_density
+    (required for PRIMARY KEY compatibility). The places table stores actual NULL.
+    API normalize layer maps frontend "Unspecified" → '__null__' for h3_density queries,
+    and '__null__' → IS NULL for places queries.
     """
     # Pre-compute parent tile IDs at coarser resolutions from the res-10 base
     for res in [7, 8, 9]:
         df[f"_t{res}"] = df["h3_r10"].apply(lambda t: h3.cell_to_parent(t, res))
 
-    # Extract concrete dimension values (exclude NULL), then add None to represent NULL/unspecified.
-    # This creates both concrete and NULL rows in h3_density for NULL-aware filtering.
-    cuisines    = sorted([c for c in df["cuisine_type"].dropna().unique() if c != ""]) + [None]
-    costs       = sorted([c for c in df["cost"].dropna().unique() if c != ""]) + [None]
-    venue_types = sorted([v for v in df["venue_type"].dropna().unique() if v != ""]) + [None]
+    # Extract dimension values and add special rows:
+    # - '__null__' row: counts unspecified/NULL places (for "Unspecified" filter)
+    # - '' row: counts ALL places (for no-filter mode, the wildcard row)
+    SENTINEL = '__null__'  # Unspecified places
+    WILDCARD = ''          # All places (no filter applied)
+    cuisines    = sorted([c for c in df["cuisine_type"].dropna().unique() if c != ""]) + [SENTINEL, WILDCARD]
+    costs       = sorted([c for c in df["cost"].dropna().unique() if c != ""]) + [SENTINEL, WILDCARD]
+    venue_types = sorted([v for v in df["venue_type"].dropna().unique() if v != ""]) + [SENTINEL, WILDCARD]
     bases       = [0, 1, 2]    # score_basis
     score_tiers = [0, 1, 2, 3, 4] # output tiers: cumulative thresholds on input tier value
 
@@ -80,20 +83,25 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
             tile_col = "h3_r10" if res == 10 else f"_t{res}"
             for score_tier, cuisine, cost, venue in itertools.product(score_tiers, cuisines, costs, venue_types):
                 mask = pd.Series(True, index=df.index)
-                # Apply dimension filters: None/NULL means "match NULL values only",
-                # concrete values mean exact match.
-                if cuisine is not None:
-                    mask &= df["cuisine_type"] == cuisine
-                else:
-                    mask &= df["cuisine_type"].isna()
-                if cost is not None:
-                    mask &= df["cost"] == cost
-                else:
-                    mask &= df["cost"].isna()
-                if venue is not None:
-                    mask &= df["venue_type"] == venue
-                else:
-                    mask &= df["venue_type"].isna()
+                # Apply dimension filters:
+                # - '' (WILDCARD): no mask, counts all places
+                # - '__null__' (SENTINEL): mask &= isna(), counts only unspecified places
+                # - concrete value: mask &= exact match
+                if cuisine != WILDCARD:
+                    if cuisine == SENTINEL:
+                        mask &= df["cuisine_type"].isna()
+                    else:
+                        mask &= df["cuisine_type"] == cuisine
+                if cost != WILDCARD:
+                    if cost == SENTINEL:
+                        mask &= df["cost"].isna()
+                    else:
+                        mask &= df["cost"] == cost
+                if venue != WILDCARD:
+                    if venue == SENTINEL:
+                        mask &= df["venue_type"].isna()
+                    else:
+                        mask &= df["venue_type"] == venue
 
                 # Apply tier filter on the chosen tier column
                 tier_fn = TIER_FILTERS[score_tier]
@@ -111,6 +119,7 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
                     continue
 
                 agg["resolution"]   = res
+                # Store dimension values as-is (already strings: '', '__null__', or concrete values)
                 agg["cuisine_type"] = cuisine
                 agg["cost"]         = cost
                 agg["venue_type"]   = venue

@@ -42,33 +42,28 @@ PLACES_SQL = """
 """
 
 # Aggregates place counts by H3 tile across the h3_density table. Filters by tile resolution, cuisine type,
-# cost tier, and venue type to avoid double counting.
-# NULL marker ('__null__') in filter arrays triggers IS NULL condition; empty array matches only NULL values.
+# cost tier, and venue type. h3_density uses:
+#   - '' (wildcard): counts all places (for no-filter mode)
+#   - '__null__': counts unspecified places (for "Unspecified" filter)
+#   - concrete values: count specific places
 # Query contract:
-# - if filter array is empty: select only rows where dimension IS NULL
-# - if filter array contains '__null__': select rows where dimension IS NULL OR dimension in concrete values
-# - if filter array has only concrete values: select only matching concrete rows
+# - if filter array is empty: select only rows where dimension = '' (wildcard, counts all)
+# - if filter array has values: select rows matching those values ('' and '__null__' included if in array)
 TILES_SQL = """
     SELECT tile, SUM(count)::INT AS count
     FROM h3_density
     WHERE resolution = $1
       AND tile = ANY($2::TEXT[])
       AND (
-            (CARDINALITY($3::TEXT[]) = 0 AND cuisine_type IS NULL)
-            OR (CARDINALITY($3::TEXT[]) > 0 AND (
-                  cuisine_type = ANY(ARRAY_REMOVE($3::TEXT[], '__null__'))
-                  OR ('__null__' = ANY($3::TEXT[]) AND cuisine_type IS NULL)
-                ))
+            (CARDINALITY($3::TEXT[]) = 0 AND cuisine_type = '')
+            OR (CARDINALITY($3::TEXT[]) > 0 AND cuisine_type = ANY($3::TEXT[]))
           )
       AND (
-            (CARDINALITY($4::TEXT[]) = 0 AND cost IS NULL)
-            OR (CARDINALITY($4::TEXT[]) > 0 AND (
-                  cost = ANY(ARRAY_REMOVE($4::TEXT[], '__null__'))
-                  OR ('__null__' = ANY($4::TEXT[]) AND cost IS NULL)
-                ))
+            (CARDINALITY($4::TEXT[]) = 0 AND cost = '')
+            OR (CARDINALITY($4::TEXT[]) > 0 AND cost = ANY($4::TEXT[]))
           )
       AND (
-            ($5 = '' AND venue_type IS NULL)
+            ($5 = '' AND venue_type = '')
             OR ($5 != '' AND venue_type = $5)
           )
       AND score_basis = $6
