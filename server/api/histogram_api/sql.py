@@ -14,7 +14,7 @@ SQL_CITYWIDE_PRICE = """
             OR ($2 = '__null__' AND venue_type IS NULL)
             OR ($2 != '__all__' AND $2 != '__null__' AND venue_type = $2)
           )
-      AND cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified'
+      AND cost IS NOT NULL
       AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
       AND {rank_column} >= $3
     GROUP BY cost
@@ -38,7 +38,7 @@ SQL_VIEW_PRICE = """
             OR ($6 = '__null__' AND venue_type IS NULL)
             OR ($6 != '__all__' AND $6 != '__null__' AND venue_type = $6)
           )
-      AND cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified'
+      AND cost IS NOT NULL
       AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
       AND {rank_column} >= $7
     GROUP BY cost
@@ -48,7 +48,6 @@ SQL_CITYWIDE_CUISINE = """
     SELECT cuisine_type AS cuisine, COUNT(*)::INT AS count
     FROM places
     WHERE cuisine_type IS NOT NULL
-      AND cuisine_type <> ''
       AND (
             $1 = '__all__'  -- no filter, all venues
             OR ($1 = '__null__' AND venue_type IS NULL)
@@ -72,7 +71,6 @@ SQL_VIEW_CUISINE = """
     WHERE lat BETWEEN $1 AND $2
       AND lon BETWEEN $3 AND $4
       AND cuisine_type IS NOT NULL
-      AND cuisine_type <> ''
       AND (
             $5 = '__all__'  -- no filter, all venues
             OR ($5 = '__null__' AND venue_type IS NULL)
