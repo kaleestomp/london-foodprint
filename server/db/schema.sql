@@ -15,7 +15,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- ─── TABLE 1: places ─────────────────────────────────────────────────────────
 DROP TABLE IF EXISTS h3_density;
-DROP TABLE IF EXISTS places;
+DROP TABLE IF EXISTS places CASCADE;
 
 CREATE TABLE places (
     -- identity
