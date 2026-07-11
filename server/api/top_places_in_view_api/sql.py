@@ -15,8 +15,9 @@ TOP_PLACES_IN_VIEW_SQL = """
                 ))
           )
       AND (
-            ($6 = '' AND venue_type IS NULL)
-            OR ($6 != '' AND venue_type = $6)
+            $6 = '__all__'  -- no filter, all venues
+            OR ($6 = '__null__' AND venue_type IS NULL)
+            OR ($6 != '__all__' AND $6 != '__null__' AND venue_type = $6)
           )
       AND (
             (CARDINALITY($7::TEXT[]) = 0 AND cost IS NULL)

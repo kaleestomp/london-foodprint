@@ -38,6 +38,7 @@ async def get_cost_histogram(
     if scope == "view" and any(v is None for v in (sw_lat, sw_lng, ne_lat, ne_lng)):
         raise HTTPException(status_code=422, detail="sw_lat, sw_lng, ne_lat, ne_lng are required for scope=view")
 
+    # Normalize filters: empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
     cuisine_values = normalize_dimension_list(cuisine)
     venue_value = normalize_dimension(venue_type)
     tier_column = get_score_basis_column(score_basis)

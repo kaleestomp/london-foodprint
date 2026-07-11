@@ -25,6 +25,7 @@ async def get_top_places_in_view(
     score_tier: int = Query(default=0),
     limit: int = Query(default=10, ge=1, le=50),
 ) -> dict[str, Any]:
+    # Normalize filters: empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
     cuisine_values = normalize_dimension_list(cuisine)
     cost_values = normalize_dimension_list(cost)
     venue_value = normalize_dimension(venue_type)

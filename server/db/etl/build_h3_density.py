@@ -64,9 +64,9 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
 
     # Extract dimension values and add special rows:
     # - '__null__' row: counts unspecified/NULL places (for "Unspecified" filter)
-    # - '' row: counts ALL places (for no-filter mode, the wildcard row)
+    # - '__all__' row: counts ALL places (for no-filter mode, the wildcard row)
     SENTINEL = '__null__'  # Unspecified places
-    WILDCARD = ''          # All places (no filter applied)
+    WILDCARD = '__all__'   # All places (no filter applied)
     cuisines    = sorted([c for c in df["cuisine_type"].dropna().unique() if c != ""]) + [SENTINEL, WILDCARD]
     costs       = sorted([c for c in df["cost"].dropna().unique() if c != ""]) + [SENTINEL, WILDCARD]
     venue_types = sorted([v for v in df["venue_type"].dropna().unique() if v != ""]) + [SENTINEL, WILDCARD]
@@ -84,7 +84,7 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
             for score_tier, cuisine, cost, venue in itertools.product(score_tiers, cuisines, costs, venue_types):
                 mask = pd.Series(True, index=df.index)
                 # Apply dimension filters:
-                # - '' (WILDCARD): no mask, counts all places
+                # - '__all__' (WILDCARD): no mask, counts all places
                 # - '__null__' (SENTINEL): mask &= isna(), counts only unspecified places
                 # - concrete value: mask &= exact match
                 if cuisine != WILDCARD:

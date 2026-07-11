@@ -23,6 +23,7 @@ async def get_nearby(
     score_tier: int = Query(default=0),
     page: int = Query(default=1, ge=1),
 ) -> dict[str, Any]:
+    # Normalize filters: empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
     cuisine_values = normalize_dimension_list(cuisine)
     cost_values = normalize_dimension_list(cost)
     venue_value = normalize_dimension(venue_type)

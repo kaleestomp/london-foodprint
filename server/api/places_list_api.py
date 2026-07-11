@@ -26,6 +26,7 @@ async def get_places_list(
     score_tier: int = Query(default=0, ge=0, le=4),
     page: int = Query(default=1, ge=1),
 ) -> dict[str, Any]:
+    # Normalize filters: empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
     cuisine_values = normalize_dimension_list(cuisine)
     cost_values = normalize_dimension_list(cost)
     venue_value = normalize_dimension(venue_type)
@@ -55,8 +56,9 @@ async def get_places_list(
                     ))
               )
           AND (
-                ($6 = '' AND venue_type IS NULL)
-                OR ($6 != '' AND venue_type = $6)
+                $6 = '__all__'  -- no filter, all venues
+                OR ($6 = '__null__' AND venue_type IS NULL)
+                OR ($6 != '__all__' AND $6 != '__null__' AND venue_type = $6)
               )
           AND (
                 (CARDINALITY($7::TEXT[]) = 0 AND cost IS NULL)

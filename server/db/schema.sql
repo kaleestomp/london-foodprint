@@ -70,12 +70,12 @@ CREATE INDEX idx_places_wilson_1   ON places(cuisine_type, wilson_1 DESC);
 -- Three row types per tile (by dimension values):
 --   1. Concrete values ('Chinese', '20+', 'Dine-In'): counts places with that exact value
 --   2. '__null__' sentinel: counts places with unspecified/NULL value (for "Unspecified" filter)
---   3. '' wildcard: counts ALL places (for no-filter mode, where user selects nothing)
+--   3. '__all__' wildcard: counts ALL places (for no-filter mode, where user selects nothing)
 -- This design avoids double-counting while supporting all query patterns.
 --
 -- QUERY INVARIANT:
 --   For each dimension (cuisine/cost/venue), queries pick exactly one semantic set:
---   - no filter  => dimension = ''        (wildcard row: all places)
+--   - no filter  => dimension = '__all__'        (wildcard row: all places)
 --   - "Unspecified" filter => dimension = '__null__'  (sentinel row: unspecified only)
 --   - concrete filter => dimension = concrete value   (specific places only)
 --

@@ -58,6 +58,7 @@ async def get_tiles(
     if places_only and res < 10:
         raise HTTPException(status_code=422, detail="places_only requires res=10")
 
+    # Normalize filters: empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
     cuisine_values = normalize_dimension_list(cuisine)
     cost_values = normalize_dimension_list(cost)
     venue_value = normalize_dimension(venue_type)

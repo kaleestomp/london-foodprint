@@ -26,8 +26,9 @@ PLACES_SQL = """
                 ))
           )
       AND (
-            ($6 = '' AND venue_type IS NULL)
-            OR ($6 != '' AND venue_type = $6)
+            $6 = '__all__'  -- no filter, all venues
+            OR ($6 = '__null__' AND venue_type IS NULL)
+            OR ($6 != '__all__' AND $6 != '__null__' AND venue_type = $6)
           )
       AND (
             (CARDINALITY($7::TEXT[]) = 0 AND cost IS NULL)
@@ -43,28 +44,28 @@ PLACES_SQL = """
 
 # Aggregates place counts by H3 tile across the h3_density table. Filters by tile resolution, cuisine type,
 # cost tier, and venue type. h3_density uses:
-#   - '' (wildcard): counts all places (for no-filter mode)
+#   - '__all__' (wildcard): counts all places (for no-filter mode)
 #   - '__null__': counts unspecified places (for "Unspecified" filter)
 #   - concrete values: count specific places
 # Query contract:
-# - if filter array is empty: select only rows where dimension = '' (wildcard, counts all)
-# - if filter array has values: select rows matching those values ('' and '__null__' included if in array)
+# - if filter array is empty: select only rows where dimension = '__all__' (wildcard, counts all)
+# - if filter array has values: select rows matching those values ('__all__' and '__null__' included if in array)
 TILES_SQL = """
     SELECT tile, SUM(count)::INT AS count
     FROM h3_density
     WHERE resolution = $1
       AND tile = ANY($2::TEXT[])
       AND (
-            (CARDINALITY($3::TEXT[]) = 0 AND cuisine_type = '')
+            (CARDINALITY($3::TEXT[]) = 0 AND cuisine_type = '__all__')
             OR (CARDINALITY($3::TEXT[]) > 0 AND cuisine_type = ANY($3::TEXT[]))
           )
       AND (
-            (CARDINALITY($4::TEXT[]) = 0 AND cost = '')
+            (CARDINALITY($4::TEXT[]) = 0 AND cost = '__all__')
             OR (CARDINALITY($4::TEXT[]) > 0 AND cost = ANY($4::TEXT[]))
           )
       AND (
-            ($5 = '' AND venue_type = '')
-            OR ($5 != '' AND venue_type = $5)
+            ($5 = '__all__' AND venue_type = '__all__')
+            OR ($5 != '__all__' AND venue_type = $5)
           )
       AND score_basis = $6
       AND score_tier = $7
@@ -90,8 +91,9 @@ SINGLETON_SQL = """
                 ))
           )
       AND (
-            ($3 = '' AND venue_type IS NULL)
-            OR ($3 != '' AND venue_type = $3)
+            $3 = '__all__'  -- no filter, all venues
+            OR ($3 = '__null__' AND venue_type IS NULL)
+            OR ($3 != '__all__' AND $3 != '__null__' AND venue_type = $3)
           )
       AND (
             (CARDINALITY($4::TEXT[]) = 0 AND cost IS NULL)

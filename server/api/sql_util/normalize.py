@@ -1,9 +1,11 @@
 def normalize_dimension(value: str | None) -> str:
     if value is None:
-        return ""
+        return "__all__"
     normalized = value.strip()
     if normalized.lower() == "any":
-        return ""
+        return "__all__"
+    if normalized == "":
+        return "__all__"
     # Map user-facing "Unspecified" label to internal NULL marker for SQL filtering
     if normalized.lower() == "unspecified" or normalized == "__null__":
         return "__null__"

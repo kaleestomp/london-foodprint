@@ -10,8 +10,9 @@ SQL_CITYWIDE_PRICE = """
                 ))
           )
       AND (
-            ($2 = '' AND venue_type IS NULL)
-            OR ($2 != '' AND venue_type = $2)
+            $2 = '__all__'  -- no filter, all venues
+            OR ($2 = '__null__' AND venue_type IS NULL)
+            OR ($2 != '__all__' AND $2 != '__null__' AND venue_type = $2)
           )
       AND cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified'
       AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
@@ -33,8 +34,9 @@ SQL_VIEW_PRICE = """
                 ))
           )
       AND (
-            ($6 = '' AND venue_type IS NULL)
-            OR ($6 != '' AND venue_type = $6)
+            $6 = '__all__'  -- no filter, all venues
+            OR ($6 = '__null__' AND venue_type IS NULL)
+            OR ($6 != '__all__' AND $6 != '__null__' AND venue_type = $6)
           )
       AND cost IS NOT NULL AND cost <> '' AND LOWER(cost) <> 'unspecified'
       AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
@@ -48,8 +50,9 @@ SQL_CITYWIDE_CUISINE = """
     WHERE cuisine_type IS NOT NULL
       AND cuisine_type <> ''
       AND (
-            ($1 = '' AND venue_type IS NULL)
-            OR ($1 != '' AND venue_type = $1)
+            $1 = '__all__'  -- no filter, all venues
+            OR ($1 = '__null__' AND venue_type IS NULL)
+            OR ($1 != '__all__' AND $1 != '__null__' AND venue_type = $1)
           )
       AND (
             (CARDINALITY($2::TEXT[]) = 0 AND cost IS NULL)
@@ -71,8 +74,9 @@ SQL_VIEW_CUISINE = """
       AND cuisine_type IS NOT NULL
       AND cuisine_type <> ''
       AND (
-            ($5 = '' AND venue_type IS NULL)
-            OR ($5 != '' AND venue_type = $5)
+            $5 = '__all__'  -- no filter, all venues
+            OR ($5 = '__null__' AND venue_type IS NULL)
+            OR ($5 != '__all__' AND $5 != '__null__' AND venue_type = $5)
           )
       AND (
             (CARDINALITY($6::TEXT[]) = 0 AND cost IS NULL)
