@@ -11,9 +11,9 @@ import usePlacePinLayer from '../addPlacePins/usePlacePinLayer';
 const usePinAnimations = (
   mapRef:   React.RefObject<L.Map | null>,
   layerRef: React.RefObject<L.LayerGroup | null>,
-  options: { onPlaceClick?: (placeId: string) => void } = {},
+  options: { onPlaceClick?: (placeId: string) => void; activeTopPlaceIds?: Set<string> } = {},
 ) => {
-  const density = useDensityPinLayer(mapRef, layerRef);
+  const density = useDensityPinLayer(mapRef, layerRef, options.activeTopPlaceIds);
   const places  = usePlacePinLayer(mapRef, layerRef, density, options.onPlaceClick);
 
   /** Instant wipe — removes all pins from both layers. */

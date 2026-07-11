@@ -38,6 +38,7 @@ const useDensityPlacesLayer = ({
   const layerRef = createPersistentLayer(mapRef);
 
   // Get animation functions
+  const topPlaceIdSet = activeTopPlaceIds.length ? new Set(activeTopPlaceIds) : undefined;
   const {
     currentResRef,
     addPins,
@@ -49,6 +50,7 @@ const useDensityPlacesLayer = ({
     clearAll,
   } = usePinAnimations(mapRef, layerRef, {
     onPlaceClick: (placeId) => setSelectedPlaceId(placeId),
+    activeTopPlaceIds: topPlaceIdSet,
   });
 
   // Tracks the last rendered mode so we can detect places -> tiles transitions.
@@ -87,6 +89,7 @@ const useDensityPlacesLayer = ({
     prevTopPlaceIdsKeyRef.current = topPlaceIdsKey;
 
     // Places mode — mask out pins inside the bubble radius to avoid duplicates with BubbleAvatar.
+    // Mask out pins that are already in the activeTopPlaceIds set to avoid duplicates with TopPlacesLayer.
     if (res.mode === 'places') {
       prevModeRef.current = 'places';
       const filteredPlaces = filterPlacesOutsideMask(res.data, searchMask);

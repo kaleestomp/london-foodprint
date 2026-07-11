@@ -19,10 +19,14 @@ const EXIT_DELAY = 280;
  *
  * Exposes `markersByTileRef`, `cancelTimer`, and `resetState` so the place-pin
  * layer can coordinate transitions that cross both layers.
+ *
+ * @param activeTopPlaceIds - Set of place IDs already shown as top place markers.
+ *                            Used to filter singleton places to prevent duplicates.
  */
 const useDensityPinLayer = (
   mapRef:   React.RefObject<L.Map | null>,
   layerRef: React.RefObject<L.LayerGroup | null>,
+  activeTopPlaceIds?: Set<string>,
 ) => {
   
   const renderedTilesRef = useRef<Set<string>>(new Set());
@@ -53,7 +57,7 @@ const useDensityPinLayer = (
 
     const created = addDensityPins(
       layer, tiles, resolution, renderedTilesRef.current,
-      undefined, map.getCenter(),
+      undefined, map.getCenter(), activeTopPlaceIds,
     );
     created.forEach(({ tile, marker }) => markersByTileRef.current.set(tile, marker));
   };
@@ -97,7 +101,7 @@ const useDensityPinLayer = (
       ? computeExplodeOffsets(map, newData, oldRes, outgoing)
       : undefined;
 
-    const mergeOffsets = !zoomingIn
+    const mergeOffsets = !zoomingIn && oldRes !== null
       ? computeMergeOffsets(map, outgoing, newRes)
       : undefined;
 
@@ -121,7 +125,7 @@ const useDensityPinLayer = (
 
     const created = addDensityPins(
       layer, newData, newRes, renderedTilesRef.current,
-      startOffsets, map.getCenter(),
+      startOffsets, map.getCenter(), activeTopPlaceIds,
     );
     created.forEach(({ tile, marker }) => markersByTileRef.current.set(tile, marker));
 

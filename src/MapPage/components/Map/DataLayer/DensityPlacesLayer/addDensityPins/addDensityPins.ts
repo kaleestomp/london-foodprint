@@ -14,6 +14,8 @@ const STAGGER_CAP    = 20; // stagger capped at the 20th pin → max 500ms //20
  *                       (used for zoom-in explode effect). Triggers `density-pin-fly-in`.
  * @param mapCenter    - If provided, tiles are sorted by distance from center so
  *                       pins radiate outward on reveal.
+ * @param topPlaceIds  - Set of place IDs that are already shown as top place markers.
+ *                       Singleton places in this set will be skipped to avoid duplicates.
  */
 const addDensityPins = (
   layer: L.Map | L.LayerGroup,
@@ -22,6 +24,7 @@ const addDensityPins = (
   rendered: Set<string>,
   startOffsets?: Map<string, { dx: number; dy: number }>,
   mapCenter?: L.LatLng | null,
+  topPlaceIds?: Set<string>,
 ): Array<{ tile: string; marker: L.Marker }> => {
   const newTiles = tiles.filter(d => !rendered.has(d.tile));
   if (!newTiles.length) return [];
@@ -50,7 +53,12 @@ const addDensityPins = (
     const startOffset = startOffsets?.get(d.tile);
 
     // Singleton tile: plot a place marker at the actual place location.
+    // Skip if this singleton place is already shown as a top place marker.
     if (d.count === 1 && d.singleton) {
+      if (topPlaceIds?.has(d.singleton.id)) {
+        // Singleton place already shown as top place marker — skip to avoid duplicate
+        return;
+      }
       const { lat, lon } = d.singleton;
       const icon = makePlacePinIcon({ staggerMs, startOffset });
       const marker = L.marker([lat, lon], { icon }).addTo(layer);
