@@ -19,7 +19,7 @@ PLACES_SQL = """
     WHERE lat BETWEEN $1 AND $2
       AND lon BETWEEN $3 AND $4
       AND (
-            (CARDINALITY($5::TEXT[]) = 0 AND cuisine_type IS NULL)
+            CARDINALITY($5::TEXT[]) = 0  -- no filter, show all cuisines
             OR (CARDINALITY($5::TEXT[]) > 0 AND (
                   cuisine_type = ANY(ARRAY_REMOVE($5::TEXT[], '__null__'))
                   OR ('__null__' = ANY($5::TEXT[]) AND cuisine_type IS NULL)
@@ -31,7 +31,7 @@ PLACES_SQL = """
             OR ($6 != '__all__' AND $6 != '__null__' AND venue_type = $6)
           )
       AND (
-            (CARDINALITY($7::TEXT[]) = 0 AND cost IS NULL)
+            CARDINALITY($7::TEXT[]) = 0  -- no filter, show all costs
             OR (CARDINALITY($7::TEXT[]) > 0 AND (
                   cost = ANY(ARRAY_REMOVE($7::TEXT[], '__null__'))
                   OR ('__null__' = ANY($7::TEXT[]) AND cost IS NULL)
@@ -84,7 +84,7 @@ SINGLETON_SQL = """
     FROM places
     WHERE h3_r10 = ANY($1::TEXT[])
       AND (
-            (CARDINALITY($2::TEXT[]) = 0 AND cuisine_type IS NULL)
+            CARDINALITY($2::TEXT[]) = 0  -- no filter, show all cuisines
             OR (CARDINALITY($2::TEXT[]) > 0 AND (
                   cuisine_type = ANY(ARRAY_REMOVE($2::TEXT[], '__null__'))
                   OR ('__null__' = ANY($2::TEXT[]) AND cuisine_type IS NULL)
@@ -96,7 +96,7 @@ SINGLETON_SQL = """
             OR ($3 != '__all__' AND $3 != '__null__' AND venue_type = $3)
           )
       AND (
-            (CARDINALITY($4::TEXT[]) = 0 AND cost IS NULL)
+            CARDINALITY($4::TEXT[]) = 0  -- no filter, show all costs
             OR (CARDINALITY($4::TEXT[]) > 0 AND (
                   cost = ANY(ARRAY_REMOVE($4::TEXT[], '__null__'))
                   OR ('__null__' = ANY($4::TEXT[]) AND cost IS NULL)

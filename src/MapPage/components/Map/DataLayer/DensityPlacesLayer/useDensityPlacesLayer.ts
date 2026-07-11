@@ -34,7 +34,6 @@ const useDensityPlacesLayer = ({
   const { setLastTilesParams } = useTileQuery();
   const { status, res, queryKey, responseKey, requestParams } = callRequestTiles(mapRef, enabled);
   useEffect(() => { setLastTilesParams(requestParams); }, [requestParams, setLastTilesParams]);
-
   // Create a persistent LayerGroup for Markers
   const layerRef = createPersistentLayer(mapRef);
 

@@ -3,7 +3,7 @@ SQL_CITYWIDE_PRICE = """
     SELECT cost, COUNT(*)::INT AS count
     FROM places
     WHERE (
-            (CARDINALITY($1::TEXT[]) = 0 AND cuisine_type IS NULL)
+            CARDINALITY($1::TEXT[]) = 0  -- no filter, show all cuisines
             OR (CARDINALITY($1::TEXT[]) > 0 AND (
                   cuisine_type = ANY(ARRAY_REMOVE($1::TEXT[], '__null__'))
                   OR ('__null__' = ANY($1::TEXT[]) AND cuisine_type IS NULL)
@@ -27,7 +27,7 @@ SQL_VIEW_PRICE = """
     WHERE lat BETWEEN $1 AND $2
       AND lon BETWEEN $3 AND $4
       AND (
-            (CARDINALITY($5::TEXT[]) = 0 AND cuisine_type IS NULL)
+            CARDINALITY($5::TEXT[]) = 0  -- no filter, show all cuisines
             OR (CARDINALITY($5::TEXT[]) > 0 AND (
                   cuisine_type = ANY(ARRAY_REMOVE($5::TEXT[], '__null__'))
                   OR ('__null__' = ANY($5::TEXT[]) AND cuisine_type IS NULL)
@@ -54,7 +54,7 @@ SQL_CITYWIDE_CUISINE = """
             OR ($1 != '__all__' AND $1 != '__null__' AND venue_type = $1)
           )
       AND (
-            (CARDINALITY($2::TEXT[]) = 0 AND cost IS NULL)
+            CARDINALITY($2::TEXT[]) = 0  -- no filter, show all costs
             OR (CARDINALITY($2::TEXT[]) > 0 AND (
                   cost = ANY(ARRAY_REMOVE($2::TEXT[], '__null__'))
                   OR ('__null__' = ANY($2::TEXT[]) AND cost IS NULL)
@@ -77,7 +77,7 @@ SQL_VIEW_CUISINE = """
             OR ($5 != '__all__' AND $5 != '__null__' AND venue_type = $5)
           )
       AND (
-            (CARDINALITY($6::TEXT[]) = 0 AND cost IS NULL)
+            CARDINALITY($6::TEXT[]) = 0  -- no filter, show all costs
             OR (CARDINALITY($6::TEXT[]) > 0 AND (
                   cost = ANY(ARRAY_REMOVE($6::TEXT[], '__null__'))
                   OR ('__null__' = ANY($6::TEXT[]) AND cost IS NULL)
