@@ -6,7 +6,6 @@ import { useTileQuery } from '../../../../../context/TileQueryContext';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../request/useRequestTopPlaces/useRequestTopPlaces';
 import { type TopPlaceItem } from '../../../../request/useRequestTopPlaces/request';
 import { type NearbyPlace } from '../../../../request/useRequestNearby/request';
-import useRequestNearby from '../../../../request/useRequestNearby/useRequestNearby';
 import syncTopPlaceMarkers, { type TopPlaceMarkerCache } from './addTopPlacePins/addTopPlaceMarkers';
 import useTopPlacesViewport from './useTopPlacesViewport';
 import { type SearchMask } from '../LayerStates/filterTileOutsideMask';
@@ -39,7 +38,7 @@ const useTopPlacesLayer = ({
     searchMask,
   } = useSearchFilters();
 
-  const { setLastNearbyResponse } = useTileQuery();
+  const { lastNearbyResponse } = useTileQuery();
 
   const topPlacesLayerRef = useRef<L.LayerGroup | null>(null);
   const topPlaceCacheRef = useRef<TopPlaceMarkerCache>(new Map());
@@ -101,64 +100,18 @@ const useTopPlacesLayer = ({
     topPlacesResponseKey,
   ]);
 
-  const nearbyParams = useMemo(() => {
-    if (!enabled || !searchMask) return null;
-
-    return {
-      lat: searchMask.center.lat,
-      lng: searchMask.center.lng,
-      radius_m: searchMask.radiusM,
-      cuisines: effectiveCuisines,
-      venue_type: venueType ?? '',
-      cost: effectivePriceRanges,
-      score_basis: scoreBasis,
-      score_tier: scoreTier,
-    };
-  }, [
-    enabled,
-    searchMask,
-    effectiveCuisines,
-    venueType,
-    effectivePriceRanges,
-    scoreBasis,
-    scoreTier,
-  ]);
-
-  const {
-    status: nearbyStatus,
-    res: nearbyRes,
-    queryKey: nearbyQueryKey,
-    responseKey: nearbyResponseKey,
-  } = useRequestNearby(nearbyParams);
-
-  // Keep bubble top places sticky between nearby requests so they persist
-  // through viewport-driven top-place churn and refresh only on new nearby data.
+  // Nearby results are owned by BubbleDrop and shared via TileQueryContext.
   useEffect(() => {
-    if (!enabled || !searchMask) {
+    if (!enabled || !searchMask || !lastNearbyResponse) {
       setBubbleTopPlaces([]);
       return;
     }
-    if (nearbyStatus !== 'success' || !nearbyRes) return;
-    if (nearbyResponseKey !== nearbyQueryKey) return;
-
-    setBubbleTopPlaces(selectTopRankedPlaces(nearbyRes.data, 10).map(mapNearbyToTopPlace));
+    setBubbleTopPlaces(selectTopRankedPlaces(lastNearbyResponse.data, 10).map(mapNearbyToTopPlace));
   }, [
     enabled,
     searchMask,
-    nearbyStatus,
-    nearbyRes,
-    nearbyQueryKey,
-    nearbyResponseKey,
+    lastNearbyResponse,
   ]);
-
-  // Store nearby response in context for header to access restaurant count
-  useEffect(() => {
-    if (!searchMask || nearbyStatus !== 'success') {
-      setLastNearbyResponse(null);
-      return;
-    }
-    setLastNearbyResponse(nearbyRes ?? null);
-  }, [searchMask, nearbyStatus, nearbyRes, setLastNearbyResponse]);
 
   useEffect(() => {
     if (!enabled) return;
