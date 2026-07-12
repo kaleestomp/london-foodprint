@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 
 import { useTileQuery } from '../../../../../context/TileQueryContext';
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import useRequestNearby from '../../../../request/useRequestNearby/useRequestNearby';
+import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
 
 interface UseRestaurantCountResult {
   count: number | null;
@@ -14,26 +16,57 @@ interface UseRestaurantCountResult {
  * - When no bubble: sums tile density counts from map's tiles mode response
  */
 const useRestaurantCount = (): UseRestaurantCountResult => {
-  const { lastTilesResponse, lastNearbyResponse } = useTileQuery();
-  const { searchMask } = useSearchFilters();
+  const { lastTilesParams } = useTileQuery();
+  const {
+    searchMask,
+    effectiveCuisines,
+    effectivePriceRanges,
+    venueType,
+    scoreBasis,
+    scoreTier,
+  } = useSearchFilters();
+
+  const nearbyParams = useMemo(() => {
+    if (!searchMask) return null;
+    return {
+      lat: searchMask.center.lat,
+      lng: searchMask.center.lng,
+      radius_m: searchMask.radiusM,
+      cuisines: effectiveCuisines,
+      venue_type: venueType ?? '',
+      cost: effectivePriceRanges,
+      score_basis: scoreBasis,
+      score_tier: scoreTier,
+    };
+  }, [
+    searchMask,
+    effectiveCuisines,
+    effectivePriceRanges,
+    venueType,
+    scoreBasis,
+    scoreTier,
+  ]);
+
+  const { res: nearbyRes, status: nearbyStatus } = useRequestNearby(nearbyParams);
+  const { res: tilesRes, status: tilesStatus } = useRequestTiles(lastTilesParams);
 
   const count = useMemo(() => {
     // If search bubble is active, count nearby places
-    if (searchMask && lastNearbyResponse) {
-      return lastNearbyResponse.data.length;
+    if (searchMask && nearbyRes) {
+      return nearbyRes.data.length;
     }
 
     // If no bubble, sum counts from tiles mode
-    if (!searchMask && lastTilesResponse && lastTilesResponse.mode === 'tiles') {
-      return lastTilesResponse.data.reduce((sum, tile) => sum + tile.count, 0);
+    if (!searchMask && tilesRes && tilesRes.mode === 'tiles') {
+      return tilesRes.data.reduce((sum, tile) => sum + tile.count, 0);
     }
 
     return null;
-  }, [searchMask, lastTilesResponse, lastNearbyResponse]);
+  }, [searchMask, nearbyRes, tilesRes]);
 
   // isLoading is determined by tile/nearby layer loading state
   // (we don't track separate loading state here since we use already-fetched data)
-  const isLoading = false;
+  const isLoading = nearbyStatus === 'loading' || tilesStatus === 'loading';
 
   return { count, isLoading };
 };

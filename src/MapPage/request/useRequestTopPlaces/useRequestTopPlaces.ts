@@ -1,10 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-import createCachedMemoryFetcher from '../../../utils/cache/createCachedMemoryFetcher';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import buildQueryKey from './buildQueryKey';
 import { type TopPlacesResponse, request } from './request';
-
-const requestCached = createCachedMemoryFetcher(request);
 
 type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
@@ -34,12 +31,9 @@ const useRequestTopPlaces = (
 } => {
   const debounceMs = Math.max(0, options.debounceMs ?? 150);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
   const [res, setRes] = useState<TopPlacesResponse | null>(null);
   const [responseKey, setResponseKey] = useState('');
   const [debouncedQueryKey, setDebouncedQueryKey] = useState('');
-  const latestRequestIdRef = useRef(0);
 
   const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
 
@@ -55,63 +49,33 @@ const useRequestTopPlaces = (
     return () => clearTimeout(timer);
   }, [queryKey, debounceMs]);
 
-  const sendRequest = useCallback(async (
-    key: string,
-    signal: AbortSignal,
-    isActiveRef: { current: boolean },
-    requestId: number,
-  ): Promise<TopPlacesResponse | null> => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      if (!isActiveRef.current) return null;
-      return await requestCached(key, { signal });
-    } catch (err) {
-      if (!isActiveRef.current) return null;
-      if (err instanceof Error && err.name === 'AbortError') return null;
-      setError(err instanceof Error ? err : new Error('Unknown error'));
-      return null;
-    } finally {
-      if (isActiveRef.current && latestRequestIdRef.current === requestId) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
+  const query = useQuery({
+    queryKey: ['top-places', debouncedQueryKey],
+    queryFn: ({ signal }) => request(debouncedQueryKey, { signal }),
+    enabled: Boolean(debouncedQueryKey),
+  });
 
   useEffect(() => {
-    const isActiveRef = { current: true };
-    const controller = new AbortController();
-    const requestId = latestRequestIdRef.current + 1;
-    latestRequestIdRef.current = requestId;
-
-    if (!debouncedQueryKey) {
+    if (!debouncedQueryKey || !query.data) {
       setRes(null);
       setResponseKey('');
-      setError(null);
-      setIsLoading(false);
-      return () => {
-        isActiveRef.current = false;
-        controller.abort();
-      };
+      return;
     }
+    setRes(query.data);
+    setResponseKey(debouncedQueryKey);
+  }, [debouncedQueryKey, query.data]);
 
-    sendRequest(debouncedQueryKey, controller.signal, isActiveRef, requestId).then((data) => {
-      if (isActiveRef.current && latestRequestIdRef.current === requestId && data !== null) {
-        setRes(data);
-        setResponseKey(debouncedQueryKey);
-      }
-    });
+  const status: RequestStatus = !debouncedQueryKey
+    ? 'empty'
+    : query.isPending || (query.isFetching && !query.data)
+      ? 'loading'
+      : query.isError
+        ? 'error'
+        : res
+          ? 'success'
+          : 'empty';
 
-    return () => {
-      isActiveRef.current = false;
-      controller.abort();
-    };
-  }, [debouncedQueryKey, sendRequest]);
-
-  const status: RequestStatus = isLoading ? 'loading' : error ? 'error' : res ? 'success' : 'empty';
-
-  return { status, error, res, queryKey, responseKey };
+  return { status, error: query.error as Error | null, res, queryKey, responseKey };
 };
 
 export default useRequestTopPlaces;

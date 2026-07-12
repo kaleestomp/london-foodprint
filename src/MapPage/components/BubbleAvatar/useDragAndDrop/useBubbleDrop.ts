@@ -10,7 +10,6 @@ import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby
 import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
 import selectTopRankedPlaces from '../../../utils/selectTopRankedPlaces';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import { useTileQuery } from '../../../../context/TileQueryContext';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import useIsMobile from '../../../../utils/browser/useIsMobile';
 import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
@@ -37,7 +36,6 @@ const useBubbleDrop = (
   const isMobile = useIsMobile();
   const { panelHeight, translateY } = usePullUpPanelMetrics();
   const { effectiveCuisines, venueType, effectivePriceRanges, scoreTier, scoreBasis } = useSearchFilters();
-  const { setLastNearbyResponse } = useTileQuery();
   const markerRef      = useRef<L.Marker | null>(null);
   const reactRootRef   = useRef<Root | null>(null);
   const placesLayerRef = useRef<L.LayerGroup | null>(null);
@@ -52,7 +50,6 @@ const useBubbleDrop = (
 
   // Bubble drop owns nearby radius search.
   const {
-    status: nearbyStatus,
     res: nearbyRes,
     queryKey: nearbyQueryKey,
     responseKey: nearbyResponseKey,
@@ -68,15 +65,6 @@ const useBubbleDrop = (
       score_tier: scoreTier,
     } : null,
   );
-
-  // Publish nearby results for other consumers (header counts, top places layer).
-  useEffect(() => {
-    if (!droppedPos || nearbyStatus !== 'success') {
-      setLastNearbyResponse(null);
-      return;
-    }
-    setLastNearbyResponse(nearbyRes ?? null);
-  }, [droppedPos, nearbyStatus, nearbyRes, setLastNearbyResponse]);
 
   // ── Clear all Leaflet layers ───────────────────────────────────────────
   // React root must unmount BEFORE marker removal (avoids detached-node warning).

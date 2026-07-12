@@ -2,10 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import { useTileQuery } from '../../../../../context/TileQueryContext';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../request/useRequestTopPlaces/useRequestTopPlaces';
 import { type TopPlaceItem } from '../../../../request/useRequestTopPlaces/request';
 import { type NearbyPlace } from '../../../../request/useRequestNearby/request';
+import useRequestNearby from '../../../../request/useRequestNearby/useRequestNearby';
 import syncTopPlaceMarkers, { type TopPlaceMarkerCache } from './addTopPlacePins/addTopPlaceMarkers';
 import useTopPlacesViewport from './useTopPlacesViewport';
 import { type SearchMask } from '../LayerStates/filterTileOutsideMask';
@@ -37,8 +37,6 @@ const useTopPlacesLayer = ({
     scoreTier,
     searchMask,
   } = useSearchFilters();
-
-  const { lastNearbyResponse } = useTileQuery();
 
   const topPlacesLayerRef = useRef<L.LayerGroup | null>(null);
   const topPlaceCacheRef = useRef<TopPlaceMarkerCache>(new Map());
@@ -74,6 +72,31 @@ const useTopPlacesLayer = ({
     scoreTier,
   ]);
 
+  const nearbyParams = useMemo(() => {
+    if (!enabled || !searchMask) return null;
+
+    return {
+      lat: searchMask.center.lat,
+      lng: searchMask.center.lng,
+      radius_m: searchMask.radiusM,
+      cuisines: effectiveCuisines,
+      venue_type: venueType ?? '',
+      cost: effectivePriceRanges,
+      score_basis: scoreBasis,
+      score_tier: scoreTier,
+    };
+  }, [
+    enabled,
+    searchMask,
+    effectiveCuisines,
+    venueType,
+    effectivePriceRanges,
+    scoreBasis,
+    scoreTier,
+  ]);
+
+  const { res: nearbyRes } = useRequestNearby(nearbyParams);
+
   const {
     status: topPlacesStatus,
     res: topPlacesRes,
@@ -100,17 +123,16 @@ const useTopPlacesLayer = ({
     topPlacesResponseKey,
   ]);
 
-  // Nearby results are owned by BubbleDrop and shared via TileQueryContext.
   useEffect(() => {
-    if (!enabled || !searchMask || !lastNearbyResponse) {
+    if (!enabled || !searchMask || !nearbyRes) {
       setBubbleTopPlaces([]);
       return;
     }
-    setBubbleTopPlaces(selectTopRankedPlaces(lastNearbyResponse.data, 10).map(mapNearbyToTopPlace));
+    setBubbleTopPlaces(selectTopRankedPlaces(nearbyRes.data, 10).map(mapNearbyToTopPlace));
   }, [
     enabled,
     searchMask,
-    lastNearbyResponse,
+    nearbyRes,
   ]);
 
   useEffect(() => {

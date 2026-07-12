@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import createCachedMemoryFetcher from '../../../utils/cache/createCachedMemoryFetcher';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { type NearbyResponse, request } from './request';
-
-const requestCached = createCachedMemoryFetcher(request);
 
 type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
@@ -47,78 +45,31 @@ const useRequestNearby = (params: NearbyParams | null): {
   queryKey: string;
   responseKey: string;
 } => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [res, setRes] = useState<NearbyResponse | null>(null);
-  const [responseKey, setResponseKey] = useState('');
-  const latestRequestIdRef = useRef(0);
-
   const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
 
-  const sendRequest = useCallback(async (
-    key: string,
-    signal: AbortSignal,
-    isActiveRef: { current: boolean },
-    requestId: number,
-  ): Promise<NearbyResponse | null> => {
-    setIsLoading(true);
-    setError(null);
+  const query = useQuery({
+    queryKey: ['nearby', queryKey],
+    queryFn: ({ signal }) => request(queryKey, { signal }),
+    enabled: Boolean(queryKey),
+  });
 
-    try {
-      if (!isActiveRef.current) {
-        return null;
-      }
-      return await requestCached(key, { signal });
-    } catch (err) {
-      if (!isActiveRef.current) {
-        return null;
-      }
-      if (err instanceof Error && err.name === 'AbortError') {
-        return null;
-      }
-      const normalizedError = err instanceof Error ? err : new Error('Unknown error');
-      setError(normalizedError);
-      return null;
-    } finally {
-      if (isActiveRef.current && latestRequestIdRef.current === requestId) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
+  const status: RequestStatus = !queryKey
+    ? 'empty'
+    : query.isPending || (query.isFetching && !query.data)
+      ? 'loading'
+      : query.isError
+        ? 'error'
+        : query.data
+          ? 'success'
+          : 'empty';
 
-  useEffect(() => {
-    const isActiveRef = { current: true };
-    const controller = new AbortController();
-    const requestId = latestRequestIdRef.current + 1;
-    latestRequestIdRef.current = requestId;
-
-    if (!queryKey) {
-      setRes(null);
-      setResponseKey('');
-      setError(null);
-      setIsLoading(false);
-      return () => {
-        isActiveRef.current = false;
-        controller.abort();
-      };
-    }
-
-    sendRequest(queryKey, controller.signal, isActiveRef, requestId).then((data) => {
-      if (isActiveRef.current && latestRequestIdRef.current === requestId && data !== null) {
-        setRes(data);
-        setResponseKey(queryKey);
-      }
-    });
-
-    return () => {
-      isActiveRef.current = false;
-      controller.abort();
-    };
-  }, [queryKey, sendRequest]);
-
-  const status: RequestStatus = isLoading ? 'loading' : error ? 'error' : res ? 'success' : 'empty';
-
-  return { status, error, res, queryKey, responseKey };
+  return {
+    status,
+    error: query.error as Error | null,
+    res: query.data ?? null,
+    queryKey,
+    responseKey: query.data ? queryKey : '',
+  };
 };
 
 export default useRequestNearby;
