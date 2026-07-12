@@ -26,7 +26,6 @@ const addDensityPins = (
   startOffsets?: Map<string, { dx: number; dy: number }>,
   mapCenter?: L.LatLng | null,
   topPlaceIds?: Set<string>,
-  zoom: number = 12,
 ): Array<{ tile: string; marker: L.Marker; isSingleton: boolean }> => {
   const newTiles = tiles.filter(d => !rendered.has(d.tile));
   if (!newTiles.length) return [];

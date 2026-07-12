@@ -32,7 +32,9 @@ const useZoomThreshold = ({
   const suppressedRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled || !mapRef.current) return;
+    if (!enabled || !mapRef.current) {
+      return;
+    }
 
     const handleZoom = () => {
       const currentZoom = mapRef.current!.getZoom();
@@ -84,7 +86,10 @@ const useZoomThreshold = ({
 
     const map = mapRef.current;
     map.on('zoomend', handleZoom);
-    return () => map.off('zoomend', handleZoom);
+
+    return () => {
+      map.off('zoomend', handleZoom);
+    };
   }, [enabled, mapRef, layerRef, onThresholdCross]);
 };
 

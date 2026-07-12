@@ -61,7 +61,7 @@ const useDensityPinLayer = (
 
     const created = addDensityPins(
       layer, tiles, resolution, renderedTilesRef.current,
-      undefined, map.getCenter(), activeTopPlaceIds, map.getZoom(),
+      undefined, map.getCenter(), activeTopPlaceIds,
     );
     created.forEach(({ tile, marker, isSingleton }) => {
       markersByTileRef.current.set(tile, marker);
@@ -138,7 +138,7 @@ const useDensityPinLayer = (
 
     const created = addDensityPins(
       layer, newData, newRes, renderedTilesRef.current,
-      startOffsets, map.getCenter(), activeTopPlaceIds, map.getZoom(),
+      startOffsets, map.getCenter(), activeTopPlaceIds,
     );
     created.forEach(({ tile, marker, isSingleton }) => {
       markersByTileRef.current.set(tile, marker);
