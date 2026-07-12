@@ -95,7 +95,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   const [scoreBasis, setScoreBasis] = useState<ScoreBasis>(2);
   const [venueType, setVenueType] = useState<VenueTypeFilterOption | null>(null);
   const [priceRangeInterval, setPriceRangeInterval] = useState<PriceRangeInterval | null>(null);
-  const [scoreTier, setScoreTier] = useState<ScoreTierFilterOption>(3);
+  const [scoreTier, setScoreTier] = useState<ScoreTierFilterOption>(2);
   const [searchMask, setSearchMask] = useState<SearchMask | null>(null);
 
   const effectivePriceRanges = useMemo<PriceRangeFilterOption[]>(() => {
@@ -158,7 +158,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
       setScoreBasis(2);
       setVenueType(null);
       setPriceRangeInterval(null);
-      setScoreTier(3);
+      setScoreTier(2);
       setSearchMask(null);
     },
   }), [

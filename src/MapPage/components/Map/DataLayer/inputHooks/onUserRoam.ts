@@ -22,13 +22,13 @@ const onUserRoam = (
 
     const update = () => {
       const b = map.getBounds();
-      const zoom = map.getZoom();
 
-      // Below zoom 11 there's too little context to render density/place markers.
-      if (zoom <= 10) {
-        setViewportParams(null);
-        return;
-      }
+      const zoom = map.getZoom();
+      // Below zoom 12 there's too little context to render density/place markers.
+      // if (zoom < 12) {
+      //   setViewportParams(null);
+      //   return;
+      // }
 
       const res = zoomToResolution(zoom);
       // console.log('res', res, 'zoom', zoom);

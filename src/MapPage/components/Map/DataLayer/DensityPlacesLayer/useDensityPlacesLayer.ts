@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
@@ -9,6 +9,7 @@ import { type SearchMask, filterPlacesOutsideMask } from '../LayerStates/filterT
 import addDebugTileOverlay from '../utils/addDebugTileOverlay';
 import useBuildFilterKey from '../LayerStates/buildFilterKey';
 import callRequestTiles from '../inputHooks/callRequestTiles';
+import useZoomThreshold from './hooks/useZoomThreshold';
 
 // DEBUG Layers that only shows in local dev
 const DEBUG_TILE_OVERLAY = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_TILE_OVERLAY === 'true';
@@ -31,9 +32,10 @@ const useDensityPlacesLayer = ({
 
   // Data Request
   const { cuisineSelectionMode, effectiveCuisines, venueType, effectivePriceRanges, scoreBasis, scoreTier } = useSearchFilters();
-  const { setLastTilesParams } = useTileQuery();
+  const { setLastTilesParams, setLastTilesResponse } = useTileQuery();
   const { status, res, queryKey, responseKey, requestParams } = callRequestTiles(mapRef, enabled);
   useEffect(() => { setLastTilesParams(requestParams); }, [requestParams, setLastTilesParams]);
+  useEffect(() => { setLastTilesResponse(res); }, [res, setLastTilesResponse]);
   // Create a persistent LayerGroup for Markers
   const layerRef = createPersistentLayer(mapRef);
 
@@ -56,21 +58,29 @@ const useDensityPlacesLayer = ({
   // Tracks the last rendered mode so we can detect places -> tiles transitions.
   const prevModeRef = useRef<'tiles' | 'places' | null>(null);
   const prevTopPlaceIdsKeyRef = useRef('');
+  
   const buildFilterKey = useBuildFilterKey();
 
+  // Manage zoom-based marker suppression with smooth fade-out
+  useZoomThreshold({
+    enabled,
+    mapRef,
+    layerRef,
+    onThresholdCross: () => { currentResRef.current = null; }, 
+    // Force re-render by resetting resolution tracking
+  });
   // Clear all markers when the request is suppressed (e.g. zoomed out past threshold).
-  useEffect(() => {
-    if (!enabled || requestParams !== null) return;
-    clearAll();
-    prevModeRef.current = null;
-    prevTopPlaceIdsKeyRef.current = '';
-  }, [enabled, requestParams, clearAll]);
-
-  
+  // useEffect(() => {
+  //   if (!enabled || requestParams !== null) return;
+  //   clearAll();
+  //   prevModeRef.current = null;
+  //   prevTopPlaceIdsKeyRef.current = '';
+  // }, [enabled, requestParams, clearAll]);
 
   useEffect(() => {
     if (!enabled) return;
     if (!mapRef.current || status !== 'success' || !res || !layerRef.current) return;
+    if (mapRef.current.getZoom() < 12) return; // Don't render markers below zoom 12
     if (responseKey !== queryKey) return;
 
     const { changed: filterChanged } = buildFilterKey(

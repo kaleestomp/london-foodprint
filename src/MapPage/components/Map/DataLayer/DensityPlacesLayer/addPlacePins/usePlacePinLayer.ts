@@ -11,11 +11,12 @@ import {
 } from '../lifecycle/densityPlacesMarkerLifecycle';
 
 interface DensityRefs {
-  currentResRef:    React.RefObject<number | null>;
-  renderedTilesRef: React.RefObject<Set<string>>;
-  markersByTileRef: React.RefObject<Map<string, L.Marker>>;
-  cancelTimer:      () => void;
-  resetState:       () => void;
+  currentResRef:       React.RefObject<number | null>;
+  renderedTilesRef:    React.RefObject<Set<string>>;
+  markersByTileRef:    React.RefObject<Map<string, L.Marker>>;
+  singletonTileIdsRef: React.RefObject<Set<string>>;
+  cancelTimer:         () => void;
+  resetState:          () => void;
 }
 
 /**
@@ -183,7 +184,8 @@ const usePlacePinLayer = (
     // Add new density pins alongside exiting place pins — no gap.
     const renderedSet = new Set<string>();
     const created = addDensityPins(layer, newData, newRes, renderedSet, undefined, map.getCenter());
-    density.markersByTileRef.current = new Map(created.map(({ tile, marker }) => [tile, marker]));
+    density.markersByTileRef.current    = new Map(created.map(({ tile, marker }) => [tile, marker]));
+    density.singletonTileIdsRef.current = new Set(created.filter(c => c.isSingleton).map(c => c.tile));
     // Sync renderedTilesRef so subsequent addPins calls skip already-rendered tiles.
     // Without this, addPins sees an empty set and re-creates duplicate markers for
     // every tile, orphaning the originals in the layer with no way to remove them.

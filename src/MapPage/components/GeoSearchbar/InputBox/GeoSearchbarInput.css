@@ -17,14 +17,21 @@
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  margin-left: 6px;
+  margin-left: 0px;
+}
+
+.geo-searchbar-input-left-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 0px;
 }
 
 .geo-searchbar-input-actions-divider {
   width: 1px;
   height: 22px;
   background: var(--app-faint-outline-color);
-  margin-right: 6px;
+  margin-right: 10px;
 }
 
 .geo-searchbar.is-collapsing .geo-searchbar-input {

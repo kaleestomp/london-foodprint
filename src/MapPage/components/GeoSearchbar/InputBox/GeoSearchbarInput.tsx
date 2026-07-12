@@ -1,4 +1,5 @@
 import NearMeOutlinedIcon from '@mui/icons-material/NearMeOutlined';
+import SearchIcon from '@mui/icons-material/Search';
 import type { ReactNode } from 'react';
 import './GeoSearchbarInput.css';
 
@@ -8,7 +9,9 @@ type Props = {
   onFocus: () => void;
   onKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
   onChange: (value: string) => void;
+  leftAction?: ReactNode;
   rightAction?: ReactNode;
+  showSearch?: boolean;
 };
 
 const GeoSearchbarInput: React.FC<Props> = ({
@@ -17,12 +20,14 @@ const GeoSearchbarInput: React.FC<Props> = ({
   onFocus,
   onKeyDown,
   onChange,
+  leftAction,
   rightAction,
+  showSearch = false,
 }) => {
   return (
     <div className="geo-searchbar-shell">
       <span className="geo-searchbar-icon" aria-hidden="true">
-        <NearMeOutlinedIcon fontSize="small" />
+        {showSearch ? <SearchIcon fontSize="small" /> : <NearMeOutlinedIcon fontSize="small" />}
       </span>
       <input
         ref={inputRef}
@@ -33,6 +38,11 @@ const GeoSearchbarInput: React.FC<Props> = ({
         onKeyDown={onKeyDown}
         onChange={(event) => onChange(event.target.value)}
       />
+      {leftAction && (
+        <div className="geo-searchbar-input-left-actions">
+          {leftAction}
+        </div>
+      )}
       {rightAction && (
         <div className="geo-searchbar-input-actions">
           <span className="geo-searchbar-input-actions-divider" aria-hidden="true" />

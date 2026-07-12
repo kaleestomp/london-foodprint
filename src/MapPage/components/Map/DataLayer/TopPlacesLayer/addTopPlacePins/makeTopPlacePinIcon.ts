@@ -12,7 +12,7 @@ type MakeTopPlacePinIconArgs = {
 };
 
 const makeTopPlacePinIcon = ({ highlighted }: MakeTopPlacePinIconArgs): L.DivIcon => {
-  const size = highlighted ? 26 : 22;
+  const size = 22; // All pins same size
   const iconClass = highlighted
     ? `top-place-pin-shell ${ENTER_CLASS} ${HIGHLIGHT_CLASS}`
     : `top-place-pin-shell ${ENTER_CLASS}`;

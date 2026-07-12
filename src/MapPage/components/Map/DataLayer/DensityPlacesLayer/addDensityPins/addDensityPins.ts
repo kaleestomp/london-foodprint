@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import { cellToLatLng } from 'h3-js';
 import { type TileDensity } from '../../../../../request/useRequestTiles/request';
-import makePinIcon, {countToSize, PIN_RANGE_BY_RESOLUTION, DEFAULT_PIN_RANGE} from './makePinIcon';
+import makePinIcon from './makePinIcon';
 import makePlacePinIcon from '../addPlacePins/makePlacePinIcon';
 
 const STAGGER_STEP_MS = 0; //25
@@ -16,6 +16,7 @@ const STAGGER_CAP    = 20; // stagger capped at the 20th pin → max 500ms //20
  *                       pins radiate outward on reveal.
  * @param topPlaceIds  - Set of place IDs that are already shown as top place markers.
  *                       Singleton places in this set will be skipped to avoid duplicates.
+ * @param zoom         - Current map zoom level (required for density marker sizing).
  */
 const addDensityPins = (
   layer: L.Map | L.LayerGroup,
@@ -25,7 +26,8 @@ const addDensityPins = (
   startOffsets?: Map<string, { dx: number; dy: number }>,
   mapCenter?: L.LatLng | null,
   topPlaceIds?: Set<string>,
-): Array<{ tile: string; marker: L.Marker }> => {
+  zoom: number = 12,
+): Array<{ tile: string; marker: L.Marker; isSingleton: boolean }> => {
   const newTiles = tiles.filter(d => !rendered.has(d.tile));
   if (!newTiles.length) return [];
 
@@ -41,11 +43,10 @@ const addDensityPins = (
     });
   }
 
-  const [minW, maxW] = PIN_RANGE_BY_RESOLUTION[resolution] ?? DEFAULT_PIN_RANGE;
   // maxCount from the full response batch keeps sizes consistent across the viewport.
   // Exclude singletons from the maxCount so they don't deflate density-marker sizing.
   const maxCount = tiles.reduce((m, d) => d.count > 1 ? Math.max(m, d.count) : m, 1);
-  const created: Array<{ tile: string; marker: L.Marker }> = [];
+  const created: Array<{ tile: string; marker: L.Marker; isSingleton: boolean }> = [];
 
   newTiles.forEach((d, i) => {
     rendered.add(d.tile);
@@ -60,20 +61,23 @@ const addDensityPins = (
         return;
       }
       const { lat, lon } = d.singleton;
-      const icon = makePlacePinIcon({ staggerMs, startOffset });
+      // Don't apply startOffset: it is tile-centroid-relative (explode/merge), but this
+      // marker sits at the actual place lat/lon — applying a centroid offset would send
+      // it flying in from the wrong screen position.
+      const icon = makePlacePinIcon({ staggerMs: 0 }); //staggerMs = 0 for singleton place pins
       const marker = L.marker([lat, lon], { icon }).addTo(layer);
-      created.push({ tile: d.tile, marker });
+      created.push({ tile: d.tile, marker, isSingleton: true });
       return;
     }
 
     // Multi-count tile: plot density marker at H3 centroid.
+    // console.log(zoom)
     const [lat, lng] = cellToLatLng(d.tile);
-    const [w, h] = countToSize(d.count, maxCount, minW, maxW);
     const marker = L.marker([lat, lng], {
-      icon: makePinIcon(d.count, w, h, { staggerMs, startOffset }),
+      icon: makePinIcon(d.count, resolution, maxCount, { staggerMs, startOffset }),
     });
     marker.addTo(layer);
-    created.push({ tile: d.tile, marker });
+    created.push({ tile: d.tile, marker, isSingleton: false });
   });
 
   return created;

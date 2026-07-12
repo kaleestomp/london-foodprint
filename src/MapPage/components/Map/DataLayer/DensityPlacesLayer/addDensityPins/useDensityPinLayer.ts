@@ -12,6 +12,8 @@ import {
 } from '../lifecycle/densityPlacesMarkerLifecycle';
 
 const EXIT_DELAY = 280;
+// EXIT_DELAY is really about DOM cleanup (memory/performance), not visual animation timing.
+// Testing different values won't show visible changes because the animation styling already finished by then.
 
 /**
  * Manages the density-pin layer: incremental adds and animated resolution
@@ -29,11 +31,12 @@ const useDensityPinLayer = (
   activeTopPlaceIds?: Set<string>,
 ) => {
   
-  const renderedTilesRef = useRef<Set<string>>(new Set());
-  const currentResRef    = useRef<number | null>(null);
-  const markersByTileRef = useRef<Map<string, L.Marker>>(new Map());
-  const cleanupTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingRemovalRef = useRef<L.Marker[]>([]);
+  const renderedTilesRef    = useRef<Set<string>>(new Set());
+  const currentResRef       = useRef<number | null>(null);
+  const markersByTileRef    = useRef<Map<string, L.Marker>>(new Map());
+  const singletonTileIdsRef = useRef<Set<string>>(new Set()); // tiles rendered as singleton place markers
+  const cleanupTimerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingRemovalRef   = useRef<L.Marker[]>([]);
 
   const cancelTimer = () => {
     cancelDeferredLayerRemoval({
@@ -44,9 +47,10 @@ const useDensityPinLayer = (
   };
 
   const resetState = () => {
-    renderedTilesRef.current = new Set();
-    currentResRef.current    = null;
-    markersByTileRef.current = new Map();
+    renderedTilesRef.current    = new Set();
+    currentResRef.current       = null;
+    markersByTileRef.current    = new Map();
+    singletonTileIdsRef.current = new Set();
   };
 
   /** Incremental add on pan — new pins radiate from map center. */
@@ -57,9 +61,12 @@ const useDensityPinLayer = (
 
     const created = addDensityPins(
       layer, tiles, resolution, renderedTilesRef.current,
-      undefined, map.getCenter(), activeTopPlaceIds,
+      undefined, map.getCenter(), activeTopPlaceIds, map.getZoom(),
     );
-    created.forEach(({ tile, marker }) => markersByTileRef.current.set(tile, marker));
+    created.forEach(({ tile, marker, isSingleton }) => {
+      markersByTileRef.current.set(tile, marker);
+      if (isSingleton) singletonTileIdsRef.current.add(tile);
+    });
   };
 
   const setMaskVisibility = (searchMask: SearchMask | null): void => {
@@ -92,10 +99,12 @@ const useDensityPinLayer = (
     const oldRes    = currentResRef.current;
     const zoomingIn = oldRes !== null && newRes > oldRes;
     const outgoing  = new Map(markersByTileRef.current);
+    const outgoingSingletonTileIds = new Set(singletonTileIdsRef.current);
 
-    currentResRef.current    = newRes;
-    renderedTilesRef.current = new Set();
-    markersByTileRef.current = new Map();
+    currentResRef.current       = newRes;
+    renderedTilesRef.current    = new Set();
+    markersByTileRef.current    = new Map();
+    singletonTileIdsRef.current = new Set();
 
     const startOffsets = zoomingIn && oldRes !== null
       ? computeExplodeOffsets(map, newData, oldRes, outgoing)
@@ -111,6 +120,10 @@ const useDensityPinLayer = (
       pin.classList.remove('density-pin-enter', 'density-pin-fly-in');
       if (zoomingIn) {
         pin.classList.add('density-pin-burst');
+      } else if (outgoingSingletonTileIds.has(tile)) {
+        // Singleton markers sit at actual place lat/lon, not the H3 centroid.
+        // Skipping merge fly-out (which targets centroid) — just fade out.
+        pin.classList.add('density-pin-exit');
       } else {
         const offset = mergeOffsets?.get(tile);
         if (offset) {
@@ -125,9 +138,12 @@ const useDensityPinLayer = (
 
     const created = addDensityPins(
       layer, newData, newRes, renderedTilesRef.current,
-      startOffsets, map.getCenter(), activeTopPlaceIds,
+      startOffsets, map.getCenter(), activeTopPlaceIds, map.getZoom(),
     );
-    created.forEach(({ tile, marker }) => markersByTileRef.current.set(tile, marker));
+    created.forEach(({ tile, marker, isSingleton }) => {
+      markersByTileRef.current.set(tile, marker);
+      if (isSingleton) singletonTileIdsRef.current.add(tile);
+    });
 
     const exitDelay = zoomingIn ? 0 : EXIT_DELAY;
     scheduleDeferredLayerRemoval({
@@ -143,6 +159,7 @@ const useDensityPinLayer = (
     currentResRef,
     renderedTilesRef,
     markersByTileRef,
+    singletonTileIdsRef,
     cancelTimer,
     resetState,
     addPins,

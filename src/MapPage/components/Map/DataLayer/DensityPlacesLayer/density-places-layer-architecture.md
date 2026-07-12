@@ -1,6 +1,7 @@
 # DensityPlacesLayer Architecture
 
-Date: 2026-07-10
+Date: 2026-07-10  
+Updated: 2026-07-12
 
 ## Purpose
 `DensityPlacesLayer` owns the main tile / places rendering pipeline for the map.
@@ -120,3 +121,73 @@ Focuses on:
 3. TTL cache reuse
 
 Keeping these separate is intentional because the interaction models are different.
+
+---
+
+## Singleton Tile Handling
+
+### What is a singleton tile?
+
+The tile API returns `TileDensity` records per H3 tile. When `count === 1` and the record includes a `singleton` field (`{ id, lat, lon }`), the tile contains exactly one place.
+
+### Rendering
+
+Singleton tiles are rendered as **place-style dot markers** at the actual place `lat/lon`, not at the H3 tile centroid. This is handled inside `addDensityPins` as a separate branch from multi-count density markers.
+
+```
+count === 1 && singleton present  →  makePlacePinIcon at place lat/lon
+count > 1                         →  makePinIcon at H3 centroid
+```
+
+The `maxCount` used to size density markers excludes singletons so a single-place tile cannot deflate the size scale of the rest of the viewport.
+
+### Top-place dedupe
+
+`addDensityPins` receives an optional `topPlaceIds: Set<string>`. If the singleton's place ID is in this set, the tile is skipped entirely — no marker is created. This prevents a dot marker appearing beneath a diamond top-place marker at the same location.
+
+Dedup for the full **places mode** response is handled one layer up in `useDensityPlacesLayer`, before `transitionToPlaces` is called (the filter there covers both singleton-origin and places-mode places).
+
+### Animation: zoom-in (tiles → tiles)
+
+Singleton markers do **not** receive the explode fly-in offset (`startOffset` is ignored). The explode offset is tile-centroid-relative, but singleton markers sit at the actual place location — applying a centroid offset would animate them in from the wrong screen position. They appear with a simple fade-in (`density-pin-enter`) instead.
+
+### Animation: zoom-out (tiles → tiles)
+
+Singleton markers do **not** receive the merge fly-out animation. Regular density markers animate toward their parent tile centroid (`density-pin-fly-out`). For singletons this would move the marker away from the place toward a nearby centroid, which is visually incorrect. They fade out (`density-pin-exit`) instead.
+
+This is implemented via `singletonTileIdsRef` — a `Set<string>` of tile IDs currently rendered as singleton place markers, maintained by `useDensityPinLayer`.
+
+### `singletonTileIdsRef` lifecycle
+
+| Event | Action |
+|---|---|
+| `addDensityPins` returns `isSingleton: true` | Caller adds tile ID to `singletonTileIdsRef` |
+| `transitionRes` starts | Snapshot outgoing singleton IDs; clear ref before populating new markers |
+| `resetState()` | Ref cleared alongside `markersByTileRef` and `renderedTilesRef` |
+| `transitionFromPlaces` (in `usePlacePinLayer`) | Re-populates `density.singletonTileIdsRef` from the newly created density markers |
+
+The last point is critical: `transitionFromPlaces` calls `addDensityPins` to render the new density layer. It must also sync `singletonTileIdsRef` from the result so that any subsequent zoom-out correctly identifies singletons in the outgoing set.
+
+### `DensityPinLayerHandle` interface
+
+`usePlacePinLayer` accesses density state through a typed contract exported from `useDensityPinLayer`. This keeps the dependency direction explicit: `usePlacePinLayer` imports the interface from its provider rather than defining its own private copy.
+
+Fields included in the handle:
+
+| Field | Purpose |
+|---|---|
+| `currentResRef` | Current H3 resolution being rendered |
+| `renderedTilesRef` | Set of already-rendered tile IDs (prevents duplicate markers on pan) |
+| `markersByTileRef` | Live tile → marker map; used to compute fly-in offsets on density→places transition |
+| `singletonTileIdsRef` | Tiles currently rendered as singleton place markers |
+| `cancelTimer` | Cancels any pending deferred marker removal |
+| `resetState` | Wipes all density refs; called at the start of a density→places transition |
+
+### Animation class reference for singleton markers
+
+| Class | Applied when | Effect |
+|---|---|---|
+| `density-pin-enter` | Singleton created (zoom-in or pan) | Simple fade-in |
+| `density-pin-exit` | Singleton in outgoing set on zoom-out | Simple fade-out |
+| `density-pin-burst` | *(never applied to singletons)* | Would burst from centroid; skipped because marker is at place lat/lon |
+| `density-pin-fly-out` | *(never applied to singletons)* | Would merge toward centroid; skipped for same reason |

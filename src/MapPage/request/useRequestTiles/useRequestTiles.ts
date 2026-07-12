@@ -6,6 +6,7 @@ import { type TilesResponse, request } from './request';
 
 const requestCached = createCachedMemoryFetcher(request);
 export type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
+export type { TilesResponse };
 export interface TilesParams {
   sw_lat: number;
   sw_lng: number;

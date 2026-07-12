@@ -7,6 +7,7 @@ import useReverseGeocode from './fetchHooks/useReverseGeocode';
 import GeoSearchbarInput from './InputBox/GeoSearchbarInput';
 import GeoSearchbarDropdown from './DropDown/GeoSearchbarDropdown';
 import GeoSearchbarMyLocationButton from './MyLocation/GeoSearchbarMyLocationButton';
+import GeoSearchbarClearButton from './ClearButton/GeoSearchbarClearButton';
 import GeoSearchbarInitializeButton from './InitializeButton/GeoSearchbarInitializeButton';
 import useGeoSearchbarAnimation from './animationHooks/useGeoSearchbarAnimation';
 import toLatLng from './DropDown/toLatLng';
@@ -82,6 +83,12 @@ const GeoSearchbar: React.FC<Props> = ({ mapRef, onDropdownOpenChange }) => {
                             reopenSearch();
                             setQuery(value);
                         }}
+                        showSearch={showExpandedLayout}
+                        leftAction={query && (
+                            <GeoSearchbarClearButton
+                                onClear={() => setQuery('')}
+                            />
+                        )}
                         rightAction={(
                             <GeoSearchbarMyLocationButton
                                 mapRef={mapRef}

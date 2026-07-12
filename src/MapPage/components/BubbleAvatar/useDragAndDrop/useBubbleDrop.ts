@@ -111,6 +111,7 @@ const useBubbleDrop = (
       undefined,
       L.latLng(droppedPos.lat, droppedPos.lng),
       entryDelayRef.current,
+      25, // Stagger nearby pins to avoid overlap
     );
   }, [nearbyRes, nearbyQueryKey, nearbyResponseKey, mapRef, droppedPos]);
 

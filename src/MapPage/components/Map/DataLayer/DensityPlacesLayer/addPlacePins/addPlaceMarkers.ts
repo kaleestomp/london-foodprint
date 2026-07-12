@@ -3,7 +3,6 @@ import { type TilePlacePreview } from '../../../../../request/useRequestTiles/re
 import makePlacePinIcon from './makePlacePinIcon';
 
 const STAGGER_STEP_MS = 28;
-const STAGGER_CAP = 20;
 
 const addPlaceMarkers = (
   layer: L.Map | L.LayerGroup,
@@ -12,6 +11,7 @@ const addPlaceMarkers = (
   startOffsets?: Map<string, { dx: number; dy: number }>,
   mapCenter?: L.LatLng | null,
   entryDelayMs = 0,
+  staggerCap: number = 0, // Set to > 0 to enable stagger (e.g., 20 for nearby search)
 ): Array<{ id: string; marker: L.Marker }> => {
   if (!Array.isArray(data) || !layer) return [];
 
@@ -29,7 +29,7 @@ const addPlaceMarkers = (
   ordered.forEach((place, i) => {
     const tierText = place.tier != null ? `Tier ${Math.round(place.tier)}` : 'Tier unknown';
 
-    const staggerMs = entryDelayMs + Math.min(i, STAGGER_CAP) * STAGGER_STEP_MS;
+    const staggerMs = entryDelayMs + Math.min(i, staggerCap) * STAGGER_STEP_MS;
     const offset = startOffsets?.get(place.id);
     const icon = makePlacePinIcon({
       staggerMs,

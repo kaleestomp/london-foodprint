@@ -7,7 +7,7 @@ type RatingOption = {
 
 export const ratingOptions: RatingOption[] = [
   { tier: 1, label: 'Better than Average' },
-  { tier: 2, label: 'Top 20% of Establishments' },
+  { tier: 2, label: 'Top 25% of Establishments' },
   { tier: 3, label: 'Top 10% of Establishments' },
   { tier: 4, label: 'Top 5% of Establishments' },
 ];

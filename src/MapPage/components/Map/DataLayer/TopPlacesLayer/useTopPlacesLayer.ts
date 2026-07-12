@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import { useTileQuery } from '../../../../../context/TileQueryContext';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../request/useRequestTopPlaces/useRequestTopPlaces';
 import { type TopPlaceItem } from '../../../../request/useRequestTopPlaces/request';
 import { type NearbyPlace } from '../../../../request/useRequestNearby/request';
@@ -37,6 +38,8 @@ const useTopPlacesLayer = ({
     scoreTier,
     searchMask,
   } = useSearchFilters();
+
+  const { setLastNearbyResponse } = useTileQuery();
 
   const topPlacesLayerRef = useRef<L.LayerGroup | null>(null);
   const topPlaceCacheRef = useRef<TopPlaceMarkerCache>(new Map());
@@ -147,6 +150,15 @@ const useTopPlacesLayer = ({
     nearbyQueryKey,
     nearbyResponseKey,
   ]);
+
+  // Store nearby response in context for header to access restaurant count
+  useEffect(() => {
+    if (!searchMask || nearbyStatus !== 'success') {
+      setLastNearbyResponse(null);
+      return;
+    }
+    setLastNearbyResponse(nearbyRes ?? null);
+  }, [searchMask, nearbyStatus, nearbyRes, setLastNearbyResponse]);
 
   useEffect(() => {
     if (!enabled) return;
