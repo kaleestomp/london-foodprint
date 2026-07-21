@@ -27,6 +27,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
     const map = L.map(mapContainer, { 
       attributionControl: false, 
       zoomControl: false, 
+      zoomSnap: 0.0,
       inertia: true, 
       worldCopyJump: false,
       renderer: L.canvas({ willReadFrequently: true } as any),
