@@ -3,8 +3,6 @@ import L from 'leaflet';
 import 'leaflet.heat';
 import '@maplibre/maplibre-gl-leaflet';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
-import 'leaflet-gesture-handling';
 
 import useMapResizeSync from './useMapResizeSync'; 
 import { LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM, LONDON_MAX_ZOOM, LONDON_BOUNDS } from '../MapTemplate'; 
@@ -32,13 +30,12 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
       zoomSnap: 0.0,
       inertia: true, 
       worldCopyJump: false,
-      gestureHandling: true,
       renderer: L.canvas({ willReadFrequently: true } as any),
       maxBounds: LONDON_BOUNDS,
       maxBoundsViscosity: 1.0,
       minZoom: LONDON_MIN_ZOOM,
       maxZoom: LONDON_MAX_ZOOM,
-    } as L.MapOptions & { gestureHandling: boolean }).setView(LONDON_CENTER, LONDON_INITIAL_ZOOM);
+    } as L.MapOptions).setView(LONDON_CENTER, LONDON_INITIAL_ZOOM);
     mapRef.current = map;
     if (!DISABLE_BASE_LAYER) {
       (L as typeof L & {
