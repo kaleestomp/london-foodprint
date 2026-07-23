@@ -9,6 +9,8 @@ import { LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM, LONDON_MAX_ZOOM, L
 
 const OPEN_FREE_MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/fiord';
 const DISABLE_BASE_LAYER = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_DISABLE_BASE_LAYER === 'true';
+// This touch handoff uses Leaflet internals because Leaflet does not expose a public
+// hook for restarting drag after a pinch gesture drops from two touches to one.
 type LeafletTouchTransitionMap = L.Map & {
   touchZoom?: { _zooming?: boolean };
   dragging?: { _draggable?: { _onDown?: (event: TouchEvent) => void } };
@@ -44,7 +46,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
     const touchTransitionMap = map as LeafletTouchTransitionMap;
     let wasPinching = false;
     const handleTouchMove = (event: TouchEvent) => {
-      wasPinching = event.touches.length === 2 || (wasPinching && event.touches.length > 1);
+      wasPinching = event.touches.length > 1;
     };
     const handleTouchEnd = (event: TouchEvent) => {
       if (!wasPinching || event.touches.length !== 1) {
@@ -53,6 +55,8 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
       }
       wasPinching = false;
       window.setTimeout(() => {
+        // Wait until Leaflet finishes its own touchend cleanup, then treat the
+        // remaining finger as a fresh drag start so pan can continue seamlessly.
         if (touchTransitionMap.touchZoom) {
           touchTransitionMap.touchZoom._zooming = false;
         }
