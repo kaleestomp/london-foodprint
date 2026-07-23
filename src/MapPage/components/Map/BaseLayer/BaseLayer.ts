@@ -45,27 +45,31 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
     mapRef.current = map;
     const touchTransitionMap = map as LeafletTouchTransitionMap;
     let wasPinching = false;
-    const handleTouchMove = (event: TouchEvent) => {
-      wasPinching = event.touches.length > 1;
-    };
+    let pinchEndListenersAttached = false;
     const handleTouchEnd = (event: TouchEvent) => {
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchEnd);
+      pinchEndListenersAttached = false;
       if (!wasPinching || event.touches.length !== 1) {
-        wasPinching = event.touches.length > 1;
+        wasPinching = false;
         return;
       }
       wasPinching = false;
-      window.setTimeout(() => {
-        // Wait until Leaflet finishes its own touchend cleanup, then treat the
-        // remaining finger as a fresh drag start so pan can continue seamlessly.
-        if (touchTransitionMap.touchZoom) {
-          touchTransitionMap.touchZoom._zooming = false;
-        }
-        touchTransitionMap.dragging?._draggable?._onDown?.(event);
-      }, 0);
+      if (touchTransitionMap.touchZoom) {
+        touchTransitionMap.touchZoom._zooming = false;
+      }
+      touchTransitionMap.dragging?._draggable?._onDown?.(event);
     };
-    mapContainer.addEventListener('touchmove', handleTouchMove, false);
-    mapContainer.addEventListener('touchend', handleTouchEnd, false);
-    mapContainer.addEventListener('touchcancel', handleTouchEnd, false);
+    const handleTouchMove = (event: TouchEvent) => {
+      wasPinching = event.touches.length > 1;
+      if (!wasPinching || pinchEndListenersAttached) {
+        return;
+      }
+      document.addEventListener('touchend', handleTouchEnd, { passive: true });
+      document.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+      pinchEndListenersAttached = true;
+    };
+    mapContainer.addEventListener('touchmove', handleTouchMove, { passive: true });
     if (!DISABLE_BASE_LAYER) {
       (L as typeof L & {
         maplibreGL: (options: { style: string }) => L.Layer;
@@ -75,9 +79,9 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
     }
     const cleanupResizeSync = setupMapResizeSync(map, mapContainer);
     return () => {
-      mapContainer.removeEventListener('touchmove', handleTouchMove, false);
-      mapContainer.removeEventListener('touchend', handleTouchEnd, false);
-      mapContainer.removeEventListener('touchcancel', handleTouchEnd, false);
+      mapContainer.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchEnd);
       cleanupResizeSync();
       mapRef.current = null;
       map.remove(); 
