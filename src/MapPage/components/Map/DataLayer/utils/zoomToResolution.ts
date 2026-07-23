@@ -19,7 +19,7 @@ export const PINS_ZOOM_TO_RES: ZoomResTable = [
 const zoomToResolution = (zoom: number, table: ZoomResTable = PINS_ZOOM_TO_RES): number => {
 
   for (const [maxZoom, res] of table) {
-    if (zoom <= maxZoom) return res;
+    if (Math.floor(zoom) <= maxZoom) return res;
   }
 
   const res = table[table.length - 1][1];

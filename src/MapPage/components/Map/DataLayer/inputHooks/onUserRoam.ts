@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import L from 'leaflet';
 
 import { type TilesParams } from '../../../../request/useRequestTiles/useRequestTiles';
+import getBucketedViewportBounds from '../utils/getBucketedViewportBounds';
 import zoomToResolution from '../utils/zoomToResolution';
 
 const ZOOM_THRESHOLD_FOR_PLACES_ONLY = 16;
@@ -21,27 +22,30 @@ const onUserRoam = (
     if (!map) return;
 
     const update = () => {
-      const b = map.getBounds();
-
+      // const b = map.getBounds();
+      const {
+        sw_lat,
+        sw_lng,
+        ne_lat,
+        ne_lng,
+        zoomBucket,
+      } = getBucketedViewportBounds(map);
       const zoom = map.getZoom();
-      // Below zoom 12 there's too little context to render density/place markers.
-      // if (zoom < 12) {
-      //   setViewportParams(null);
-      //   return;
-      // }
 
       const res = zoomToResolution(zoom);
       // console.log('res', res, 'zoom', zoom);
+      console.log('bbox', sw_lat, sw_lng, ne_lat, ne_lng, 'zoomBucket', zoomBucket);
       
       setViewportParams({
-        sw_lat: b.getSouth(),
-        sw_lng: b.getWest(),
-        ne_lat: b.getNorth(),
-        ne_lng: b.getEast(),
+        // sw_lat: b.getSouth(),
+        // sw_lng: b.getWest(),
+        // ne_lat: b.getNorth(),
+        // ne_lng: b.getEast(),
+        sw_lat, sw_lng, ne_lat, ne_lng,
         res: res,
         // At past 16 Zoom, always request individual places directly,
         // bypassing the density table regardless of place count.
-        ...(zoom >= ZOOM_THRESHOLD_FOR_PLACES_ONLY ? { places_only: true } : {}),
+        ...(zoomBucket >= ZOOM_THRESHOLD_FOR_PLACES_ONLY ? { places_only: true } : {}),
       });
     };
 
