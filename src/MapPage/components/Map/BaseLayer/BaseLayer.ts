@@ -9,6 +9,10 @@ import { LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM, LONDON_MAX_ZOOM, L
 
 const OPEN_FREE_MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/fiord';
 const DISABLE_BASE_LAYER = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_DISABLE_BASE_LAYER === 'true';
+type LeafletTouchTransitionMap = L.Map & {
+  touchZoom?: { _zooming?: boolean };
+  dragging?: { _draggable?: { _onDown?: (event: TouchEvent) => void } };
+};
 
 const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): { 
     mapContainerRef: React.RefObject<HTMLDivElement | null>; 
@@ -37,6 +41,27 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
       maxZoom: LONDON_MAX_ZOOM,
     } as L.MapOptions).setView(LONDON_CENTER, LONDON_INITIAL_ZOOM);
     mapRef.current = map;
+    const touchTransitionMap = map as LeafletTouchTransitionMap;
+    let wasPinching = false;
+    const handleTouchMove = (event: TouchEvent) => {
+      wasPinching = event.touches.length === 2 || (wasPinching && event.touches.length > 1);
+    };
+    const handleTouchEnd = (event: TouchEvent) => {
+      if (!wasPinching || event.touches.length !== 1) {
+        wasPinching = event.touches.length > 1;
+        return;
+      }
+      wasPinching = false;
+      window.setTimeout(() => {
+        if (touchTransitionMap.touchZoom) {
+          touchTransitionMap.touchZoom._zooming = false;
+        }
+        touchTransitionMap.dragging?._draggable?._onDown?.(event);
+      }, 0);
+    };
+    mapContainer.addEventListener('touchmove', handleTouchMove, false);
+    mapContainer.addEventListener('touchend', handleTouchEnd, false);
+    mapContainer.addEventListener('touchcancel', handleTouchEnd, false);
     if (!DISABLE_BASE_LAYER) {
       (L as typeof L & {
         maplibreGL: (options: { style: string }) => L.Layer;
@@ -46,6 +71,9 @@ const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): {
     }
     const cleanupResizeSync = setupMapResizeSync(map, mapContainer);
     return () => {
+      mapContainer.removeEventListener('touchmove', handleTouchMove, false);
+      mapContainer.removeEventListener('touchend', handleTouchEnd, false);
+      mapContainer.removeEventListener('touchcancel', handleTouchEnd, false);
       cleanupResizeSync();
       mapRef.current = null;
       map.remove(); 
