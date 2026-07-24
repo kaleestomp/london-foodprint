@@ -1,20 +1,14 @@
 from collections.abc import Sequence
-from typing import Final, Literal
+from typing import Literal
 
-_DEFAULT_BBOX_PRECISION: Final[int] = 6
-CacheSpatialScope = Literal["citywide", "bbox_exact", "tiles_outer_snapped"]
+CacheScope = Literal["citywide", "tiles_outer_snapped"]
 
-def build_viewbbox_endpoint_cache_key(
+def build_endpoint_cache_key(
     endpoint: str,
-    scope: CacheSpatialScope,
+    scope: CacheScope,
     parts: Sequence[str],
     *,
     version: str = "v1",
-    sw_lat: float | None = None,
-    sw_lng: float | None = None,
-    ne_lat: float | None = None,
-    ne_lng: float | None = None,
-    precision: int = _DEFAULT_BBOX_PRECISION,
     resolution: int | None = None,
     cuisine_values: Sequence[str] = (),
     cost_values: Sequence[str] = (),
@@ -27,15 +21,6 @@ def build_viewbbox_endpoint_cache_key(
 
     if scope == "citywide":
         return "|".join([*key_parts, *parts])
-
-    if scope == "bbox_exact":
-        if None in (sw_lat, sw_lng, ne_lat, ne_lng):
-            raise ValueError("bbox_exact cache key requires sw_lat/sw_lng/ne_lat/ne_lng")
-        return "|".join([
-            *key_parts,
-            *bbox_tokens(float(sw_lat), float(sw_lng), float(ne_lat), float(ne_lng), precision=precision),
-            *parts,
-        ])
 
     if scope == "tiles_outer_snapped":
         if resolution is None:
@@ -55,21 +40,6 @@ def build_viewbbox_endpoint_cache_key(
         ])
 
     raise ValueError(f"Unsupported cache key scope: {scope}")
-
-def bbox_tokens(
-    sw_lat: float,
-    sw_lng: float,
-    ne_lat: float,
-    ne_lng: float,
-    precision: int = _DEFAULT_BBOX_PRECISION,
-) -> list[str]:
-    fmt = f"{{:.{precision}f}}"
-    return [
-        fmt.format(sw_lat),
-        fmt.format(sw_lng),
-        fmt.format(ne_lat),
-        fmt.format(ne_lng),
-    ]
 
 def tile_snapped_key_tokens(
     resolution: int,

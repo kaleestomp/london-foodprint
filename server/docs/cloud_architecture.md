@@ -37,7 +37,7 @@ server/
       nearby_api.py         ← GET /api/nearby
     tile_api/
       tile_api.py           ← GET /api/tiles
-      tile_cache.py         ← in-process TTL cache (default 60s, env-configurable)
+      tile_cache.py         ← single-flight in-flight dedupe helper (no persistent tile response cache)
       places_query/         ← reference/notes on places fallback query variants
     place_api.py            ← GET /api/place/{id}
     places_list_api.py      ← GET /api/places/list
@@ -227,7 +227,7 @@ The endpoint computes two tile sets from the viewport bbox:
 
 - **`outer_tiles`** (padded bbox, ~1 H3 cell diameter per resolution)
   - Queried against `h3_density` — includes intersecting edge tiles so the heatmap has no missing patches at the viewport boundary
-  - Used as the cache key (more stable across small pans; a pan smaller than the pad doesn't change `outer_tiles` → cache hit)
+  - Used to build the single-flight dedupe key for concurrent identical tile-density requests
 - **`inner_tiles`** (exact bbox, no padding)
   - Used only to sum the place count threshold from the already-fetched `h3_density` rows — no second DB call
   - Determines whether to fall back to the places query
@@ -325,9 +325,10 @@ Padding per resolution (in `map_common.py`):
 **Regression validation:**
 The historical reconciliation script has been retired. Validation should now be done via endpoint-level integration checks against `/api/tiles` and `/api/places/top`.
 
-**Cache:** 60s in-process TTL (`tile_cache.py`, env var `TILES_CACHE_TTL_SECONDS`).
-- `tiles` responses use cache key: sorted `outer_tiles` + all filter dimensions.
-- `places` responses use a separate cache key that also includes exact viewport bbox (`sw_lat/sw_lng/ne_lat/ne_lng`).
+**Caching (current):**
+- `/api/tiles` and `/api/places/top` do not persist response payloads in backend memory.
+- `/api/tiles` still coalesces concurrent identical density requests with single-flight dedupe keyed by snapped outer tiles + filters.
+- Histograms cache only `scope=citywide` responses with TTL (`HISTOGRAM_CACHE_TTL_SECONDS`, default 120s).
 
 ### GET /api/nearby — Pin drop / walk bubble
 ```
@@ -394,9 +395,9 @@ Returns list rows:
 | Technique | Saves |
 |---|---|
 | Pre-aggregated `h3_density` | Eliminates GROUP BY on every pan |
-| Outer/inner tile split | outer_tiles cache key absorbs small pans; inner_count threshold avoids counting edge tiles |
-| 60s TTL in-process cache on `/api/tiles` | Absorbs repeated pans |
-| Cache key uses sorted outer_tiles | Deterministic across viewport jitter |
+| Outer/inner tile split | Inner threshold avoids counting edge tiles while retaining seamless outer-tile coverage |
+| Single-flight dedupe on `/api/tiles` | Coalesces concurrent identical density reads |
+| Citywide-only histogram TTL cache | Captures low-cardinality high-reuse queries |
 | `asyncpg` pool `max_size=5` | Keeps Neon compute-seconds low |
 | Narrow SELECT (no `*` in list endpoints) | Reduces transfer |
 | Detail fields only on tap (`/api/place/{id}`) | Never sent in list/tile responses |

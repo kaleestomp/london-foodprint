@@ -16,7 +16,6 @@ from api.ip_location.ip_location import router as ip_location_router
 from api.geocode.geocode_api import router as geocode_router
 from api.histogram_api.cuisine_histogram_api import router as cuisine_histogram_router
 from api.histogram_api.price_histogram_api import router as price_histogram_router
-from api.cache_debug_api import router as cache_debug_router
 
 load_dotenv()
 
@@ -67,7 +66,6 @@ app.include_router(ip_location_router)
 app.include_router(geocode_router)
 app.include_router(cuisine_histogram_router)
 app.include_router(price_histogram_router)
-app.include_router(cache_debug_router)
 
 
 @app.get("/health")

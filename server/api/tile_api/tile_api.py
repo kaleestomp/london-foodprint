@@ -2,11 +2,8 @@ from typing import Any
 
 import h3
 from fastapi import APIRouter, HTTPException, Query, Request
-from api.cache_keys import build_viewbbox_endpoint_cache_key
+from api.cache_keys import build_endpoint_cache_key
 from api.tile_api.tile_cache import (
-    _get_cached,
-    _set_cached,
-    _get_or_set_cached,
     _run_singleflight,
 )
 from api.tile_api.sql import PLACES_SQL, TILES_SQL, SINGLETON_SQL
@@ -66,9 +63,9 @@ async def get_tiles(
     tier_column = get_score_basis_column(score_basis)
     outer_tiles, inner_tiles = h3_cells_for_bbox(sw_lat, sw_lng, ne_lat, ne_lng, resolution)
 
-    # CREATE CACHE KEYS
-    # Tiles cache key uses padded outer tiles so small pans can hit cache.
-    tiles_cache_key = build_viewbbox_endpoint_cache_key(
+    # Singleflight key uses snapped outer tiles so concurrent identical
+    # requests share one in-flight DB query without persistent response caching.
+    tiles_singleflight_key = build_endpoint_cache_key(
         endpoint="tiles",
         scope="tiles_outer_snapped",
         resolution=resolution,
@@ -80,54 +77,24 @@ async def get_tiles(
         snapped_tiles=outer_tiles,
         parts=[],
     )
-    # Places payloads are bbox-precise and intentionally ignore snapped tile sets.
-    places_cache_key = build_viewbbox_endpoint_cache_key(
-        endpoint="places",
-        scope="bbox_exact",
-        sw_lat=sw_lat,
-        sw_lng=sw_lng,
-        ne_lat=ne_lat,
-        ne_lng=ne_lng,
-        parts=[
-            str(resolution),
-            ",".join(sorted(cuisine_values)),
-            ",".join(sorted(cost_values)),
-            venue_value,
-            str(score_basis),
-            str(score_tier),
-        ],
-    )
 
     # --- places_only fast-path: skip density query entirely ---
     if places_only:
-        async def produce_places_only() -> dict[str, Any]:
-            async with request.app.state.pool.acquire() as conn:
-                rows = await conn.fetch(
-                    PLACES_SQL.format(rank_column=tier_column, page_size=PAGE_SIZE_ON_REQUEST),
-                    sw_lat, ne_lat, sw_lng, ne_lng,
-                    cuisine_values, venue_value, cost_values,
-                    score_tier,
-                )
-            return {
-                "mode": "places",
-                "data": [dict(row) for row in rows],
-                "total": len(rows),
-            }
-
-        return await _get_or_set_cached(places_cache_key, produce_places_only)
+        async with request.app.state.pool.acquire() as conn:
+            rows = await conn.fetch(
+                PLACES_SQL.format(rank_column=tier_column, page_size=PAGE_SIZE_ON_REQUEST),
+                sw_lat, ne_lat, sw_lng, ne_lng,
+                cuisine_values, venue_value, cost_values,
+                score_tier,
+            )
+        return {
+            "mode": "places",
+            "data": [dict(row) for row in rows],
+            "total": len(rows),
+        }
     # ----------------------------------------------------------
 
-    # --- default: tile query first ---
-    # Check for exact-bbox places cache first.
-    cached_places = await _get_cached(places_cache_key)
-    if cached_places is not None:
-        return cached_places
-    # Check for snapped-tiles cache next.
-    cached_tiles = await _get_cached(tiles_cache_key)
-    if cached_tiles is not None:
-        return cached_tiles
-    
-    # If neither cache hit, query the tiles table.
+    # --- default: tile query first (no persistent cache) ---
     # Coalesce concurrent misses by snapped tile key to avoid duplicate DB work.
     async def produce_tile_rows() -> Any:
         async with request.app.state.pool.acquire() as conn:
@@ -146,7 +113,7 @@ async def get_tiles(
                 score_tier,
             )
 
-    tile_rows = await _run_singleflight(f"tile_rows|{tiles_cache_key}", produce_tile_rows)
+    tile_rows = await _run_singleflight(f"tile_rows|{tiles_singleflight_key}", produce_tile_rows)
 
     # Use only the inner (unpadded) tiles to decide whether to fall back to
     # the places query — avoids counting edge tiles that are barely visible.
@@ -154,30 +121,27 @@ async def get_tiles(
     inner_count = sum(int(row["count"]) for row in tile_rows if row["tile"] in inner_set)
 
     if inner_count <= PAGE_SIZE_ON_ZOOM:
-        async def produce_places_fallback() -> dict[str, Any]:
-            async with request.app.state.pool.acquire() as fallback_conn:
-                fallback_rows = await fallback_conn.fetch(
-                    PLACES_SQL.format(rank_column=tier_column, page_size=int(PAGE_SIZE_ON_ZOOM * 1.5)),
-                    sw_lat,
-                    ne_lat,
-                    sw_lng,
-                    ne_lng,
-                    cuisine_values,
-                    venue_value,
-                    cost_values,
-                    score_tier,
-                )
-            # Note: Use actual len(rows) as total, not inner_count.
-            # H3 tiles don't perfectly align with lat/lon bboxes, so a place inside an
-            # inner tile may fall outside the exact bbox bounds. inner_count is a heuristic
-            # for switching modes; the true count is what the places query returns.
-            return {
-                "mode": "places",
-                "data": [dict(row) for row in fallback_rows],
-                "total": len(fallback_rows),
-            }
-
-        return await _get_or_set_cached(places_cache_key, produce_places_fallback)
+        async with request.app.state.pool.acquire() as fallback_conn:
+            fallback_rows = await fallback_conn.fetch(
+                PLACES_SQL.format(rank_column=tier_column, page_size=int(PAGE_SIZE_ON_ZOOM * 1.5)),
+                sw_lat,
+                ne_lat,
+                sw_lng,
+                ne_lng,
+                cuisine_values,
+                venue_value,
+                cost_values,
+                score_tier,
+            )
+        # Note: Use actual len(rows) as total, not inner_count.
+        # H3 tiles don't perfectly align with lat/lon bboxes, so a place inside an
+        # inner tile may fall outside the exact bbox bounds. inner_count is a heuristic
+        # for switching modes; the true count is what the places query returns.
+        return {
+            "mode": "places",
+            "data": [dict(row) for row in fallback_rows],
+            "total": len(fallback_rows),
+        }
 
     # Enrich singleton tiles (count=1) with the actual place lat/lon.
     # At res < 10, tile IDs are coarse H3 parents — expand to r10 children
@@ -216,5 +180,4 @@ async def get_tiles(
         "resolution": resolution,
         "data": tile_data,
     }
-    await _set_cached(tiles_cache_key, payload)
     return payload

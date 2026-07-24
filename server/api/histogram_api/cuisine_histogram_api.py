@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
-from api.cache_keys import build_viewbbox_endpoint_cache_key
+from api.cache_keys import build_endpoint_cache_key
 from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
 from api.histogram_api.sql import SQL_CITYWIDE_CUISINE, SQL_VIEW_CUISINE
 router = APIRouter()
@@ -16,20 +16,6 @@ except ValueError:
     _CACHE_TTL = 120
 _cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
 _cache_lock = asyncio.Lock()
-
-
-async def get_cuisine_histogram_cache_stats(now: float | None = None) -> dict[str, int]:
-    current = time.time() if now is None else now
-    async with _cache_lock:
-        total = len(_cache)
-        live = sum(1 for cached_at, _ in _cache.values() if current - cached_at <= _CACHE_TTL)
-    expired = total - live
-    return {
-        "total": total,
-        "live": live,
-        "expired": expired,
-        "ttl_seconds": _CACHE_TTL,
-    }
 
 
 
@@ -57,8 +43,9 @@ async def get_cuisine_histogram(
     venue_value = normalize_dimension(venue_type)
     tier_column = get_score_basis_column(score_basis)
 
+    cache_key: str | None = None
     if scope == "citywide":
-        cache_key = build_viewbbox_endpoint_cache_key(
+        cache_key = build_endpoint_cache_key(
             endpoint="citywide",
             scope="citywide",
             parts=[
@@ -68,30 +55,14 @@ async def get_cuisine_histogram(
                 str(score_tier),
             ],
         )
-    else:
-        cache_key = build_viewbbox_endpoint_cache_key(
-            endpoint="view",
-            scope="bbox_exact",
-            sw_lat=float(sw_lat),
-            sw_lng=float(sw_lng),
-            ne_lat=float(ne_lat),
-            ne_lng=float(ne_lng),
-            parts=[
-                ",".join(sorted(cost_values)),
-                venue_value,
-                str(score_basis),
-                str(score_tier),
-            ],
-        )
-
-    now = time.time()
-    async with _cache_lock:
-        entry = _cache.get(cache_key)
-        if entry is not None:
-            cached_at, data = entry
-            if now - cached_at <= _CACHE_TTL:
-                return {"cuisine_histogram": data}
-            del _cache[cache_key]
+        now = time.time()
+        async with _cache_lock:
+            entry = _cache.get(cache_key)
+            if entry is not None:
+                cached_at, data = entry
+                if now - cached_at <= _CACHE_TTL:
+                    return {"cuisine_histogram": data}
+                del _cache[cache_key]
 
     async with request.app.state.pool.acquire() as conn:
         if scope == "citywide":
@@ -114,7 +85,8 @@ async def get_cuisine_histogram(
             )
 
     data = [dict(row) for row in rows]
-    async with _cache_lock:
-        _cache[cache_key] = (time.time(), data)
+    if scope == "citywide" and cache_key is not None:
+        async with _cache_lock:
+            _cache[cache_key] = (time.time(), data)
 
     return {"cuisine_histogram": data}
