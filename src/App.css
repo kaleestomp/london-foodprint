@@ -14,7 +14,7 @@
   --app-card-border-radius: 20px;
   --app-floating-card-shadow:
     0 2px 8px rgba(0, 0, 0, 0.08),
-    0 16px 38px rgba(0, 0, 0, 0.16);
+    0 16px 38px rgba(70, 48, 48, 0.16);
   --app-floating-card-shadow-inset: inset 2px 5px 10px rgba(5, 5, 5, 0.145);
 
   /* --app-glass-card-bg: var(--app-paper-color); */
@@ -36,7 +36,7 @@
 
   --app-text-color: #202124;
   --app-text-caption-color: #6c727c;
-  --app-divider-color: #6c727c7a;
+  --app-divider-color: #afafaf7a; /* #6c727c7a; */
   --app-floating-card-backdrop-filter: blur(14px);
   --app-faint-outline-color: rgba(0, 0, 0, 0.15);
   --app-sheet-handle-color: #c5cad3;
