@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 
 import zoomToResolution from '../utils/zoomToResolution';
+import { bucketViewportBounds } from '../utils/getBucketedViewportBounds';
 import useIsMobile from '../../../../../utils/browser/useIsMobile';
 import { MOBILE_PEEK_PX } from '../../../PullUpPanel/SnapHooks/config';
 
@@ -45,12 +46,17 @@ const useTopPlacesViewport = (
       const topLeft = map.containerPointToLatLng(L.point(leftOffset, 0));
       const bottomRight = map.containerPointToLatLng(L.point(mapSize.x, mapSize.y - bottomOffset));
       const zoom = map.getZoom();
+      const zoomBucket = Math.floor(zoom);
 
-      setViewportParams({
+      const bucketed = bucketViewportBounds({
         sw_lat: Math.min(topLeft.lat, bottomRight.lat),
         sw_lng: Math.min(topLeft.lng, bottomRight.lng),
         ne_lat: Math.max(topLeft.lat, bottomRight.lat),
         ne_lng: Math.max(topLeft.lng, bottomRight.lng),
+      }, zoomBucket);
+
+      setViewportParams({
+        ...bucketed,
         res: zoomToResolution(zoom),
       });
     };
