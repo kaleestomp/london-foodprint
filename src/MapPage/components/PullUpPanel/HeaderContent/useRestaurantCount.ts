@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
-import { useTileQuery } from '../../../../../context/TileQueryContext';
-import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import useRequestNearby from '../../../../request/useRequestNearby/useRequestNearby';
-import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
+import { useTileQuery } from '../../../../context/TileQueryContext';
+import { useSearchFilters } from '../../../../context/SearchFiltersContext';
+import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
+import useRequestTiles from '../../../request/useRequestTiles/useRequestTiles';
 
 interface UseRestaurantCountResult {
   count: number | null;
