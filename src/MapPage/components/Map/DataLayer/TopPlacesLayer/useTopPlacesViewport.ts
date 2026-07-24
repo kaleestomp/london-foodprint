@@ -19,24 +19,23 @@ export type TopPlacesViewportParams = {
 const useTopPlacesViewport = (
   mapRef: React.RefObject<L.Map | null>,
   enabled: boolean,
-  debounceMs: number,
+  throttleMs: number,
 ): TopPlacesViewportParams | null => {
   const isMobile = useIsMobile();
   const [viewportParams, setViewportParams] = useState<TopPlacesViewportParams | null>(null);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSignatureRef = useRef('');
 
   useEffect(() => {
     const map = mapRef.current;
     if (!enabled || !map) {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
+      lastSignatureRef.current = '';
       setViewportParams(null);
       return;
     }
+    let throttleTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastRunAt = 0;
 
-    const update = (): void => {
+    const readViewportParams = (): TopPlacesViewportParams => {
       const mapSize = map.getSize();
       const desktopLeftOffset = !isMobile ? DESKTOP_LEFT_OFFSET_PX : 0;
       const mobileBottomOffset = isMobile ? MOBILE_PEEK_PX + 56 : 0;
@@ -55,44 +54,83 @@ const useTopPlacesViewport = (
         ne_lng: Math.max(topLeft.lng, bottomRight.lng),
       }, zoomBucket);
 
-      setViewportParams({
+      return {
         ...bucketed,
         res: zoomToResolution(zoom),
-      });
+      };
     };
 
-    const scheduleMoveUpdate = (): void => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+    const buildSignature = (params: TopPlacesViewportParams): string => {
+      return [
+        params.sw_lat,
+        params.sw_lng,
+        params.ne_lat,
+        params.ne_lng,
+        params.res,
+      ].join('|');
+    };
+
+    const emitIfChanged = (): void => {
+      const nextParams = readViewportParams();
+      const nextSignature = buildSignature(nextParams);
+      if (nextSignature === lastSignatureRef.current) return;
+
+      lastSignatureRef.current = nextSignature;
+      setViewportParams(nextParams);
+    };
+
+    const runNow = (): void => {
+      emitIfChanged();
+      lastRunAt = Date.now();
+    };
+
+    const scheduleViewportUpdate = (): void => {
+      const now = Date.now();
+      const elapsed = now - lastRunAt;
+      const remaining = throttleMs - elapsed;
+
+      if (remaining <= 0) {
+        if (throttleTimer) {
+          clearTimeout(throttleTimer);
+          throttleTimer = null;
+        }
+        runNow();
+        return;
       }
 
-      debounceTimerRef.current = setTimeout(() => {
-        update();
-        debounceTimerRef.current = null;
-      }, debounceMs);
+      if (throttleTimer) return;
+
+      throttleTimer = setTimeout(() => {
+        throttleTimer = null;
+        runNow();
+      }, remaining);
     };
 
-    const updateImmediately = (): void => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
+    const flushViewportUpdate = (): void => {
+      if (throttleTimer) {
+        clearTimeout(throttleTimer);
+        throttleTimer = null;
       }
-      update();
+      runNow();
     };
 
-    updateImmediately();
-    map.on('move', scheduleMoveUpdate);
-    map.on('zoomend', updateImmediately);
+    flushViewportUpdate();
+    map.on('move', scheduleViewportUpdate);
+    map.on('zoom', scheduleViewportUpdate);
+    map.on('moveend', flushViewportUpdate);
+    map.on('zoomend', flushViewportUpdate);
 
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
+      if (throttleTimer) {
+        clearTimeout(throttleTimer);
+        throttleTimer = null;
       }
-      map.off('move', scheduleMoveUpdate);
-      map.off('zoomend', updateImmediately);
+      map.off('move', scheduleViewportUpdate);
+      map.off('zoom', scheduleViewportUpdate);
+      map.off('moveend', flushViewportUpdate);
+      map.off('zoomend', flushViewportUpdate);
     };
-  }, [enabled, mapRef, debounceMs, isMobile]);
+  }, [enabled, mapRef, throttleMs, isMobile]);
 
   return viewportParams;
 };

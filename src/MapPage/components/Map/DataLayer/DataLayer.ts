@@ -20,7 +20,7 @@ const DataLayer = (
     selectedPlaceId,
     setSelectedPlaceId,
     onActiveTopPlaceIdsChange: setActiveTopPlaceIds,
-    debounceMs: 80,
+    throttleMs: 80,
   });
 
   useDensityPlacesLayer({

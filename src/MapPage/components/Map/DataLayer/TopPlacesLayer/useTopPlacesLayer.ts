@@ -18,7 +18,7 @@ type UseTopPlacesLayerArgs = {
   selectedPlaceId: string | null;
   setSelectedPlaceId: (placeId: string | null) => void;
   onActiveTopPlaceIdsChange?: (ids: string[]) => void;
-  debounceMs?: number;
+  throttleMs?: number;
 };
 
 const useTopPlacesLayer = ({
@@ -27,7 +27,7 @@ const useTopPlacesLayer = ({
   selectedPlaceId,
   setSelectedPlaceId,
   onActiveTopPlaceIdsChange,
-  debounceMs = 80,
+  throttleMs = 80,
 }: UseTopPlacesLayerArgs): void => {
   const {
     effectiveCuisines,
@@ -44,7 +44,7 @@ const useTopPlacesLayer = ({
   const [viewportTopPlaces, setViewportTopPlaces] = useState<TopPlaceItem[]>([]);
   const [bubbleTopPlaces, setBubbleTopPlaces] = useState<Array<{ id: string; lat: number; lon: number; rank: number | null }>>([]);
 
-  const viewportParams = useTopPlacesViewport(mapRef, enabled, debounceMs);
+  const viewportParams = useTopPlacesViewport(mapRef, enabled, throttleMs);
 
   const topPlacesParams = useMemo<TopPlacesParams | null>(() => {
     if (!enabled || !viewportParams) return null;
