@@ -36,7 +36,7 @@
 
   --app-text-color: #202124;
   --app-text-caption-color: #6c727c;
-  --app-divider-color: #6c727c7a;
+  --app-divider-color: #afafaf7a; /* #6c727c7a; */
   --app-floating-card-backdrop-filter: blur(14px);
   --app-faint-outline-color: rgba(0, 0, 0, 0.15);
   --app-sheet-handle-color: #c5cad3;

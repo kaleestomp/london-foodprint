@@ -4,12 +4,14 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 10px calc(var(--app-layout-margin) - 4px) 24px;
+  padding: 0 var(--app-layout-margin) 24px;
+  border-top: 1px solid var(--app-divider-color);
 
+  /* padding: 10px calc(var(--app-layout-margin) - 4px) 24px;
   background: var(--app-glass-card-bg-2);
   margin-inline: 4px;
   box-shadow: var(--app-floating-card-shadow-inset);
-  border-radius: var(--app-card-border-radius) var(--app-card-border-radius) 0 0;
+  border-radius: var(--app-card-border-radius) var(--app-card-border-radius) 0 0; */
 }
 
 .restaurant-list-section {
@@ -17,6 +19,7 @@
   flex-direction: column;
   gap: 10px;
   color: var(--app-text-color);
+  
 }
 
 .restaurant-list-detail {
