@@ -118,7 +118,7 @@ const onUserRoam = (
     };
   }, [mapRef]);
 
-  console.log('viewportParams', viewportParams);
+  // console.log('viewportParams', viewportParams);
   return viewportParams;
 };
 
