@@ -5,7 +5,6 @@ import { useAppUI } from '../../../../context/AppUIContext';
 import PriceFilterPanel from './PriceFilter/PriceFilterPanel';
 import CuisineFilterPanel from './CuisineFilter/CuisineFilterPanel';
 import RatingFilterPanel from './RatingFilter/RatingFilterPanel';
-import GeoSearch from '../../GeoSearchbar/legacy/GeoSearch';
 
 import './OverviewSection.css';
 
@@ -14,16 +13,14 @@ type Props = {
 };
 const OverviewSection: FC<Props> = ({ mapRef }) => {
 
-    const { activeToolbarTab, queueLiveLocationDrop } = useAppUI();
+    const { activeToolbarTab } = useAppUI();
     const filterContent = activeToolbarTab === 'price'
         ? <PriceFilterPanel mapRef={mapRef} />
         : activeToolbarTab === 'cuisine'
             ? <CuisineFilterPanel mapRef={mapRef} />
             : activeToolbarTab === 'rating'
                 ? <RatingFilterPanel />
-                : activeToolbarTab === 'search'
-                    ? <GeoSearch mapRef={mapRef} onProgrammaticDrop={queueLiveLocationDrop} />
-                    : null;
+                : null;
     const hasContent = filterContent !== null;
     
     return (

@@ -27,10 +27,9 @@ const HeaderMobile: FC<Props> = ({
         <div className="restaurant-sheet-title-main">
           <div className="restaurant-sheet-title">{titleText}</div>
           <div className="restaurant-sheet-subtitle">
-            {isPanelOpen ? 'Pull down from top to close' : 'Pull up to open'}
+            {isPanelOpen ? "256 Top 10% rated restaurants in London" : ""}
           </div>
         </div>
-        {/* <DarkModeToggle /> */}
       </div>
     </div>
   );

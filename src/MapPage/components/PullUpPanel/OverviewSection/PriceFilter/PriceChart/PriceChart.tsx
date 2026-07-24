@@ -14,7 +14,7 @@ type Props = {
   isGlobal?: boolean;
 };
 
-const CHART_HEIGHT = 100;
+const CHART_HEIGHT = 160;
 const PAD_CATEGORY_LEFT = '__pad_left__';
 const PAD_CATEGORY_RIGHT = '__pad_right__';
 
@@ -45,12 +45,12 @@ const PriceChart: React.FC<Props> = ({ mapRef, isGlobal = false }) => {
       type: 'value',
       min: 0,
       minInterval: 1,
-      splitNumber: 2,
+      splitNumber: 4,
       splitLine: { lineStyle: { color: 'rgba(0,0,0,0.08)' } },
       axisLabel: { 
         inside: true,
         align: 'left',
-        verticalAlign: 'top',
+        verticalAlign: 'bottom',
         padding: [2, 0, 0, 0],
         color: 'rgba(0,0,0,0.24)',
         margin: 0,

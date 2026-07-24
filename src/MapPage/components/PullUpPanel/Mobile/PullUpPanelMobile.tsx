@@ -1,6 +1,7 @@
 import type { FC, RefObject } from 'react';
 import type L from 'leaflet';
 
+// import { useAppUI } from '../../../../context/AppUIContext';
 import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
 import RestaurantList from '../RestaurantList/RestaurantList';
 import HeaderMobile from './Header/HeaderMobile';
@@ -26,6 +27,8 @@ const PullUpPanelMobile: FC<Props> = ({ mapRef }) => {
         translateY,
     } = usePullUpPanelSnapState();
 
+    // const { activeToolbarTab } = useAppUI();
+    // const hideRestaurantList = activeToolbarTab !== null;
 
     return (
         <>
