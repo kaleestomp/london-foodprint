@@ -9,6 +9,20 @@ _tiles_cache: dict[str, tuple[float, dict[str, Any]]] = {}
 _in_flight: dict[str, asyncio.Task[dict[str, Any]]] = {}
 _tiles_cache_lock = asyncio.Lock()
 
+
+async def get_tile_cache_stats(now: float | None = None) -> dict[str, int]:
+    current = time.time() if now is None else now
+    async with _tiles_cache_lock:
+        total = len(_tiles_cache)
+        live = sum(1 for cached_at, _ in _tiles_cache.values() if current - cached_at <= _CACHE_TTL_SECONDS)
+    expired = total - live
+    return {
+        "total": total,
+        "live": live,
+        "expired": expired,
+        "ttl_seconds": _CACHE_TTL_SECONDS,
+    }
+
 async def _get_cached(key: str) -> dict[str, Any] | None:
     now = time.time()
     async with _tiles_cache_lock:

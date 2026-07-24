@@ -18,6 +18,20 @@ _cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
 _cache_lock = asyncio.Lock()
 
 
+async def get_cuisine_histogram_cache_stats(now: float | None = None) -> dict[str, int]:
+    current = time.time() if now is None else now
+    async with _cache_lock:
+        total = len(_cache)
+        live = sum(1 for cached_at, _ in _cache.values() if current - cached_at <= _CACHE_TTL)
+    expired = total - live
+    return {
+        "total": total,
+        "live": live,
+        "expired": expired,
+        "ttl_seconds": _CACHE_TTL,
+    }
+
+
 
 
 @router.get("/api/cuisine_histogram")
