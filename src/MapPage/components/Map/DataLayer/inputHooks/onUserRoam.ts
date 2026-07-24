@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 
 import { type TilesParams } from '../../../../request/useRequestTiles/useRequestTiles';
@@ -6,6 +6,7 @@ import getBucketedViewportBounds from '../utils/getBucketedViewportBounds';
 import zoomToResolution from '../utils/zoomToResolution';
 
 const ZOOM_THRESHOLD_FOR_PLACES_ONLY = 16;
+const VIEWPORT_UPDATE_THROTTLE_MS = 250;
 /**
  * Tracks map viewport and emits TilesParams whenever the user pans or zooms.
  * `resolveRes` converts the current Leaflet zoom level to the H3 resolution
@@ -16,13 +17,15 @@ const onUserRoam = (
 ): TilesParams | null => {
 
   const [viewportParams, setViewportParams] = useState<TilesParams | null>(null);
+  const lastSignatureRef = useRef('');
   
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+    let throttleTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastRunAt = 0;
 
-    const update = () => {
-      // const b = map.getBounds();
+    const readViewportParams = (): TilesParams => {
       const {
         sw_lat,
         sw_lng,
@@ -31,33 +34,91 @@ const onUserRoam = (
         zoomBucket,
       } = getBucketedViewportBounds(map);
       const zoom = map.getZoom();
-
       const res = zoomToResolution(zoom);
-      // console.log('res', res, 'zoom', zoom);
-      // console.log('bbox', sw_lat, sw_lng, ne_lat, ne_lng, 'zoomBucket', zoomBucket);
-      
-      setViewportParams({
-        // sw_lat: b.getSouth(),
-        // sw_lng: b.getWest(),
-        // ne_lat: b.getNorth(),
-        // ne_lng: b.getEast(),
+
+      return {
         sw_lat, sw_lng, ne_lat, ne_lng,
-        res: res,
+        res,
         // At past 16 Zoom, always request individual places directly,
         // bypassing the density table regardless of place count.
         ...(zoomBucket >= ZOOM_THRESHOLD_FOR_PLACES_ONLY ? { places_only: true } : {}),
-      });
+      };
     };
 
-    update();
-    map.on('moveend', update);
-    map.on('zoomend', update);
+    const buildSignature = (params: TilesParams): string => {
+      return [
+        params.sw_lat,
+        params.sw_lng,
+        params.ne_lat,
+        params.ne_lng,
+        params.res,
+        params.places_only ? 1 : 0,
+      ].join('|');
+    };
+
+    const emitIfChanged = (): void => {
+      const nextParams = readViewportParams();
+      const nextSignature = buildSignature(nextParams);
+      if (nextSignature === lastSignatureRef.current) return;
+
+      lastSignatureRef.current = nextSignature;
+      setViewportParams(nextParams);
+    };
+
+    const runNow = (): void => {
+      emitIfChanged();
+      lastRunAt = Date.now();
+    };
+
+    const scheduleUpdate = (): void => {
+      const now = Date.now();
+      const elapsed = now - lastRunAt;
+      const remaining = VIEWPORT_UPDATE_THROTTLE_MS - elapsed;
+
+      if (remaining <= 0) {
+        if (throttleTimer) {
+          clearTimeout(throttleTimer);
+          throttleTimer = null;
+        }
+        runNow();
+        return;
+      }
+
+      if (throttleTimer) return;
+
+      throttleTimer = setTimeout(() => {
+        throttleTimer = null;
+        runNow();
+      }, remaining);
+    };
+
+    const flushUpdate = (): void => {
+      if (throttleTimer) {
+        clearTimeout(throttleTimer);
+        throttleTimer = null;
+      }
+      runNow();
+    };
+
+    flushUpdate();
+    map.on('move', scheduleUpdate);
+    map.on('zoom', scheduleUpdate);
+    map.on('moveend', flushUpdate);
+    map.on('zoomend', flushUpdate);
+
     return () => {
-      map.off('moveend', update);
-      map.off('zoomend', update);
+      if (throttleTimer) {
+        clearTimeout(throttleTimer);
+        throttleTimer = null;
+      }
+      map.off('move', scheduleUpdate);
+      map.off('zoom', scheduleUpdate);
+      map.off('moveend', flushUpdate);
+      map.off('zoomend', flushUpdate);
     };
-  }, []);
+  }, [mapRef]);
 
+  console.log('viewportParams', viewportParams);
   return viewportParams;
 };
 
