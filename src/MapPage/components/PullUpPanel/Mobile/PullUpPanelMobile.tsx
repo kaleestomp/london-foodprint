@@ -8,7 +8,6 @@ import HeaderMobile from './Header/HeaderMobile';
 import OverviewSection from '../OverviewSection/OverviewSection';
 
 import './PullUpPanelMobile.css';
-// import '../Styling/PullUpPanelBlob.css';
 
 type Props = {
     mapRef: RefObject<L.Map | null>;
@@ -27,8 +26,6 @@ const PullUpPanelMobile: FC<Props> = ({ mapRef }) => {
         translateY,
     } = usePullUpPanelSnapState();
 
-    // const { activeToolbarTab } = useAppUI();
-    // const hideRestaurantList = activeToolbarTab !== null;
 
     return (
         <>

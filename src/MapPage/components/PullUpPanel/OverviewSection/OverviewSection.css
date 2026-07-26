@@ -1,37 +1,26 @@
 .overview-section {
-  display: grid;
-  grid-template-rows: 0fr;
-  
+  flex: 1 0 0%;
   opacity: 0;
   pointer-events: none;
   transition:
-    grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 180ms ease,
-    padding-bottom 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    flex-basis 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease;
 }
 
 .overview-section.has-content {
-  grid-template-rows: 1fr;
   flex: 1 0 100%;
-  /* padding-bottom: 24px; */
   opacity: 1;
   pointer-events: auto;
-}
-
-.overview-section-anim {
   overflow: hidden;
   min-height: 0;
 }
 
 .overview-section-inner {
   opacity: 0;
-  transform: translateY(-6px);
-  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-
 .overview-section.has-content .overview-section-inner {
   opacity: 1;
-  transform: translateY(0);
+  padding-top: 8px;
 }
 
 @media (prefers-reduced-motion: reduce) {

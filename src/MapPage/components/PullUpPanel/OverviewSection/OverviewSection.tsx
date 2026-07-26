@@ -25,10 +25,8 @@ const OverviewSection: FC<Props> = ({ mapRef }) => {
     
     return (
         <div className={`overview-section${hasContent ? ' has-content' : ''}`}>
-            <div className="overview-section-anim">
-                <div className="overview-section-inner">
-                    {filterContent}
-                </div>
+            <div className="overview-section-inner">
+                {filterContent}
             </div>
         </div>
     );
