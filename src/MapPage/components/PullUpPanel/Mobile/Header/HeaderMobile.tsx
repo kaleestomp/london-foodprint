@@ -5,15 +5,13 @@ import useResultSummary from '../../HeaderContent/ResultSummary';
 import './HeaderMobile.css';
 
 type Props = {
-  isPanelOpen: boolean;
   onHandlePointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
 };
 
 const HeaderMobile: FC<Props> = ({
-  isPanelOpen,
   onHandlePointerDown,
 }) => {
-  const {headline, subline} = useResultSummary();
+  const { headline } = useResultSummary();
 
   return (
     <div

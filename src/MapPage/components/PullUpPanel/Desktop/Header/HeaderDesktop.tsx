@@ -6,11 +6,11 @@ import './HeaderDesktop.css';
 
 type Props = {};
 const HeaderDesktop: FC<Props> = () => {
-  const headerText = useResultSummary();
+  const { headline } = useResultSummary();
 
   return (
     <div className="restaurant-panel-header-desktop">
-      <span>{headerText}</span>
+      <span>{headline}</span>
       {/* <DarkModeToggle /> */}
     </div>
   );

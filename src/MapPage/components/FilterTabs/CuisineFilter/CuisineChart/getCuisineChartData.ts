@@ -3,7 +3,6 @@ import type L from 'leaflet';
 
 import {
     CUISINE_FILTER_OPTIONS,
-    type CuisineFilterOption,
     useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
 import onUserRoam from '../../../Map/DataLayer/inputHooks/onUserRoam';
@@ -69,7 +68,7 @@ const getCuisineChartData = ({ mapRef, isGlobal }: Props) => {
     const { res } = useRequestCuisineHistogram(requestParams);
 
     const chartEntries = useMemo(() => {
-        const selectedSet = new Set<CuisineFilterOption>(cuisines);
+        const selectedSet = new Set<string>(cuisines);
         const countsByCuisine = new Map<string, number>();
 
         for (const entry of res?.cuisine_histogram ?? []) {
@@ -82,7 +81,7 @@ const getCuisineChartData = ({ mapRef, isGlobal }: Props) => {
 
         const knownSet = new Set(CUISINE_FILTER_OPTIONS);
         const unknownEntries: ChartEntry[] = (res?.cuisine_histogram ?? [])
-            .filter((entry) => !knownSet.has(entry.cuisine as CuisineFilterOption))
+            .filter((entry) => !knownSet.has(entry.cuisine))
             .map((entry) => ({ cuisine: entry.cuisine, count: entry.count }));
 
         const allEntries = [...knownEntries, ...unknownEntries].sort(byCount);
@@ -91,10 +90,10 @@ const getCuisineChartData = ({ mapRef, isGlobal }: Props) => {
         let displayed = allEntries.slice(0, MAX_BARS);
         if (!hasAnySelected && cuisineSelectionMode === 'include') {
             const selectedEntries = allEntries
-                .filter((entry) => selectedSet.has(entry.cuisine as CuisineFilterOption))
+                .filter((entry) => selectedSet.has(entry.cuisine))
                 .sort(byCount);
             const unselectedEntries = allEntries
-                .filter((entry) => !selectedSet.has(entry.cuisine as CuisineFilterOption))
+                .filter((entry) => !selectedSet.has(entry.cuisine))
                 .sort(byCount);
             displayed = [...selectedEntries, ...unselectedEntries]
                 .slice(0, MAX_BARS)
@@ -102,7 +101,7 @@ const getCuisineChartData = ({ mapRef, isGlobal }: Props) => {
         }
 
         return displayed.map((entry) => {
-            const isSelected = selectedSet.has(entry.cuisine as CuisineFilterOption);
+            const isSelected = selectedSet.has(entry.cuisine);
             const color = hasAnySelected
                 ? BLUE
                 : isSelected

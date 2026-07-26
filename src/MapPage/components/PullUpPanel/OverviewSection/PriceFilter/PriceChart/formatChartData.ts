@@ -5,7 +5,7 @@ import {
   useSearchFilters,
 } from '../../../../../../context/SearchFiltersContext';
 
-import { primaryBlue, primaryBlack, primaryGrey, secondaryGrey } from '../../../../../../utils/styling/Colors';
+import { primaryBlack, secondaryGrey } from '../../../../../../utils/styling/Colors';
 import './PriceChart.css';
 
 

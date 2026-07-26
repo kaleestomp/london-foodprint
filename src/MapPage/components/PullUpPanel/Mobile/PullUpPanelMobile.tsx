@@ -13,6 +13,7 @@ type Props = {
     mapRef: RefObject<L.Map | null>;
 };
 const PullUpPanelMobile: FC<Props> = ({ mapRef }) => {
+    void mapRef;
     const {
         handlePanelPointerDown,
         handleHandlePointerDown,
@@ -40,7 +41,6 @@ const PullUpPanelMobile: FC<Props> = ({ mapRef }) => {
                 onPointerDownCapture={handlePanelPointerDown}
             >
                 <HeaderMobile
-                    isPanelOpen={isPanelOpen}
                     onHandlePointerDown={handleHandlePointerDown}
                 />
                 <div className="restaurant-panel-content">

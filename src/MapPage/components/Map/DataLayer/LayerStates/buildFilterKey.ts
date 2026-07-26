@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { type ScoreBasis, type ScoreTierFilterOption, type CuisineSelectionMode, type CuisineFilterOption, type VenueTypeFilterOption, type PriceRangeFilterOption } from '../../../../../context/SearchFiltersContext';
+import { type ScoreBasis, type ScoreTierFilterOption, type CuisineSelectionMode, type VenueTypeFilterOption, type PriceRangeFilterOption } from '../../../../../context/SearchFiltersContext';
 
 /**
  * Hook that owns a ref tracking the previous filter key and returns
@@ -10,7 +10,7 @@ const useBuildFilterKey = () => {
 
   const buildFilterKey = (
     cuisineSelectionMode: CuisineSelectionMode,
-    effectiveCuisines: CuisineFilterOption[],
+    effectiveCuisines: string[],
     venueType: VenueTypeFilterOption | null,
     effectivePriceRanges: PriceRangeFilterOption[],
     scoreBasis: ScoreBasis,

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
 import { PRICE_RANGE_FILTER_OPTIONS } from '../../../../../../context/SearchFiltersContext';
-import { primaryBlack, secondaryGrey } from '../../../../../../utils/styling/Colors';
+// import { primaryBlack, secondaryGrey } from '../../../../../../utils/styling/Colors';
 import formatChartData from './formatChartData';
 import './PriceChart.css';
 

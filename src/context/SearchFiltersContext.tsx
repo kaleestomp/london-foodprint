@@ -46,7 +46,7 @@ export const CUISINE_FILTER_OPTIONS = [
   'Tapas',
   'Unspecified',
   'Vegetarian & Vegan',
-] as const;
+];
 
 export const VENUE_TYPE_FILTER_OPTIONS = ['Dine-In', 'Takeaway'] as const;
 export const PRICE_RANGE_FILTER_OPTIONS = ['<10', '10+', '20+', '40+', '60+', '100+'] as const;

@@ -6,7 +6,7 @@ import getPriceHistRequestParams from './Input/getPriceHistRequestParams';
 import useRequestPriceHistogram from '../../../../request/useRequestPriceHistogram/useRequestPriceHistogram';
 import getPriceRangeLabel from './Title/getPriceRangeLabel';
 
-import Typography from '@mui/material/Typography';
+// import Typography from '@mui/material/Typography';
 import './PriceFilterPanel.css';
 
 

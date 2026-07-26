@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useSearchFilters, type CuisineFilterOption } from '../../../context/SearchFiltersContext';
+import { useSearchFilters } from '../../../context/SearchFiltersContext';
 import getCuisineHistRequestParams from '../PullUpPanel/OverviewSection/CuisineFilter/Input/getCuisineHistRequestParams';
 import useRequestCuisineHistogram from '../../request/useRequestCuisineHistogram/useRequestCuisineHistogram';
 
@@ -25,7 +25,7 @@ const getCuisineCountLabel = (): string => {
             const eligibleCuisines = availableCuisines.filter((cuisine) => !(cuisines.includes(cuisine)));
             return eligibleCuisines ? eligibleCuisines.length : 0;
         }
-    }, [cuisines, availableCuisines]);
+    }, [cuisines, cuisineSelectionMode, availableCuisines]);
 
     const cuisineCountLabel = useMemo(() => {
         if (cuisineCount === 0) return 'NA';
