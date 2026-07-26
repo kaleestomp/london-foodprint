@@ -52,7 +52,7 @@ export const VENUE_TYPE_FILTER_OPTIONS = ['Dine-In', 'Takeaway'] as const;
 export const PRICE_RANGE_FILTER_OPTIONS = ['<10', '10+', '20+', '40+', '60+', '100+'] as const;
 export const SCORE_TIER_FILTER_OPTIONS = [1, 2, 3, 4] as const;
 
-export type CuisineFilterOption = (typeof CUISINE_FILTER_OPTIONS)[number];
+// export type CuisineFilterOption = (typeof CUISINE_FILTER_OPTIONS)[number];
 export type CuisineSelectionMode = 'include' | 'exclude';
 export type VenueTypeFilterOption = (typeof VENUE_TYPE_FILTER_OPTIONS)[number];
 export type PriceRangeFilterOption = (typeof PRICE_RANGE_FILTER_OPTIONS)[number];
@@ -65,17 +65,17 @@ export type SearchMask = {
 };
 
 type SearchFiltersContextType = {
-  cuisines: CuisineFilterOption[];
+  cuisines: string[];
   cuisineSelectionMode: CuisineSelectionMode;
   scoreBasis: ScoreBasis;
-  effectiveCuisines: CuisineFilterOption[];
+  effectiveCuisines: string[];
   venueType: VenueTypeFilterOption | null;
   priceRange: PriceRangeFilterOption | null;
   priceRangeInterval: PriceRangeInterval | null;
   effectivePriceRanges: PriceRangeFilterOption[];
   scoreTier: ScoreTierFilterOption;
   searchMask: SearchMask | null;
-  toggleCuisine: (value: CuisineFilterOption) => void;
+  toggleCuisine: (value: string) => void;
   clearCuisines: () => void;
   setCuisineSelectionMode: (value: CuisineSelectionMode) => void;
   setScoreBasis: (value: ScoreBasis) => void;
@@ -90,7 +90,7 @@ type SearchFiltersContextType = {
 const SearchFiltersContext = createContext<SearchFiltersContextType | null>(null);
 
 export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => {
-  const [cuisines, setCuisines] = useState<CuisineFilterOption[]>([]);
+  const [cuisines, setCuisines] = useState<string[]>([]);
   const [cuisineSelectionMode, setCuisineSelectionMode] = useState<CuisineSelectionMode>('include');
   const [scoreBasis, setScoreBasis] = useState<ScoreBasis>(2);
   const [venueType, setVenueType] = useState<VenueTypeFilterOption | null>(null);
@@ -124,7 +124,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
     effectivePriceRanges,
     scoreTier,
     searchMask,
-    toggleCuisine: (value: CuisineFilterOption) => {
+    toggleCuisine: (value: string) => {
       setCuisines((prev) => {
         const next = prev.includes(value)
           ? prev.filter((item) => item !== value)

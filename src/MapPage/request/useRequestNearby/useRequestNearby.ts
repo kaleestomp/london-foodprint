@@ -44,6 +44,7 @@ const useRequestNearby = (params: NearbyParams | null): {
   res: NearbyResponse | null;
   queryKey: string;
   responseKey: string;
+  isFetching: boolean;
 } => {
   const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
 
@@ -51,6 +52,7 @@ const useRequestNearby = (params: NearbyParams | null): {
     queryKey: ['nearby', queryKey],
     queryFn: ({ signal }) => request(queryKey, { signal }),
     enabled: Boolean(queryKey),
+    placeholderData: (previousData) => previousData,
   });
 
   const status: RequestStatus = !queryKey
@@ -69,6 +71,7 @@ const useRequestNearby = (params: NearbyParams | null): {
     res: query.data ?? null,
     queryKey,
     responseKey: query.data ? queryKey : '',
+    isFetching: query.isFetching,
   };
 };
 

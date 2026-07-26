@@ -7,7 +7,7 @@ import useRequestTiles from '../../../request/useRequestTiles/useRequestTiles';
 
 interface UseRestaurantCountResult {
   count: number | null;
-  isLoading: boolean;
+  isFetching: boolean;
 }
 
 /**
@@ -47,8 +47,14 @@ const useRestaurantCount = (): UseRestaurantCountResult => {
     scoreTier,
   ]);
 
-  const { res: nearbyRes, status: nearbyStatus } = useRequestNearby(nearbyParams);
-  const { res: tilesRes, status: tilesStatus } = useRequestTiles(lastTilesParams);
+  const {
+    res: nearbyRes,
+    isFetching: nearbyIsFetching,
+  } = useRequestNearby(nearbyParams);
+  const {
+    res: tilesRes,
+    isFetching: tilesIsFetching,
+  } = useRequestTiles(lastTilesParams);
 
   const count = useMemo(() => {
     // If search bubble is active, count nearby places
@@ -64,11 +70,9 @@ const useRestaurantCount = (): UseRestaurantCountResult => {
     return null;
   }, [searchMask, nearbyRes, tilesRes]);
 
-  // isLoading is determined by tile/nearby layer loading state
-  // (we don't track separate loading state here since we use already-fetched data)
-  const isLoading = nearbyStatus === 'loading' || tilesStatus === 'loading';
+  const isFetching = nearbyIsFetching || tilesIsFetching;
 
-  return { count, isLoading };
+  return { count, isFetching };
 };
 
 export default useRestaurantCount;

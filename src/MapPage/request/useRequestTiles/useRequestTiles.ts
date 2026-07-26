@@ -31,12 +31,14 @@ const useRequestTiles = (params: TilesParams | null): {
   res: TilesResponse | null;
   queryKey: string;
   responseKey: string;
+  isFetching: boolean;
 } => {
   const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
   const query = useQuery({
     queryKey: ['tiles', queryKey],
     queryFn: ({ signal }) => request(queryKey, { signal }),
     enabled: Boolean(queryKey),
+    placeholderData: (previousData) => previousData,
   });
 
   const status: RequestStatus = !queryKey
@@ -55,6 +57,7 @@ const useRequestTiles = (params: TilesParams | null): {
     res: query.data ?? null,
     queryKey,
     responseKey: query.data ? queryKey : '',
+    isFetching: query.isFetching,
   };
 };
 

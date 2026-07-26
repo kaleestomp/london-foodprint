@@ -1,22 +1,22 @@
 import { useMemo, useState } from 'react';
-import type L from 'leaflet';
 import Chip from '@mui/material/Chip';
 import {
     CUISINE_FILTER_OPTIONS,
     useSearchFilters,
 } from '../../../../../../context/SearchFiltersContext';
-import getCuisineDensity from './getCuisineDensity';
+import { type CuisineHistogramEntry } from '../../../../../request/useRequestCuisineHistogram/request';
+
 
 import './Chips.css';
 
-const COLLAPSED_COUNT = 5;
-const EXPAND_STEP = 5;
+const COLLAPSED_COUNT = 8;
+const EXPAND_STEP = 8;
 
 type Props = {
-    mapRef: React.RefObject<L.Map | null>;
+    cuisineData: CuisineHistogramEntry[] | null;
 };
 
-const CuisineFilterChips: React.FC<Props> = ({ mapRef }) => {
+const CuisineFilterChips: React.FC<Props> = ({ cuisineData }) => {
     const {
         cuisines,
         cuisineSelectionMode,
@@ -24,18 +24,18 @@ const CuisineFilterChips: React.FC<Props> = ({ mapRef }) => {
         clearCuisines,
     } = useSearchFilters();
     const [visibleCount, setVisibleCount] = useState(COLLAPSED_COUNT);
-    const { res } = getCuisineDensity({ mapRef, isGlobal: false });
     const isExcludeMode = cuisineSelectionMode === 'exclude';
     const anyChipLabel = isExcludeMode ? 'None' : 'Any';
+    const isAnyChipActive = cuisines.length === 0;
 
     const selectedSet = useMemo(() => new Set(cuisines), [cuisines]);
     const countsByCuisine = useMemo(() => {
         const map = new Map<string, number>();
-        for (const entry of res?.cuisine_histogram ?? []) {
+        for (const entry of cuisineData ?? []) {
             map.set(entry.cuisine, entry.count);
         }
         return map;
-    }, [res]);
+    }, [cuisineData]);
     const orderedOptions = useMemo(() => {
         const byDensityDesc = (left: string, right: string): number => {
             const leftCount = countsByCuisine.get(left) ?? 0;
@@ -63,8 +63,8 @@ const CuisineFilterChips: React.FC<Props> = ({ mapRef }) => {
             <Chip
                 label={anyChipLabel}
                 clickable
-                color={isExcludeMode ? 'warning' : (cuisines.length === 0 ? 'primary' : 'default')}
-                variant={isExcludeMode ? 'filled' : (cuisines.length === 0 ? 'filled' : 'outlined')}
+                color={isExcludeMode ? (isAnyChipActive ? 'warning' : 'default') : (isAnyChipActive ? 'primaryBlack' : 'default')}
+                variant={isAnyChipActive ? 'filled' : 'outlined'}
                 onClick={clearCuisines}
             />
             {visibleOptions.map((option) => {
@@ -75,7 +75,7 @@ const CuisineFilterChips: React.FC<Props> = ({ mapRef }) => {
                         key={option}
                         label={`${option} | ${density}`}
                         clickable
-                        color={selected ? (cuisineSelectionMode === 'exclude' ? 'warning' : 'primary') : 'default'}
+                        color={selected ? (cuisineSelectionMode === 'exclude' ? 'warning' : 'primaryBlack') : 'default'}
                         variant={selected ? 'filled' : 'outlined'}
                         onClick={() => toggleCuisine(option)}
                     />

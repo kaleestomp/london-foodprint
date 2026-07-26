@@ -44,7 +44,7 @@ const PullUpPanelMobile: FC<Props> = ({ mapRef }) => {
                     onHandlePointerDown={handleHandlePointerDown}
                 />
                 <div className="restaurant-panel-content">
-                    <OverviewSection mapRef={mapRef} />
+                    <OverviewSection />
                     <RestaurantList
                         isPanelOpen={isPanelOpen}
                         allowScroll={isPanelOpen}

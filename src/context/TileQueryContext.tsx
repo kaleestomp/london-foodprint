@@ -5,17 +5,22 @@ import type { TilesParams } from '../MapPage/request/useRequestTiles/useRequestT
 type TileQueryContextType = {
   lastTilesParams: TilesParams | null;
   setLastTilesParams: (params: TilesParams | null) => void;
+  viewportParams: TilesParams | null;
+  setViewportParams: (params: TilesParams | null) => void;
 };
 
 const TileQueryContext = createContext<TileQueryContextType | null>(null);
 
 export const TileQueryProvider = ({ children }: { children: ReactNode }) => {
   const [lastTilesParams, setLastTilesParams] = useState<TilesParams | null>(null);
+  const [viewportParams, setViewportParams] = useState<TilesParams | null>(null);
 
   const value = useMemo<TileQueryContextType>(() => ({
     lastTilesParams,
     setLastTilesParams,
-  }), [lastTilesParams]);
+    viewportParams,
+    setViewportParams,
+  }), [lastTilesParams, viewportParams]);
 
   return <TileQueryContext.Provider value={value}>{children}</TileQueryContext.Provider>;
 };

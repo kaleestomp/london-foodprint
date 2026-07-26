@@ -42,13 +42,14 @@
   --app-sheet-handle-color: #c5cad3;
   
   --app-paper-color: #e0e0e0;
-  --app-primary-black: #30333a;
+  --app-primary-black: rgb(45, 45, 45);
   --app-toolbar-icon-color: var(--app-primary-black);
   --app-primary-blue: rgb(31, 130, 192);
   --app-secondary-blue: rgb(146, 199, 249);
   --app-primary-grey: rgb(120, 120, 120);
   --app-secondary-grey: rgb(200, 200, 200);
   --app-tertiary-grey: rgb(240, 240, 240);
+  --app-primary-red: rgb(206, 0, 0);
 }
 
 html[data-theme='dark'] {

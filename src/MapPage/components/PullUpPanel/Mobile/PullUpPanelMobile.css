@@ -8,7 +8,7 @@
   z-index: 800;
   background: var(--app-paper-color);
   border: none;
-  box-shadow: var(--app-glass-card-box-shadow);
+  box-shadow: var(--app-opaque-card-box-shadow);
   touch-action: none;
   overflow: hidden;
   /* backdrop-filter: var(--app-glass-card-backdrop-filter);

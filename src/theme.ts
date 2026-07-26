@@ -15,8 +15,8 @@ const theme = createTheme({
         },
         primaryBlack: {
             main: 'rgb(45, 45, 45)',
-            light: 'rgb(160, 160, 160)',
-            dark: 'rgb(110, 110, 110)',
+            light: 'rgb(90, 90, 90)',
+            dark: 'rgb(36, 36, 36)',
             contrastText: '#ffffff',
         },
         primaryRed: {

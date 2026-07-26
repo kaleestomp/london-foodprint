@@ -1,20 +1,22 @@
 .cuisine-filter-chips-panel {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
 
   min-height: 0;
-  max-height: calc(50vh - 200px);
+  max-height: 200px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 16px;
-  margin-bottom: 8px;
 
-  background: var(--app-glass-card-bg-2);
+  /* padding: 16px;
+  margin-bottom: 8px; */
+
+  /* background: var(--app-glass-card-bg-2);
   margin-inline: 4px;
   box-shadow: var(--app-floating-card-shadow-inset);
-  border-radius: var(--app-card-border-radius);
+  border-radius: var(--app-card-border-radius); */
 }
 .cuisine-filter-chips-panel-chip {
   width: 32px;

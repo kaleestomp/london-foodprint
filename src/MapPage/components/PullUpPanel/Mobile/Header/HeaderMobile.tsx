@@ -13,7 +13,7 @@ const HeaderMobile: FC<Props> = ({
   isPanelOpen,
   onHandlePointerDown,
 }) => {
-  const titleText = useResultSummary();
+  const {headline, subline} = useResultSummary();
 
   return (
     <div
@@ -25,10 +25,10 @@ const HeaderMobile: FC<Props> = ({
       </div>
       <div className="restaurant-sheet-title-row">
         <div className="restaurant-sheet-title-main">
-          <div className="restaurant-sheet-title">{titleText}</div>
-          <div className="restaurant-sheet-subtitle">
-            {isPanelOpen ? "256 Top 10% rated restaurants in London" : ""}
-          </div>
+          <div className="restaurant-sheet-title">{headline}</div>
+          {/* <div className="restaurant-sheet-subtitle">
+            Ranked Top 25% of Metroplitan Area
+          </div> */}
         </div>
       </div>
     </div>

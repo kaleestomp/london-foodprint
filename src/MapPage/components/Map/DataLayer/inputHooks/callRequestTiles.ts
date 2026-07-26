@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import useRequestTiles from '../../../../request/useRequestTiles/useRequestTiles';
 import type { TilesParams } from '../../../../request/useRequestTiles/useRequestTiles';
 import type { RequestStatus } from '../../../../request/useRequestTiles/useRequestTiles';
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import { useTileQuery } from '../../../../../context/TileQueryContext';
 import delayLoadingScreen from './delayLoadingScreen';
 import onUserRoam from './onUserRoam';
 
@@ -19,6 +20,11 @@ const callRequestTiles = (mapRef: React.RefObject<L.Map | null>, enabled = true)
 
   // Get Current Viewport Params (bounds, zoom)
   const viewportParams = onUserRoam(mapRef);
+  const { setViewportParams } = useTileQuery();
+
+  useEffect(() => {
+    setViewportParams(viewportParams);
+  }, [viewportParams, setViewportParams]);
 
   // Get Filter States
   const { 

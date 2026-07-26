@@ -15,6 +15,8 @@ const useRequestCuisineHistogram = (params: CuisineHistogramParams | null): {
     queryKey: ['cuisine-histogram', queryKey],
     queryFn: ({ signal }) => request(queryKey, { signal }),
     enabled: Boolean(queryKey),
+    // Keep the last successful histogram visible while the next viewport query is in flight.
+    placeholderData: (previousData) => previousData,
   });
 
   const status: RequestStatus = !queryKey

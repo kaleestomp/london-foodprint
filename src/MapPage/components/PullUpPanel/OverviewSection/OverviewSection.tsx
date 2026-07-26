@@ -1,5 +1,4 @@
-import type { FC, RefObject } from 'react';
-import type L from 'leaflet';
+import type { FC } from 'react';
 
 import { useAppUI } from '../../../../context/AppUIContext';
 import PriceFilterPanel from './PriceFilter/PriceFilterPanel';
@@ -8,16 +7,13 @@ import RatingFilterPanel from './RatingFilter/RatingFilterPanel';
 
 import './OverviewSection.css';
 
-type Props = {
-    mapRef: RefObject<L.Map | null>;
-};
-const OverviewSection: FC<Props> = ({ mapRef }) => {
+const OverviewSection: FC= () => {
 
     const { activeToolbarTab } = useAppUI();
     const filterContent = activeToolbarTab === 'price'
-        ? <PriceFilterPanel mapRef={mapRef} />
+        ? <PriceFilterPanel />
         : activeToolbarTab === 'cuisine'
-            ? <CuisineFilterPanel mapRef={mapRef} />
+            ? <CuisineFilterPanel />
             : activeToolbarTab === 'rating'
                 ? <RatingFilterPanel />
                 : null;
