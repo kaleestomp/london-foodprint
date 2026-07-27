@@ -1,6 +1,6 @@
 import { apiBasePromise } from '../../../utils/apiBase';
 
-export type CuisineHistogramScope = 'view' | 'citywide';
+export type CuisineHistogramScope = 'view' | 'nearby' | 'citywide';
 
 export interface CuisineHistogramEntry {
   cuisine: string;
@@ -9,6 +9,9 @@ export interface CuisineHistogramEntry {
 
 export interface CuisineHistogramParams {
   scope: CuisineHistogramScope;
+  lat?: number;
+  lng?: number;
+  radius_m?: number;
   sw_lat?: number;
   sw_lng?: number;
   ne_lat?: number;
@@ -24,18 +27,23 @@ export interface CuisineHistogramResponse {
 }
 
 export const buildQueryKey = (params: CuisineHistogramParams): string => {
-  const qs = new URLSearchParams({
-    scope: params.scope,
-    ...(params.scope === 'view' ? {
-      sw_lat: String(params.sw_lat),
-      sw_lng: String(params.sw_lng),
-      ne_lat: String(params.ne_lat),
-      ne_lng: String(params.ne_lng),
-    } : {}),
-    venue_type: params.venue_type ?? '',
-    score_basis: String(params.score_basis ?? 0),
-    score_tier: String(params.score_tier ?? 0),
-  });
+  const qs = new URLSearchParams();
+  qs.set('scope', params.scope);
+  qs.set('venue_type', params.venue_type ?? '');
+  qs.set('score_basis', String(params.score_basis ?? 0));
+  qs.set('score_tier', String(params.score_tier ?? 0));
+
+  if (params.scope === 'view') {
+    qs.set('sw_lat', String(params.sw_lat));
+    qs.set('sw_lng', String(params.sw_lng));
+    qs.set('ne_lat', String(params.ne_lat));
+    qs.set('ne_lng', String(params.ne_lng));
+  } else if (params.scope === 'nearby') {
+    qs.set('lat', String(params.lat));
+    qs.set('lng', String(params.lng));
+    qs.set('radius_m', String(params.radius_m));
+  }
+
   for (const cost of (params.cost ?? []).slice().sort((a, b) => a.localeCompare(b))) {
     qs.append('cost', cost);
   }

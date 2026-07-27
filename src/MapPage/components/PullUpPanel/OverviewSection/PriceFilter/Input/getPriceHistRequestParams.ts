@@ -12,20 +12,26 @@ const getPriceHistRequestParams = () => {
     venueType,
     scoreTier,
     scoreBasis,
+    searchMask,
   } = useSearchFilters();
   const { viewportParams } = useTileQuery();
 
   const requestParams = useMemo(() => {
-    // if (isGlobal) {
-    //   return {
-    //     scope: 'citywide' as const,
-    //     cuisines: effectiveCuisines,
-    //     venue_type: venueType ?? '',
-    //     score_basis: scoreBasis,
-    //     score_tier: scoreTier,
-    //   };
-    // }
+    if (searchMask) {
+      return {
+        scope: 'nearby' as const,
+        lat: searchMask.center.lat,
+        lng: searchMask.center.lng,
+        radius_m: searchMask.radiusM,
+        cuisines: effectiveCuisines,
+        venue_type: venueType ?? '',
+        score_basis: scoreBasis,
+        score_tier: scoreTier,
+      };
+    }
+
     if (!viewportParams) return null;
+
     return {
       scope: 'view' as const,
       sw_lat: viewportParams.sw_lat,
@@ -37,7 +43,7 @@ const getPriceHistRequestParams = () => {
       score_basis: scoreBasis,
       score_tier: scoreTier,
     };
-  }, [viewportParams, effectiveCuisines, venueType, scoreBasis, scoreTier]);
+  }, [searchMask, viewportParams, effectiveCuisines, venueType, scoreBasis, scoreTier]);
 
   return requestParams;
 };

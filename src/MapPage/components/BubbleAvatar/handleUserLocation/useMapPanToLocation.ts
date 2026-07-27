@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 
 import { type LatLng } from '../config';
 import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
-import useMapViewportNavigation from '../useDragAndDrop/useMapViewportNavigation';
+import useMapViewportNavigation from '../onBubbleDrag/useMapViewportNavigation';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import useIsMobile from '../../../../utils/browser/useIsMobile';
 import { useAppUI } from '../../../../context/AppUIContext';

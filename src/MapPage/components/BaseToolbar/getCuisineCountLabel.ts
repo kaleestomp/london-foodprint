@@ -1,20 +1,21 @@
 import { useMemo } from 'react';
 import { useSearchFilters } from '../../../context/SearchFiltersContext';
+// import { useBubbleAvatarState } from '../BubbleAvatar/BubbleAvatarStateContext';
 import getCuisineHistRequestParams from '../PullUpPanel/OverviewSection/CuisineFilter/Input/getCuisineHistRequestParams';
 import useRequestCuisineHistogram from '../../request/useRequestCuisineHistogram/useRequestCuisineHistogram';
 
 
 const getCuisineCountLabel = (): string => {
-
-    
-
+    // Get BBOX based cuisine data
     const cuisineRequestParams = getCuisineHistRequestParams();
     const { res: cuisineRes } = useRequestCuisineHistogram(cuisineRequestParams); 
     const cuisineData = cuisineRes?.cuisine_histogram ?? [];
     const availableCuisines = cuisineData.map((entry) => entry.cuisine);
     
+    // Get Nearby Search based cuisine data
+    // const { droppedPos } = useBubbleAvatarState();
+
     const { cuisines, cuisineSelectionMode } = useSearchFilters();
-    
     const cuisineCount = useMemo(() => {
         if (cuisines?.length === 0) {
             return availableCuisines ? availableCuisines.length : 0;

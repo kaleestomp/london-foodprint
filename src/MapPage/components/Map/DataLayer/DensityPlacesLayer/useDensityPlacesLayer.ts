@@ -33,7 +33,7 @@ const useDensityPlacesLayer = ({
   // Data Request
   const { cuisineSelectionMode, effectiveCuisines, venueType, effectivePriceRanges, scoreBasis, scoreTier } = useSearchFilters();
   const { setLastTilesParams } = useTileQuery();
-  const { status, res, queryKey, responseKey, requestParams } = callRequestTiles(mapRef, enabled);
+  const { status, res, queryKey, responseKey, requestParams } = callRequestTiles(enabled);
   useEffect(() => { setLastTilesParams(requestParams); }, [requestParams, setLastTilesParams]);
   // Create a persistent LayerGroup for Markers
   const layerRef = createPersistentLayer(mapRef);

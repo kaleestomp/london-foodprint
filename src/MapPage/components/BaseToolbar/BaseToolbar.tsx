@@ -7,9 +7,6 @@ import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSna
 import PositioningWrapper from './PositioningWrapper/PositioningWrapper';
 import PillButton from './PillButton/PillButton';
 import getCuisineCountLabel from './getCuisineCountLabel';
-
-import getPriceHistRequestParams from '../PullUpPanel/OverviewSection/PriceFilter/Input/getPriceHistRequestParams';
-import useRequestPriceHistogram from '../../request/useRequestPriceHistogram/useRequestPriceHistogram';
 import getAbstractPriceRangeLabel from './getAbstractPriceRangeLabel';
 
 import './BaseToolbar.css';
@@ -30,11 +27,7 @@ const BaseToolbar: FC = () => {
   
 
   // Request Price Info
-  const priceRequestParams = getPriceHistRequestParams();
-  const { res } = useRequestPriceHistogram(priceRequestParams);
-  const priceData = res?.cost_histogram ?? [];
-  const AbstractPriceRangeLabel = getAbstractPriceRangeLabel(priceData);
-
+  const AbstractPriceRangeLabel = getAbstractPriceRangeLabel();
   // Request Cuisine Info
   const cuisineCountLabel = getCuisineCountLabel();
 

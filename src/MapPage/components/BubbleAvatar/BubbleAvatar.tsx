@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 
 import BubbleHome from './BubbleAvatarHome/BubbleAvatarHome';
 import useHandleUserLocation from './handleUserLocation/useHandleUserLocation';
-import useBubbleDrop from './useDragAndDrop/useBubbleDrop';
+import onBubbleDrop from './onBubbleDrop/onBubbleDrop';
 import useUpdateSearchMask from './Searchmask/useUpdateSearchMask';
 import { useBubbleAvatarState } from './BubbleAvatarStateContext';
 import BubbleHomeGhost from './BubbleHomeGhost/BubbleHomeGhost';
@@ -20,7 +20,6 @@ const BubbleAvatar: React.FC<{
         flyInFrom,
         resetBubbleToHome,
         handleDrop,
-        handlePickup,
     } = useBubbleAvatarState();
 
     // Handle Search Mask Update to new positions
@@ -34,7 +33,7 @@ const BubbleAvatar: React.FC<{
         resetBubbleToHome,
     });
     // Handle MANUAL DROP (DRAG & DROP)
-    useBubbleDrop(mapRef, droppedPos, handlePickup);
+    onBubbleDrop(mapRef, droppedPos);
 
     const handleResetHomeScenarios = useCallback(() => {
         if (pickupPos) {

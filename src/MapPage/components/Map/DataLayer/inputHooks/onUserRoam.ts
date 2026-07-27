@@ -11,6 +11,11 @@ const VIEWPORT_UPDATE_THROTTLE_MS = 250;
  * Tracks map viewport and emits TilesParams whenever the user pans or zooms.
  * `resolveRes` converts the current Leaflet zoom level to the H3 resolution
  * that should be requested — callers pass different tables per viz mode.
+ * 
+ * BBox snap to outer bounds of zoom-responsive tiles to reduce cardinality of requests;
+ * BBox scales with floor rounded zoom level only; zoom 12.5 and zoom 12.0 shares the same bbox size and h3 resolution;
+ * Viewport params updates on snapped viewport change, throttled to 250ms;
+ * Metrics using this viewport param will always include edges results outside of view but inside of snapped bbox;
  */
 const onUserRoam = (
   mapRef: React.RefObject<L.Map | null>,

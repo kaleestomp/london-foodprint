@@ -15,7 +15,7 @@ import useDragMotionValues from './useDragMotionValues';
  * Near-home check runs FIRST because the home button sits inside the map
  * container rect — without this, releasing near home would trigger a map drop.
  */
-const useBubbleDrag = (
+const onBubbleDrag = (
   mapRef: React.RefObject<L.Map | null>,
   onDrop: (lat: number, lng: number) => void,
   homeCenter: Point,
@@ -124,4 +124,4 @@ const useBubbleDrag = (
   };
 };
 
-export default useBubbleDrag;
+export default onBubbleDrag;

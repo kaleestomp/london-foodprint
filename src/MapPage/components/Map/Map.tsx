@@ -1,6 +1,10 @@
+import { useEffect } from 'react';
 import L from 'leaflet';
+
 import BaseLayer from './BaseLayer/BaseLayer';
 import DataLayer from './DataLayer/DataLayer'; 
+import onUserRoam from './DataLayer/inputHooks/onUserRoam';
+import { useTileQuery } from '../../../context/TileQueryContext';
 import { useSearchFilters } from '../../../context/SearchFiltersContext';
 import 'leaflet/dist/leaflet.css';
 
@@ -12,6 +16,12 @@ type Props = {
 const Map: React.FC<Props> = ({ mapRef: externalMapRef }) => { 
   
   const { mapContainerRef, mapRef } = BaseLayer(externalMapRef);
+  // Get Current Viewport Params (bounds, zoom)
+  const viewportParams = onUserRoam(mapRef);
+  const { setViewportParams } = useTileQuery();
+  useEffect(() => {
+    setViewportParams(viewportParams);
+  }, [viewportParams, setViewportParams]);
 
   const { searchMask } = useSearchFilters();
   DataLayer(mapRef, searchMask, !DISABLE_DATA_LAYER);

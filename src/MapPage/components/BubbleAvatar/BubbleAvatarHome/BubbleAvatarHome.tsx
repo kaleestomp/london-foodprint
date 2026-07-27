@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
-import useBubbleDrag from '../useDragAndDrop/useBubbleDrag';
+import onBubbleDrag from '../onBubbleDrag/onBubbleDrag';
 import useHomeProximity from './hooks/useHomeProximity';
 import useBubbleFlightAnimation from './hooks/useBubbleFlightAnimation';
 import useResolvePickupWithoutDrag from './hooks/useResolvePickupWithoutDrag';
@@ -94,7 +94,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
     handleDragMoveToPoint,
     handleDragEnd,
     handleDragEndAtPoint,
-  } = useBubbleDrag(
+  } = onBubbleDrag(
     mapRef,
     dragDropCallback,
     homeCenter,

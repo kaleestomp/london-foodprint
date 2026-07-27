@@ -44,6 +44,33 @@ SQL_VIEW_PRICE = """
     GROUP BY cost
 """
 
+# Nearby bubble: filters within radius from a center point.
+SQL_NEARBY_PRICE = """
+    SELECT cost, COUNT(*)::INT AS count
+    FROM places
+    WHERE ST_DWithin(
+            geom::geography,
+            ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+            $3
+          )
+      AND (
+            CARDINALITY($4::TEXT[]) = 0  -- no filter, show all cuisines
+            OR (CARDINALITY($4::TEXT[]) > 0 AND (
+                  cuisine_type = ANY(ARRAY_REMOVE($4::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($4::TEXT[]) AND cuisine_type IS NULL)
+                ))
+          )
+      AND (
+            $5 = '__all__'  -- no filter, all venues
+            OR ($5 = '__null__' AND venue_type IS NULL)
+            OR ($5 != '__all__' AND $5 != '__null__' AND venue_type = $5)
+          )
+      AND cost IS NOT NULL
+      AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
+      AND {rank_column} >= $6
+    GROUP BY cost
+"""
+
 SQL_CITYWIDE_CUISINE = """
     SELECT cuisine_type AS cuisine, COUNT(*)::INT AS count
     FROM places
@@ -84,6 +111,32 @@ SQL_VIEW_CUISINE = """
                 ))
           )
       AND {rank_column} >= $7
+    GROUP BY cuisine_type
+    ORDER BY count DESC, cuisine_type ASC
+"""
+
+SQL_NEARBY_CUISINE = """
+    SELECT cuisine_type AS cuisine, COUNT(*)::INT AS count
+    FROM places
+    WHERE ST_DWithin(
+            geom::geography,
+            ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+            $3
+          )
+      AND cuisine_type IS NOT NULL
+      AND (
+            $4 = '__all__'  -- no filter, all venues
+            OR ($4 = '__null__' AND venue_type IS NULL)
+            OR ($4 != '__all__' AND $4 != '__null__' AND venue_type = $4)
+          )
+      AND (
+            CARDINALITY($5::TEXT[]) = 0  -- no filter, show all costs
+            OR (CARDINALITY($5::TEXT[]) > 0 AND (
+                  cost = ANY(ARRAY_REMOVE($5::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($5::TEXT[]) AND cost IS NULL)
+                ))
+          )
+      AND {rank_column} >= $6
     GROUP BY cuisine_type
     ORDER BY count DESC, cuisine_type ASC
 """

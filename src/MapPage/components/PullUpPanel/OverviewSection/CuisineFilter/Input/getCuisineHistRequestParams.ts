@@ -10,11 +10,26 @@ const getCuisineHistRequestParams = () => {
     venueType,
     scoreTier,
     scoreBasis,
+    searchMask,
   } = useSearchFilters();
   const { viewportParams } = useTileQuery();
 
   const requestParams = useMemo(() => {
+    if (searchMask) {
+      return {
+        scope: 'nearby' as const,
+        lat: searchMask.center.lat,
+        lng: searchMask.center.lng,
+        radius_m: searchMask.radiusM,
+        cost: effectivePriceRanges,
+        venue_type: venueType ?? '',
+        score_basis: scoreBasis,
+        score_tier: scoreTier,
+      };
+    }
+
     if (!viewportParams) return null;
+
     return {
       scope: 'view' as const,
       sw_lat: viewportParams.sw_lat,
@@ -26,7 +41,7 @@ const getCuisineHistRequestParams = () => {
       score_basis: scoreBasis,
       score_tier: scoreTier,
     };
-  }, [viewportParams, effectivePriceRanges, venueType, scoreBasis, scoreTier]);
+  }, [searchMask, viewportParams, effectivePriceRanges, venueType, scoreBasis, scoreTier]);
 
   return requestParams;
 };

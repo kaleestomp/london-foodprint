@@ -9,14 +9,16 @@ import addPlaceMarkers from '../../Map/DataLayer/DensityPlacesLayer/addPlacePins
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
 import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
 import selectTopRankedPlaces from '../../../utils/selectTopRankedPlaces';
-import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import useIsMobile from '../../../../utils/browser/useIsMobile';
 import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
-import { type LatLng, SEARCH_RADIUS, ZOOM_LEVEL, DROP_ENTRY_DELAY_MS } from '../config';
-import useMapViewportNavigation from './useMapViewportNavigation';
+import { type LatLng, ZOOM_LEVEL, DROP_ENTRY_DELAY_MS } from '../config';
+import useMapViewportNavigation from '../onBubbleDrag/useMapViewportNavigation';
 import setupBubbleDropCircle from './setupBubbleDropCircle';
 import setupBubbleDropLongPress from './setupBubbleDropLongPress';
+import getNearbySearchParams from './getNearbySearchParams';
+
+import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
+import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 
 /**
  * Manages all Leaflet layers for the dropped bubble avatar.
@@ -26,46 +28,34 @@ import setupBubbleDropLongPress from './setupBubbleDropLongPress';
  * Long-press (150 ms) on the map avatar calls onPickup(x, y), which
  * triggers useMapPickup to start a raw-pointer carry.
  */
-const useBubbleDrop = (
-  mapRef:      React.RefObject<L.Map | null>,
-  droppedPos:  LatLng | null,
-  /** Clears the map avatar; receives screen coords so MapCard can reposition BubbleButton */
-  onPickup:    (x: number, y: number) => void,
+const onBubbleDrop = (
+  mapRef: React.RefObject<L.Map | null>,
+  droppedPos: LatLng | null,
 ) => {
+
+  const { handlePickup: onPickup } = useBubbleAvatarState();
+  /** Clears the map avatar; receives screen coords so MapCard can reposition BubbleButton */
+
   const { focusMap } = useMapViewportNavigation({ mapRef });
   const isMobile = useIsMobile();
   const { panelHeight, translateY } = usePullUpPanelMetrics();
-  const { effectiveCuisines, venueType, effectivePriceRanges, scoreTier, scoreBasis } = useSearchFilters();
-  const markerRef      = useRef<L.Marker | null>(null);
-  const reactRootRef   = useRef<Root | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  const reactRootRef = useRef<Root | null>(null);
   const placesLayerRef = useRef<L.LayerGroup | null>(null);
-  const entryDelayRef  = useRef(0);
+  const entryDelayRef = useRef(0);
   const panelMetricsRef = useRef({ isMobile, panelHeight, translateY });
   // Keep onPickup fresh without invalidating the main effect
-  const onPickupRef    = useRef(onPickup);
+  
+  const onPickupRef = useRef(onPickup);
   useEffect(() => { onPickupRef.current = onPickup; }, [onPickup]);
   useEffect(() => {
     panelMetricsRef.current = { isMobile, panelHeight, translateY };
   }, [isMobile, panelHeight, translateY]);
 
   // Bubble drop owns nearby radius search.
-  const {
-    res: nearbyRes,
-    queryKey: nearbyQueryKey,
-    responseKey: nearbyResponseKey,
-  } = useRequestNearby(
-    droppedPos ? {
-      lat: droppedPos.lat,
-      lng: droppedPos.lng,
-      radius_m: SEARCH_RADIUS,
-      cuisines: effectiveCuisines,
-      venue_type: venueType ?? '',
-      cost: effectivePriceRanges,
-      score_basis: scoreBasis,
-      score_tier: scoreTier,
-    } : null,
-  );
-
+  const nearbySearchParams = getNearbySearchParams(droppedPos);
+  const { res: nearbyRes, queryKey: nearbyQueryKey, responseKey: nearbyResponseKey } = useRequestNearby(nearbySearchParams);
+  
   // ── Clear all Leaflet layers ───────────────────────────────────────────
   // React root must unmount BEFORE marker removal (avoids detached-node warning).
   const clearAll = useCallback((map: L.Map) => {
@@ -100,10 +90,10 @@ const useBubbleDrop = (
     const previewPlaces: TilePlacePreview[] = nearbyRes.data
       .filter((place) => !topNearbyIds.has(place.id))
       .map((place) => ({
-      id: place.id,
-      lat: place.lat,
-      lon: place.lon,
-      tier: place.rank,
+        id: place.id,
+        lat: place.lat,
+        lon: place.lon,
+        tier: place.rank,
       }));
     addPlaceMarkers(
       layer,
@@ -122,7 +112,7 @@ const useBubbleDrop = (
     if (!map || !droppedPos) return;
 
     const { lat, lng } = droppedPos;
-    let cleanupCircle = () => {};
+    let cleanupCircle = () => { };
     const {
       isMobile: isMobileAtDrop,
       panelHeight: panelHeightAtDrop,
@@ -162,8 +152,8 @@ const useBubbleDrop = (
     const pinSize = getPinSizeFromCss();
     const icon = L.divIcon({
       className: 'bubble-avatar-leaflet-icon',
-      html:      '<div class="bubble-avatar-root"></div>',
-      iconSize:   [pinSize, pinSize],
+      html: '<div class="bubble-avatar-root"></div>',
+      iconSize: [pinSize, pinSize],
       iconAnchor: [pinSize / 2, pinSize / 2],
     });
     const marker = L.marker([lat, lng], {
@@ -172,7 +162,7 @@ const useBubbleDrop = (
       zIndexOffset: 10000,
     }).addTo(map);
     markerRef.current = marker;
-    let removeLongPress = () => {};
+    let removeLongPress = () => { };
 
     const markerEl = marker.getElement();
     if (markerEl) {
@@ -204,4 +194,4 @@ const useBubbleDrop = (
   }, [droppedPos, mapRef, clearAll, focusMap]);
 };
 
-export default useBubbleDrop;
+export default onBubbleDrop;
