@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'; 
 
 import BubbleHome from './BubbleAvatarHome/BubbleAvatarHome';
-import useHandleUserLocation from './handleUserLocation/useHandleUserLocation';
+import onAutoLocation from './onAutoLocation/onAutoLocation';
 import onBubbleDrop from './onBubbleDrop/onBubbleDrop';
 import useUpdateSearchMask from './Searchmask/useUpdateSearchMask';
 import { useBubbleAvatarState } from './BubbleAvatarStateContext';
@@ -19,20 +19,15 @@ const BubbleAvatar: React.FC<{
         isDragging,
         flyInFrom,
         resetBubbleToHome,
-        handleDrop,
     } = useBubbleAvatarState();
 
     // Handle Search Mask Update to new positions
     useUpdateSearchMask(droppedPos);
 
-    // Handle AUTO DROP (LIVE / GEOSEARCH)
-    const { flyOutTo, dropOnEndFlight } = useHandleUserLocation({
-        mapRef,
-        droppedPos,
-        handleDrop,
-        resetBubbleToHome,
-    });
-    // Handle MANUAL DROP (DRAG & DROP)
+    // HANDLE AUTO LOCATION ON GEOSEARCH
+    const { flyOutTo, dropOnEndFlight } = onAutoLocation({ mapRef, droppedPos });
+
+    // HANDLE DROP: Call Nearby Seach and More
     onBubbleDrop(mapRef, droppedPos);
 
     const handleResetHomeScenarios = useCallback(() => {

@@ -1,7 +1,7 @@
 import Typography from '@mui/material/Typography';
-import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import { useSearchFilters } from '../../../../../context/SearchFiltersContext.tsx';
 import PrimarySwitch from '../../../../../components/Switch/PrimarySwitch.tsx';
-import { DIVERSITY_THUMB_SVG, POPULARITY_THUMB_SVG } from './Icons';
+import { DIVERSITY_THUMB_SVG, POPULARITY_THUMB_SVG } from './Icons.tsx';
 import './Switch.css';
 
 const RatingSwitch: React.FC = () => {

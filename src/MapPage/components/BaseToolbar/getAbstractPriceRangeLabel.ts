@@ -3,7 +3,7 @@ import {
   PRICE_RANGE_FILTER_OPTIONS,
   useSearchFilters,
 } from '../../../context/SearchFiltersContext';
-import getPriceHistRequestParams from '../PullUpPanel/OverviewSection/PriceFilter/Input/getPriceHistRequestParams';
+import getPriceHistRequestParams from '../FilterTabs/PriceFilter/Input/getPriceHistRequestParams';
 import useRequestPriceHistogram from '../../request/useRequestPriceHistogram/useRequestPriceHistogram';
 
 const formatPriceLabel = (label: string) => {

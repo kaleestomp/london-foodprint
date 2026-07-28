@@ -2,18 +2,13 @@ import { useMemo } from 'react';
 
 import {
   useSearchFilters,
-} from '../../../../../../context/SearchFiltersContext';
-import { useTileQuery } from '../../../../../../context/TileQueryContext';
+} from '../../../../../context/SearchFiltersContext';
+import { useTileQuery } from '../../../../../context/TileQueryContext';
 
 
 const getPriceHistRequestParams = () => {
-  const {
-    effectiveCuisines,
-    venueType,
-    scoreTier,
-    scoreBasis,
-    searchMask,
-  } = useSearchFilters();
+  
+  const { effectiveCuisines, venueType, scoreTier, scoreBasis, searchMask } = useSearchFilters();
   const { viewportParams } = useTileQuery();
 
   const requestParams = useMemo(() => {

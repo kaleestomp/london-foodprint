@@ -1,32 +1,26 @@
 import { useMemo } from 'react';
-import type L from 'leaflet';
 import ReactECharts from 'echarts-for-react';
 
-import {
-  PRICE_RANGE_FILTER_OPTIONS,
-} from '../../../../../context/SearchFiltersContext';
-import getChartData from './getChartData';
-
+import { PRICE_RANGE_FILTER_OPTIONS } from '../../../../../context/SearchFiltersContext';
+// import { primaryBlack, secondaryGrey } from '../../../../../../utils/styling/Colors';
+import formatChartData from './formatChartData';
 import './PriceChart.css';
 
-type Props = {
-  mapRef: React.RefObject<L.Map | null>;
-  isGlobal: boolean;
-};
-
-const CHART_HEIGHT = 120;
+const CHART_HEIGHT = 150;
 const PAD_CATEGORY_LEFT = '__pad_left__';
 const PAD_CATEGORY_RIGHT = '__pad_right__';
 
-const PriceChart: React.FC<Props> = ({ mapRef, isGlobal }) => {
+type Props = { priceData: Array<{ cost: string; count: number }> };
 
+const PriceChart: React.FC<Props> = ({ priceData }) => {
+  
   const chartCategories = [PAD_CATEGORY_LEFT, ...PRICE_RANGE_FILTER_OPTIONS, PAD_CATEGORY_RIGHT];
-  const chartData = getChartData({mapRef, isGlobal});
+  const chartData = formatChartData(priceData);
   
   const chartOption = useMemo(() => ({
     animationDuration: 220,
     grid: { 
-      left: 0, right: 0, top: 0, bottom: 1, 
+      left: 0, right: 0, top: 12, bottom: 1, containLabel: false,
     },
     tooltip: {
       trigger: 'axis',
@@ -45,13 +39,14 @@ const PriceChart: React.FC<Props> = ({ mapRef, isGlobal }) => {
       type: 'value',
       min: 0,
       minInterval: 1,
-      splitNumber: 2,
+      splitNumber: 3,
       splitLine: { lineStyle: { color: 'rgba(0,0,0,0.08)' } },
       axisLabel: { 
         inside: true,
         align: 'left',
         verticalAlign: 'bottom',
-        color: 'rgba(0,0,0,0.24)',
+        padding: [2, 0, 0, 0],
+        color: 'rgba(0,0,0,0.2)',
         margin: 0,
         formatter: (value: number) => (value === 0 ? '' : `${value}`),
       },
@@ -62,6 +57,7 @@ const PriceChart: React.FC<Props> = ({ mapRef, isGlobal }) => {
         data: chartData,
         barMaxWidth: '75%',
         emphasis: { focus: 'series' },
+        
       },
     ],
   }), [chartCategories, chartData]);

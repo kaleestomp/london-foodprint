@@ -12,7 +12,7 @@ type UseMapPanToLocationArgs = {
 };
 type out = {
   targetLatLng: LatLng | null;
-  programmaticFlightToken: number | null;
+  flightToken: number | null;
 }
 
 /**
@@ -30,14 +30,14 @@ const useMapPanToLocation = ({
   // Handel Map Pan
   const { liveLocation } = useAppUI();
   // Token for flight triggered by geo location updates
-  const [programmaticFlightToken, setProgrammaticFlightToken] = useState<number | null>(null);
+  const [flightToken, setFlightToken] = useState<number | null>(null);
   // Memoize targetLatLng to prevent unnecessary re-creation and infinite loops
   const targetLatLng = useMemo(
       () => liveLocation ? { lat: liveLocation.lat, lng: liveLocation.lng } : null,
       [liveLocation?.lat, liveLocation?.lng]
   );
   const onReady = useCallback(() => {
-      setProgrammaticFlightToken(liveLocation?.token ?? null);
+      setFlightToken(liveLocation?.token ?? null);
   }, [liveLocation?.token]);
 
   // useEffect to pan map to user location
@@ -66,7 +66,7 @@ const useMapPanToLocation = ({
     });
   }, [targetLatLng, token, onReady, focusMap, isMobile, panelHeight, translateY, mapRef]);
 
-  return {targetLatLng,programmaticFlightToken};
+  return {targetLatLng, flightToken};
 };
 
 export default useMapPanToLocation;

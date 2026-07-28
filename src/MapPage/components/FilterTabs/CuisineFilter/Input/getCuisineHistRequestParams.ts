@@ -1,17 +1,11 @@
 import { useMemo } from 'react';
 
-import { useSearchFilters } from '../../../../../../context/SearchFiltersContext';
-import { useTileQuery } from '../../../../../../context/TileQueryContext';
+import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import { useTileQuery } from '../../../../../context/TileQueryContext';
 
 
 const getCuisineHistRequestParams = () => {
-  const {
-    effectivePriceRanges,
-    venueType,
-    scoreTier,
-    scoreBasis,
-    searchMask,
-  } = useSearchFilters();
+  const { effectivePriceRanges, venueType, scoreTier, scoreBasis, searchMask } = useSearchFilters();
   const { viewportParams } = useTileQuery();
 
   const requestParams = useMemo(() => {

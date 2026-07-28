@@ -8,6 +8,7 @@ const useRequestPriceHistogram = (params: PriceHistogramParams | null): {
   status: RequestStatus;
   error: Error | null;
   res: PriceHistogramResponse | null;
+  isFetching: boolean;
 } => {
   const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
 
@@ -33,6 +34,7 @@ const useRequestPriceHistogram = (params: PriceHistogramParams | null): {
     status,
     error: query.error as Error | null,
     res: query.data ?? null,
+    isFetching: query.isFetching,
   };
 };
 

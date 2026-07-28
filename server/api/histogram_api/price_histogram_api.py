@@ -36,6 +36,8 @@ async def get_cost_histogram(
     score_basis: int = Query(default=0, ge=0, le=2),
     score_tier: int = Query(default=0, ge=0, le=4),
 ) -> dict[str, Any]:
+
+    # VALIDATE PARAMETERS
     if scope not in {"view", "citywide", "nearby"}:
         raise HTTPException(status_code=422, detail="scope must be 'view', 'nearby', or 'citywide'")
     if scope == "view" and any(v is None for v in (sw_lat, sw_lng, ne_lat, ne_lng)):
@@ -43,11 +45,13 @@ async def get_cost_histogram(
     if scope == "nearby" and any(v is None for v in (lat, lng, radius_m)):
         raise HTTPException(status_code=422, detail="lat, lng, radius_m are required for scope=nearby")
 
-    # Normalize filters: empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
+    # NORMALIZE FILTERS
+    # empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
     cuisine_values = normalize_dimension_list(cuisine)
     venue_value = normalize_dimension(venue_type)
     tier_column = get_score_basis_column(score_basis)
 
+    # TRY CITYWIDE CACHE FIRST
     # Citywide cache key is viewport-independent — stays valid across pans.
     cache_key: str | None = None
     if scope == "citywide":
@@ -70,6 +74,7 @@ async def get_cost_histogram(
                     return {"cost_histogram": data}
                 del _cache[cache_key]
 
+    # FETCH DATA FROM DATABASE
     async with request.app.state.pool.acquire() as conn:
         if scope == "citywide":
             rows = await conn.fetch(

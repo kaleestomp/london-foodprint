@@ -1,24 +1,27 @@
-import type L from 'leaflet';
-import FilterTabPanel from '../FilterTabPanel';
+import type { FC } from 'react';
+
 import CuisineIncludeSwitch from './CuisineIncludeSwitch/CuisineIncludeSwitch';
 import CuisineFilterChips from './Chips/Chips';
+import getCuisineHistRequestParams from './Input/getCuisineHistRequestParams';
+import useRequestCuisineHistogram from '../../../request/useRequestCuisineHistogram/useRequestCuisineHistogram';
 import './CuisineFilterPanel.css';
 
-type Props = {
-  mapRef: React.RefObject<L.Map | null>;
-};
-
-const CuisineFilterPanel: React.FC<Props> = ({ mapRef }) => {
-  void mapRef;
-
+const CuisineFilterPanel: FC = () => {
+  const requestParams = getCuisineHistRequestParams();
+  const { res } = useRequestCuisineHistogram(requestParams); 
+  const cuisineData = res?.cuisine_histogram ?? [];
+  // const cuisineTitle = cuisineData.length > 0 ? `Cuisines × ${cuisineData.length}` : 'Cuisines';
   return (
-    <FilterTabPanel
-      title="Cuisine"
-      className="cuisine-filter-panel"
-      headerContent={(<CuisineIncludeSwitch />)}
-    >
-      <CuisineFilterChips mapRef={mapRef} />
-    </FilterTabPanel>
+    <div className="cuisine-filter-panel">
+      <div className="title-block">
+        <CuisineIncludeSwitch />
+        {/* <div className="left">{cuisineTitle}</div> */}
+      </div>
+      <div className="cuisine-filter-content">
+        
+        <CuisineFilterChips cuisineData={cuisineData} />
+      </div>
+    </div>
   );
 };
 
