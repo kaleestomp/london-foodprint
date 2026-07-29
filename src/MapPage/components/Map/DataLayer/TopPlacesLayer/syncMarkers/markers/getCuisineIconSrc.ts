@@ -1,6 +1,6 @@
-import { CUISINE_DISPLAY } from '../../../../../../utils/format/formatCuisines';
+import { CUISINE_DISPLAY } from '../../../../../../../utils/format/formatCuisines';
 
-const iconAssets = import.meta.glob('../../../../../../assets/icon_cuisines/*.png', { eager: true, import: 'default' }) as Record<string, string>;
+const iconAssets = import.meta.glob('../../../../../../../assets/icon_cuisines/*.png', { eager: true, import: 'default' }) as Record<string, string>;
 const iconByName = new Map<string, string>();
 for (const [assetPath, assetUrl] of Object.entries(iconAssets)) {
   const fileName = assetPath.split('/').pop() ?? '';

@@ -4,7 +4,7 @@ import L from 'leaflet';
 import { useSearchFilters } from '../../../../../../../context/SearchFiltersContext';
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../request/useRequestTopPlaces/useRequestTopPlaces';
-import useTopPlacesViewport from '../../useTopPlacesViewport';
+import useTopPlacesViewport from './useTopPlacesViewport';
 
 type Props = {
   mapRef: React.RefObject<L.Map | null>;

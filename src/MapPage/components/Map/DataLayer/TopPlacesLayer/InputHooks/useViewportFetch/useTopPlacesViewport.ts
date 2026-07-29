@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 
-import zoomToResolution from '../utils/zoomToResolution';
-import { bucketViewportBounds } from '../utils/getBucketedViewportBounds';
-import useIsMobile from '../../../../../utils/browser/useIsMobile';
-import { MOBILE_PEEK_PX } from '../../../PullUpPanel/SnapHooks/config';
+import zoomToResolution from '../../../utils/zoomToResolution';
+import { bucketViewportBounds } from '../../../utils/getBucketedViewportBounds';
+import useIsMobile from '../../../../../../../utils/browser/useIsMobile';
+import { MOBILE_PEEK_PX } from '../../../../../PullUpPanel/SnapHooks/config';
 
 const DESKTOP_LEFT_OFFSET_PX = 360;
 const THROTTLE_MS = 80;

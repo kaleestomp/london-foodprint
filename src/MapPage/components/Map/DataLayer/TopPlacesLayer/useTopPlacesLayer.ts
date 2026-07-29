@@ -3,10 +3,11 @@ import L from 'leaflet';
 
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchTopPlaces from './InputHooks/useFetchTopPlaces';
-import syncTopPlaceMarkers, { type TopPlaceMarkerCache } from './addTopPlacePins/addTopPlaceMarkers';
+import syncMarkers from './syncMarkers/syncMarkers';
 import useReportTopPlacesIDs from './reportHooks/useReportTopPlacesIDs';
+import type { MarkerLifecycleCache } from './syncMarkers/markerLifecycle/markerLifecycle';
 
-import './addTopPlacePins/TopPlacePin.css';
+import './syncMarkers/markers/TopPlacePin.css';
 
 type UseTopPlacesLayerArgs = {
   mapRef: React.RefObject<L.Map | null>;
@@ -21,7 +22,7 @@ const useTopPlacesLayer = ({ mapRef, setActiveTopPlaceIds, enabled }: UseTopPlac
 
   const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
   const topPlacesLayerRef = useRef<L.LayerGroup | null>(null);
-  const topPlaceCacheRef = useRef<TopPlaceMarkerCache>(new Map());
+  const topPlaceCacheRef = useRef<MarkerLifecycleCache>(new Map());
   const topPlaceMarkersRef = useRef<Map<string, L.Marker>>(new Map());
   
   // Layer Created on Map Mount
@@ -49,13 +50,13 @@ const useTopPlacesLayer = ({ mapRef, setActiveTopPlaceIds, enabled }: UseTopPlac
     const layer = topPlacesLayerRef.current;
     if (!enabled || !layer) return;
 
-    topPlaceMarkersRef.current = syncTopPlaceMarkers(
+    topPlaceMarkersRef.current = syncMarkers({
       layer,
       topPlaces,
-      topPlaceCacheRef.current,
-      (placeId) => setSelectedPlaceId(placeId),
-      { selectedPlaceId },
-    );
+      cache: topPlaceCacheRef.current,
+      onPlaceClick: (placeId) => setSelectedPlaceId(placeId),
+      selectedPlaceId,
+    });
   }, [ topPlaces, selectedPlaceId, setSelectedPlaceId, enabled ]);
 
   // Update Selected Pin CSS State
