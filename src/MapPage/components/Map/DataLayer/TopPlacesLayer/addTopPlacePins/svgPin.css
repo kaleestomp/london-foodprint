@@ -1,0 +1,89 @@
+.top-place-pin-svg {
+    display: flex;
+    justify-self: center;
+    transform: translateY(-50%);
+    width: 108%;
+    height: 108%;
+    
+    --top-place-pin-color: #ffffff;
+    --top-place-pin-stroke-color: #66d9ff;
+}
+
+.top-place-pin-svg path {
+    fill: var(--top-place-pin-color);
+    stroke: var(--top-place-pin-stroke-color);
+    stroke-width: 0.25;
+    stroke-linejoin: round;
+}
+
+.top-place-pin-motion.is-selected .top-place-pin-svg path {
+    stroke-width: 0.7;
+}
+
+
+
+
+.top-place-pin-shell--bubble .top-place-pin-svg path {
+    stroke: var(--top-place-pin-stroke-color);
+    stroke-width: 0.7;
+}
+.top-place-pin-shell--bubble {
+    /* filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.42)); */
+}
+
+
+
+
+.top-place-pin-shell {
+    filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.22));
+}
+
+/* ICON HOVER WRAPPER CONTROLS HOVER SCALING INDEPENDENTLY */
+.top-place-pin-hover {
+    transform-origin: center;
+    transition: transform 420ms ease;
+}
+.top-place-pin-shell:hover .top-place-pin-hover {
+    transform: scale(1.4);
+    /* filter: drop-shadow(0 0 15px rgba(102, 217, 255, 0.8)); */
+}
+/* Keep selected pins at the same visual size on hover (no double scaling). */
+.top-place-pin-shell.is-selected:hover .top-place-pin-hover {
+    transform: scale(1);
+}
+.top-place-pin-shell.is-selected .top-place-pin-hover {
+    transform: scale(1);
+    transition: transform 0ms linear;
+}
+
+
+
+
+/* ICON MOTION WRAPPER CONTROLS IDLE ANIMATIONS */
+.top-place-pin-motion {
+    transform-origin: center;
+    animation: top-place-pin-idle-float 1.6s ease-in-out infinite;
+}
+.top-place-pin-motion::before {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ffffff;
+    z-index: 0;
+}
+@keyframes top-place-pin-idle-float {
+    0% { transform: translateY(0); filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.22)); } 
+    50% { transform: translateY(-2px); filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.42)); }
+    100% { transform: translateY(0); filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.22)); }
+}
+.top-place-pin-motion.is-selected {
+    --selected-pin-scale: 1.4;
+    animation: top-place-pin-selected-float 1.6s ease-in-out infinite;
+}
+@keyframes top-place-pin-selected-float {
+    0% { transform: translateY(0) scale(var(--selected-pin-scale)); filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.8)); }
+    50% { transform: translateY(-2px) scale(var(--selected-pin-scale)); filter: drop-shadow(0 0 9px rgba(102, 217, 255, 1.0)); }
+    100% { transform: translateY(0) scale(var(--selected-pin-scale)); filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.8)); }
+}

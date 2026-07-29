@@ -1,151 +1,122 @@
-.top-place-pin-svg {
-    display: flex;
-    justify-self: center;
-    transform: translateY(-50%);
-    width: 108%;
-    height: 108%;
-    
-    --top-place-pin-color: #ffffff;
-    --top-place-pin-stroke-color: #66d9ff;
-}
-.top-place-pin-svg path {
-    fill: var(--top-place-pin-color);
-    stroke: var(--top-place-pin-stroke-color);
-    stroke-width: 0.25;
-    stroke-linejoin: round;
-}
-.top-place-pin-shell--highlight .top-place-pin-svg path {
-    stroke-width: 0.7;
-}
-
+/* ICON SHELL CONTROLS ENTER + EXIT ANIMATION */
 .top-place-pin-shell {
     display: block;
+    /* position: relative;
+    overflow: visible; */
     transform-origin: center;
-    transition: transform 180ms ease, filter 180ms ease, opacity 180ms ease;
+    transition: transform 180ms ease;
 
-    filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.22));
-    /* filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.10)); */
+    --hover-scale: 1.6;
+    --bubble-size: 32px; /* Only Visible on selected */
+    --bubble-color: #ffffff;
+    --selected-scale: 2.0;
+    --selected-translateY: -40px;
+    --anchor-dot-size: 8px;
 }
-.top-place-pin-shell--enter {
+/* ADD SPEECH BUBBLE ANCHOR WHICH SHOWS WHEN SELECTED */
+.top-place-pin-shell::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--anchor-dot-size);
+    height: var(--anchor-dot-size);
+    border-radius: 50%;
+    background: var(--bubble-color);
+    pointer-events: none;
+
+    transition: transform 200ms cubic-bezier(0.2, 0.9, 0.2, 1.15), opacity 150ms ease;
+    transform: scale(0);
+    opacity: 0;
+}
+.top-place-pin-shell.is-selected::after {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+.enter-animation {
     animation: top-place-pin-enter 380ms cubic-bezier(0.175, 0.885, 0.32, 1.0) both;
 }
 @keyframes top-place-pin-enter {
-    0% {
-        opacity: 0;
-        transform: scale(0) translateY(22%);
-    }
-    68% {
-        opacity: 1;
-        transform: scale(1.1) translateY(-2%);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+    0% { opacity: 0; transform: scale(0) translateY(22%); }
+    68% { opacity: 1; transform: scale(1.1) translateY(-2%); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
 }
-
-.top-place-pin-shell--exit {
+.exit-animation {
     animation: top-place-pin-exit 360ms ease-in both;
     pointer-events: none;
 }
 @keyframes top-place-pin-exit {
-    0% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+    0% { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(0.62) translateY(20%); }
+}
 
-    100% {
-        opacity: 0;
-        transform: scale(0.62) translateY(20%);
-    }
-}
-.top-place-pin-shell--morph {
-    animation: top-place-pin-morph 220ms ease;
-}
-@keyframes top-place-pin-morph {
-    0% {
-        transform: scale(1);
-    }
-    55% {
-        transform: scale(1.06);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
+
+
+/* ICON HOVER WRAPPER CONTROLS HOVER SCALING INDEPENDENTLY */
 .top-place-pin-hover {
     transform-origin: center;
-    transition: transform 420ms ease;
+    transition: transform 360ms cubic-bezier(0.2, 0.9, 0.2, 1.15);
 }
 .top-place-pin-shell:hover .top-place-pin-hover {
-    transform: scale(1.4);
-    filter: drop-shadow(0 0 15px rgba(102, 217, 255, 0.8));
-    /* filter: drop-shadow(0 4px 16px rgba(255, 255, 255, 0.80)); */
+    transform: scale(var(--hover-scale));
 }
-
 /* Keep selected pins at the same visual size on hover (no double scaling). */
+.top-place-pin-shell.is-selected .top-place-pin-hover,
 .top-place-pin-shell.is-selected:hover .top-place-pin-hover {
-    transform: scale(1);
-}
-.top-place-pin-shell.is-selected .top-place-pin-hover {
-    transform: scale(1);
-    transition: transform 0ms linear;
-}
-
-.top-place-pin-shell--highlight {
-    filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.22));
-    /* filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.40)); */
-}
-
-.top-place-pin-shell--bubble .top-place-pin-svg path {
-    stroke: var(--top-place-pin-stroke-color);
-    stroke-width: 0.7;
-}
-.top-place-pin-shell--bubble {
-    filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.42));
+    transform: translateY(var(--selected-translateY)) scale(var(--selected-scale));
 }
 
 
+
+/* ICON MOTION WRAPPER CONTROLS IDLE ANIMATIONS */
 .top-place-pin-motion {
     transform-origin: center;
     animation: top-place-pin-idle-float 1.6s ease-in-out infinite;
+
+    position: relative;
+    display: grid;
+    place-items: center;
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.24));
 }
-@keyframes top-place-pin-idle-float {
-    0% {
-        transform: translateY(0);
-        filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.22));
-    }
-    50% {
-        transform: translateY(-2px);
-        filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.42));
-    }
-    100% {
-        transform: translateY(0);
-        filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.22));
-    }
+.top-place-pin-motion::before {
+    content: '';
+    position: absolute;
+    width: var(--bubble-size);
+    height: var(--bubble-size);
+    border-radius: 50%;
+    background: var(--bubble-color);
+    box-shadow: 0 10px 8px rgba(0, 0, 0, 0.24);
+    z-index: 0;
+
+    transform: scale(0);
+    transition: transform 260ms cubic-bezier(0.2, 0.9, 0.2, 1.15);
 }
 
+@keyframes top-place-pin-idle-float {
+    0% { transform: translateY(0); } 
+    50% { transform: translateY(-2px); }
+    100% { transform: translateY(0); }
+}
 .top-place-pin-motion.is-selected {
-    --selected-pin-scale: 1.4;
-    animation: top-place-pin-selected-float 1.6s ease-in-out infinite;
+    animation: top-place-pin-selected-float 1.45s ease-in-out infinite;
+}
+.top-place-pin-motion.is-selected::before {
+    transform: scale(1);
 }
 @keyframes top-place-pin-selected-float {
-    0% {
-        transform: translateY(0) scale(var(--selected-pin-scale));
-        filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.8));
-    }
-
-    50% {
-        transform: translateY(-2px) scale(var(--selected-pin-scale));
-        filter: drop-shadow(0 0 9px rgba(102, 217, 255, 1.0));
-    }
-
-    100% {
-        transform: translateY(0) scale(var(--selected-pin-scale));
-        filter: drop-shadow(0 0 9px rgba(102, 217, 255, 0.8));
-    }
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-1px); }
+    100% { transform: translateY(0); }
 }
 
-.top-place-pin-motion.is-selected .top-place-pin-svg path {
-    stroke-width: 0.7;
+
+
+/* ICON BLOCK */
+.top-place-pin-image {
+    display: block;
+    image-rendering: smooth;
+    pointer-events: none;
+    user-select: none;
+    z-index: 1;
 }
+

@@ -42,7 +42,7 @@ const useTopPlacesLayer = ({
   const topPlaceCacheRef = useRef<TopPlaceMarkerCache>(new Map());
   const topPlaceMarkersRef = useRef<Map<string, L.Marker>>(new Map());
   const [viewportTopPlaces, setViewportTopPlaces] = useState<TopPlaceItem[]>([]);
-  const [bubbleTopPlaces, setBubbleTopPlaces] = useState<Array<{ id: string; lat: number; lon: number; rank: number | null }>>([]);
+  const [bubbleTopPlaces, setBubbleTopPlaces] = useState<TopPlaceItem[]>([]);
 
   const viewportParams = useTopPlacesViewport(mapRef, enabled, throttleMs);
 
@@ -159,8 +159,6 @@ const useTopPlacesLayer = ({
     if (!enabled || !layer) return;
     const maskedViewportTopPlaces = filterViewportTopPlacesOutsideMask(viewportTopPlaces, searchMask);
 
-    const bubbleTopPlaceIds = new Set(bubbleTopPlaces.map((place) => place.id));
-
     const mergedTopPlaces = mergeTopPlacesById(maskedViewportTopPlaces, bubbleTopPlaces);
     onActiveTopPlaceIdsChange?.(mergedTopPlaces.map((place) => place.id));
 
@@ -169,13 +167,14 @@ const useTopPlacesLayer = ({
       mergedTopPlaces,
       topPlaceCacheRef.current,
       (placeId) => setSelectedPlaceId(placeId),
-      { bubbleTopPlaceIds },
+      { selectedPlaceId },
     );
   }, [
     enabled,
     searchMask,
     viewportTopPlaces,
     bubbleTopPlaces,
+    selectedPlaceId,
     setSelectedPlaceId,
     onActiveTopPlaceIdsChange,
   ]);
@@ -195,14 +194,12 @@ const useTopPlacesLayer = ({
       motion.classList.remove('is-selected');
       shell?.classList.remove('is-selected');
       if (!selectedPlaceId || placeId !== selectedPlaceId) {
-        marker.closePopup();
         return;
       }
 
-      // Selected top-place pins should only run idle floating animation.
+      // Selected top-place pins lift, scale up, and use selected floating motion.
       motion.classList.add('is-selected');
       shell?.classList.add('is-selected');
-      marker.openPopup();
     });
   }, [selectedPlaceId, topPlacesResponseKey]);
 
@@ -236,8 +233,11 @@ const filterViewportTopPlacesOutsideMask = <T extends { lat: number; lon: number
 
 const mapNearbyToTopPlace = (place: NearbyPlace) => ({
   id: place.id,
+  restaurant_name: null,
+  cuisine_type: null,
   lat: place.lat,
   lon: place.lon,
+  normal_1: null,
   rank: place.rank,
 });
 

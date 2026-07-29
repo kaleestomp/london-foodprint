@@ -1,8 +1,11 @@
 TOP_PLACES_IN_VIEW_SQL = """
     SELECT
       id,
+      display_name AS restaurant_name,
+      cuisine_type,
       lat,
       lon,
+      normal_1,
       {rank_column} AS rank
     FROM places
     WHERE lat BETWEEN $1 AND $2

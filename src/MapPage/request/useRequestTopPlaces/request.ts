@@ -2,8 +2,11 @@ import { apiBasePromise } from '../../../utils/apiBase';
 
 export interface TopPlaceItem {
   id: string;
+  restaurant_name: string | null;
+  cuisine_type: string | null;
   lat: number;
   lon: number;
+  normal_1: number | null;
   rank: number | null;
 }
 

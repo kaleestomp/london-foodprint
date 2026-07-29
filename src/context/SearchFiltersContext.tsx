@@ -1,53 +1,8 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
+import { CUISINE_DISPLAY } from '../utils/format/formatCuisines';
 
-export const CUISINE_FILTER_OPTIONS = [
-  
-  'Italian',
-  'Mediterranean',
-  'Japanese',
-  'Korean',
-  'Chinese',
-
-  'Bistro',
-  'European',
-  'African',
-  'Asian',
-  'Bakery & Pastry',
-
-  'Australian',
-  'Bar & Pub',
-  'British',
-  'Brunch & Breakfast',
-  'Buffet',
-  'Burgers',
-  'Cafe & Coffee',
-  'American',
-  'Dessert & Ice Cream',
-  'Eastern European',
-  
-  'Family Restaurant',
-  'Fast Food',
-  'Fine Dining',
-  'French',
-  'German',
-  'Halal',
-  'Kebab Shop',
-  'Latin American',
-  'Middle Eastern',
-  'Northern European',
-  'Pizza',
-  'Sandwich & Deli',
-  'Seafood',
-  'South Asian',
-  'Southeast Asian',
-  'Southern European',
-  'Steakhouse & BBQ',
-  'Tapas',
-  'Unspecified',
-  'Vegetarian & Vegan',
-];
-
+export const CUISINE_FILTER_OPTIONS = Object.keys(CUISINE_DISPLAY);
 export const VENUE_TYPE_FILTER_OPTIONS = ['Dine-In', 'Takeaway'] as const;
 export const PRICE_RANGE_FILTER_OPTIONS = ['<10', '10+', '20+', '40+', '60+', '100+'] as const;
 export const SCORE_TIER_FILTER_OPTIONS = [1, 2, 3, 4] as const;
