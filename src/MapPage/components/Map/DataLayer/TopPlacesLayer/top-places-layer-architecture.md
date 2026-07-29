@@ -47,13 +47,13 @@ It also reads filter state from SearchFiltersContext:
 
 ## Request Flow
 ### 1. Viewport top places
-The viewport fetch hook builds a screen-adjusted bbox and requests matching top places.
+The viewport fetch hook builds a screen-adjusted bbox and requests top places for the current viewport.
 
-### 2. Nearby bubble top places
-When a search mask exists, the nearby fetch hook requests context rows around the mask and passes them into the merge step.
+### 2. Bubble top places
+When a search mask exists, the nearby fetch hook issues a dedicated top-places request centered on the bubble with a radius, rather than reusing the generic nearby-place endpoint.
 
 ### 3. Unified request limit
-The fetch layer uses a shared limit constant so viewport and nearby requests stay aligned.
+The fetch layer uses a shared limit constant so viewport and bubble requests stay aligned.
 
 ## Data Model Used by Layer
 Top-place rows flowing through the layer use:
@@ -69,12 +69,12 @@ Nearby-derived items may have missing display fields, which are treated as null 
 ## Merge Strategy
 The layer keeps two input sources:
 1. viewport places
-2. nearby/bubble places
+2. bubble/top-places results
 
 Rules:
-1. Viewport items inside the search mask are filtered out.
-2. Bubble items are always retained when they are part of the merged active set.
-3. Both lists are merged by `id`.
+1. Bubble-result ids are treated as the dedupe key for the merged set.
+2. Viewport items already represented by a bubble-result id are excluded from the final list.
+3. Bubble items are retained as part of the merged active set.
 4. The resulting active ids are published through the reporting hook.
 
 ## Marker Sync Pipeline
