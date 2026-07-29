@@ -2,7 +2,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
 }
 .switch-label {
   min-width: 52px;

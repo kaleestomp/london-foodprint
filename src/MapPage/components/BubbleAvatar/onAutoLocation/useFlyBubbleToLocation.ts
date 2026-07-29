@@ -5,23 +5,18 @@ import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
 import { type LatLng, type Point } from '../config';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import useIsMobile from '../../../../utils/browser/useIsMobile';
+import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 
 type props = {
     mapRef: React.RefObject<L.Map | null>;
     targetLatLng: LatLng | null;
     droppedPos: LatLng | null;
     token: number | null;
-    handleDrop: (lat: number, lng: number) => void;
-    resetBubbleToHome: (from?: Point) => void;
 };
-const useFlyBubbleToLocation = ({ 
-    mapRef,
-    targetLatLng,
-    droppedPos,
-    token,
-    handleDrop,
-    resetBubbleToHome,
- }: props) => { 
+const useFlyBubbleToLocation = ({ mapRef, targetLatLng, droppedPos, token }: props) => { 
+
+    const { resetBubbleToHome, handleDrop } = useBubbleAvatarState();
+
     const isMobile = useIsMobile();
     const { panelHeight, translateY } = usePullUpPanelMetrics();
 

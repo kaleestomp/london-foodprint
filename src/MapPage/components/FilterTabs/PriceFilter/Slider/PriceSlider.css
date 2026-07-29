@@ -4,73 +4,51 @@
     align-self: center;
     height: 56px;
     
-    --tumb-size: 24px;
-    --overun: calc((var(--tumb-size) / 2) + 4px);
+    --tumb-size: 20px;
+    --overun: calc((var(--tumb-size) / 2) + 6px);
+    --slider-color: var(--app-primary-black);
 
     margin: 0px;
-    margin-top: -38px;
+    margin-top: -23px;
     padding: 0px;
-    width: 71.5%;
+    width: 72%;
     padding-inline: var(--overun);
     box-sizing: border-box;
     overflow: visible;
     z-index: 5;
 }
 
-.price-filter-panel__slider-wrap::before,
-.price-filter-panel__slider-wrap::after {
-    content: '';
-    position: absolute;
-    top: 32%;
-    width: var(--overun);
-    height: 4px;
-    transform: translateY(-50%);
-    border-radius: 999px;
-    background: var(--app-secondary-grey);
-    pointer-events: none;
-    z-index: 0;
-}
-.price-filter-panel__slider-wrap::before {
-    left: 0;
-}
-.price-filter-panel__slider-wrap::after {
-    right: 0;
-}
-
 .price-filter-panel__slider-wrap .MuiSlider-markLabel {
-    /* font-size: 0.72rem; */
-    margin-top: -2px;
-    color: rgba(0,0,0,0.24);
+    /* color: var(--app-text-caption-color); */
+    color: var(--app-primary-black);
 }
 
 .price-filter-panel__slider-wrap .MuiSlider-thumb {
     width: var(--tumb-size);
     height: var(--tumb-size);
-    background-color: #ffffff;
-    border: 4px solid var(--app-primary-blue);
-    box-shadow: 0 3px 10px var(--app-secondary-grey);
+    background-color: var(--app-paper-color);
+    border: 4px solid var(--slider-color);
     z-index: 10;
 }
 
-.price-filter-panel__slider-wrap .MuiSlider-thumb:hover,
 .price-filter-panel__slider-wrap .MuiSlider-thumb.Mui-focusVisible,
 .price-filter-panel__slider-wrap .MuiSlider-thumb.Mui-active {
-    box-shadow: 0 4px 12px var(--app-secondary-grey);
+    box-shadow: 0 0 0 14px color-mix(in srgb, var(--slider-color) 20%, transparent);
 }
 
 .price-filter-panel__slider-wrap .MuiSlider-rail {
     background-color: var(--app-secondary-grey);
-    opacity: 1;
+    opacity: 0;
 }
 .price-filter-panel__slider-wrap .MuiSlider-track {
-    background-color: var(--app-primary-blue);
+    background-color: var(--slider-color);
+    border: 1px solid var(--slider-color);
+    height: 1px;
+    opacity: 1;
 }
 
-.price-filter-panel__slider-wrap .MuiSlider-mark {
-    display: none;
-    background-color: var(--app-secondary-grey);
-}
+.price-filter-panel__slider-wrap .MuiSlider-mark,
 .price-filter-panel__slider-wrap .MuiSlider-markActive {
-    background-color: var(--app-primary-blue);
+    background-color: var(--app-secondary-grey);
 }
 

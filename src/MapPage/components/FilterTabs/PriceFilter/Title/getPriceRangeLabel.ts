@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import {
   PRICE_RANGE_FILTER_OPTIONS,
   useSearchFilters,
-} from '../../../../../../context/SearchFiltersContext';
+} from '../../../../../context/SearchFiltersContext';
 
 
 const formatPriceLabel = (label: string) => {

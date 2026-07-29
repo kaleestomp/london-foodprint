@@ -3,7 +3,7 @@
 import IconButton from '@mui/material/IconButton';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import { ratingOptions, BADGE } from './RatingIcons';
+import { ratingOptions, RANK_BADGE } from '../RatingIcons';
 import './RatingBar.css';
 
 
@@ -24,7 +24,7 @@ const RatingBar: React.FC = () => {
             onClick={() => setScoreTier(selected ? 0 : option.tier)}
           >
             <span className={`rating-filter-button-icon tier-${option.tier}`} aria-hidden="true">
-              <BADGE tier={option.tier} filled={selected} />
+              <RANK_BADGE tier={option.tier} filled={selected} />
             </span>
           </IconButton>
         );

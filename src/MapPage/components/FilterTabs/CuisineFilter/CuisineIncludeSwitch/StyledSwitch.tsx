@@ -1,31 +1,21 @@
-import type { CSSProperties } from 'react';
 import Switch from '@mui/material/Switch';
-import type { SwitchProps } from '@mui/material/Switch';
-import { lighten, styled } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 
-const THUMB_SIZE = 45;
-const ICON_SIZE = 35; //28
-const TRACK_HEIGHT = 24; //24
+const THUMB_SIZE = 38;
+const ICON_SIZE = 30; //28
+const TRACK_HEIGHT = 28; //24
 const TRACK_PADDING = 0;
 const TRACK_MARGIN = 5;
 const SHOW_TEXT = false; //false
 const MARGIN = 4;
-const LENGTH_FACTOR = 0.7; //1.25
+const LENGTH_FACTOR = 0.8; //1.25
 const satisfiedIconSvg = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' height='${ICON_SIZE}' width='${ICON_SIZE}' viewBox='0 0 24 24'><circle cx='15.5' cy='9.5' r='1.5' fill='${encodeURIComponent('#fff')}'/><circle cx='8.5' cy='9.5' r='1.5' fill='${encodeURIComponent('#fff')}'/><path fill='${encodeURIComponent('#fff')}' d='M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2M12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8m0-2.5c2.33 0 4.32-1.45 5.12-3.5h-1.67c-.69 1.19-1.97 2-3.45 2s-2.75-.81-3.45-2H6.88c.8 2.05 2.79 3.5 5.12 3.5'/></svg>")`;
 const dissatisfiedIconSvg = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' height='${ICON_SIZE}' width='${ICON_SIZE}' viewBox='0 0 24 24'><circle cx='15.5' cy='9.5' r='1.5' fill='${encodeURIComponent('#fff')}'/><circle cx='8.5' cy='9.5' r='1.5' fill='${encodeURIComponent('#fff')}'/><path fill='${encodeURIComponent('#fff')}' d='M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2M12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8m0-3.5c.73 0 1.39.19 1.97.53.12-.14.86-.98 1.01-1.14-.85-.56-1.87-.89-2.98-.89s-2.13.33-2.99.88c.97 1.09.01.02 1.01 1.14.59-.33 1.25-.52 1.98-.52'/></svg>")`;
 // const satisfiedIconSvg = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' height='${ICON_SIZE}' width='${ICON_SIZE}' viewBox='0 0 24 24'><circle cx='15.5' cy='9.5' r='1.5' fill='${encodeURIComponent('#fff')}'/><circle cx='8.5' cy='9.5' r='1.5' fill='${encodeURIComponent('#fff')}'/><path fill='${encodeURIComponent('#fff')}' d='M7 14c.9 2 2.8 3.3 5 3.3s4.1-1.3 5-3.3h-1.8c-.7 1.1-1.9 1.8-3.2 1.8s-2.5-.7-3.2-1.8z'/></svg>")`;
 // const dissatisfiedIconSvg = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' height='${ICON_SIZE}' width='${ICON_SIZE}' viewBox='0 0 24 24'><circle cx='15.5' cy='9.5' r='1.5' fill='${encodeURIComponent('#fff')}'/><circle cx='8.5' cy='9.5' r='1.5' fill='${encodeURIComponent('#fff')}'/><path fill='${encodeURIComponent('#fff')}' d='M7 16.2c1.2-1 2.9-1.6 5-1.6s3.8.6 5 1.6l-1.1 1.3c-.9-.7-2.2-1.2-3.9-1.2s-3 .5-3.9 1.2z'/></svg>")`;
 
-type MaterialUISwitchProps = SwitchProps & {
-  uncheckedThumbColor?: string;
-  uncheckedTrackColor?: string;
-  checkedThumbColor?: string;
-  checkedTrackColor?: string;
-  uncheckedThumbIcon?: string;
-  checkedThumbIcon?: string;
-};
 
-const StyledMaterialUISwitch = styled(Switch)(() => ({
+const StyledSwitch = styled(Switch)(() => ({
   '--switch-unchecked-thumb': 'rgb(45, 45, 45)', //30333a 1565c0
   '--switch-unchecked-track': 'rgba(45, 45, 45, 0.5)', //64b5f6
   '--switch-checked-thumb': '#ef6c00', //ef6c00
@@ -107,29 +97,4 @@ const StyledMaterialUISwitch = styled(Switch)(() => ({
   },
 }));
 
-const MaterialUISwitch: React.FC<MaterialUISwitchProps> = ({
-  uncheckedThumbColor = '#1565c0',
-  uncheckedTrackColor,
-  checkedThumbColor = '#ef6c00',
-  checkedTrackColor,
-  uncheckedThumbIcon = satisfiedIconSvg,
-  checkedThumbIcon = dissatisfiedIconSvg,
-  style,
-  ...props
-}) => {
-  const resolvedUncheckedTrackColor = uncheckedTrackColor ?? lighten(uncheckedThumbColor, 0.45);
-  const resolvedCheckedTrackColor = checkedTrackColor ?? lighten(checkedThumbColor, 0.45);
-
-  const switchVars = {
-    '--switch-unchecked-thumb': uncheckedThumbColor,
-    '--switch-unchecked-track': resolvedUncheckedTrackColor,
-    '--switch-checked-thumb': checkedThumbColor,
-    '--switch-checked-track': resolvedCheckedTrackColor,
-    '--switch-unchecked-icon': uncheckedThumbIcon,
-    '--switch-checked-icon': checkedThumbIcon,
-  } as CSSProperties;
-
-  return <StyledMaterialUISwitch {...props} style={{ ...switchVars, ...style }} />;
-};
-
-export default MaterialUISwitch;
+export default StyledSwitch;

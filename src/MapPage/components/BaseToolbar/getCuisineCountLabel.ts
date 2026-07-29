@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSearchFilters } from '../../../context/SearchFiltersContext';
 // import { useBubbleAvatarState } from '../BubbleAvatar/BubbleAvatarStateContext';
-import getCuisineHistRequestParams from '../PullUpPanel/OverviewSection/CuisineFilter/Input/getCuisineHistRequestParams';
+import getCuisineHistRequestParams from '../FilterTabs/CuisineFilter/Input/getCuisineHistRequestParams';
 import useRequestCuisineHistogram from '../../request/useRequestCuisineHistogram/useRequestCuisineHistogram';
 
 

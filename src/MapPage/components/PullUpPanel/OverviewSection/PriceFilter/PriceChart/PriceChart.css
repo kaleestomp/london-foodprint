@@ -1,7 +1,0 @@
-.price-filter-panel__chart-wrap {
-    width: 100%;
-    position: relative;
-    align-self: center;
-    padding-top: var(--app-layout-margin);
-    z-index: 1;
-}

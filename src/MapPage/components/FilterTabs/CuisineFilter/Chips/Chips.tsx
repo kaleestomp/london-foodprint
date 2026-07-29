@@ -1,41 +1,38 @@
-import { useMemo, useState } from 'react';
-import type L from 'leaflet';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import Chip from '@mui/material/Chip';
 import {
     CUISINE_FILTER_OPTIONS,
     useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
-import getCuisineDensity from './getCuisineDensity';
+import { type CuisineHistogramEntry } from '../../../../request/useRequestCuisineHistogram/request';
+
 
 import './Chips.css';
 
-const COLLAPSED_COUNT = 6;
-const EXPAND_STEP = 6;
+const COLLAPSED_COUNT = 16;
+const EXPAND_STEP = 16;
 
 type Props = {
-    mapRef: React.RefObject<L.Map | null>;
+    cuisineData: CuisineHistogramEntry[] | null;
 };
 
-const CuisineFilterChips: React.FC<Props> = ({ mapRef }) => {
-    const {
-        cuisines,
-        cuisineSelectionMode,
-        toggleCuisine,
-        clearCuisines,
-    } = useSearchFilters();
+const CuisineFilterChips: React.FC<Props> = ({ cuisineData }) => {
+
+    const { cuisines, cuisineSelectionMode, toggleCuisine, clearCuisines } = useSearchFilters();
     const [visibleCount, setVisibleCount] = useState(COLLAPSED_COUNT);
-    const { res } = getCuisineDensity({ mapRef, isGlobal: false });
+    const wasAtBottomRef = useRef(false);
     const isExcludeMode = cuisineSelectionMode === 'exclude';
     const anyChipLabel = isExcludeMode ? 'None' : 'Any';
+    const isAnyChipActive = cuisines.length === 0;
 
     const selectedSet = useMemo(() => new Set(cuisines), [cuisines]);
     const countsByCuisine = useMemo(() => {
         const map = new Map<string, number>();
-        for (const entry of res?.cuisine_histogram ?? []) {
+        for (const entry of cuisineData ?? []) {
             map.set(entry.cuisine, entry.count);
         }
         return map;
-    }, [res]);
+    }, [cuisineData]);
     const orderedOptions = useMemo(() => {
         const byDensityDesc = (left: string, right: string): number => {
             const leftCount = countsByCuisine.get(left) ?? 0;
@@ -52,55 +49,48 @@ const CuisineFilterChips: React.FC<Props> = ({ mapRef }) => {
 
         return [...selected, ...unselected];
     }, [countsByCuisine, selectedSet]);
+
     const visibleOptions = useMemo(() => {
         return orderedOptions.slice(0, visibleCount);
     }, [orderedOptions, visibleCount]);
 
     const hasHidden = visibleOptions.length < CUISINE_FILTER_OPTIONS.length;
+    const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+        if (!hasHidden) return;
+        const node = event.currentTarget;
+        const isAtBottom = node.scrollTop + node.clientHeight >= node.scrollHeight;
 
-    return (<>
-        <Chip
-            label={anyChipLabel}
-            clickable
-            color={isExcludeMode ? 'warning' : (cuisines.length === 0 ? 'primary' : 'default')}
-            variant={isExcludeMode ? 'filled' : (cuisines.length === 0 ? 'filled' : 'outlined')}
-            onClick={clearCuisines}
-        />
-        {visibleOptions.map((option) => {
-            const selected = selectedSet.has(option);
-            const density = countsByCuisine.get(option) ?? 0;
-            return (
-                <Chip
-                    key={option}
-                    label={`${option} | ${density}`}
-                    clickable
-                    color={selected ? (cuisineSelectionMode === 'exclude' ? 'warning' : 'primary') : 'default'}
-                    variant={selected ? 'filled' : 'outlined'}
-                    onClick={() => toggleCuisine(option)}
-                />
-            );
-        })}
-        {hasHidden ? (
+        if (isAtBottom && !wasAtBottomRef.current) {
+            setVisibleCount((prev) => Math.min(prev + EXPAND_STEP, orderedOptions.length));
+        }
+        wasAtBottomRef.current = isAtBottom;
+    }, [hasHidden, orderedOptions.length]);
+
+    return (
+        <div className="cuisine-filter-chips-panel" onScroll={handleScroll}>
             <Chip
-                label="+"
+                label={anyChipLabel}
                 clickable
-                variant="outlined"
-                className="cuisine-filter-panel__toggle-chip"
-                onClick={() => setVisibleCount((prev) => Math.min(prev + EXPAND_STEP, orderedOptions.length))}
-                aria-label="Show more cuisines"
+                color={isExcludeMode ? (isAnyChipActive ? 'warning' : 'default') : (isAnyChipActive ? 'primaryBlack' : 'default')}
+                variant={isAnyChipActive ? 'filled' : 'outlined'}
+                onClick={clearCuisines}
             />
-        ) : null}
-        {visibleCount > COLLAPSED_COUNT ? (
-            <Chip
-                label="-"
-                clickable
-                variant="outlined"
-                className="cuisine-filter-panel__toggle-chip"
-                onClick={() => setVisibleCount(COLLAPSED_COUNT)}
-                aria-label="Collapse cuisines"
-            />
-        ) : null}
-    </>);
+            {visibleOptions.map((option) => {
+                const selected = selectedSet.has(option);
+                const density = countsByCuisine.get(option) ?? 0;
+                return (
+                    <Chip
+                        key={option}
+                        label={`${option} | ${density}`}
+                        clickable
+                        color={selected ? (cuisineSelectionMode === 'exclude' ? 'warning' : 'primaryBlack') : 'default'}
+                        variant={selected ? 'filled' : 'outlined'}
+                        onClick={() => toggleCuisine(option)}
+                    />
+                );
+            })}
+        </div>
+    );
 };
 
 export default CuisineFilterChips;

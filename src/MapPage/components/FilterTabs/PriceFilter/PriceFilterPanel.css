@@ -1,12 +1,40 @@
-.price-filter-panel__content {
+.price-filter-panel {
     width: 100%;
+    position: relative;
+    padding: 0px var(--app-layout-margin) 24px;
+
+}
+
+.price-filter-content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
 }
-.title-row {
-    position: relative;
+
+.title-block {
+    /* position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    pointer-events: none; */
+
     display: flex;
-    align-items: flex-end;
+    flex-direction: row;
     justify-content: space-between;
+    align-items: flex-start;
+    position: relative;
+
+    color: var(--app-primary-black);
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    text-transform: uppercase;
+    line-height: 1.0;
+}
+
+.title-block .top {
+    font-size: 16px;
+}
+
+.title-block .bottom {  
+    font-size: 24px;
+    font-weight: bold;
 }

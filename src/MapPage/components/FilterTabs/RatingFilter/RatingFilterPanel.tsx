@@ -1,20 +1,19 @@
 import Typography from '@mui/material/Typography';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import FilterTabPanel from '../FilterTabPanel';
+import TemplateWrapper from '../TemplateWrapper/TemplateWrapper';
 import RatingBar from './RatingBar/RatingBar';
 import RatingSwitch from './Switch/RatingSwitch';
 
-import { ratingOptions } from './RatingBar/RatingIcons';
-import './RatingFilterPanel.css';
+import { ratingOptions } from './RatingIcons';
+import '../TemplateWrapper/TemplateWrapper.css';
 
 const RatingFilterPanel: React.FC = () => {
   const { scoreTier } = useSearchFilters();
   const selectedOption = ratingOptions.find((option) => option.tier === scoreTier);
 
   return (
-    <FilterTabPanel
+    <TemplateWrapper
       title="Ratings"
-      className="rating-filter-panel"
       headerContent={<RatingSwitch />}
     >
       <div className="rating-filter-panel__content">
@@ -25,7 +24,7 @@ const RatingFilterPanel: React.FC = () => {
           </Typography>
         ) : null}
       </div>
-    </FilterTabPanel>
+    </TemplateWrapper>
   );
 };
 

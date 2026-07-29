@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 
 import { useAppUI } from '../../../../context/AppUIContext';
-import PriceFilterPanel from './PriceFilter/PriceFilterPanel';
-import CuisineFilterPanel from './CuisineFilter/CuisineFilterPanel';
-import RatingFilterPanel from './RatingFilter/RatingFilterPanel';
+import PriceFilterPanel from '../../FilterTabs/PriceFilter/PriceFilterPanel';
+import CuisineFilterPanel from '../../FilterTabs/CuisineFilter/CuisineFilterPanel';
+import RatingFilterPanel from '../../FilterTabs/RatingFilter/RatingFilterPanel';
 
 import './OverviewSection.css';
 

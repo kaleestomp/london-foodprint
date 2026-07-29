@@ -3,9 +3,9 @@ import { useMemo } from 'react';
 import {
   PRICE_RANGE_FILTER_OPTIONS,
   useSearchFilters,
-} from '../../../../../../context/SearchFiltersContext';
+} from '../../../../../context/SearchFiltersContext';
 
-import { primaryBlack, secondaryGrey } from '../../../../../../utils/styling/Colors';
+import { primaryBlack, secondaryGrey } from '../../../../../utils/styling/Colors';
 import './PriceChart.css';
 
 
