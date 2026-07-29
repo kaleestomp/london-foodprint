@@ -27,10 +27,10 @@ const syncTopPlaceMarkers = (
   data.forEach((place) => {
     const cached = cache.get(place.id);
     const marker = cached?.marker ?? L.marker([place.lat, place.lon], {
-      icon: makeTopPlacePinIcon(),
+      icon: makeTopPlacePinIcon( place?.cuisine_type ?? undefined ),
       zIndexOffset: 1400,
     });
-
+    
     if (cached) {
       cancelScheduledRemoval(cached);
       // Marker can be reactivated while still on-layer with an exit class

@@ -11,6 +11,7 @@ import useTopPlacesViewport from './useTopPlacesViewport';
 import { type SearchMask } from '../LayerStates/filterTileOutsideMask';
 import selectTopRankedPlaces from '../../../../utils/selectTopRankedPlaces';
 import './addTopPlacePins/topPlacePin.css';
+const FETCH_LIMIT = 15;
 
 type UseTopPlacesLayerArgs = {
   mapRef: React.RefObject<L.Map | null>;
@@ -60,7 +61,7 @@ const useTopPlacesLayer = ({
       venue_type: venueType ?? undefined,
       score_basis: scoreBasis,
       score_tier: scoreTier,
-      limit: 10,
+      limit: FETCH_LIMIT,
     };
   }, [
     enabled,
@@ -128,7 +129,7 @@ const useTopPlacesLayer = ({
       setBubbleTopPlaces([]);
       return;
     }
-    setBubbleTopPlaces(selectTopRankedPlaces(nearbyRes.data, 10).map(mapNearbyToTopPlace));
+    setBubbleTopPlaces(selectTopRankedPlaces(nearbyRes.data, FETCH_LIMIT).map(mapNearbyToTopPlace));
   }, [
     enabled,
     searchMask,

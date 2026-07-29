@@ -1,14 +1,15 @@
 import L from 'leaflet';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import bakeryIconSrc from '../../../../../../assets/icon_cuisines/bakery.png';
+import getCuisineIconSrc from './getCuisineIconSrc';
 
-const TEST_ICON_SRC = bakeryIconSrc;
 const ICON_SIZE = 24; // All pins same size 22
 const ENTER_CLASS = 'enter-animation';
 const EXIT_CLASS = 'exit-animation';
 
-const makeTopPlacePinIcon = (): L.DivIcon => {
+const makeTopPlacePinIcon = (cuisineType?: string): L.DivIcon => {
+
+  const iconSrc = getCuisineIconSrc(cuisineType);
 
   return L.divIcon({
     className: '',
@@ -19,8 +20,9 @@ const makeTopPlacePinIcon = (): L.DivIcon => {
       <div class="top-place-pin-hover">
         <div class="top-place-pin-motion">
           ${renderToStaticMarkup(createElement('img', {
-              src: TEST_ICON_SRC, alt: '', 
-              className: 'top-place-pin-image', 
+              src: iconSrc,
+              alt: cuisineType ?? '',
+              className: 'top-place-pin-image',
               style: { width: `${ICON_SIZE}px`, height: `${ICON_SIZE}px` },
               draggable: false,
           }))}

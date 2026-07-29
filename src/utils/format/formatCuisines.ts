@@ -1,4 +1,4 @@
-export const CUISINE_DISPLAY = {
+export const CUISINE_DISPLAY: Record<string, string> = {
   
   'Italian': 'Italian',
   'Mediterranean': 'Mediterranean',
@@ -20,8 +20,8 @@ export const CUISINE_DISPLAY = {
   'Burgers': 'Burgers',
   'Cafe & Coffee': 'Cafe',
   'American': 'American',
-  'Dessert & Ice Cream': 'Dessert',
-  'Eastern European': 'Eastern European',
+  'Dessert & Ice Cream': 'Desert',
+  'Eastern European': 'East European',
 
   'Family Restaurant': 'Family Restaurant',
   'Fast Food': 'Fast Food',
@@ -32,13 +32,13 @@ export const CUISINE_DISPLAY = {
   'Kebab Shop': 'Kebab',
   'Latin American': 'Latin American',
   'Middle Eastern': 'Middle Eastern',
-  'Northern European': 'Northern European',
+  'Northern European': 'North European',
   'Pizza': 'Pizza',
   'Sandwich & Deli': 'Deli',
   'Seafood': 'Seafood',
   'South Asian': 'South Asian',
   'Southeast Asian': 'Southeast Asian',
-  'Southern European': 'Southern European',
+  'Southern European': 'South European',
   'Steakhouse & BBQ': 'Steakhouse',
   'Tapas': 'Tapas',
   'Unspecified': 'Unspecified',
