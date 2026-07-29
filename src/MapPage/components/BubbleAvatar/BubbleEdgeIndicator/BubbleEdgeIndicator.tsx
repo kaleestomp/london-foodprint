@@ -16,6 +16,7 @@ const EDGE_INSET_LEFT = INDICATOR_R * EDGE_INSET_TL_SCALE;
 const EDGE_INSET_TOP = INDICATOR_R * EDGE_INSET_TL_SCALE;
 const EDGE_INSET_RIGHT = INDICATOR_R * EDGE_INSET_BR_SCALE;
 const EDGE_INSET_BOTTOM = INDICATOR_R * EDGE_INSET_BR_SCALE;
+const EDGE_INDICATOR_TARGET_ZOOM = 14;
 
 /**
  * Given the avatar's projected screen coordinates (possibly off-screen),
@@ -127,7 +128,16 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
     cancelLongPress();
     if (wasLongPress.current) return; // long-press already handled
     const map = mapRef.current;
-    if (map && droppedPos) map.setView([droppedPos.lat, droppedPos.lng], 16, { animate: true });
+    if (!map || !droppedPos) return;
+
+    const currentZoom = map.getZoom();
+    const target: L.LatLngExpression = [droppedPos.lat, droppedPos.lng];
+    if (currentZoom < EDGE_INDICATOR_TARGET_ZOOM) {
+      map.panTo(target, { animate: true });
+      return;
+    }
+    map.setView(target, EDGE_INDICATOR_TARGET_ZOOM, { animate: true });
+    
   }, [mapRef, droppedPos, cancelLongPress]);
 
   return (
