@@ -1,7 +1,7 @@
 import L from 'leaflet';
 
 import type { TopPlaceItem } from '../../../../../request/useRequestTopPlaces/request';
-import makeTopPlacePinIcon, { animateTopPlacePinExit, clearTopPlacePinTransitions, restartTopPlacePinEnter } from './makeTopPlacePinIcon';
+import TopPlacePin, { animateTopPlacePinExit, clearTopPlacePinTransitions, restartTopPlacePinEnter } from './TopPlacePin';
 import { cancelScheduledRemoval, markMarkerSeen, pruneInactiveExpiredEntries, scheduleExitRemoval, type TopPlacesLifecycleCache } from './topPlacesMarkerLifecycle';
 
 const TOP_PLACE_PIN_CACHE_TTL_MS = 30 * 1000;
@@ -27,7 +27,7 @@ const syncTopPlaceMarkers = (
   data.forEach((place) => {
     const cached = cache.get(place.id);
     const marker = cached?.marker ?? L.marker([place.lat, place.lon], {
-      icon: makeTopPlacePinIcon( place?.cuisine_type ?? undefined ),
+      icon: TopPlacePin( place?.cuisine_type ?? undefined ),
       zIndexOffset: 1400,
     });
     

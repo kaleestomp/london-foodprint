@@ -7,6 +7,7 @@ import useIsMobile from '../../../../../utils/browser/useIsMobile';
 import { MOBILE_PEEK_PX } from '../../../PullUpPanel/SnapHooks/config';
 
 const DESKTOP_LEFT_OFFSET_PX = 360;
+const THROTTLE_MS = 80;
 
 export type TopPlacesViewportParams = {
   sw_lat: number;
@@ -19,7 +20,7 @@ export type TopPlacesViewportParams = {
 const useTopPlacesViewport = (
   mapRef: React.RefObject<L.Map | null>,
   enabled: boolean,
-  throttleMs: number,
+  throttleMs: number = THROTTLE_MS,
 ): TopPlacesViewportParams | null => {
   const isMobile = useIsMobile();
   const [viewportParams, setViewportParams] = useState<TopPlacesViewportParams | null>(null);

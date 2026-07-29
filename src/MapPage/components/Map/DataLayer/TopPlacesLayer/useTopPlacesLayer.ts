@@ -1,141 +1,30 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
-import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import useRequestTopPlaces, { type TopPlacesParams } from '../../../../request/useRequestTopPlaces/useRequestTopPlaces';
-import { type TopPlaceItem } from '../../../../request/useRequestTopPlaces/request';
-import { type NearbyPlace } from '../../../../request/useRequestNearby/request';
-import useRequestNearby from '../../../../request/useRequestNearby/useRequestNearby';
+import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
+import useFetchTopPlaces from './InputHooks/useFetchTopPlaces';
 import syncTopPlaceMarkers, { type TopPlaceMarkerCache } from './addTopPlacePins/addTopPlaceMarkers';
-import useTopPlacesViewport from './useTopPlacesViewport';
-import { type SearchMask } from '../LayerStates/filterTileOutsideMask';
-import selectTopRankedPlaces from '../../../../utils/selectTopRankedPlaces';
-import './addTopPlacePins/topPlacePin.css';
-const FETCH_LIMIT = 15;
+import useReportTopPlacesIDs from './reportHooks/useReportTopPlacesIDs';
+
+import './addTopPlacePins/TopPlacePin.css';
 
 type UseTopPlacesLayerArgs = {
   mapRef: React.RefObject<L.Map | null>;
+  setActiveTopPlaceIds?: (ids: string[]) => void;
   enabled: boolean;
-  selectedPlaceId: string | null;
-  setSelectedPlaceId: (placeId: string | null) => void;
-  onActiveTopPlaceIdsChange?: (ids: string[]) => void;
-  throttleMs?: number;
 };
 
-const useTopPlacesLayer = ({
-  mapRef,
-  enabled,
-  selectedPlaceId,
-  setSelectedPlaceId,
-  onActiveTopPlaceIdsChange,
-  throttleMs = 80,
-}: UseTopPlacesLayerArgs): void => {
-  const {
-    effectiveCuisines,
-    effectivePriceRanges,
-    venueType,
-    scoreBasis,
-    scoreTier,
-    searchMask,
-  } = useSearchFilters();
+const useTopPlacesLayer = ({ mapRef, setActiveTopPlaceIds, enabled }: UseTopPlacesLayerArgs): void => {
 
+  const topPlaces = useFetchTopPlaces({ mapRef, enabled });
+  useReportTopPlacesIDs({ topPlaces, setActiveTopPlaceIds, enabled });
+
+  const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
   const topPlacesLayerRef = useRef<L.LayerGroup | null>(null);
   const topPlaceCacheRef = useRef<TopPlaceMarkerCache>(new Map());
   const topPlaceMarkersRef = useRef<Map<string, L.Marker>>(new Map());
-  const [viewportTopPlaces, setViewportTopPlaces] = useState<TopPlaceItem[]>([]);
-  const [bubbleTopPlaces, setBubbleTopPlaces] = useState<TopPlaceItem[]>([]);
-
-  const viewportParams = useTopPlacesViewport(mapRef, enabled, throttleMs);
-
-  const topPlacesParams = useMemo<TopPlacesParams | null>(() => {
-    if (!enabled || !viewportParams) return null;
-
-    return {
-      sw_lat: viewportParams.sw_lat,
-      sw_lng: viewportParams.sw_lng,
-      ne_lat: viewportParams.ne_lat,
-      ne_lng: viewportParams.ne_lng,
-      res: viewportParams.res,
-      cuisines: effectiveCuisines,
-      cost: effectivePriceRanges,
-      venue_type: venueType ?? undefined,
-      score_basis: scoreBasis,
-      score_tier: scoreTier,
-      limit: FETCH_LIMIT,
-    };
-  }, [
-    enabled,
-    viewportParams,
-    effectiveCuisines,
-    effectivePriceRanges,
-    venueType,
-    scoreBasis,
-    scoreTier,
-  ]);
-
-  const nearbyParams = useMemo(() => {
-    if (!enabled || !searchMask) return null;
-
-    return {
-      lat: searchMask.center.lat,
-      lng: searchMask.center.lng,
-      radius_m: searchMask.radiusM,
-      cuisines: effectiveCuisines,
-      venue_type: venueType ?? '',
-      cost: effectivePriceRanges,
-      score_basis: scoreBasis,
-      score_tier: scoreTier,
-    };
-  }, [
-    enabled,
-    searchMask,
-    effectiveCuisines,
-    venueType,
-    effectivePriceRanges,
-    scoreBasis,
-    scoreTier,
-  ]);
-
-  const { res: nearbyRes } = useRequestNearby(nearbyParams);
-
-  const {
-    status: topPlacesStatus,
-    res: topPlacesRes,
-    queryKey: topPlacesQueryKey,
-    responseKey: topPlacesResponseKey,
-  } = useRequestTopPlaces(topPlacesParams, { debounceMs: 0 });
-
-  // Keep viewport top places sticky through in-flight pan requests so markers
-  // don't disappear when the viewport query key changes before success.
-  useEffect(() => {
-    if (!enabled) {
-      setViewportTopPlaces([]);
-      return;
-    }
-    if (topPlacesStatus !== 'success' || !topPlacesRes) return;
-    if (topPlacesResponseKey !== topPlacesQueryKey) return;
-
-    setViewportTopPlaces(topPlacesRes.data);
-  }, [
-    enabled,
-    topPlacesStatus,
-    topPlacesRes,
-    topPlacesQueryKey,
-    topPlacesResponseKey,
-  ]);
-
-  useEffect(() => {
-    if (!enabled || !searchMask || !nearbyRes) {
-      setBubbleTopPlaces([]);
-      return;
-    }
-    setBubbleTopPlaces(selectTopRankedPlaces(nearbyRes.data, FETCH_LIMIT).map(mapNearbyToTopPlace));
-  }, [
-    enabled,
-    searchMask,
-    nearbyRes,
-  ]);
-
+  
+  // Layer Created on Map Mount
   useEffect(() => {
     if (!enabled) return;
     const map = mapRef.current;
@@ -153,39 +42,23 @@ const useTopPlacesLayer = ({
       topPlacesLayerRef.current = null;
       layer.remove();
     };
-  }, [enabled, mapRef]);
+  }, [mapRef, enabled]);
 
+  // Sync Markers with TopPlaces Data
   useEffect(() => {
     const layer = topPlacesLayerRef.current;
     if (!enabled || !layer) return;
-    const maskedViewportTopPlaces = filterViewportTopPlacesOutsideMask(viewportTopPlaces, searchMask);
-
-    const mergedTopPlaces = mergeTopPlacesById(maskedViewportTopPlaces, bubbleTopPlaces);
-    onActiveTopPlaceIdsChange?.(mergedTopPlaces.map((place) => place.id));
 
     topPlaceMarkersRef.current = syncTopPlaceMarkers(
       layer,
-      mergedTopPlaces,
+      topPlaces,
       topPlaceCacheRef.current,
       (placeId) => setSelectedPlaceId(placeId),
       { selectedPlaceId },
     );
-  }, [
-    enabled,
-    searchMask,
-    viewportTopPlaces,
-    bubbleTopPlaces,
-    selectedPlaceId,
-    setSelectedPlaceId,
-    onActiveTopPlaceIdsChange,
-  ]);
+  }, [ topPlaces, selectedPlaceId, setSelectedPlaceId, enabled ]);
 
-  useEffect(() => {
-    if (!enabled) {
-      onActiveTopPlaceIdsChange?.([]);
-    }
-  }, [enabled, onActiveTopPlaceIdsChange]);
-
+  // Update Selected Pin CSS State
   useEffect(() => {
     topPlaceMarkersRef.current.forEach((marker, placeId) => {
       const motion = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-motion');
@@ -202,52 +75,23 @@ const useTopPlacesLayer = ({
       motion.classList.add('is-selected');
       shell?.classList.add('is-selected');
     });
-  }, [selectedPlaceId, topPlacesResponseKey]);
+  }, [selectedPlaceId, topPlaces]);
 
+  // Deselect Top Place on Map Click
   useEffect(() => {
     if (!enabled) return;
     const map = mapRef.current;
     if (!map) return;
 
     const handleMapClick = () => {
-      if (selectedPlaceId) {
-        setSelectedPlaceId(null);
-      }
+      setSelectedPlaceId(null);
     };
 
     map.on('click', handleMapClick);
     return () => {
       map.off('click', handleMapClick);
     };
-  }, [enabled, mapRef, selectedPlaceId, setSelectedPlaceId]);
-};
-
-const filterViewportTopPlacesOutsideMask = <T extends { lat: number; lon: number }>(
-  places: T[],
-  searchMask: SearchMask | null,
-): T[] => {
-  if (!searchMask) return places;
-
-  const center = L.latLng(searchMask.center.lat, searchMask.center.lng);
-  return places.filter((place) => L.latLng(place.lat, place.lon).distanceTo(center) > searchMask.radiusM);
-};
-
-const mapNearbyToTopPlace = (place: NearbyPlace) => ({
-  id: place.id,
-  restaurant_name: null,
-  cuisine_type: null,
-  lat: place.lat,
-  lon: place.lon,
-  normal_1: null,
-  rank: place.rank,
-});
-
-const mergeTopPlacesById = <T extends { id: string }>(left: T[], right: T[]): T[] => {
-  const merged = new Map<string, T>();
-  [...left, ...right].forEach((place) => {
-    merged.set(place.id, place);
-  });
-  return [...merged.values()];
+  }, [mapRef, setSelectedPlaceId, enabled]);
 };
 
 export default useTopPlacesLayer;

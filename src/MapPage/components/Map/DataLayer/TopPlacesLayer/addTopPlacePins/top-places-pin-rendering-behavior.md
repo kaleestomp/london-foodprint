@@ -1,117 +1,107 @@
-# Top Places Pins: Intended Rendering Behavior
+# Top Places Pins: Rendering Behavior (Current)
 
-Date: 2026-07-10
+Date: 2026-07-29
 
 ## Purpose
-Define the intended frontend behavior for rendering top-place pins so map interactions feel stable and smooth during pan/zoom.
+Define the current frontend behavior for rendering top-place pins so pan/zoom interactions remain stable while selected pins feel expressive.
 
 ## Scope
-Applies to the top-place overlay pipeline used by:
-- Data layer integration and request wiring
-- Top-place marker synchronization logic
-- Top-place pin visual state transitions
+Applies to:
+- Top places request and viewport gating
+- Top-place marker synchronization and lifecycle
+- Top-place pin visual transitions and selected state behavior
+- Cuisine-based icon resolution
 
 ## Behavioral Goals
-1. Prevent visible flicker while panning and zooming.
-2. Avoid re-rendering the same pin when identity/state has not changed.
-3. Keep behavior deterministic when request responses arrive out of order.
-4. Keep implementation lightweight (small DOM/class updates over full marker recreation).
+1. Prevent marker flicker while panning/zooming.
+2. Reuse markers by id to avoid unnecessary DOM churn.
+3. Keep rendering deterministic under fast viewport changes.
+4. Keep selected pins visible until unselected.
+5. Render cuisine-specific icon imagery with a safe fallback.
 
 ## Source of Truth and Request Gating
 1. Top places are rendered only from successful responses.
 2. A response is applied only when `responseKey === queryKey`.
-3. Debounce is applied before requesting.
-4. Stale/in-flight request responses must not overwrite newer viewport state.
+3. Viewport top places are sticky during in-flight requests; the layer is not cleared on loading.
+4. Viewport and bubble top places are merged by id before rendering.
+5. Current fetch limit for both viewport and bubble top places is 15.
 
-## No-Flicker Rules
-1. Do not clear the top-place layer while a new request is loading.
-2. Keep currently displayed markers visible until a newer valid success payload is available.
-3. Apply updates incrementally (diff-based), not by full clear-and-rebuild.
+## Data Shape Used by Pins
+Top-place items currently carry:
+1. `id`
+2. `restaurant_name`
+3. `cuisine_type`
+4. `lat` / `lon`
+5. `normal_1`
+6. `rank`
+
+Notes:
+1. Bubble-derived top places map missing fields (`restaurant_name`, `cuisine_type`, `normal_1`) to null.
+2. Marker identity and lifecycle are always keyed by `id`.
 
 ## Marker Identity and Reuse
-Marker identity is keyed by `place.id`.
+For each incoming place:
+1. If cache contains `place.id`, reuse existing marker instance.
+2. Otherwise create marker once and attach click handler once.
+3. Update marker position only when lat/lon changed.
+4. Re-adding a cached marker clears stale transition classes and restarts enter animation.
 
-For each incoming place item:
-1. If marker exists in cache for the same `place.id`, reuse that marker instance.
-2. If marker does not exist, create a new marker and add it once.
-3. Bind click handler only when marker is newly created.
+## Selected Marker Persistence Rule
+The selected top-place marker is persistence-protected:
+1. If selected marker drops out of merged payload temporarily, it is kept active and visible.
+2. Pending removal timer for selected marker is canceled.
+3. Selected marker remains until unselected.
 
-## Update-Only-When-Changed Rules
-For reused markers:
-1. Position: call `setLatLng` only if lat/lon changed.
-2. Highlight: update highlight classes only if highlighted state changed.
-3. Z-index: update only when highlight state changed.
-4. If none of the above changed, do nothing to the marker.
+Unselection triggers:
+1. Map click on background.
+2. Selecting another top-place marker (selected id changes).
 
-## Highlight Semantics
-1. Highlight count is derived from total visible top places:
-   - If count >= 10: highlight top 3
-   - Else: highlight top 30% (minimum 1)
-2. Highlight changes should use class toggles and a short morph animation.
-3. Highlight change should not recreate the marker icon instance.
+## Lifecycle and Cache Semantics
+Current defaults:
+1. Exit animation delay: 360 ms.
+2. Cache TTL: 30 s.
 
-## TTL Cache Semantics (Pan Continuity)
-1. Markers are stored in memory cache with:
-   - marker instance
-   - highlighted state
-   - last-seen timestamp
-2. Markers missing from current payload are removed from active layer immediately.
-3. Missing markers remain in memory cache until TTL expires.
-4. If the same `place.id` reappears before TTL expiry, reuse cached marker.
-5. After TTL expiry, remove marker from cache completely.
+Rules:
+1. Inactive markers schedule animated exit before layer removal.
+2. Markers not active and older than TTL are pruned from cache.
+3. Reappearing ids reuse cached marker instances when available.
 
-Current default:
-- Marker cache TTL = 30 seconds
+## Cuisine Icon Resolution
+Pin icon image source is resolved by cuisine type:
+1. `TopPlacePin` builds the marker HTML shell.
+2. `getCuisineIconSrc` maps `cuisine_type` through `CUISINE_DISPLAY`.
+3. Icon files are loaded from `src/assets/icon_cuisines/*.png` via `import.meta.glob`.
+4. Missing or unknown cuisine falls back to `unspecified` icon.
 
-## Animation Policy
-1. Enter animation:
-   - Run only when marker is newly created.
-2. Morph animation:
-   - Run only when highlighted state toggles.
-3. Selection jump/floating animation:
-   - Trigger only for selected place marker.
-4. Do not add heavy animation orchestration or cross-frame state machines.
+## Visual State Layers
+Visual structure is intentionally layered:
+1. Shell layer: enter/exit animation classes and selected anchor dot.
+2. Hover layer: hover scale and selected lift/scale transform.
+3. Motion layer: idle float and selected float plus selected bubble background.
+4. Image layer: cuisine icon PNG.
 
-## Transition Animation Architecture
-The top-place transition system is intentionally split into three layers so visual changes stay smooth without rebuilding the whole overlay.
-
-1. Request layer
-   - `useRequestTopPlaces` debounces viewport churn and rejects stale responses.
-   - Only the latest `responseKey === queryKey` payload is allowed to touch the map.
-
-2. Marker cache layer
-   - `syncTopPlaceMarkers()` owns the id-keyed marker cache.
-   - Existing markers are reused when the same `place.id` reappears.
-   - Marker removal is deferred with a short exit timeout so disappearing pins can animate out before being dropped from the layer.
-   - If a pin reappears before its exit timeout completes, the pending removal is canceled and the marker is reused.
-
-3. Visual state layer
-   - `makeTopPlacePinIcon()` builds the mounted DOM structure with the enter class already present so first paint can animate reliably.
-   - `setTopPlaceMarkerHighlighted()` mutates only highlight-related classes and uses a small morph animation.
-   - `restartTopPlacePinEnter()` is reserved for the rare case where a cached marker was actually removed from the layer and re-added.
-
-This design avoids coupling animation to the entire overlay lifecycle. Instead, each pin owns its own state transitions, which keeps the animation behavior stable under pan/zoom updates and cache reuse.
-
-## Expected Outcomes
-1. Pan across nearby areas should not cause repeated blink of the same pin.
-2. Zoom changes should preserve shared pins where possible.
-3. Markers should feel continuous, with minimal DOM churn.
-4. Visual updates should be smooth but implementation should stay maintainable.
+## Current Selection Animation Semantics
+When selected:
+1. Pin lifts upward and scales.
+2. Idle float switches to selected float animation.
+3. Background bubble behind icon scales in.
+4. Anchor dot appears at original map location to indicate source point.
 
 ## Non-Goals
-1. No persistence of marker cache across page reloads.
-2. No backend contract changes for this behavior.
-3. No strict animation choreography beyond simple enter/morph/selection effects.
+1. No marker cache persistence across page reloads.
+2. No popup or tooltip rendering for top-place markers.
+3. No highlight-tier logic (top-N highlight rules are removed).
 
 ## Verification Checklist
-1. Pan within nearby viewport:
-   - unchanged pins remain stable
-   - no full-overlay flash
-2. Zoom in/out where some IDs persist:
-   - shared IDs are reused
-   - highlight changes animate without full marker rebuild
-3. Rapid pan/zoom:
-   - stale responses are ignored
-   - latest valid success response wins
-4. Memory behavior:
-   - disappeared markers are evicted after TTL
+1. Pan/zoom with rapid movement:
+   - no full overlay flash
+   - stale responses do not overwrite current state
+2. Marker continuity:
+   - same ids are reused without repeated creation
+   - re-added cached marker animates in cleanly
+3. Selection persistence:
+   - selected marker remains visible when temporarily out of merged payload
+   - marker exits only after unselect/select-change
+4. Cuisine icon behavior:
+   - known cuisine types resolve to correct icon
+   - missing/unknown cuisine uses fallback icon

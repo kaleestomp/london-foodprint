@@ -7,7 +7,8 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import useMapResizeSync from './useMapResizeSync'; 
 import { LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM, LONDON_MAX_ZOOM, LONDON_BOUNDS } from '../MapTemplate'; 
 
-const OPEN_FREE_MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/fiord';
+// const VERSA_TILES = 'https://tiles.versatiles.org/assets/styles/shadow/style.json';
+const OPEN_FREE_MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/fiord'; //include 3D
 const DISABLE_BASE_LAYER = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_DISABLE_BASE_LAYER === 'true';
 
 const BaseLayer = (externalMapRef?: React.RefObject<L.Map | null>): { 

@@ -3,9 +3,11 @@ import L from 'leaflet';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
 import { useTileQuery } from '../../../../../context/TileQueryContext';
+import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
+
 import createPersistentLayer from '../LayerStates/createPersistentLayer';
 import usePinAnimations from './animation/usePinAnimations';
-import { type SearchMask, filterPlacesOutsideMask } from '../LayerStates/filterTileOutsideMask';
+import { filterPlacesOutsideMask } from '../LayerStates/filterTileOutsideMask';
 import addDebugTileOverlay from '../utils/addDebugTileOverlay';
 import useBuildFilterKey from '../LayerStates/buildFilterKey';
 import callRequestTiles from '../inputHooks/callRequestTiles';
@@ -16,24 +18,17 @@ const DEBUG_TILE_OVERLAY = (import.meta.env as Record<string, string | undefined
 
 type UseDensityPlacesLayerArgs = {
   mapRef: React.RefObject<L.Map | null>;
-  searchMask: SearchMask | null;
   enabled: boolean;
   activeTopPlaceIds: string[];
-  setSelectedPlaceId: (placeId: string | null) => void;
 };
 
-const useDensityPlacesLayer = ({
-  mapRef,
-  searchMask,
-  enabled,
-  activeTopPlaceIds,
-  setSelectedPlaceId,
-}: UseDensityPlacesLayerArgs): void => {
+const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensityPlacesLayerArgs): void => {
 
   // Data Request
-  const { cuisineSelectionMode, effectiveCuisines, venueType, effectivePriceRanges, scoreBasis, scoreTier } = useSearchFilters();
-  const { setLastTilesParams } = useTileQuery();
+  const { searchMask, cuisineSelectionMode, effectiveCuisines, venueType, effectivePriceRanges, scoreBasis, scoreTier } = useSearchFilters();
   const { status, res, queryKey, responseKey, requestParams } = callRequestTiles(enabled);
+  const { setLastTilesParams } = useTileQuery();
+  const { setSelectedPlaceId } = usePlaceSelection();
   useEffect(() => { setLastTilesParams(requestParams); }, [requestParams, setLastTilesParams]);
   // Create a persistent LayerGroup for Markers
   const layerRef = createPersistentLayer(mapRef);

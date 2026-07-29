@@ -7,10 +7,10 @@
     transition: transform 180ms ease;
 
     --hover-scale: 1.6;
-    --bubble-size: 32px; /* Only Visible on selected */
+    --bubble-size: 34px; /* Only Visible on selected */
     --bubble-color: #ffffff;
     --selected-scale: 2.0;
-    --selected-translateY: -40px;
+    --selected-translateY: -42px;
     --anchor-dot-size: 8px;
 }
 /* ADD SPEECH BUBBLE ANCHOR WHICH SHOWS WHEN SELECTED */

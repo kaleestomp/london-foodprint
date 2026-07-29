@@ -5,7 +5,6 @@ import BaseLayer from './BaseLayer/BaseLayer';
 import DataLayer from './DataLayer/DataLayer'; 
 import onUserRoam from './DataLayer/inputHooks/onUserRoam';
 import { useTileQuery } from '../../../context/TileQueryContext';
-import { useSearchFilters } from '../../../context/SearchFiltersContext';
 import 'leaflet/dist/leaflet.css';
 
 const DISABLE_DATA_LAYER = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_DISABLE_DATA_LAYER === 'true';
@@ -23,8 +22,8 @@ const Map: React.FC<Props> = ({ mapRef: externalMapRef }) => {
     setViewportParams(viewportParams);
   }, [viewportParams, setViewportParams]);
 
-  const { searchMask } = useSearchFilters();
-  DataLayer(mapRef, searchMask, !DISABLE_DATA_LAYER);
+  
+  DataLayer(mapRef, !DISABLE_DATA_LAYER);
 
   return <div className="leaflet-map-canvas" ref={mapContainerRef} />;
 };

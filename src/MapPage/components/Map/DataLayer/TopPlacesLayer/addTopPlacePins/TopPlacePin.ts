@@ -3,11 +3,11 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import getCuisineIconSrc from './getCuisineIconSrc';
 
-const ICON_SIZE = 24; // All pins same size 22
+const ICON_SIZE = 26; // All pins same size 22
 const ENTER_CLASS = 'enter-animation';
 const EXIT_CLASS = 'exit-animation';
 
-const makeTopPlacePinIcon = (cuisineType?: string): L.DivIcon => {
+const TopPlacePin = (cuisineType?: string): L.DivIcon => {
 
   const iconSrc = getCuisineIconSrc(cuisineType);
 
@@ -66,4 +66,4 @@ export const restartTopPlacePinEnter = (marker: L.Marker): void => {
   });
 };
 
-export default makeTopPlacePinIcon;
+export default TopPlacePin;

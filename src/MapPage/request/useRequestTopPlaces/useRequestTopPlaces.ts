@@ -27,11 +27,11 @@ const useRequestTopPlaces = (
   error: Error | null;
   res: TopPlacesResponse | null;
   queryKey: string;
-  responseKey: string;
+  responseKey: string; // A bookkeeping singnal to indicate the queryKey that produced the current response. 
+  // This is useful for detecting when a new request has been made and the previous response is no longer valid.
 } => {
   const debounceMs = Math.max(0, options.debounceMs ?? 150);
 
-  const [res, setRes] = useState<TopPlacesResponse | null>(null);
   const [responseKey, setResponseKey] = useState('');
   const [debouncedQueryKey, setDebouncedQueryKey] = useState('');
 
@@ -53,17 +53,16 @@ const useRequestTopPlaces = (
     queryKey: ['top-places', debouncedQueryKey],
     queryFn: ({ signal }) => request(debouncedQueryKey, { signal }),
     enabled: Boolean(debouncedQueryKey),
+    placeholderData: (previousData) => previousData,
   });
 
   useEffect(() => {
-    if (!debouncedQueryKey || !query.data) {
-      setRes(null);
+    if (!debouncedQueryKey || !query.data || query.isPlaceholderData) {
       setResponseKey('');
       return;
     }
-    setRes(query.data);
     setResponseKey(debouncedQueryKey);
-  }, [debouncedQueryKey, query.data]);
+  }, [debouncedQueryKey, query.data, query.isPlaceholderData]);
 
   const status: RequestStatus = !debouncedQueryKey
     ? 'empty'
@@ -71,11 +70,11 @@ const useRequestTopPlaces = (
       ? 'loading'
       : query.isError
         ? 'error'
-        : res
+        : query.data
           ? 'success'
           : 'empty';
 
-  return { status, error: query.error as Error | null, res, queryKey, responseKey };
+  return { status, error: query.error as Error | null, res: debouncedQueryKey ? (query.data ?? null) : null, queryKey, responseKey };
 };
 
 export default useRequestTopPlaces;

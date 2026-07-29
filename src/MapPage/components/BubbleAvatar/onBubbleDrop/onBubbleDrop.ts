@@ -8,7 +8,7 @@ import getPinSizeFromCss from './getPinSizeFromCss';
 import addPlaceMarkers from '../../Map/DataLayer/DensityPlacesLayer/addPlacePins/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
 import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
-import selectTopRankedPlaces from '../../../utils/selectTopRankedPlaces';
+import selectTopPlaces from '../../Map/DataLayer/TopPlacesLayer/InputHooks/useNearbyFetch/selectTopPlaces';
 import useIsMobile from '../../../../utils/browser/useIsMobile';
 import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
 import { type LatLng, ZOOM_LEVEL, DROP_ENTRY_DELAY_MS } from '../config';
@@ -86,7 +86,7 @@ const onBubbleDrop = (
     }
     const layer = L.layerGroup().addTo(map);
     placesLayerRef.current = layer;
-    const topNearbyIds = new Set(selectTopRankedPlaces(nearbyRes.data, 10).map((place) => place.id));
+    const topNearbyIds = new Set(selectTopPlaces(nearbyRes.data, 10).map((place) => place.id));
     const previewPlaces: TilePlacePreview[] = nearbyRes.data
       .filter((place) => !topNearbyIds.has(place.id))
       .map((place) => ({
