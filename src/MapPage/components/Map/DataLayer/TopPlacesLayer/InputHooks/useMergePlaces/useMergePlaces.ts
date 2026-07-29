@@ -1,9 +1,6 @@
 import { useMemo } from 'react';
-import L from 'leaflet';
 
-import { useSearchFilters } from '../../../../../../../context/SearchFiltersContext';
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
-
 
 type Props = {
     viewportPlaces: TopPlaceItem[] | null;
@@ -11,32 +8,20 @@ type Props = {
 };
 
 const useMergePlaces = ({ viewportPlaces, nearbyPlaces }: Props): TopPlaceItem[] => {
-
-    const { searchMask } = useSearchFilters();
-
-    // Filter out places that are outside the search mask
-    const maskedviewportPlaces = useMemo(() => {
+    const dedupedViewportPlaces = useMemo(() => {
         if (!viewportPlaces) return [];
-        if (!searchMask) return viewportPlaces;
-        const center = L.latLng(searchMask.center.lat, searchMask.center.lng);
-        const maskedPlaces = viewportPlaces.filter((place: TopPlaceItem) => {
-            return L.latLng(place.lat, place.lon).distanceTo(center) > searchMask.radiusM;
-        });
-        
-        return maskedPlaces;
-    }, [viewportPlaces, searchMask]);
+        if (!nearbyPlaces?.length) return viewportPlaces;
 
-    // Merge the masked viewport places with the nearby places
+        const nearbyIds = new Set(nearbyPlaces.map((place) => place.id));
+        return viewportPlaces.filter((place) => !nearbyIds.has(place.id));
+    }, [viewportPlaces, nearbyPlaces]);
+
     const mergedPlaces = useMemo(() => {
-        if (!maskedviewportPlaces) return [];
-        if (!nearbyPlaces) return maskedviewportPlaces;
+        if (!dedupedViewportPlaces.length) return nearbyPlaces ?? [];
+        if (!nearbyPlaces?.length) return dedupedViewportPlaces;
 
-        const merged = new Map<string, TopPlaceItem>();
-        [...maskedviewportPlaces, ...nearbyPlaces].forEach((place) => {
-            merged.set(place.id, place);
-        });
-        return [...merged.values()];
-    }, [maskedviewportPlaces, nearbyPlaces]);
+        return [...dedupedViewportPlaces, ...nearbyPlaces];
+    }, [dedupedViewportPlaces, nearbyPlaces]);
 
     return mergedPlaces;
 };

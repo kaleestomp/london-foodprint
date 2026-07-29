@@ -1,4 +1,4 @@
-TOP_PLACES_IN_VIEW_SQL = """
+TOP_PLACES_IN_VIEW_BBOX_SQL = """
     SELECT
       id,
       display_name AS restaurant_name,
@@ -32,4 +32,42 @@ TOP_PLACES_IN_VIEW_SQL = """
       AND {rank_column} >= $8
     ORDER BY {rank_column} DESC
     LIMIT $9
+"""
+
+TOP_PLACES_IN_VIEW_RADIUS_SQL = """
+    SELECT
+      id,
+      display_name AS restaurant_name,
+      cuisine_type,
+      lat,
+      lon,
+      normal_1,
+      {rank_column} AS rank
+    FROM places
+    WHERE 6371000 * acos(
+            cos(radians($1)) * cos(radians(lat)) * cos(radians(lon) - radians($2))
+            + sin(radians($1)) * sin(radians(lat))
+          ) <= $3
+      AND (
+            CARDINALITY($4::TEXT[]) = 0  -- no filter, show all cuisines
+            OR (CARDINALITY($4::TEXT[]) > 0 AND (
+                  cuisine_type = ANY(ARRAY_REMOVE($4::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($4::TEXT[]) AND cuisine_type IS NULL)
+                ))
+          )
+      AND (
+            $5 = '__all__'  -- no filter, all venues
+            OR ($5 = '__null__' AND venue_type IS NULL)
+            OR ($5 != '__all__' AND $5 != '__null__' AND venue_type = $5)
+          )
+      AND (
+            CARDINALITY($6::TEXT[]) = 0  -- no filter, show all costs
+            OR (CARDINALITY($6::TEXT[]) > 0 AND (
+                  cost = ANY(ARRAY_REMOVE($6::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($6::TEXT[]) AND cost IS NULL)
+                ))
+          )
+      AND {rank_column} >= $7
+    ORDER BY {rank_column} DESC
+    LIMIT $8
 """

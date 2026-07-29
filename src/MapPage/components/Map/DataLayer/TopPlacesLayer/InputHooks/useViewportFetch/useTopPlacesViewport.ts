@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 
-import zoomToResolution from '../../../utils/zoomToResolution';
 import { bucketViewportBounds } from '../../../utils/getBucketedViewportBounds';
 import useIsMobile from '../../../../../../../utils/browser/useIsMobile';
 import { MOBILE_PEEK_PX } from '../../../../../PullUpPanel/SnapHooks/config';
@@ -14,7 +13,6 @@ export type TopPlacesViewportParams = {
   sw_lng: number;
   ne_lat: number;
   ne_lng: number;
-  res: number;
 };
 
 const useTopPlacesViewport = (
@@ -45,8 +43,7 @@ const useTopPlacesViewport = (
 
       const topLeft = map.containerPointToLatLng(L.point(leftOffset, 0));
       const bottomRight = map.containerPointToLatLng(L.point(mapSize.x, mapSize.y - bottomOffset));
-      const zoom = map.getZoom();
-      const zoomBucket = Math.floor(zoom);
+      const zoomBucket = Math.floor(map.getZoom());
 
       const bucketed = bucketViewportBounds({
         sw_lat: Math.min(topLeft.lat, bottomRight.lat),
@@ -55,10 +52,7 @@ const useTopPlacesViewport = (
         ne_lng: Math.max(topLeft.lng, bottomRight.lng),
       }, zoomBucket);
 
-      return {
-        ...bucketed,
-        res: zoomToResolution(zoom),
-      };
+      return bucketed;
     };
 
     const buildSignature = (params: TopPlacesViewportParams): string => {
@@ -67,7 +61,6 @@ const useTopPlacesViewport = (
         params.sw_lng,
         params.ne_lat,
         params.ne_lng,
-        params.res,
       ].join('|');
     };
 

@@ -1,9 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 
 import { useSearchFilters } from '../../../../../../../context/SearchFiltersContext';
-import useRequestNearby from '../../../../../../request/useRequestNearby/useRequestNearby';
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
-import selectTopPlaces from './selectTopPlaces';
+import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../request/useRequestTopPlaces/useRequestTopPlaces';
 
 type Props = {
   limit: number;
@@ -16,23 +15,24 @@ type Out = {
 const useNearbyFetch = ( { limit, enabled }: Props ): Out => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, searchMask } = useSearchFilters();
-  const nearbyParams = useMemo(() => {
+  const radiusTopPlacesParams = useMemo<TopPlacesParams | null>(() => {
     if (!enabled || !searchMask) return null;
     return {
       lat: searchMask.center.lat,
       lng: searchMask.center.lng,
       radius_m: searchMask.radiusM,
       cuisines: effectiveCuisines,
-      venue_type: venueType ?? '',
+      venue_type: venueType ?? undefined,
       cost: effectivePriceRanges,
       score_basis: scoreBasis,
       score_tier: scoreTier,
+      limit,
     };
   }, [
     searchMask, effectiveCuisines, effectivePriceRanges,
-    venueType, scoreBasis, scoreTier, enabled,
+    venueType, scoreBasis, scoreTier, enabled, limit,
   ]);
-  const { res } = useRequestNearby(nearbyParams);
+  const { res } = useRequestTopPlaces(radiusTopPlacesParams, { debounceMs: 0 });
 
   const [nearbyTopPlaces, setNearbyTopPlaces] = useState<TopPlaceItem[]>([]);
   useEffect(() => {
@@ -40,9 +40,8 @@ const useNearbyFetch = ( { limit, enabled }: Props ): Out => {
       setNearbyTopPlaces([]);
       return;
     }
-    const topPlaces = selectTopPlaces(res.data, limit);
-    setNearbyTopPlaces(topPlaces);
-  }, [ res, searchMask, limit, enabled ]);
+    setNearbyTopPlaces(res.data);
+  }, [res, searchMask, enabled]);
 
   return { nearbyTopPlaces };
 }

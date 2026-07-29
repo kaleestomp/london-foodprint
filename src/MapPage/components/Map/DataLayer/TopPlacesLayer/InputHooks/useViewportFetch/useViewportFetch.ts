@@ -26,7 +26,6 @@ const useViewportFetch = ({ mapRef, limit = 10, enabled }: Props): Out => {
       sw_lng: viewportParams.sw_lng,
       ne_lat: viewportParams.ne_lat,
       ne_lng: viewportParams.ne_lng,
-      res: viewportParams.res,
       cuisines: effectiveCuisines,
       cost: effectivePriceRanges,
       venue_type: venueType ?? undefined,

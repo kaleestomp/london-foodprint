@@ -6,11 +6,13 @@ import { type TopPlacesResponse, request } from './request';
 type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
 export interface TopPlacesParams {
-  sw_lat: number;
-  sw_lng: number;
-  ne_lat: number;
-  ne_lng: number;
-  res: number;
+  sw_lat?: number;
+  sw_lng?: number;
+  ne_lat?: number;
+  ne_lng?: number;
+  lat?: number;
+  lng?: number;
+  radius_m?: number;
   cuisines?: string[];
   cost?: string[];
   venue_type?: string;
