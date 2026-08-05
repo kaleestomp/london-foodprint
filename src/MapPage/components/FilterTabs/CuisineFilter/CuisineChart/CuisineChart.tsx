@@ -1,19 +1,18 @@
 import { useMemo } from 'react';
-import type L from 'leaflet';
-
 import ReactECharts from 'echarts-for-react';
+
+import { type CuisineHistogramEntry } from '../../../../request/useRequestCuisineHistogram/request';
 import getCuisineChartData from './getCuisineChartData';
 
 import './CuisineChart.css';
 
 type Props = {
-    mapRef: React.RefObject<L.Map | null>;
-    isGlobal: boolean;
+    cuisineData: CuisineHistogramEntry[] | null;
 };
 
-const CuisineChart: React.FC<Props> = ({ mapRef, isGlobal }) => {
+const CuisineChart: React.FC<Props> = ({ cuisineData }) => {
 
-    const chartEntries = getCuisineChartData({mapRef, isGlobal})
+    const chartEntries = getCuisineChartData({ cuisineData });
 
     const chartOption = useMemo(() => ({
         animationDuration: 220,

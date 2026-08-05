@@ -35,7 +35,7 @@ const addDensityMarkers = (
   const maxCount = tiles.reduce((m, d) => d.count > 1 ? Math.max(m, d.count) : m, 1);
   const newMarkers: Array<{ tile: string; marker: L.Marker; isSingleton: boolean }> = [];
 
-  newTiles.forEach((d, i) => {
+  newTiles.forEach((d) => {
     checkedTiles.add(d.tile);
     
     // Singleton tile: plot a place marker at the actual place location.

@@ -5,7 +5,7 @@ import L from 'leaflet';
 
 import BubbleAvatarPin from '../BubbleAvatarPin/BubbleAvatarPin';
 import getPinSizeFromCss from './getPinSizeFromCss';
-import addPlaceMarkers from '../../Map/DataLayer/DensityPlacesLayer/addPlacePins/addPlaceMarkers';
+import addPlaceMarkers from '../../Map/DataLayer/DynamicPlacesLayer/usePlacesLayer/placeMarkers/addPlaceMarkers';
 import useRequestNearby from '../../../request/useRequestNearby/useRequestNearby';
 import { type TilePlacePreview } from '../../../request/useRequestTiles/request';
 import selectTopPlaces from '../../Map/DataLayer/TopPlacesLayer/InputHooks/useNearbyFetch/selectTopPlaces';

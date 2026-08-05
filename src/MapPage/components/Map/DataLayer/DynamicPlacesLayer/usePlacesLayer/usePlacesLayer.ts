@@ -6,7 +6,7 @@ import { type TileDensity, type TilePlacePreview } from '../../../../../request/
 import { usePlaceSelection } from '../../../../../../context/PlaceSelectionContext';
 import { cancelLayerRemoval, scheduleLayerRemoval } from '../lifecycle/lifecycle';
 
-import addDensityPins from '../../DensityPlacesLayer/addDensityPins/addDensityPins';
+import addDensityMarkers from '../useDensityLayer/densityMarkers/addDensityMarkers';
 import addPlaceMarkers from './placeMarkers/addPlaceMarkers';
 import animateLayerEntry from './animateLayerEntry';
 import animateMergeOnExit from './markerTransitions/animateMergeOnExit';
@@ -116,14 +116,14 @@ const usePlacesLayer = (
     animateMergeOnExit(map, curRes, outgoingPlacesMarker);
 
     // Add new density pins alongside exiting place pins — no gap.
-    const renderedSet = new Set<string>();
-    const newDensityMarkers = addDensityPins(layer, densityTiles, curRes, renderedSet, undefined, map.getCenter());
+    const checkedTileSet = new Set<string>();
+    const newDensityMarkers = addDensityMarkers(layer, densityTiles, curRes, checkedTileSet);
     density.densityMarkerRef.current = new Map(newDensityMarkers.map(({ tile, marker }) => [tile, marker]));
     density.singletonMarkerRef.current = new Set(newDensityMarkers.filter(c => c.isSingleton).map(c => c.tile));
     // Sync renderedTilesRef so subsequent addPins calls skip already-rendered tiles.
     // Without this, addPins sees an empty set and re-creates duplicate markers for
     // every tile, orphaning the originals in the layer with no way to remove them.
-    density.checkedTilesRef.current = renderedSet;
+    density.checkedTilesRef.current = checkedTileSet;
 
     scheduleLayerRemoval(
       layer, // layer
