@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { useAppUI } from '../../../../../context/AppUIContext';
-import { type RequestStatus } from '../../../../request/useRequestTiles/useRequestTiles';
+import { useAppUI } from '../../../../context/AppUIContext';
+import { type RequestStatus } from '../../../request/useRequestTiles/useRequestTiles';
 
 const LOADING_DELAY_MS = 2000;
 

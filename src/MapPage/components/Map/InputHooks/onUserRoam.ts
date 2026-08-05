@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 
-import { type TilesParams } from '../../../../request/useRequestTiles/useRequestTiles';
-import getBucketedViewportBounds from '../utils/getBucketedViewportBounds';
-import zoomToResolution from '../utils/zoomToResolution';
+import { type TilesParams } from '../../../request/useRequestTiles/useRequestTiles';
+import getBucketedViewportBounds from '../DataLayer/utils/getBucketedViewportBounds';
+import zoomToResolution from '../DataLayer/utils/zoomToResolution';
 
 const ZOOM_THRESHOLD_FOR_PLACES_ONLY = 16;
 const VIEWPORT_UPDATE_THROTTLE_MS = 250;

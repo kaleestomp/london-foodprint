@@ -1,77 +1,36 @@
 import { useMemo } from 'react';
-import type L from 'leaflet';
+import { type CuisineHistogramEntry } from '../../../../request/useRequestCuisineHistogram/request';
 
 import {
     CUISINE_FILTER_OPTIONS,
     useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
-import onUserRoam from '../../../Map/DataLayer/inputHooks/onUserRoam';
-import useRequestCuisineHistogram from '../../../../request/useRequestCuisineHistogram/useRequestCuisineHistogram';
-
-import './CuisineChart.css';
-
-type Props = {
-    mapRef: React.RefObject<L.Map | null>;
-    isGlobal: boolean;
-};
 
 const MAX_BARS = 8;
 const BLUE = 'rgb(31, 130, 192)';
 const GREY = 'rgba(95, 99, 104, 0.35)';
 const ORANGE = '#ef6c00';
 
-type ChartEntry = {
-    cuisine: string;
-    count: number;
-};
-
 const byCount = (left: ChartEntry, right: ChartEntry): number => (
     right.count - left.count || left.cuisine.localeCompare(right.cuisine)
 );
 
-const getCuisineChartData = ({ mapRef, isGlobal }: Props) => {
+type Props = {
+    cuisineData: CuisineHistogramEntry[] | null;
+};
+type ChartEntry = {
+    cuisine: string;
+    count: number;
+};
+const getCuisineChartData = ({ cuisineData }: Props): ChartEntry[] => {
 
-    const {
-        cuisines,
-        cuisineSelectionMode,
-        effectivePriceRanges,
-        venueType,
-        scoreTier,
-        scoreBasis,
-    } = useSearchFilters();
-    const viewportParams = onUserRoam(mapRef);
-
-    const requestParams = useMemo(() => {
-        if (isGlobal) {
-            return {
-                scope: 'citywide' as const,
-                cost: effectivePriceRanges,
-                venue_type: venueType ?? '',
-                score_basis: scoreBasis,
-                score_tier: scoreTier,
-            };
-        }
-        if (!viewportParams) return null;
-        return {
-            scope: 'view' as const,
-            sw_lat: viewportParams.sw_lat,
-            sw_lng: viewportParams.sw_lng,
-            ne_lat: viewportParams.ne_lat,
-            ne_lng: viewportParams.ne_lng,
-            cost: effectivePriceRanges,
-            venue_type: venueType ?? '',
-            score_basis: scoreBasis,
-            score_tier: scoreTier,
-        };
-    }, [viewportParams, effectivePriceRanges, venueType, scoreBasis, scoreTier, isGlobal]);
-
-    const { res } = useRequestCuisineHistogram(requestParams);
+    const { cuisines, cuisineSelectionMode } = useSearchFilters();
 
     const chartEntries = useMemo(() => {
         const selectedSet = new Set<string>(cuisines);
         const countsByCuisine = new Map<string, number>();
 
-        for (const entry of res?.cuisine_histogram ?? []) {
+        for (const entry of cuisineData ?? []) {
             countsByCuisine.set(entry.cuisine, entry.count);
         }
 
@@ -80,7 +39,7 @@ const getCuisineChartData = ({ mapRef, isGlobal }: Props) => {
             .filter((entry) => entry.count > 0 || selectedSet.has(entry.cuisine));
 
         const knownSet = new Set(CUISINE_FILTER_OPTIONS);
-        const unknownEntries: ChartEntry[] = (res?.cuisine_histogram ?? [])
+        const unknownEntries: ChartEntry[] = (cuisineData ?? [])
             .filter((entry) => !knownSet.has(entry.cuisine))
             .map((entry) => ({ cuisine: entry.cuisine, count: entry.count }));
 
@@ -115,7 +74,7 @@ const getCuisineChartData = ({ mapRef, isGlobal }: Props) => {
                 },
             };
         });
-    }, [cuisines, cuisineSelectionMode, res]);
+    }, [cuisines, cuisineSelectionMode, cuisineData]);
 
     return chartEntries
 };

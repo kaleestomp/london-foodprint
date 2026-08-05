@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { type SearchMask } from './filterTileOutsideMask';
+import { type SearchMask } from './maskResults';
 
 /**
  * Hook that owns a ref tracking the previous search mask and returns

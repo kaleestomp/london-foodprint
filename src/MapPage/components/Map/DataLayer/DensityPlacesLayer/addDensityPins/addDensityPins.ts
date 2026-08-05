@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import { cellToLatLng } from 'h3-js';
 import { type TileDensity } from '../../../../../request/useRequestTiles/request';
-import makePinIcon from './makePinIcon';
+import densityMarkerIcon from './makePinIcon';
 import makePlacePinIcon from '../addPlacePins/makePlacePinIcon';
 
 const STAGGER_STEP_MS = 0; //25
@@ -22,64 +22,65 @@ const addDensityPins = (
   layer: L.Map | L.LayerGroup,
   tiles: TileDensity[],
   resolution: number,
-  rendered: Set<string>,
+  renderedTiles: Set<string>,
   startOffsets?: Map<string, { dx: number; dy: number }>,
   mapCenter?: L.LatLng | null,
   topPlaceIds?: Set<string>,
 ): Array<{ tile: string; marker: L.Marker; isSingleton: boolean }> => {
-  const newTiles = tiles.filter(d => !rendered.has(d.tile));
+
+  // 1. FILTER OUT ALREADY-RENDERED TILES
+  const newTiles = tiles.filter(d => !renderedTiles.has(d.tile));
   if (!newTiles.length) return [];
 
-  // Radial sort: pins closest to the map center appear first.
+  // 2. SORT BY DISTANCE TO MAP CENTER
   if (mapCenter) {
     newTiles.sort((a, b) => {
       const [aLat, aLng] = cellToLatLng(a.tile);
       const [bLat, bLng] = cellToLatLng(b.tile);
-      return (
-        L.latLng(aLat, aLng).distanceTo(mapCenter) -
-        L.latLng(bLat, bLng).distanceTo(mapCenter)
-      );
+      const aDist = L.latLng(aLat, aLng).distanceTo(mapCenter);
+      const bDist = L.latLng(bLat, bLng).distanceTo(mapCenter);
+      return aDist - bDist;
     });
   }
 
-  // maxCount from the full response batch keeps sizes consistent across the viewport.
+  // maxCount (HIGHIEST DENSITY) from the full response batch keeps sizes consistent across the viewport.
   // Exclude singletons from the maxCount so they don't deflate density-marker sizing.
   const maxCount = tiles.reduce((m, d) => d.count > 1 ? Math.max(m, d.count) : m, 1);
-  const created: Array<{ tile: string; marker: L.Marker; isSingleton: boolean }> = [];
-
+  const newMarkers: Array<{ tile: string; marker: L.Marker; isSingleton: boolean }> = [];
   newTiles.forEach((d, i) => {
-    rendered.add(d.tile);
+
+    renderedTiles.add(d.tile);
     const staggerMs = Math.min(i, STAGGER_CAP) * STAGGER_STEP_MS;
     const startOffset = startOffsets?.get(d.tile);
 
-    // Singleton tile: plot a place marker at the actual place location.
-    // Skip if this singleton place is already shown as a top place marker.
+    // SINGLETON MARKER: plot a place marker at the actual place location.
     if (d.count === 1 && d.singleton) {
-      if (topPlaceIds?.has(d.singleton.id)) {
-        // Singleton place already shown as top place marker — skip to avoid duplicate
-        return;
-      }
-      const { lat, lon } = d.singleton;
+      // SKIP IF ALREADY SHOWN AS TOP PLACE MARKER
+      if (topPlaceIds?.has(d.singleton.id)) return;
+
+      // PLACE ICON FOR SINGLETONS: no stagger, no startOffset.
       // Don't apply startOffset: it is tile-centroid-relative (explode/merge), but this
       // marker sits at the actual place lat/lon — applying a centroid offset would send
       // it flying in from the wrong screen position.
-      const icon = makePlacePinIcon({ staggerMs: 0 }); //staggerMs = 0 for singleton place pins
-      const marker = L.marker([lat, lon], { icon }).addTo(layer);
-      created.push({ tile: d.tile, marker, isSingleton: true });
+      const icon = makePlacePinIcon({ staggerMs: 0 }); 
+
+      // ADD MARKER AT PLACE LOCATION
+      const { lat, lon } = d.singleton;
+      const singletonMarker = L.marker([lat, lon], { icon })
+      singletonMarker.addTo(layer);
+      newMarkers.push({ tile: d.tile, marker: singletonMarker, isSingleton: true });
       return;
     }
 
-    // Multi-count tile: plot density marker at H3 centroid.
-    // console.log(zoom)
+    // DENSITY MARKER: plot density marker at H3 centroid.
     const [lat, lng] = cellToLatLng(d.tile);
-    const marker = L.marker([lat, lng], {
-      icon: makePinIcon(d.count, resolution, maxCount, { staggerMs, startOffset }),
-    });
+    const icon = densityMarkerIcon(d.count, resolution, maxCount, { staggerMs, startOffset });
+    const marker = L.marker([lat, lng], { icon });
     marker.addTo(layer);
-    created.push({ tile: d.tile, marker, isSingleton: false });
+    newMarkers.push({ tile: d.tile, marker, isSingleton: false });
   });
 
-  return created;
+  return newMarkers;
 };
 
 export default addDensityPins;

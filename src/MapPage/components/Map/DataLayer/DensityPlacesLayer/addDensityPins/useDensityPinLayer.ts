@@ -5,7 +5,7 @@ import { type TileDensity } from '../../../../../request/useRequestTiles/request
 import addDensityPins from './addDensityPins';
 import computeExplodeOffsets from '../animation/computeExplodeOffsets'; // remove import to disable explode
 import computeMergeOffsets from '../animation/computeMergeOffsets';   // remove import to disable merge
-import { type SearchMask } from '../../LayerStates/filterTileOutsideMask';
+import { type SearchMask } from '../../LayerStates/maskResults';
 import {
   cancelDeferredLayerRemoval,
   scheduleDeferredLayerRemoval,

@@ -17,6 +17,9 @@ type Props = {
 const syncMarkers = ({ layer, topPlaces, cache, onPlaceClick, selectedPlaceId }: Props ): Map<string, L.Marker> => {
 
   if (!Array.isArray(topPlaces) || !layer) return new Map();
+  // Used to track active marker registry 
+  // Created, populated and returned for EACH SYNC PASS;
+  // The state is temporary therefore REF not needed; 
   const activeMarkers = new Map<string, L.Marker>();
   const now = Date.now();
 

@@ -3,7 +3,7 @@ import L from 'leaflet';
 
 import BaseLayer from './BaseLayer/BaseLayer';
 import DataLayer from './DataLayer/DataLayer'; 
-import onUserRoam from './DataLayer/inputHooks/onUserRoam';
+import onUserRoam from './InputHooks/onUserRoam';
 import { useTileQuery } from '../../../context/TileQueryContext';
 import 'leaflet/dist/leaflet.css';
 

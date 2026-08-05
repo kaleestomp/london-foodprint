@@ -2,15 +2,15 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
+import { maskPlaces } from '../LayerStates/maskResults';
 
 import createPersistentLayer from '../LayerStates/createPersistentLayer';
-import usePinAnimations from './animation/usePinAnimations';
-import { maskPlaces } from '../LayerStates/maskResults';
+import useDensityLayer from './useDensityLayer/useDensityLayer';
+import usePlacesLayer from './usePlacesLayer/usePlacesLayer';
 import useFilterKeyChange from '../LayerStates/useFilterKeyChange';
 import useTopPlacesChange from '../LayerStates/useTopPlacesChange';
 import useFetchTiles from './InputHooks/useFetchTiles';
-import useZoomThreshold from './hooks/useZoomThreshold';
+import useZoomThreshold from './useZoomThreshold/useZoomThreshold';
 
 // DEBUG Layers that only shows in local dev
 // import addDebugTileOverlay from '../utils/addDebugTileOverlay';
@@ -26,27 +26,12 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
 
   // DENSITY / PLACES DATA FETCH
   const { status, res, isPlaceholderData } = useFetchTiles(enabled);
+
   // CREATE PERSISTENT LAYER
   const layerRef = createPersistentLayer(mapRef);
-
-  // Get animation functions
-  const { setSelectedPlaceId } = usePlaceSelection();
-  const topPlaceIdSet = activeTopPlaceIds.length ? new Set(activeTopPlaceIds) : undefined;
-  const {
-    currentResRef,
-    addPins,
-    setMaskVisibility,
-    transitionRes,
-    
-    transitionToPlaces,
-    transitionFromPlaces,
-    removePlaceMarkersByIds,
-    // clearAll, //DEBUG ONLY
-  } = usePinAnimations(mapRef, layerRef, {
-    onPlaceClick: (placeId) => setSelectedPlaceId(placeId),
-    activeTopPlaceIds: topPlaceIdSet,
-  });
-
+  const activeTopPlaceIdSet = activeTopPlaceIds.length ? new Set(activeTopPlaceIds) : undefined;
+  const densityLayer = useDensityLayer(mapRef, layerRef, activeTopPlaceIdSet);
+  const placesLayer = usePlacesLayer(mapRef, layerRef, densityLayer);
 
   // Tracks the last rendered mode so we can detect places -> tiles transitions.
   const prevModeRef = useRef<'tiles' | 'places' | null>(null);
@@ -56,7 +41,7 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
   // Manage zoom-based marker suppression with smooth fade-out
   useZoomThreshold({ 
     mapRef, layerRef, enabled,
-    onThresholdCross: () => { currentResRef.current = null; }, 
+    onThresholdCross: () => { densityLayer.currentResRef.current = null; }, 
     // Force re-render by resetting resolution tracking
   });
 
@@ -76,9 +61,9 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
       const maskedPlaces = maskPlaces(places, searchMask);
       const topPlaceIdSet = activeTopPlaceIds.length ? new Set(activeTopPlaceIds) : null;
       const newPlaces = topPlaceIdSet ? maskedPlaces.filter((place) => !topPlaceIdSet.has(place.id)) : maskedPlaces;
-      transitionToPlaces(newPlaces, { replaceAll: filterKeyChanged });
+      placesLayer.syncLayer(newPlaces, filterKeyChanged); //replace all if filter key changed
 
-      if (topPlaceIdsChanged && activeTopPlaceIds.length) removePlaceMarkersByIds(activeTopPlaceIds);
+      if (topPlaceIdsChanged && activeTopPlaceIds.length) placesLayer.removeMarkerFromLayer(activeTopPlaceIds);
 
       return;
     }
@@ -87,34 +72,39 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
     const densityTiles = res.data;
     // Coming back from places mode — animate place markers out, then show density pins.
     if (prevModeRef.current === 'places') {
-      transitionFromPlaces(res.resolution, densityTiles);
-      setMaskVisibility(searchMask);
+      placesLayer.removeLayer(res.resolution, densityTiles);
+      densityLayer.setMaskVisibility(searchMask);
       prevModeRef.current = 'tiles';
       return;
     } else {
       // ELSE prevModeRef.current === 'tiles'
       prevModeRef.current = 'tiles';
-      if (res.resolution !== currentResRef.current || filterKeyChanged) {
-        transitionRes(res.resolution, densityTiles);
+      if (res.resolution !== densityLayer.currentResRef.current || filterKeyChanged) {
+        densityLayer.refreshLayer(res.resolution, densityTiles);
       } else {
-        addPins(densityTiles, res.resolution);
+        densityLayer.addMarkersToLayer(res.resolution, densityTiles);
       }
-      setMaskVisibility(searchMask);
+      densityLayer.setMaskVisibility(searchMask);
     }
 
     // // DEBUG OVERLAY
     // if (true) {
-    //   clearAll();
+    //   // CLEAR ALL
+    //   densityLayer.cancelScheduledLayerRemoval();
+    //   placesLayer.cancelScheduledLayerRemoval();
+    //   layerRef.current?.clearLayers();
+    //   densityLayer.resetLayerState();
+    //   placesLayer.resetLayerState();
+    //   // ADD DEBUG OVERLAY
     //   addDebugTileOverlay(mapRef.current, layerRef.current, densityTiles);
     //   prevModeRef.current = 'tiles';
     //   return;
     // }
+
   }, [ 
-    mapRef, layerRef, res, status, currentResRef,
-    filterKeyChanged, isPlaceholderData,
-    searchMask, setMaskVisibility,
-    transitionToPlaces, transitionFromPlaces,
-    removePlaceMarkersByIds, transitionRes, addPins,
+    mapRef, layerRef, res, status, 
+    densityLayer, placesLayer, prevModeRef,
+    filterKeyChanged, isPlaceholderData, searchMask, 
     activeTopPlaceIds, enabled,
   ]);
 };

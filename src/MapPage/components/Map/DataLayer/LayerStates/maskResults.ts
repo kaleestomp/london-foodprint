@@ -7,7 +7,7 @@ export type SearchMask = {
   radiusM: number;
 };
 
-export const filterDensityOutsideMask = (
+export const maskTiles = (
   tiles: TileDensity[],
   searchMask: SearchMask | null,
 ): TileDensity[] => {
@@ -20,7 +20,7 @@ export const filterDensityOutsideMask = (
   });
 };
 
-export const filterPlacesOutsideMask = (
+export const maskPlaces = (
   places: TilePlacePreview[],
   searchMask: SearchMask | null,
 ): TilePlacePreview[] => {

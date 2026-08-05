@@ -30,6 +30,7 @@ const usePinAnimations = (
     addPins:              density.addPins,
     setMaskVisibility:    density.setMaskVisibility,
     transitionRes:        density.transitionRes,
+    
     transitionToPlaces:   places.transitionToPlaces,
     transitionFromPlaces: places.transitionFromPlaces,
     removePlaceMarkersByIds: places.removePlaceMarkersByIds,
