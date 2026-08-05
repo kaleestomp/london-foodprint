@@ -12,6 +12,8 @@ import useTopPlacesChange from '../LayerStates/useTopPlacesChange';
 import useFetchTiles from './InputHooks/useFetchTiles';
 import useZoomThreshold from './useZoomThreshold/useZoomThreshold';
 
+import './useDensityLayer/densityMarkers/densityMarker.css';
+
 // DEBUG Layers that only shows in local dev
 // import addDebugTileOverlay from '../utils/addDebugTileOverlay';
 // const DEBUG_TILE_OVERLAY = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_TILE_OVERLAY === 'true';
