@@ -1,6 +1,7 @@
 import L from 'leaflet';
 import { cellToParent, cellToLatLng } from 'h3-js';
 import { type TileDensity } from '../../../../../../request/useRequestTiles/request';
+import { type TileMarkerRegistry } from '../useDensityLayer';
 
 /**
  * Computes per-tile screen-space fly-in offsets for the zoom-in "explode" effect.
@@ -14,25 +15,28 @@ import { type TileDensity } from '../../../../../../request/useRequestTiles/requ
  * To disable the effect entirely, simply stop calling this function and pass
  * `undefined` as `startOffsets` to `addDensityPins`.
  */
-const getFlyInOffsetOnEntry = (
+const getExplodeFlyInOffset = (
   map: L.Map,
-  parentTiles: Map<string, L.Marker>,
-  parentTileRes: number,
-  childTiles: TileDensity[],
-): Map<string, { dx: number; dy: number }> | undefined => {
-  if (!parentTiles.size) return undefined;
+  parentMarkers: TileMarkerRegistry,
+  parentRes: number,
+  tiles: TileDensity[],
+): Map<string, { dx: number; dy: number }> | undefined => { 
+  if (!parentMarkers.size) return undefined;
 
   const offsets = new Map<string, { dx: number; dy: number }>();
-
-  childTiles.forEach((d) => {
+  tiles.forEach((d) => {
     try {
-      const parentTile   = cellToParent(d.tile, parentTileRes);
-      const parentMarker = parentTiles.get(parentTile);
+      const parentTile   = cellToParent(d.tile, parentRes);
+      const parentMarker = parentMarkers.get(parentTile)?.Marker;
       if (!parentMarker) return;
 
+      const [childLat, childLon] = d.count === 1 
+      && typeof d.singleton?.lat === 'number' 
+      && typeof d.singleton?.lon === 'number' 
+        ? [d.singleton.lat, d.singleton.lon] 
+        : cellToLatLng(d.tile);
+      const childPt      = map.latLngToContainerPoint(L.latLng(childLat, childLon));
       const parentPt     = map.latLngToContainerPoint(parentMarker.getLatLng());
-      const [cLat, cLng] = cellToLatLng(d.tile);
-      const childPt      = map.latLngToContainerPoint(L.latLng(cLat, cLng));
 
       offsets.set(d.tile, { dx: parentPt.x - childPt.x, dy: parentPt.y - childPt.y });
     } catch {
@@ -43,4 +47,4 @@ const getFlyInOffsetOnEntry = (
   return offsets.size > 0 ? offsets : undefined;
 };
 
-export default getFlyInOffsetOnEntry;
+export default getExplodeFlyInOffset;

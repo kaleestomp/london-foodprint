@@ -2,13 +2,15 @@ import { useMemo, useEffect } from 'react';
 
 import useRequestTiles from '../../../../../request/useRequestTiles/useRequestTiles';
 import type { RequestStatus } from '../../../../../request/useRequestTiles/useRequestTiles';
+import { type TilesResponse } from '../../../../../request/useRequestTiles/request';
 import { useSearchFilters } from '../../../../../../context/SearchFiltersContext';
 import { useTileQuery } from '../../../../../../context/TileQueryContext';
+
 // import delayLoadingScreen from './delayLoadingScreen';
 
 type Response = {
   status: RequestStatus;
-  res: any;
+  res: TilesResponse | null;
   isPlaceholderData: boolean;
 };
 const useFetchTiles = (enabled: boolean = true): Response => {

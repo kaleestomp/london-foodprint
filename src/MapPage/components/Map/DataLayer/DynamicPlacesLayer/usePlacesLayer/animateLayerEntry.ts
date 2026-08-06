@@ -23,14 +23,14 @@ const animateLayerEntry = (
 
   // 2.EXTRACT + RESET TILE LAYER STATE
   const resolution = density.currentResRef.current;
-  const outgoingTileMarker = new Map(density.densityMarkerRef.current);
+  const outgoingTileMarker = new Map(density.markerRef.current);
   density.resetLayerState();
 
   // 3. ANIMATION: 
   // Burst density markers into child place markers + fly out in from host marker.
   // Update Outgoing Markers CSS State
-  outgoingTileMarker.forEach((marker) => {
-    const pin = marker.getElement()?.querySelector<HTMLElement>('.density-pin');
+  outgoingTileMarker.forEach(({ Marker }) => {
+    const pin = Marker.getElement()?.querySelector<HTMLElement>('.density-pin');
     if (!pin) return;
     pin.classList.remove('density-pin-enter', 'density-pin-fly-in');
     pin.classList.add('density-pin-burst');
@@ -42,11 +42,11 @@ const animateLayerEntry = (
     : undefined;
 
   // 5.REMOVE DENSITY MARKERS FROM MAP IMMEDIATELY
-  setTimeout(() => outgoingTileMarker.forEach((m) => layer.removeLayer(m)), 0);
+  setTimeout(() => outgoingTileMarker.forEach((m) => layer.removeLayer(m.Marker)), 0);
 
   // 6.CREATE NEW MARKERS + UPDATE REF MAP
   const newMarkers = addPlaceMarkers(layer, places, onPlaceClick, startOffsets);
-  newMarkers.forEach(({ id, marker }) => markerIdRef.current.set(id, marker));
+  newMarkers.forEach(({ PlaceId, Marker }) => markerIdRef.current.set(PlaceId, Marker));
 
 };
 

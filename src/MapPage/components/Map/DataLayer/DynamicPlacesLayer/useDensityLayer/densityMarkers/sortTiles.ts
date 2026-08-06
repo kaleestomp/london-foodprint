@@ -1,21 +1,14 @@
-import { type TileDensity, type TilePlacePreview } from '../../../../../../request/useRequestTiles/request';
+import { type TileDensity } from '../../../../../../request/useRequestTiles/request';
 
-const sortTiles = (
-    tiles: TileDensity[],
-    checkedTiles: Set<string>,
-): {
+const sortTiles = ( tiles: TileDensity[] ) : {
     densityTiles: TileDensity[];
-    singletons: TilePlacePreview[];
+    singletons: TileDensity[];
 } => {
-    
-    const newTiles = tiles.filter(d => !checkedTiles.has(d.tile));
-    if (!newTiles.length) return { densityTiles: [], singletons: [] };
 
     const densityTiles: TileDensity[] = [];
-    const singletons: TilePlacePreview[] = [];
-    newTiles.forEach((d) => { 
-        checkedTiles.add(d.tile); 
-        if (d.count === 1 && d.singleton) singletons.push(d.singleton);
+    const singletons: TileDensity[] = [];
+    tiles.forEach((d) => { 
+        if (d.count === 1 && d.singleton) singletons.push(d);
         else densityTiles.push(d);
     });
 

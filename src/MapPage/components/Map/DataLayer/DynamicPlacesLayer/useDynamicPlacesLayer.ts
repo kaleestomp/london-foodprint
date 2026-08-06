@@ -67,33 +67,60 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
     if (res.mode === 'places') {
       prevModeRef.current = 'places';
       const places = res.data;
-      const maskedPlaces = maskPlaces(places, searchMask);
-      const topPlaceIdSet = activeTopPlaceIds.length ? new Set(activeTopPlaceIds) : null;
-      const newPlaces = topPlaceIdSet ? maskedPlaces.filter((place) => !topPlaceIdSet.has(place.id)) : maskedPlaces;
-      placesLayer.syncLayer(newPlaces, filterKeyChanged); //replace all if filter key changed
 
-      if (topPlaceIdsChanged && activeTopPlaceIds.length) placesLayer.removeMarkerFromLayer(activeTopPlaceIds);
+      // DEDUP DATA BEFORE RENDER
+      const maskedPlaces = maskPlaces(places, searchMask); 
+      const dedupPlaces = activeTopPlaceIdSet 
+        ? maskedPlaces.filter((place) => !activeTopPlaceIdSet.has(place.id)) 
+        : maskedPlaces;
 
-      return;
+      // RENDER
+      placesLayer.syncLayer(dedupPlaces, filterKeyChanged); //replace all if filter key changed
+
+      // DEDUP MARKER AFTER RENDER
+      if (topPlaceIdsChanged && activeTopPlaceIdSet?.size) 
+        placesLayer.removeMarkerFromLayer(activeTopPlaceIdSet);
+
     }
 
-    // TILES MODE
-    const densityTiles = res.data;
-    // Coming back from places mode — animate place markers out, then show density pins.
-    if (prevModeRef.current === 'places') {
-      placesLayer.removeLayer(res.resolution, densityTiles);
-      densityLayer.setMaskVisibility(searchMask);
-      prevModeRef.current = 'tiles';
-      return;
-    } else {
-      // ELSE prevModeRef.current === 'tiles'
-      prevModeRef.current = 'tiles';
-      if (res.resolution !== densityLayer.currentResRef.current || filterKeyChanged) {
-        densityLayer.refreshLayer(res.resolution, densityTiles);
-      } else {
-        densityLayer.addMarkersToLayer(res.resolution, densityTiles);
+    // DENSITY MODE
+    else {
+      const densityTiles = res.data;
+
+      // DEDUP DATA BEFORE RENDER
+      const dedupTiles = activeTopPlaceIdSet 
+        ? densityTiles.filter((d) => {
+          const SingletonId = d.singleton?.id;
+          if (!SingletonId ) return true;
+          return !activeTopPlaceIdSet.has(SingletonId);
+        }) : densityTiles;
+      
+      // RENDER
+      // PLACES -> DENSITY
+      // animate place markers out, then show density pins.
+      if (prevModeRef.current === 'places') {
+        prevModeRef.current = 'tiles';
+        placesLayer.removeLayer(res.resolution, dedupTiles);
+        densityLayer.setMaskVisibility(searchMask);
+      } 
+      
+      // DENSITY -> DENSITY
+      else {
+        prevModeRef.current = 'tiles';
+        if (res.resolution !== densityLayer.currentResRef.current || filterKeyChanged) {
+          // TILE REFRESH
+          densityLayer.refreshLayer(res.resolution, dedupTiles);
+        } else {
+          // TILE ADDITION (ON PAN)
+          densityLayer.addMarkersToLayer(res.resolution, dedupTiles);
+        }
+        // MASK MARKERS (VIA OPACITY)
+        densityLayer.setMaskVisibility(searchMask);
       }
-      densityLayer.setMaskVisibility(searchMask);
+
+      // DEDUP MARKER AFTER RENDER
+      if (topPlaceIdsChanged && activeTopPlaceIdSet?.size) 
+        densityLayer.dedupSingletons(activeTopPlaceIdSet);
     }
 
     // // DEBUG OVERLAY

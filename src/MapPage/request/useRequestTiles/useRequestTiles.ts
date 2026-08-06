@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import buildQueryKey from './buildQueryKey';
 import { type TilesResponse, request } from './request';
 export type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
-export type { TilesResponse };
 export interface TilesParams {
   sw_lat: number;
   sw_lng: number;

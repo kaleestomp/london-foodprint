@@ -1,25 +1,25 @@
 import { useCallback, useMemo, useRef } from 'react';
 import L from 'leaflet';
 
-import { type TileDensity } from '../../../../../request/useRequestTiles/request';
-import addDensityMarkers from './densityMarkers/addDensityMarkers';
-import getFlyInOffsetOnEntry from './markerTransitions/getFlyInOffsetOnEntry'; // remove import to disable explode
-import animateLayerClear from './animateLayerClear';
 import { type SearchMask } from '../../LayerStates/maskResults';
+import { type TileDensity } from '../../../../../request/useRequestTiles/request';
 import { cancelLayerRemoval, scheduleLayerRemoval } from '../lifecycle/lifecycle';
+import addMarkers from './densityMarkers/addMarkers';
+import getExplodeFlyInOffset from './markerTransitions/getExplodeFlyInOffset'; // remove import to disable explode
+import animateLayerClear from './animateLayerClear';
 
+export type TileMarkerRegistry = Map<string, { Marker: L.Marker, SingletonId: string | null }>;
 export interface DensityLayer {
-  checkedTilesRef: React.RefObject<Set<string>>;
-  densityMarkerRef: React.RefObject<Map<string, L.Marker>>;
-  singletonMarkerRef: React.RefObject<Set<string>>;
+  // checkedTilesRef: React.RefObject<Set<string>>;
+  markerRef: React.RefObject<TileMarkerRegistry>;
   currentResRef: React.RefObject<number | null>;
   refreshLayer: (res: number, tiles: TileDensity[]) => void;
   addMarkersToLayer: (res: number, tiles: TileDensity[]) => void;
   setMaskVisibility: (searchMask: SearchMask | null) => void;
+  dedupSingletons: (placeIds: Set<string>) => void;
   cancelScheduledLayerRemoval: () => void;
   resetLayerState: () => void;
 }
-
 /**
  * Manages density markers on the map, including adding/removing markers, handling zoom transitions, and masking.
  * Provides a public API for interacting with the density layer.
@@ -30,10 +30,9 @@ const useDensityLayer = (
   activeTopPlaceIds?: Set<string>,
 ): DensityLayer => {
 
-  const checkedTilesRef = useRef<Set<string>>(new Set()); // TRACK 'CHECKED' tiles 
-  // REGARDLESS of if a marker was created from it - e.g top places suppression
-  const densityMarkerRef = useRef<Map<string, L.Marker>>(new Map()); // TRACK ALL TILE MARKERS
-  const singletonMarkerRef = useRef<Set<string>>(new Set()); // TRACK SINGLETON MARKERS ONLY
+  // const checkedTilesRef = useRef<Set<string>>(new Set()); // TRACK 'CHECKED' tiles 
+  // REGARDLESS of if a marker was created from it - e.g markers skipped by top places suppression
+  const markerRef = useRef<TileMarkerRegistry>(new Map()); // TRACK ALL TILE MARKERS
   const currentResRef = useRef<number | null>(null);
   const cleanupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingRemovalRef = useRef<L.Marker[]>([]);
@@ -42,20 +41,20 @@ const useDensityLayer = (
   // CANCEL PENDING REMOVAL (e.g. when switching to place markers)
   const cancelScheduledLayerRemoval = useCallback(() => {
     cancelLayerRemoval( layerRef.current, cleanupTimerRef, pendingRemovalRef );
-  }, [layerRef]);
+  }, []);
 
   // RESET LAYER STATE (e.g. when switching to place markers)
   const resetLayerState = useCallback(() => {
-    densityMarkerRef.current = new Map();
-    singletonMarkerRef.current = new Set();
-    checkedTilesRef.current = new Set();
+    markerRef.current = new Map();
+    // checkedTilesRef.current = new Set();
     currentResRef.current = null;
   }, []);
 
   // REFRESH LAYER ON ZOOM / SPECIFIED CALL
   // ZOOM-IN: Old pins burst outward, new child pins fly in from parent position.
   // ZOOM-OUT: Old pins merge toward parent centroid, new parent pins pop in.
-  const refreshLayer = useCallback((res: number, tiles: TileDensity[]): void => {
+  const refreshLayer = useCallback((resolution: number, tiles: TileDensity[]): void => {
+
     const map = mapRef.current;
     const layer = layerRef.current;
     if (!map || !layer) return;
@@ -65,96 +64,95 @@ const useDensityLayer = (
 
     // Check if refresh is triggered by zooming in;
     const prevRes = currentResRef.current;
-    const zoomingIn = prevRes !== null && res > prevRes;
-    const outgoingDensityMarkers = new Map(densityMarkerRef.current);
-    const outgoingSingletonMarkers = new Set(singletonMarkerRef.current);
+    const zoomingIn = prevRes !== null && resolution > prevRes;
+    const outgoingMarkers = new Map(markerRef.current);
 
     // Reset state for new render
-    currentResRef.current = res;
-    checkedTilesRef.current = new Set();
-    densityMarkerRef.current = new Map();
-    singletonMarkerRef.current = new Set();
+    resetLayerState();
+    currentResRef.current = resolution;
 
     // Animate Marker Exit: burst, merge, or fade out CSS Class
-    animateLayerClear(map, res, prevRes, outgoingDensityMarkers, outgoingSingletonMarkers);
+    animateLayerClear(map, resolution, prevRes, outgoingMarkers);
 
     // Add New Markers + Fly-In Entry
-    const startOffsets = zoomingIn ? getFlyInOffsetOnEntry(map, outgoingDensityMarkers, prevRes, tiles) : undefined;
-    const newMarkers = addDensityMarkers(layer, tiles, res, checkedTilesRef.current, activeTopPlaceIds, startOffsets);
-    newMarkers.forEach(({ tile, marker, isSingleton }) => {
-      densityMarkerRef.current.set(tile, marker);
-      if (isSingleton) singletonMarkerRef.current.add(tile);
+    const startOffsets = zoomingIn ? getExplodeFlyInOffset(map, outgoingMarkers, prevRes, tiles) : undefined;
+    addMarkers({ 
+      layer, tiles, resolution: resolution, startOffsets, 
+      // checkedTiles: checkedTilesRef.current, 
+      markerRegistry: markerRef.current 
     });
 
     // Schedule Removal of Outgoing Markers After Animation Delay
     scheduleLayerRemoval(
       layer, // layer
-      Array.from(outgoingDensityMarkers.values()), // markers
+      Array.from(outgoingMarkers.values()).map(v => v.Marker), // markers
       zoomingIn ? 0 : 280, // delayMs
       cleanupTimerRef, // timerRef
       pendingRemovalRef, // pendingRef
     );
 
-  }, [activeTopPlaceIds, cancelScheduledLayerRemoval, layerRef, mapRef]);
+  }, [activeTopPlaceIds, cancelScheduledLayerRemoval, resetLayerState]);
 
-  // ADD MARKERS ON PAN
-  const addMarkersToLayer = useCallback((res: number, tiles: TileDensity[]): void => {
+  // ADD MARKERS ON PAN / FIRST ENTRY FROM PLACES
+  const addMarkersToLayer = useCallback((resolution: number, tiles: TileDensity[]): void => {
+
     const layer = layerRef.current;
     const map = mapRef.current;
     if (!layer || !map) return;
 
-    const created = addDensityMarkers(layer, tiles, res, checkedTilesRef.current, activeTopPlaceIds);
-    created.forEach(({ tile, marker, isSingleton }) => {
-      densityMarkerRef.current.set(tile, marker);
-      if (isSingleton) singletonMarkerRef.current.add(tile);
+    addMarkers({ 
+      layer, tiles, resolution: resolution, 
+      // checkedTiles: checkedTilesRef.current, 
+      markerRegistry: markerRef.current 
     });
-  }, [activeTopPlaceIds, layerRef, mapRef]);
 
-  // // REMOVE MARKERS
-  // const removeMarkerFromLayer = useCallback((placeIds: Iterable<string>): void => {
-  //   const layer = layerRef.current;
-  //   if (!layer) return;
+  }, [activeTopPlaceIds]);
 
-  //   // for (const placeId of placeIds) {
-  //   //   const marker = densityMarkerRef.current.get(placeId);
-  //   //   if (!marker) continue;
-  //   //   layer.removeLayer(marker);
-  //   //   placesMarkerRef.current.delete(placeId);
-  //   // }
-  // }, [layerRef]);
+  // DEDUP MARKERS
+  // eg.singletons against top places id
+  const dedupSingletons = useCallback((placeIds: Set<string>): void => {
+    const layer = layerRef.current;
+    if (!layer) return;
+
+    markerRef.current.forEach(({ Marker, SingletonId }, tile) => {
+      if (!(SingletonId && placeIds.has(SingletonId))) 
+        return;
+      layer.removeLayer(Marker);
+      markerRef.current.delete(tile);
+    });
+  }, []);
 
   // MASK MARKERS
   // When nearby search is active, density markers are hidden
   const setMaskVisibility = useCallback((searchMask: SearchMask | null): void => {
     const center = searchMask ? L.latLng(searchMask.center.lat, searchMask.center.lng) : null;
-    densityMarkerRef.current.forEach((marker) => {
+    markerRef.current.forEach(({ Marker }) => {
       if (!searchMask || !center) {
-        marker.setOpacity(1);
+        Marker.setOpacity(1);
         return;
       }
 
-      const distance = marker.getLatLng().distanceTo(center);
+      const distance = Marker.getLatLng().distanceTo(center);
       const hidden = distance <= searchMask.radiusM;
-      marker.setOpacity(hidden ? 0 : 1);
+      Marker.setOpacity(hidden ? 0 : 1);
     });
   }, []);
 
-
-
   return useMemo(() => ({
-    checkedTilesRef,
-    densityMarkerRef,
-    singletonMarkerRef,
+    // checkedTilesRef,
+    markerRef,
     currentResRef,
     refreshLayer,
     addMarkersToLayer,
     setMaskVisibility,
+    dedupSingletons,
     cancelScheduledLayerRemoval,
     resetLayerState,
   }), [
     refreshLayer,
     addMarkersToLayer,
     setMaskVisibility,
+    dedupSingletons,
     cancelScheduledLayerRemoval,
     resetLayerState,
   ]);

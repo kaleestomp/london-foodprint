@@ -6,7 +6,6 @@ import { type TileDensity, type TilePlacePreview } from '../../../../../request/
 import { usePlaceSelection } from '../../../../../../context/PlaceSelectionContext';
 import { cancelLayerRemoval, scheduleLayerRemoval } from '../lifecycle/lifecycle';
 
-import addDensityMarkers from '../useDensityLayer/densityMarkers/addDensityMarkers';
 import addPlaceMarkers from './placeMarkers/addPlaceMarkers';
 import animateLayerEntry from './animateLayerEntry';
 import animateMergeOnExit from './markerTransitions/animateMergeOnExit';
@@ -14,7 +13,7 @@ import animateMergeOnExit from './markerTransitions/animateMergeOnExit';
 export interface PlacesLayer {
   syncLayer: (places: TilePlacePreview[], replaceAll?: boolean) => void,
   removeLayer: (curRes: number, densityTiles: TileDensity[]) => void,
-  removeMarkerFromLayer: (placeIds: Iterable<string>) => void,
+  removeMarkerFromLayer: (placeIds: Set<string>) => void,
   cancelScheduledLayerRemoval: () => void,
   resetLayerState: () => void,
 }
@@ -42,7 +41,7 @@ const usePlacesLayer = (
   // CANCEL PENDING REMOVAL
   const cancelScheduledLayerRemoval = useCallback(() => {
     cancelLayerRemoval(layerRef.current, cleanupTimerRef, pendingRemovalRef);
-  }, [layerRef]);
+  }, []);
   // RESET LAYER STATE
   const resetLayerState = useCallback(() => {
     placesMarkerRef.current = new Map();
@@ -88,9 +87,9 @@ const usePlacesLayer = (
 
       // CREATE REMAINING NEW MARKERS + UPDATE REF MAP
       const newMarkers = addPlaceMarkers(layer, newPlaces, setSelectedPlaceId, undefined);
-      newMarkers.forEach(({ id, marker }) => placesMarkerRef.current.set(id, marker));
+      newMarkers.forEach(({ PlaceId, Marker }) => placesMarkerRef.current.set(PlaceId, Marker));
     }
-  }, [cancelScheduledLayerRemoval, density, layerRef, mapRef, setSelectedPlaceId]);
+  }, [cancelScheduledLayerRemoval, density, setSelectedPlaceId]);
 
   // PLACES -> DENSITY
   // Places fly back to their host tile
@@ -109,21 +108,14 @@ const usePlacesLayer = (
     const outgoingPlacesMarker = new Map(placesMarkerRef.current);
     placesMarkerRef.current = new Map();
     density.currentResRef.current = curRes;
-    density.densityMarkerRef.current = new Map();
+    density.markerRef.current = new Map();
 
     // 3. ANIMATION: 
     // Animate Transition by Updating Outgoing Markers CSS State
     animateMergeOnExit(map, curRes, outgoingPlacesMarker);
 
     // Add new density pins alongside exiting place pins — no gap.
-    const checkedTileSet = new Set<string>();
-    const newDensityMarkers = addDensityMarkers(layer, densityTiles, curRes, checkedTileSet);
-    density.densityMarkerRef.current = new Map(newDensityMarkers.map(({ tile, marker }) => [tile, marker]));
-    density.singletonMarkerRef.current = new Set(newDensityMarkers.filter(c => c.isSingleton).map(c => c.tile));
-    // Sync renderedTilesRef so subsequent addPins calls skip already-rendered tiles.
-    // Without this, addPins sees an empty set and re-creates duplicate markers for
-    // every tile, orphaning the originals in the layer with no way to remove them.
-    density.checkedTilesRef.current = checkedTileSet;
+    density.addMarkersToLayer(curRes, densityTiles);
 
     scheduleLayerRemoval(
       layer, // layer
@@ -132,20 +124,22 @@ const usePlacesLayer = (
       cleanupTimerRef, // timerRef
       pendingRemovalRef, // pendingRef
     );
-  }, [cancelScheduledLayerRemoval, density, layerRef, mapRef]);
+  }, [cancelScheduledLayerRemoval, density]);
 
   // REMOVE MARKERS
-  const removeMarkerFromLayer = useCallback((placeIds: Iterable<string>): void => {
+  const removeMarkerFromLayer = useCallback((placeIds: Set<string>): void => {
     const layer = layerRef.current;
     if (!layer) return;
 
-    for (const placeId of placeIds) {
+    placeIds.forEach((placeId) => {
+      if (!placesMarkerRef.current.has(placeId)) return;
       const marker = placesMarkerRef.current.get(placeId);
-      if (!marker) continue;
+      if (!marker) return;
+
       layer.removeLayer(marker);
       placesMarkerRef.current.delete(placeId);
-    }
-  }, [layerRef]);
+    });
+  }, []);
 
   return useMemo(() => ({
     syncLayer,

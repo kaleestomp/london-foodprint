@@ -1,14 +1,14 @@
 import L from 'leaflet';
 import { latLngToCell } from 'h3-js';
 import { type TilePlacePreview } from '../../../../../../request/useRequestTiles/request';
-
+import { type TileMarkerRegistry } from '../../useDensityLayer/useDensityLayer';
 
 type Out = Map<string, { dx: number; dy: number }> | undefined;
 const getFlyInOffsetOnEntry = (
     map: L.Map,
     places: TilePlacePreview[],
     resolution: number,
-    outgoing: Map<string, L.Marker>,
+    outgoing: TileMarkerRegistry,
 ): Out => {
 
     // NO OUTGOING TILES TO FLY FROM
@@ -19,7 +19,7 @@ const getFlyInOffsetOnEntry = (
         try {
             // Associate Place Marker to H3 Tile
             const tile = latLngToCell(place.lat, place.lon, resolution);
-            const tileMarker = outgoing.get(tile);
+            const tileMarker = outgoing.get(tile)?.Marker;
             if (!tileMarker) return; 
             // Fly-in animation skipped if host tile is not present in outgoing tiles
 

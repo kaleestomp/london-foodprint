@@ -13,11 +13,11 @@ const addPlaceMarkers = (
 
   entryDelayMs = 0,
   staggerCap: number = 0, // Set to > 0 to enable stagger (e.g., 20 for nearby search)
-): Array<{ id: string; marker: L.Marker }> => {
+): Array<{ PlaceId: string; Marker: L.Marker }> => {
 
   if (!Array.isArray(places) || !layer) return [];
 
-  const newMarkers: Array<{ id: string; marker: L.Marker }> = [];
+  const newMarkers: Array<{ PlaceId: string; Marker: L.Marker }> = [];
 
   const placesOrdered = orderPlacesByDistance(places, mapCenter || null);
   placesOrdered.forEach((place, i) => {
@@ -32,7 +32,7 @@ const addPlaceMarkers = (
     // Attach Click Handler to Marker
     if (onPlaceClick) marker.on('click', () => onPlaceClick(place.id));
 
-    newMarkers.push({ id: place.id, marker });
+    newMarkers.push({ PlaceId: place.id, Marker: marker });
   });
 
   return newMarkers;

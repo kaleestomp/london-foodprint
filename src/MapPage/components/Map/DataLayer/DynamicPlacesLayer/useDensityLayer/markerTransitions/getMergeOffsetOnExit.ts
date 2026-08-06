@@ -1,5 +1,6 @@
 import L from 'leaflet';
 import { cellToParent, cellToLatLng } from 'h3-js';
+import { type TileMarkerRegistry } from '../useDensityLayer';
 
 /**
  * Computes per-tile screen-space fly-out offsets for the zoom-out "merge" effect.
@@ -13,21 +14,21 @@ import { cellToParent, cellToLatLng } from 'h3-js';
  */
 const getMergeOffsetOnExit = (
   map: L.Map,
-  outgoingTiles: Map<string, L.Marker>,
+  outgoingTiles: TileMarkerRegistry,
   mergeRes: number,
 ): Map<string, { dx: number; dy: number }> | undefined => {
   if (!outgoingTiles.size) return undefined;
 
   const offsets = new Map<string, { dx: number; dy: number }>();
 
-  outgoingTiles.forEach((marker, tile) => {
+  outgoingTiles.forEach(({Marker}, tileId) => { //tile is map id
     try {
-      const parentTile        = cellToParent(tile, mergeRes);
+      const parentTile        = cellToParent(tileId, mergeRes);
       const [pLat, pLng]      = cellToLatLng(parentTile);
       const parentPt          = map.latLngToContainerPoint(L.latLng(pLat, pLng));
-      const childPt           = map.latLngToContainerPoint(marker.getLatLng());
+      const childPt           = map.latLngToContainerPoint(Marker.getLatLng());
             
-      offsets.set(tile, { dx: parentPt.x - childPt.x, dy: parentPt.y - childPt.y });
+      offsets.set(tileId, { dx: parentPt.x - childPt.x, dy: parentPt.y - childPt.y });
     } catch {
       // cellToParent can throw for edge cells — skip silently.
     }
