@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
@@ -31,7 +31,10 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
 
   // CREATE PERSISTENT LAYER
   const layerRef = createPersistentLayer(mapRef);
-  const activeTopPlaceIdSet = activeTopPlaceIds.length ? new Set(activeTopPlaceIds) : undefined;
+  const activeTopPlaceIdSet = useMemo(
+    () => (activeTopPlaceIds.length ? new Set(activeTopPlaceIds) : undefined),
+    [activeTopPlaceIds],
+  );
   const densityLayer = useDensityLayer(mapRef, layerRef, activeTopPlaceIdSet);
   const placesLayer = usePlacesLayer(mapRef, layerRef, densityLayer);
 
@@ -40,10 +43,14 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
   const filterKeyChanged = useFilterKeyChange();
   const topPlaceIdsChanged = useTopPlacesChange(activeTopPlaceIds);
 
+  const handleZoomThresholdCross = useCallback(() => {
+    densityLayer.currentResRef.current = null;
+  }, [densityLayer.currentResRef]);
+
   // Manage zoom-based marker suppression with smooth fade-out
   useZoomThreshold({ 
     mapRef, layerRef, enabled,
-    onThresholdCross: () => { densityLayer.currentResRef.current = null; }, 
+    onThresholdCross: handleZoomThresholdCross,
     // Force re-render by resetting resolution tracking
   });
 
@@ -104,8 +111,14 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
     // }
 
   }, [ 
-    mapRef, layerRef, res, status, 
-    densityLayer, placesLayer, prevModeRef,
+    res, status, 
+    densityLayer.currentResRef,
+    densityLayer.refreshLayer,
+    densityLayer.addMarkersToLayer,
+    densityLayer.setMaskVisibility,
+    placesLayer.syncLayer,
+    placesLayer.removeLayer,
+    placesLayer.removeMarkerFromLayer,
     filterKeyChanged, isPlaceholderData, searchMask, 
     activeTopPlaceIds, enabled,
   ]);

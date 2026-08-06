@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import L from 'leaflet';
 
 import { type TileDensity } from '../../../../../request/useRequestTiles/request';
@@ -40,22 +40,22 @@ const useDensityLayer = (
 
   // ── Public API ─────────────────────────────────────────────────────────────
   // CANCEL PENDING REMOVAL (e.g. when switching to place markers)
-  const cancelScheduledLayerRemoval = () => {
+  const cancelScheduledLayerRemoval = useCallback(() => {
     cancelLayerRemoval( layerRef.current, cleanupTimerRef, pendingRemovalRef );
-  };
+  }, [layerRef]);
 
   // RESET LAYER STATE (e.g. when switching to place markers)
-  const resetLayerState = () => {
+  const resetLayerState = useCallback(() => {
     densityMarkerRef.current = new Map();
     singletonMarkerRef.current = new Set();
     checkedTilesRef.current = new Set();
     currentResRef.current = null;
-  };
+  }, []);
 
   // REFRESH LAYER ON ZOOM / SPECIFIED CALL
   // ZOOM-IN: Old pins burst outward, new child pins fly in from parent position.
   // ZOOM-OUT: Old pins merge toward parent centroid, new parent pins pop in.
-  const refreshLayer = (res: number, tiles: TileDensity[]): void => {
+  const refreshLayer = useCallback((res: number, tiles: TileDensity[]): void => {
     const map = mapRef.current;
     const layer = layerRef.current;
     if (!map || !layer) return;
@@ -95,10 +95,10 @@ const useDensityLayer = (
       pendingRemovalRef, // pendingRef
     );
 
-  };
+  }, [activeTopPlaceIds, cancelScheduledLayerRemoval, layerRef, mapRef]);
 
   // ADD MARKERS ON PAN
-  const addMarkersToLayer = (res: number, tiles: TileDensity[]): void => {
+  const addMarkersToLayer = useCallback((res: number, tiles: TileDensity[]): void => {
     const layer = layerRef.current;
     const map = mapRef.current;
     if (!layer || !map) return;
@@ -108,10 +108,24 @@ const useDensityLayer = (
       densityMarkerRef.current.set(tile, marker);
       if (isSingleton) singletonMarkerRef.current.add(tile);
     });
-  };
+  }, [activeTopPlaceIds, layerRef, mapRef]);
+
+  // // REMOVE MARKERS
+  // const removeMarkerFromLayer = useCallback((placeIds: Iterable<string>): void => {
+  //   const layer = layerRef.current;
+  //   if (!layer) return;
+
+  //   // for (const placeId of placeIds) {
+  //   //   const marker = densityMarkerRef.current.get(placeId);
+  //   //   if (!marker) continue;
+  //   //   layer.removeLayer(marker);
+  //   //   placesMarkerRef.current.delete(placeId);
+  //   // }
+  // }, [layerRef]);
 
   // MASK MARKERS
-  const setMaskVisibility = (searchMask: SearchMask | null): void => {
+  // When nearby search is active, density markers are hidden
+  const setMaskVisibility = useCallback((searchMask: SearchMask | null): void => {
     const center = searchMask ? L.latLng(searchMask.center.lat, searchMask.center.lng) : null;
     densityMarkerRef.current.forEach((marker) => {
       if (!searchMask || !center) {
@@ -123,9 +137,11 @@ const useDensityLayer = (
       const hidden = distance <= searchMask.radiusM;
       marker.setOpacity(hidden ? 0 : 1);
     });
-  };
+  }, []);
 
-  return {
+
+
+  return useMemo(() => ({
     checkedTilesRef,
     densityMarkerRef,
     singletonMarkerRef,
@@ -135,7 +151,13 @@ const useDensityLayer = (
     setMaskVisibility,
     cancelScheduledLayerRemoval,
     resetLayerState,
-  };
+  }), [
+    refreshLayer,
+    addMarkersToLayer,
+    setMaskVisibility,
+    cancelScheduledLayerRemoval,
+    resetLayerState,
+  ]);
 };
 
 export default useDensityLayer;

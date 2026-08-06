@@ -38,10 +38,11 @@ const addDensityMarkers = (
   newTiles.forEach((d) => {
     checkedTiles.add(d.tile);
     
-    // Singleton tile: plot a place marker at the actual place location.
-    // Skip if this singleton place is already shown as a top place marker.
+    // SINGLETON MARKER
+    // plot a place marker at the actual place location.
     if (d.count === 1 && d.singleton) {
       if (topPlaceIds?.has(d.singleton.id)) return;
+      // Skip if this singleton place is already shown as a top place marker.
       const { lat, lon } = d.singleton;
       const icon = placeMarkerIcon(); //staggerMs = 0 for singleton place pins
       const marker = L.marker([lat, lon], { icon }).addTo(layer);
@@ -52,7 +53,8 @@ const addDensityMarkers = (
       return;
     }
 
-    // Multi-count tile: plot density marker at H3 centroid.
+    // DENSITY MARKER
+    // plot density marker at H3 centroid.
     const [lat, lng] = cellToLatLng(d.tile);
     const startOffset = startOffsets?.get(d.tile); 
     const icon = densityMarkerIcon(d.count, resolution, maxCount, { staggerMs: 0, startOffset });
