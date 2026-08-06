@@ -7,10 +7,11 @@ import { cancelLayerRemoval, scheduleLayerRemoval } from '../lifecycle/lifecycle
 import addMarkers from './densityMarkers/addMarkers';
 import getExplodeFlyInOffset from './markerTransitions/getExplodeFlyInOffset'; // remove import to disable explode
 import animateLayerClear from './animateLayerClear';
+import sortMarkerRegistry from './sortMarkerRegistry';
+import getIncomingMarkers from './getIncomingMarkers';
 
 export type TileMarkerRegistry = Map<string, { Marker: L.Marker, SingletonId: string | null }>;
 export interface DensityLayer {
-  // checkedTilesRef: React.RefObject<Set<string>>;
   markerRef: React.RefObject<TileMarkerRegistry>;
   currentResRef: React.RefObject<number | null>;
   refreshLayer: (res: number, tiles: TileDensity[]) => void;
@@ -30,8 +31,6 @@ const useDensityLayer = (
   activeTopPlaceIds?: Set<string>,
 ): DensityLayer => {
 
-  // const checkedTilesRef = useRef<Set<string>>(new Set()); // TRACK 'CHECKED' tiles 
-  // REGARDLESS of if a marker was created from it - e.g markers skipped by top places suppression
   const markerRef = useRef<TileMarkerRegistry>(new Map()); // TRACK ALL TILE MARKERS
   const currentResRef = useRef<number | null>(null);
   const cleanupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -46,7 +45,6 @@ const useDensityLayer = (
   // RESET LAYER STATE (e.g. when switching to place markers)
   const resetLayerState = useCallback(() => {
     markerRef.current = new Map();
-    // checkedTilesRef.current = new Set();
     currentResRef.current = null;
   }, []);
 
@@ -65,20 +63,27 @@ const useDensityLayer = (
     // Check if refresh is triggered by zooming in;
     const prevRes = currentResRef.current;
     const zoomingIn = prevRes !== null && resolution > prevRes;
-    const outgoingMarkers = new Map(markerRef.current);
+    // const outgoingMarkers = new Map(markerRef.current);
+
+    // FOR SINGLETONS ONLY:
+    // If an old marker sees identical new marker coming in, old marker stays.
+    // If a new marker sees identical old marker already exists, new marker is ignored
+    const prevMarkers = markerRef.current;
+    const { outgoings: outgoingMarkers, retained: retainedMarkers } = sortMarkerRegistry(tiles, prevMarkers);
+    const incomingTiles = getIncomingMarkers(tiles, prevMarkers);
 
     // Reset state for new render
     resetLayerState();
+    markerRef.current = retainedMarkers;
     currentResRef.current = resolution;
 
     // Animate Marker Exit: burst, merge, or fade out CSS Class
     animateLayerClear(map, resolution, prevRes, outgoingMarkers);
 
     // Add New Markers + Fly-In Entry
-    const startOffsets = zoomingIn ? getExplodeFlyInOffset(map, outgoingMarkers, prevRes, tiles) : undefined;
+    const startOffsets = zoomingIn ? getExplodeFlyInOffset(map, outgoingMarkers, prevRes, incomingTiles) : undefined;
     addMarkers({ 
-      layer, tiles, resolution: resolution, startOffsets, 
-      // checkedTiles: checkedTilesRef.current, 
+      layer, tiles:incomingTiles, resolution: resolution, startOffsets, 
       markerRegistry: markerRef.current 
     });
 
@@ -102,7 +107,6 @@ const useDensityLayer = (
 
     addMarkers({ 
       layer, tiles, resolution: resolution, 
-      // checkedTiles: checkedTilesRef.current, 
       markerRegistry: markerRef.current 
     });
 

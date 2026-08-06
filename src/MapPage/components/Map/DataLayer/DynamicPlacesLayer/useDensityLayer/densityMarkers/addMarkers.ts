@@ -64,20 +64,6 @@ const addMarkers = ({ layer, tiles, resolution, markerRegistry, startOffsets }: 
             const tileId = tileByPlaceId.get(PlaceId);
             if (tileId) markerRegistry.set(tileId, { Marker, SingletonId: PlaceId });
         }
-
-        // const StartOffsetsMappedToPlaceId = new Map<string, { dx: number; dy: number }>();
-        // startOffsets?.forEach((offset, tileId) => {
-        //     const placeId = singletons.find(d => d.tile === tileId)?.singleton?.id;
-        //     if (placeId) StartOffsetsMappedToPlaceId.set(placeId, offset);
-        // });
-
-        // const places = singletons.map(s => s.singleton).filter((p): p is TilePlacePreview => p !== undefined)
-        // const newSingletonMarkers = addPlaceMarkers(layer, places, undefined, StartOffsetsMappedToPlaceId);
-
-        // newSingletonMarkers.forEach(({ PlaceId, Marker }) => {
-        //     const tileId = singletons.find(d => d.singleton?.id === PlaceId)?.tile;
-        //     if (tileId) markerRegistry.set(tileId, { Marker: Marker, SingletonId: PlaceId })
-        // });
     }
 };
 
