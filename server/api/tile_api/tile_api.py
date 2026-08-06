@@ -166,6 +166,7 @@ async def get_tiles(
                     "id":  s["id"],
                     "lat": s["lat"],
                     "lon": s["lon"],
+                    "tier": s["tier"],
                 }
 
     tile_data = []

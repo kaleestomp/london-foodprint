@@ -1,16 +1,17 @@
 import { apiBasePromise } from '../../../utils/apiBase';
 
-export interface TileDensity {
-  tile: string;
-  count: number;
-  singleton?: { id: string; lat: number; lon: number } | null;
-}
 export interface TilePlacePreview {
   id: string;
   lat: number;
   lon: number;
   tier: number | null;
 }
+export interface TileDensity {
+  tile: string;
+  count: number;
+  singleton?: TilePlacePreview | null;
+}
+
 export type TilesResponse =
   | { mode: 'tiles'; resolution: number; data: TileDensity[] }
   | { mode: 'places'; total: number; data: TilePlacePreview[] };

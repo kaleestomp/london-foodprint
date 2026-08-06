@@ -75,12 +75,14 @@ TILES_SQL = """
 # Fetches the single place's location for tiles whose aggregated count = 1.
 # Called only on the singleton-tile subset returned by TILES_SQL.
 # Applies same NULL-aware filtering as TILES_SQL to ensure the place matches its aggregated count.
+# TO MATCH PLACES RESPONSE CONTRACT
 SINGLETON_SQL = """
     SELECT
         h3_r10 AS tile,
         id,
         lat,
-        lon
+        lon,
+      {rank_column} AS tier
     FROM places
     WHERE h3_r10 = ANY($1::TEXT[])
       AND (
