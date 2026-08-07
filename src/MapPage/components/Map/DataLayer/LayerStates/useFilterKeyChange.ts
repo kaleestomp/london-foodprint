@@ -6,7 +6,7 @@ import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
  * Hook that owns a ref tracking the previous filter key and returns
  * whether the filter state has changed by computing a new key.
  */
-const useFilterKeyChange = (): boolean => {
+const useFilterKeyChange = (freezePrevKey: boolean = false): boolean => {
 
   const prevFilterKeyRef = useRef<string>('');
   
@@ -24,8 +24,9 @@ const useFilterKeyChange = (): boolean => {
 
   const changed = prevFilterKeyRef.current !== nextKey;
   useEffect(() => {
+    if (freezePrevKey) return;
     prevFilterKeyRef.current = nextKey;
-  }, [nextKey]);
+  }, [nextKey, freezePrevKey]);
   
   return changed;
 };

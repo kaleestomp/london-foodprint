@@ -3,8 +3,8 @@ from typing import Final
 import h3
 
 # Approximate padding in degrees (~1 H3 cell diameter) by resolution.
-_RES_PAD_DEG: Final[dict[int, float]] = {7: 0.05, 8: 0.018, 9: 0.007, 10: 0.003}
-
+_RES_PAD_DEG: Final[dict[int, float]] = {7: 0.025, 8: 0.0085, 9: 0.0035, 10: 0.0015}
+# _RES_PAD_DEG: Final[dict[int, float]] = {7: 0.05, 8: 0.018, 9: 0.007, 10: 0.003}
 
 def bbox_to_h3_cells(
     sw_lat: float,
@@ -47,7 +47,7 @@ def outer_inner_tiles_for_bbox(
         raise ValueError("Invalid bounding box")
 
     inner_tiles = bbox_to_h3_cells(sw_lat, sw_lng, ne_lat, ne_lng, resolution)
-    pad = _RES_PAD_DEG.get(resolution, 0.05)
+    pad = _RES_PAD_DEG.get(resolution, 0.025)
     outer_tiles = bbox_to_h3_cells(
         sw_lat - pad,
         sw_lng - pad,

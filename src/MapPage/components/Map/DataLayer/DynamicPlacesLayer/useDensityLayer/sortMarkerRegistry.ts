@@ -18,11 +18,13 @@ const sortMarkerRegistry = (
 
     prevMarkers.forEach(({ Marker, SingletonId }, prevTileId) => {
         if (SingletonId && newTileBySingletonId.has(SingletonId)) {
+            // HANDOFF RETAINED MARKER TO NEW TILE ID
+            // re-key to new tile ID for current response.
             const currentTileId = newTileBySingletonId.get(SingletonId);
             if (currentTileId)
                 retained.set(currentTileId, { Marker, SingletonId });
 
-            // Keep this marker on the map: skip outgoing animation/removal.
+            // Skip outgoing animation/removal.
             outgoings.delete(prevTileId);
         }
     });

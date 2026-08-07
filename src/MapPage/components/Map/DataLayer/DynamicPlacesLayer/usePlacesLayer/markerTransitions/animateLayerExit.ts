@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import { latLngToCell, cellToLatLng } from 'h3-js';
 
-const animateMergeOnExit = (
+const animateLayerExit = (
     map: L.Map,
     resolution: number,
     outgoing: Map<string, L.Marker>,
@@ -30,4 +30,4 @@ const animateMergeOnExit = (
     });
 };
 
-export default animateMergeOnExit;
+export default animateLayerExit;

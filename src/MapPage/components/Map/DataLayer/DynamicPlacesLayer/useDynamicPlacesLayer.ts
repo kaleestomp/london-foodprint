@@ -40,7 +40,7 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
 
   // Tracks the last rendered mode so we can detect places -> tiles transitions.
   const prevModeRef = useRef<'tiles' | 'places' | null>(null);
-  const filterKeyChanged = useFilterKeyChange();
+  const filterKeyChanged = useFilterKeyChange(isPlaceholderData);
   const topPlaceIdsChanged = useTopPlacesChange(activeTopPlaceIds);
 
   const handleZoomThresholdCross = useCallback(() => {
@@ -65,19 +65,21 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
     // mask out pins inside the bubble radius to avoid duplicates with BubbleAvatar.
     // Mask out pins that are already in the activeTopPlaceIds set to avoid duplicates with TopPlacesLayer.
     if (res.mode === 'places') {
-      prevModeRef.current = 'places';
+      
       const places = res.data;
 
-      // DEDUP DATA BEFORE RENDER
+      // 1.DEDUP DATA BEFORE RENDER
       const maskedPlaces = maskPlaces(places, searchMask); 
       const dedupPlaces = activeTopPlaceIdSet 
         ? maskedPlaces.filter((place) => !activeTopPlaceIdSet.has(place.id)) 
         : maskedPlaces;
 
-      // RENDER
-      placesLayer.syncLayer(dedupPlaces, filterKeyChanged); //replace all if filter key changed
+      // 2.RENDER
+      const isFirstEntry = prevModeRef.current !== 'places';
+      placesLayer.syncLayer(dedupPlaces, filterKeyChanged, isFirstEntry); //replace all if filter key changed
+      prevModeRef.current = 'places';
 
-      // DEDUP MARKER AFTER RENDER
+      // 3.DEDUP MARKER AFTER RENDER
       if (topPlaceIdsChanged && activeTopPlaceIdSet?.size) 
         placesLayer.removeMarkerFromLayer(activeTopPlaceIdSet);
 
@@ -87,7 +89,7 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
     else {
       const densityTiles = res.data;
 
-      // DEDUP DATA BEFORE RENDER
+      // 1.DEDUP DATA BEFORE RENDER
       const dedupTiles = activeTopPlaceIdSet 
         ? densityTiles.filter((d) => {
           const SingletonId = d.singleton?.id;
@@ -95,30 +97,22 @@ const useDensityPlacesLayer = ({ mapRef, activeTopPlaceIds, enabled }: UseDensit
           return !activeTopPlaceIdSet.has(SingletonId);
         }) : densityTiles;
       
-      // RENDER
-      // PLACES -> DENSITY
-      // animate place markers out, then show density pins.
+      // 2.RENDER
       if (prevModeRef.current === 'places') {
-        prevModeRef.current = 'tiles';
+        // PLACES -> DENSITY
+        // animate place markers out, then show density pins.
         placesLayer.removeLayer(res.resolution, dedupTiles);
-        densityLayer.setMaskVisibility(searchMask);
-      } 
-      
-      // DENSITY -> DENSITY
-      else {
-        prevModeRef.current = 'tiles';
-        if (res.resolution !== densityLayer.currentResRef.current || filterKeyChanged) {
-          // TILE REFRESH
-          densityLayer.refreshLayer(res.resolution, dedupTiles);
-        } else {
-          // TILE ADDITION (ON PAN)
-          densityLayer.addMarkersToLayer(res.resolution, dedupTiles);
-        }
-        // MASK MARKERS (VIA OPACITY)
-        densityLayer.setMaskVisibility(searchMask);
+      } else {
+        // DENSITY -> DENSITY
+        const fullRefresh = res.resolution !== densityLayer.currentResRef.current || filterKeyChanged; 
+        if (fullRefresh) densityLayer.refreshLayer(res.resolution, dedupTiles);
+        else densityLayer.addMarkersToLayer(res.resolution, dedupTiles);
       }
+      // MASK MARKERS (VIA OPACITY)
+      densityLayer.setMaskVisibility(searchMask);
+      prevModeRef.current = 'tiles';
 
-      // DEDUP MARKER AFTER RENDER
+      // 3.DEDUP MARKER AFTER RENDER
       if (topPlaceIdsChanged && activeTopPlaceIdSet?.size) 
         densityLayer.dedupSingletons(activeTopPlaceIdSet);
     }

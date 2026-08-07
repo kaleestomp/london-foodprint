@@ -1,13 +1,13 @@
 import L from 'leaflet';
 
 type MarkerRemovalTimer = ReturnType<typeof setTimeout>;
-type DeferredLayerRemovalTimerRef = { current: MarkerRemovalTimer | null };
-type DeferredLayerPendingRef = { current: L.Marker[] };
+export type RemovalTimerRef = { current: MarkerRemovalTimer | null };
+export type RemovalPendingRef = { current: L.Marker[] };
 
 export const cancelLayerRemoval = (
   layer: L.LayerGroup | null,
-  timerRef: DeferredLayerRemovalTimerRef,
-  pendingRef: DeferredLayerPendingRef,
+  timerRef: RemovalTimerRef,
+  pendingRef: RemovalPendingRef,
 ): void => {
   if (!timerRef.current) return;
 
@@ -24,9 +24,10 @@ export const scheduleLayerRemoval = (
   layer: L.LayerGroup,
   markers: L.Marker[],
   delayMs: number,
-  timerRef: DeferredLayerRemovalTimerRef,
-  pendingRef: DeferredLayerPendingRef,
+  timerRef: RemovalTimerRef,
+  pendingRef: RemovalPendingRef,
 ): void => {
+
   pendingRef.current = markers;
   timerRef.current = setTimeout(() => {
     markers.forEach((marker) => layer.removeLayer(marker));

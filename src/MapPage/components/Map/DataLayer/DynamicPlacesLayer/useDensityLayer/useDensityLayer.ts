@@ -18,7 +18,7 @@ export interface DensityLayer {
   addMarkersToLayer: (res: number, tiles: TileDensity[]) => void;
   setMaskVisibility: (searchMask: SearchMask | null) => void;
   dedupSingletons: (placeIds: Set<string>) => void;
-  cancelScheduledLayerRemoval: () => void;
+  cancelScheduledRemoval: () => void;
   resetLayerState: () => void;
 }
 /**
@@ -38,8 +38,16 @@ const useDensityLayer = (
 
   // ── Public API ─────────────────────────────────────────────────────────────
   // CANCEL PENDING REMOVAL (e.g. when switching to place markers)
-  const cancelScheduledLayerRemoval = useCallback(() => {
+  const cancelScheduledRemoval = useCallback(() => {
     cancelLayerRemoval( layerRef.current, cleanupTimerRef, pendingRemovalRef );
+  }, []);
+  // SCHEDULE REMOVAL
+  const scheduleRemoval = useCallback((layer:L.LayerGroup, markers: L.Marker[], delayMs: number) => {
+    scheduleLayerRemoval(
+      layer, markers, delayMs, // delayMs
+      cleanupTimerRef, // timerRef
+      pendingRemovalRef, // pendingRef
+    );
   }, []);
 
   // RESET LAYER STATE (e.g. when switching to place markers)
@@ -58,7 +66,7 @@ const useDensityLayer = (
     if (!map || !layer) return;
 
     // Every Render is a complete reset of density layer;
-    cancelScheduledLayerRemoval();
+    cancelScheduledRemoval();
 
     // Check if refresh is triggered by zooming in;
     const prevRes = currentResRef.current;
@@ -69,46 +77,64 @@ const useDensityLayer = (
     // If an old marker sees identical new marker coming in, old marker stays.
     // If a new marker sees identical old marker already exists, new marker is ignored
     const prevMarkers = markerRef.current;
-    const { outgoings: outgoingMarkers, retained: retainedMarkers } = sortMarkerRegistry(tiles, prevMarkers);
+    const { outgoings, retained } = sortMarkerRegistry(tiles, prevMarkers);
     const incomingTiles = getIncomingMarkers(tiles, prevMarkers);
 
-    // Reset state for new render
+    // TEMP DEBUG
+    // const prevSingletons = Array.from(prevMarkers.values())
+    //   .filter(v => v.SingletonId).map(v => v.SingletonId);
+    // const newSingletons = tiles.filter(d => d.singleton?.id).map(d => d.singleton!.id);
+    // const staleRetained = Array.from(retained.values())
+    //   .filter(v => v.SingletonId && !newSingletons.includes(v.SingletonId));
+    // console.log('[refreshLayer]', {
+    //   prevRes, newRes: resolution,
+    //   prevSingletons, newSingletons,
+    //   retainedIds: Array.from(retained.values()).map(v => v.SingletonId),
+    //   outgoingSingletons: Array.from(outgoings.values()).filter(v => v.SingletonId).map(v => v.SingletonId),
+    //   staleRetained: staleRetained.map(v => v.SingletonId),  // ⚠ should always be []
+    // });
+    // console.log(`${retained.size} | ${outgoings.size} = ${prevMarkers.size} (+${incomingTiles.length})`);
+    // console.log(Array.from(retained.keys()).map(tileId => {
+    //   // Get h3 res from h3 tile id
+    //   const tileResolution = getResolution(tileId);
+    //   return tileResolution;
+    // }));
+
+    // RESET LAYER + HANDOFF RETAINED MARKERS TO NEW LAYER
     resetLayerState();
-    markerRef.current = retainedMarkers;
+    markerRef.current = retained;
     currentResRef.current = resolution;
 
     // Animate Marker Exit: burst, merge, or fade out CSS Class
-    animateLayerClear(map, resolution, prevRes, outgoingMarkers);
+    animateLayerClear(map, resolution, prevRes, outgoings);
 
     // Add New Markers + Fly-In Entry
-    const startOffsets = zoomingIn ? getExplodeFlyInOffset(map, outgoingMarkers, prevRes, incomingTiles) : undefined;
+    const startOffsets = zoomingIn ? getExplodeFlyInOffset(map, outgoings, prevRes, incomingTiles) : undefined;
     addMarkers({ 
       layer, tiles:incomingTiles, resolution: resolution, startOffsets, 
       markerRegistry: markerRef.current 
     });
 
     // Schedule Removal of Outgoing Markers After Animation Delay
-    scheduleLayerRemoval(
-      layer, // layer
-      Array.from(outgoingMarkers.values()).map(v => v.Marker), // markers
-      zoomingIn ? 0 : 280, // delayMs
-      cleanupTimerRef, // timerRef
-      pendingRemovalRef, // pendingRef
-    );
+    const outgoingMarkers = Array.from(outgoings.values()).map(v => v.Marker);
+    const delayMs = zoomingIn ? 0 : 280; 
+    scheduleRemoval( layer, outgoingMarkers, delayMs );
 
-  }, [activeTopPlaceIds, cancelScheduledLayerRemoval, resetLayerState]);
+  }, [activeTopPlaceIds, cancelScheduledRemoval, resetLayerState, scheduleRemoval]);
 
-  // ADD MARKERS ON PAN / FIRST ENTRY FROM PLACES
+  // ADD MARKERS ON PAN
   const addMarkersToLayer = useCallback((resolution: number, tiles: TileDensity[]): void => {
 
     const layer = layerRef.current;
     const map = mapRef.current;
     if (!layer || !map) return;
-
+    
     addMarkers({ 
       layer, tiles, resolution: resolution, 
       markerRegistry: markerRef.current 
     });
+    if (currentResRef.current !== resolution)
+      currentResRef.current = resolution;
 
   }, [activeTopPlaceIds]);
 
@@ -143,21 +169,20 @@ const useDensityLayer = (
   }, []);
 
   return useMemo(() => ({
-    // checkedTilesRef,
     markerRef,
     currentResRef,
     refreshLayer,
     addMarkersToLayer,
     setMaskVisibility,
     dedupSingletons,
-    cancelScheduledLayerRemoval,
+    cancelScheduledRemoval,
     resetLayerState,
   }), [
     refreshLayer,
     addMarkersToLayer,
     setMaskVisibility,
     dedupSingletons,
-    cancelScheduledLayerRemoval,
+    cancelScheduledRemoval,
     resetLayerState,
   ]);
 };
