@@ -9,16 +9,14 @@ import type { MarkerLifecycleCache } from './syncMarkers/markerLifecycle/markerL
 
 import './syncMarkers/markers/TopPlacePin.css';
 
-type UseTopPlacesLayerArgs = {
-  mapRef: React.RefObject<L.Map | null>;
-  setActiveTopPlaceIds?: (ids: string[]) => void;
-  enabled: boolean;
-};
-
-const useTopPlacesLayer = ({ mapRef, setActiveTopPlaceIds, enabled }: UseTopPlacesLayerArgs): void => {
+const useTopPlacesLayer = (
+  mapRef: React.RefObject<L.Map | null>,
+  setActiveTopPlaceIds: (ids: Set<string> | undefined) => void,
+  enabled?: boolean,
+): void => {
 
   const topPlaces = useFetchTopPlaces({ mapRef, enabled });
-  useReportTopPlacesIDs({ topPlaces, setActiveTopPlaceIds, enabled });
+  useReportTopPlacesIDs( topPlaces, setActiveTopPlaceIds, enabled );
 
   const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
   const topPlacesLayerRef = useRef<L.LayerGroup | null>(null);

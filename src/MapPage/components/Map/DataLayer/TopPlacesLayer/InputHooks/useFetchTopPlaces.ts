@@ -8,7 +8,7 @@ const FETCH_LIMIT = 20;
 
 type Props = {
   mapRef: React.RefObject<L.Map | null>;
-  enabled: boolean;
+  enabled?: boolean;
 };
 
 const useFetchTopPlaces = ({ mapRef, enabled }: Props): TopPlaceItem[] => {

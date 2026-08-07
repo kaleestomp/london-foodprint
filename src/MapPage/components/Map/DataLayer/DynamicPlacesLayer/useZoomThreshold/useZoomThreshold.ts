@@ -16,13 +16,13 @@ const MARKER_EXIT_DURATION_MS = 250;
  * 
  * Can be disabled/removed by setting `enabled: false`.
  */
-type Props = {
-  mapRef: React.RefObject<L.Map | null>;
-  layerRef: React.RefObject<L.LayerGroup | null>;
-  onThresholdCross: () => void; // Called when crossing from below to above threshold
-  enabled: boolean;
-};
-const useZoomThreshold = ({ mapRef, layerRef, onThresholdCross, enabled }: Props): void => {
+
+const useZoomThreshold = (
+  mapRef: React.RefObject<L.Map | null>, 
+  layerRef: React.RefObject<L.LayerGroup | null>, 
+  onThresholdCross: () => void, // Called when crossing from below to above threshold
+  enabled?: boolean
+): void => {
   const suppressedRef = useRef(false);
 
   useEffect(() => {

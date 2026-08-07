@@ -30,13 +30,16 @@ const animateLayerEntry = ({
     pin.classList.add('density-pin-burst');
   });
 
-  // 4.GET X/Y OFFSETS: each place marker to begin fly-in
+  // PARSE INCOMING PLACES
+  const incomingPlaces = places.filter((p) => !markerRef.current.has(p.id));
+
+  // GET X/Y OFFSETS: each place marker to begin fly-in
   const startOffsets = outgoingRes !== null
-    ? getFlyInOffsetOnEntry(map, places, outgoingRes, outgoingTileMarker)
+    ? getFlyInOffsetOnEntry(map, incomingPlaces, outgoingRes, outgoingTileMarker)
     : undefined;
 
-  // 5.CREATE NEW MARKERS + UPDATE REF MAP
-  const newMarkers = addPlaceMarkers(layer, places, onPlaceClick, startOffsets);
+  // CREATE NEW MARKERS + UPDATE REF MAP
+  const newMarkers = addPlaceMarkers(layer, incomingPlaces, onPlaceClick, startOffsets);
   newMarkers.forEach(({ PlaceId, Marker }) => markerRef.current.set(PlaceId, Marker));
 
 };

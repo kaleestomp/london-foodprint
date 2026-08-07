@@ -28,7 +28,6 @@ export interface DensityLayer {
 const useDensityLayer = (
   mapRef: React.RefObject<L.Map | null>,
   layerRef: React.RefObject<L.LayerGroup | null>,
-  activeTopPlaceIds?: Set<string>,
 ): DensityLayer => {
 
   const markerRef = useRef<TileMarkerRegistry>(new Map()); // TRACK ALL TILE MARKERS
@@ -39,10 +38,10 @@ const useDensityLayer = (
   // ── Public API ─────────────────────────────────────────────────────────────
   // CANCEL PENDING REMOVAL (e.g. when switching to place markers)
   const cancelScheduledRemoval = useCallback(() => {
-    cancelLayerRemoval( layerRef.current, cleanupTimerRef, pendingRemovalRef );
+    cancelLayerRemoval(layerRef.current, cleanupTimerRef, pendingRemovalRef);
   }, []);
   // SCHEDULE REMOVAL
-  const scheduleRemoval = useCallback((layer:L.LayerGroup, markers: L.Marker[], delayMs: number) => {
+  const scheduleRemoval = useCallback((layer: L.LayerGroup, markers: L.Marker[], delayMs: number) => {
     scheduleLayerRemoval(
       layer, markers, delayMs, // delayMs
       cleanupTimerRef, // timerRef
@@ -80,26 +79,6 @@ const useDensityLayer = (
     const { outgoings, retained } = sortMarkerRegistry(tiles, prevMarkers);
     const incomingTiles = getIncomingMarkers(tiles, prevMarkers);
 
-    // TEMP DEBUG
-    // const prevSingletons = Array.from(prevMarkers.values())
-    //   .filter(v => v.SingletonId).map(v => v.SingletonId);
-    // const newSingletons = tiles.filter(d => d.singleton?.id).map(d => d.singleton!.id);
-    // const staleRetained = Array.from(retained.values())
-    //   .filter(v => v.SingletonId && !newSingletons.includes(v.SingletonId));
-    // console.log('[refreshLayer]', {
-    //   prevRes, newRes: resolution,
-    //   prevSingletons, newSingletons,
-    //   retainedIds: Array.from(retained.values()).map(v => v.SingletonId),
-    //   outgoingSingletons: Array.from(outgoings.values()).filter(v => v.SingletonId).map(v => v.SingletonId),
-    //   staleRetained: staleRetained.map(v => v.SingletonId),  // ⚠ should always be []
-    // });
-    // console.log(`${retained.size} | ${outgoings.size} = ${prevMarkers.size} (+${incomingTiles.length})`);
-    // console.log(Array.from(retained.keys()).map(tileId => {
-    //   // Get h3 res from h3 tile id
-    //   const tileResolution = getResolution(tileId);
-    //   return tileResolution;
-    // }));
-
     // RESET LAYER + HANDOFF RETAINED MARKERS TO NEW LAYER
     resetLayerState();
     markerRef.current = retained;
@@ -110,17 +89,17 @@ const useDensityLayer = (
 
     // Add New Markers + Fly-In Entry
     const startOffsets = zoomingIn ? getExplodeFlyInOffset(map, outgoings, prevRes, incomingTiles) : undefined;
-    addMarkers({ 
-      layer, tiles:incomingTiles, resolution: resolution, startOffsets, 
-      markerRegistry: markerRef.current 
+    addMarkers({
+      layer, tiles: incomingTiles, resolution: resolution, startOffsets,
+      markerRegistry: markerRef.current
     });
 
     // Schedule Removal of Outgoing Markers After Animation Delay
     const outgoingMarkers = Array.from(outgoings.values()).map(v => v.Marker);
-    const delayMs = zoomingIn ? 0 : 280; 
-    scheduleRemoval( layer, outgoingMarkers, delayMs );
+    const delayMs = zoomingIn ? 0 : 280;
+    scheduleRemoval(layer, outgoingMarkers, delayMs);
 
-  }, [activeTopPlaceIds, cancelScheduledRemoval, resetLayerState, scheduleRemoval]);
+  }, [cancelScheduledRemoval, resetLayerState, scheduleRemoval]);
 
   // ADD MARKERS ON PAN
   const addMarkersToLayer = useCallback((resolution: number, tiles: TileDensity[]): void => {
@@ -128,15 +107,15 @@ const useDensityLayer = (
     const layer = layerRef.current;
     const map = mapRef.current;
     if (!layer || !map) return;
-    
-    addMarkers({ 
-      layer, tiles, resolution: resolution, 
-      markerRegistry: markerRef.current 
+
+    addMarkers({
+      layer, tiles, resolution: resolution,
+      markerRegistry: markerRef.current
     });
     if (currentResRef.current !== resolution)
       currentResRef.current = resolution;
 
-  }, [activeTopPlaceIds]);
+  }, []);
 
   // DEDUP MARKERS
   // eg.singletons against top places id
@@ -145,7 +124,7 @@ const useDensityLayer = (
     if (!layer) return;
 
     markerRef.current.forEach(({ Marker, SingletonId }, tile) => {
-      if (!(SingletonId && placeIds.has(SingletonId))) 
+      if (!(SingletonId && placeIds.has(SingletonId)))
         return;
       layer.removeLayer(Marker);
       markerRef.current.delete(tile);

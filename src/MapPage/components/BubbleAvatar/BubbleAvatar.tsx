@@ -13,13 +13,8 @@ import './BubbleAvatar.css';
 const BubbleAvatar: React.FC<{ 
     mapRef: React.RefObject<L.Map | null>;
 }> = ({ mapRef }) => {
-    const {
-        droppedPos,
-        pickupPos,
-        isDragging,
-        flyInFrom,
-        resetBubbleToHome,
-    } = useBubbleAvatarState();
+
+    const { droppedPos, pickupPos, isDragging, flyInFrom, resetBubbleToHome } = useBubbleAvatarState();
 
     // Handle Search Mask Update to new positions
     useUpdateSearchMask(droppedPos);
@@ -27,7 +22,7 @@ const BubbleAvatar: React.FC<{
     // HANDLE AUTO LOCATION ON GEOSEARCH
     const { flyOutTo, dropOnEndFlight } = onAutoLocation({ mapRef, droppedPos });
 
-    // HANDLE DROP: Call Nearby Seach and More
+    // // HANDLE DROP: Call Nearby Seach and More
     onBubbleDrop(mapRef, droppedPos);
 
     const handleResetHomeScenarios = useCallback(() => {

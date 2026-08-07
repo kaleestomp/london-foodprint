@@ -1,33 +1,34 @@
 import { useEffect, useRef } from 'react';
 import type { TopPlaceItem } from '../../../../../request/useRequestTopPlaces/request';
 
-type Props = {
-  topPlaces: TopPlaceItem[];
-  setActiveTopPlaceIds?: (ids: string[]) => void;
-  enabled: boolean;
-};
 
-const useReportTopPlacesIDs = ({ topPlaces, setActiveTopPlaceIds, enabled }: Props): void => {
+const useReportTopPlacesIDs = (
+  topPlaces: TopPlaceItem[],
+  setActiveTopPlaceIds: (ids: Set<string> | undefined) => void,
+  enabled?: boolean
+): void => {
 
-  const activeTopPlaceIdsKeyRef = useRef('');
+  const keyRef = useRef('');
 
   useEffect(() => {
     if (!enabled) return;
-    const nextActiveTopPlaceIds = topPlaces.map((place) => place.id);
-    const nextActiveTopPlaceIdsKey = nextActiveTopPlaceIds.length
-      ? [...nextActiveTopPlaceIds].sort((left, right) => left.localeCompare(right)).join('|')
+    const topPlaceIds = topPlaces.map((place) => place.id);
+    const key = topPlaceIds.length
+      ? [...topPlaceIds].sort((left, right) => left.localeCompare(right)).join('|')
       : '';
 
-    if (nextActiveTopPlaceIdsKey !== activeTopPlaceIdsKeyRef.current) {
-      activeTopPlaceIdsKeyRef.current = nextActiveTopPlaceIdsKey;
-      setActiveTopPlaceIds?.(nextActiveTopPlaceIds);
+    if (key !== keyRef.current) {
+      keyRef.current = key;
+      const activeTopPlaceIdSet = topPlaces.length ? 
+        new Set(topPlaces.map((place) => place.id)) : undefined
+      setActiveTopPlaceIds(activeTopPlaceIdSet);
     }
   }, [topPlaces, setActiveTopPlaceIds, enabled]);
 
   useEffect(() => {
     if (!enabled) {
-      activeTopPlaceIdsKeyRef.current = '';
-      setActiveTopPlaceIds?.([]);
+      keyRef.current = '';
+      setActiveTopPlaceIds(undefined);
     }
   }, [enabled, setActiveTopPlaceIds]);
 

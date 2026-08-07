@@ -39,23 +39,22 @@ const onBubbleDrop = (
   const { focusMap } = useMapViewportNavigation({ mapRef });
   const isMobile = useIsMobile();
   const { panelHeight, translateY } = usePullUpPanelMetrics();
+  
   const markerRef = useRef<L.Marker | null>(null);
   const reactRootRef = useRef<Root | null>(null);
   const placesLayerRef = useRef<L.LayerGroup | null>(null);
   const entryDelayRef = useRef(0);
   const panelMetricsRef = useRef({ isMobile, panelHeight, translateY });
   // Keep onPickup fresh without invalidating the main effect
-  
+
   const onPickupRef = useRef(onPickup);
   useEffect(() => { onPickupRef.current = onPickup; }, [onPickup]);
-  useEffect(() => {
-    panelMetricsRef.current = { isMobile, panelHeight, translateY };
-  }, [isMobile, panelHeight, translateY]);
+  useEffect(() => { panelMetricsRef.current = { isMobile, panelHeight, translateY } }, [isMobile, panelHeight, translateY]);
 
   // Bubble drop owns nearby radius search.
   const nearbySearchParams = getNearbySearchParams(droppedPos);
   const { res: nearbyRes, queryKey: nearbyQueryKey, responseKey: nearbyResponseKey } = useRequestNearby(nearbySearchParams);
-  
+
   // ── Clear all Leaflet layers ───────────────────────────────────────────
   // React root must unmount BEFORE marker removal (avoids detached-node warning).
   const clearAll = useCallback((map: L.Map) => {

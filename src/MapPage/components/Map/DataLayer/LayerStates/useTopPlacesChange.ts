@@ -1,14 +1,16 @@
 import { useEffect, useRef, useMemo } from 'react';
 
 
-const useTopPlacesChange = (activeTopPlaceIds: string[]): boolean => {
+const useTopPlacesChange = (
+    topPlaceIdSet: Set<string> | undefined
+): boolean => {
 
     const prevTopPlaceIdsKeyRef = useRef('');
     const topPlaceIdsKey = useMemo(() =>
-        activeTopPlaceIds.length
-            ? [...activeTopPlaceIds].sort((left, right) => left.localeCompare(right)).join('|')
+        topPlaceIdSet?.size
+            ? [...topPlaceIdSet].sort((left, right) => left.localeCompare(right)).join('|')
             : '',
-        [activeTopPlaceIds]);
+        [topPlaceIdSet]);
     const changed = prevTopPlaceIdsKeyRef.current !== topPlaceIdsKey;
 
     useEffect(() => {

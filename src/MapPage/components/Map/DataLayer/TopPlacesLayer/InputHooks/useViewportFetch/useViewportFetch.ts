@@ -9,13 +9,13 @@ import useTopPlacesViewport from './useTopPlacesViewport';
 type Props = {
   mapRef: React.RefObject<L.Map | null>;
   limit?: number;
-  enabled: boolean;
+  enabled?: boolean;
 };
 type Out = {
   viewportTopPlaces: TopPlaceItem[];
 }
 
-const useViewportFetch = ({ mapRef, limit = 10, enabled }: Props): Out => {
+const useViewportFetch = ({ mapRef, limit = 10, enabled = true }: Props): Out => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier } = useSearchFilters();
   const viewportParams = useTopPlacesViewport(mapRef, enabled);

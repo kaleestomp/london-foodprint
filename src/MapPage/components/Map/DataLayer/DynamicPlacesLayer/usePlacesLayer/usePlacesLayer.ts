@@ -99,9 +99,8 @@ const usePlacesLayer = (
       markerRef.current = new Map(retained);
       
       // 4. ANIMATE TRANSITION
-      const incomingPlaces = places.filter((p) => !markerRef.current.has(p.id));
       animateLayerEntry({
-        map, layer, places: incomingPlaces, markerRef,
+        map, layer, places: places, markerRef,
         outgoingTileMarker: outgoings, outgoingRes,
         onPlaceClick: setSelectedPlaceId,
       });
@@ -152,7 +151,6 @@ const usePlacesLayer = (
     resetLayerState();
     density.resetLayerState();
     density.currentResRef.current = resolution;
-
 
     // 3. HANDOFF RETAINED MARKERS TO DENSITY LAYER
     density.markerRef.current = retained;    

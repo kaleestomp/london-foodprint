@@ -6,13 +6,13 @@ import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../req
 
 type Props = {
   limit: number;
-  enabled: boolean;
+  enabled?: boolean;
 }
 type Out = {
   nearbyTopPlaces: TopPlaceItem[];
 }
 
-const useNearbyFetch = ( { limit, enabled }: Props ): Out => {
+const useNearbyFetch = ( { limit, enabled = true }: Props ): Out => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, searchMask } = useSearchFilters();
   const radiusTopPlacesParams = useMemo<TopPlacesParams | null>(() => {
