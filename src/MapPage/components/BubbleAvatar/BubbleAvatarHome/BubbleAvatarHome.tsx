@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { memo, useCallback, useMemo, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
 import onBubbleDrag from '../onBubbleDrag/onBubbleDrag';
 import useHomeProximity from './hooks/useHomeProximity';
@@ -209,4 +209,4 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
   );
 };
 
-export default BubbleHome;
+export default memo(BubbleHome);

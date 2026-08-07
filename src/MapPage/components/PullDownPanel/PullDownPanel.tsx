@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { memo, useEffect } from 'react';
 import L from 'leaflet';
 
 import PullDownContainer from '../../../components/PullDownContainer/PullDownContainer';
@@ -39,4 +39,4 @@ const PullDownPanel: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = ({ ma
     );
 }
 
-export default PullDownPanel;
+export default memo(PullDownPanel);

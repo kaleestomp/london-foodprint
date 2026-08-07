@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import L from 'leaflet';
 
 import { useAppUI } from '../../../context/AppUIContext';
@@ -36,4 +36,4 @@ const MapToolbar: React.FC<Props> = ({
   );
 };
 
-export default MapToolbar;
+export default memo(MapToolbar);

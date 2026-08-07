@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import { memo, type FC } from 'react';
 import type L from 'leaflet';
 
 import PullUpPanelMobile from './Mobile/PullUpPanelMobile';
@@ -18,4 +18,4 @@ const PullUpPanel: FC<Props> = ({ mapRef }) => {
   );
 };
 
-export default PullUpPanel;
+export default memo(PullUpPanel);

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'; 
+import React, { memo, useCallback } from 'react'; 
 
 import BubbleHome from './BubbleAvatarHome/BubbleAvatarHome';
 import onAutoLocation from './onAutoLocation/onAutoLocation';
@@ -71,4 +71,4 @@ const BubbleAvatar: React.FC<{
     );
 }
 
-export default BubbleAvatar;
+export default memo(BubbleAvatar);
