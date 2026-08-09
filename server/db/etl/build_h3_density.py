@@ -5,12 +5,12 @@ Builds the h3_density pre-aggregation DataFrame from a places DataFrame.
 Pure data transform — no file I/O, no DB calls.
 
 Input columns required:
-    h3_r10, cuisine_type, cost, venue_type
+    h3_r10, lat, lon, cuisine_type, cost, venue_type
     tier, tier_d, tier_independent  (pre-computed tier assignments)
 
 Output columns:
     tile, resolution, cuisine_type, cost, venue_type,
-    score_basis, score_tier, count
+    score_basis, score_tier, count, agg_lat, agg_lon
 
 Score tier semantics (CUMULATIVE thresholds — matches the frontend filter):
     0 = all                            (input tier >= 0)
@@ -29,7 +29,7 @@ import itertools
 import h3
 import pandas as pd
 
-H3_RESOLUTIONS = [7, 8, 9, 10]
+H3_RESOLUTIONS = [7, 8, 9, 10, 11]
 
 # Maps score_basis to input tier column name
 TIER_COLS = {
@@ -48,6 +48,22 @@ TIER_FILTERS = {
 }
 
 
+def _get_res11_tile_for_place(row: pd.Series) -> str:
+    """Derive a res-11 H3 cell ID for a place from its lat/lon coordinates."""
+    lat = row.get("lat")
+    lon = row.get("lon")
+    if pd.notna(lat) and pd.notna(lon):
+        return h3.latlng_to_cell(float(lat), float(lon), 11)
+
+    h3_r10 = row.get("h3_r10")
+    if pd.notna(h3_r10):
+        children = list(h3.cell_to_children(h3_r10, 11))
+        if children:
+            return children[0]
+
+    raise ValueError("Unable to derive H3 res-11 tile: missing lat/lon and h3_r10")
+
+
 def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
     """
     Pre-aggregate restaurant counts across all filter dimension combinations.
@@ -58,9 +74,11 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
     API normalize layer maps frontend "Unspecified" → '__null__' for h3_density queries,
     and '__null__' → IS NULL for places queries.
     """
-    # Pre-compute parent tile IDs at coarser resolutions from the res-10 base
+    # Pre-compute parent tile IDs at coarser resolutions from the res-10 base.
+    # Res-11 is derived per place from lat/lon because the input only stores res-10.
     for res in [7, 8, 9]:
         df[f"_t{res}"] = df["h3_r10"].apply(lambda t: h3.cell_to_parent(t, res))
+    df["_t11"] = df.apply(_get_res11_tile_for_place, axis=1)
 
     # Extract dimension values and add special rows:
     # - '__null__' row: counts unspecified/NULL places (for "Unspecified" filter)
@@ -110,9 +128,15 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
                 agg = (
                     df[mask]
                     .groupby(tile_col, sort=False)
-                    .size()
-                    .reset_index(name="count")
+                    .agg(
+                        count=("lat", "size"),
+                        agg_lat=("lat", "mean"),
+                        agg_lon=("lon", "mean"),
+                    )
+                    .reset_index()
                     .rename(columns={tile_col: "tile"})
+                    # .size()
+                    # .reset_index(name="count")
                 )
                 if agg.empty:
                     done += 1
@@ -135,5 +159,5 @@ def build_h3_density(df: pd.DataFrame) -> pd.DataFrame:
     return (
         pd.concat(rows, ignore_index=True)
         [["tile", "resolution", "cuisine_type", "cost", "venue_type",
-          "score_basis", "score_tier", "count"]]
+          "score_basis", "score_tier", "count", "agg_lat", "agg_lon"]]
     )

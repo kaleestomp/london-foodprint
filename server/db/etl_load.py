@@ -43,6 +43,7 @@ REQUIRED_DENSITY_COLS = [
     "score_tier",
     "count",
 ]
+OPTIONAL_DENSITY_COLS = ["agg_lat", "agg_lon"]
 
 
 def _ensure_places_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -87,8 +88,11 @@ def _normalize_density_df(density_df: pd.DataFrame) -> pd.DataFrame:
     # to enable NULL-aware filtering. The database schema allows NULL.
     # Only fill empty strings if actually reading from old CSV (shouldn't happen with
     # fresh build). For now, preserve NaN as-is since build_h3_density produces explicit "".
-    
-    return density_df[REQUIRED_DENSITY_COLS].copy()
+    for col in OPTIONAL_DENSITY_COLS:
+        if col not in density_df.columns:
+            density_df[col] = pd.NA
+
+    return density_df[REQUIRED_DENSITY_COLS + OPTIONAL_DENSITY_COLS].copy()
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
@@ -103,7 +107,7 @@ if __name__ == "__main__":
         print("h3_density.csv not found — building from scratch …")
         built_df = build_h3_density(
             df[[
-                "h3_res10", "cuisineType", "cost", "venueType",
+                "h3_res10", "lat", "lon", "cuisineType", "cost", "venueType",
                 "tier", "tier_d", "tier_independent",
             ]].rename(columns={
                 "h3_res10":    "h3_r10",

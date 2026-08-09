@@ -94,6 +94,8 @@ CREATE TABLE h3_density (
     score_basis     SMALLINT NOT NULL DEFAULT 0,           -- 0=base | 1=diversity-aware | 2=independent
     score_tier      SMALLINT NOT NULL DEFAULT 0,           -- cumulative: 0=all, 1=above avg, 2=strong, 3=top 10%, 4=top 5%
     count           INTEGER  NOT NULL,
+    agg_lat         DOUBLE PRECISION,
+    agg_lon         DOUBLE PRECISION,
     PRIMARY KEY (tile, resolution, cuisine_type, cost, venue_type, score_basis, score_tier)
 );
 

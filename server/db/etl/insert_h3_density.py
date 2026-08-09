@@ -13,15 +13,15 @@ def insert_h3_density(cur, density_df: pd.DataFrame) -> None:
             row.tile, int(row.resolution),
             row.cuisine_type, row.cost, row.venue_type,
             int(row.score_basis), int(row.score_tier),
-            int(row.count),
+            int(row.count), getattr(row, "agg_lat", None), getattr(row, "agg_lon", None),
         )
         for row in density_df.itertuples(index=False)
     ]
     psycopg2.extras.execute_values(cur, """
         INSERT INTO h3_density
-            (tile, resolution, cuisine_type, cost, venue_type, score_basis, score_tier, count)
+            (tile, resolution, cuisine_type, cost, venue_type, score_basis, score_tier, count, agg_lat, agg_lon)
         VALUES %s
         ON CONFLICT (tile, resolution, cuisine_type, cost, venue_type, score_basis, score_tier)
-        DO UPDATE SET count = EXCLUDED.count
+        DO UPDATE SET count = EXCLUDED.count, agg_lat = EXCLUDED.agg_lat, agg_lon = EXCLUDED.agg_lon
     """, records, page_size=1000)
     print(f"  {len(records):,} density rows upserted")
