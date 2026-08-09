@@ -5,7 +5,7 @@ import { type TilesParams } from '../../../request/useRequestTiles/useRequestTil
 import getBucketedViewportBounds from '../DataLayer/utils/getBucketedViewportBounds';
 import zoomToResolution from '../DataLayer/utils/zoomToResolution';
 
-const RES_THRESHOLD_FOR_PLACES_ONLY = 11;
+const RES_THRESHOLD_FOR_PLACES_ONLY = 12;
 const VIEWPORT_UPDATE_THROTTLE_MS = 250;
 /**
  * Tracks map viewport and emits TilesParams whenever the user pans or zooms.

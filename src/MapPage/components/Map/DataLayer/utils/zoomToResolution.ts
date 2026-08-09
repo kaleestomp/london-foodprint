@@ -10,7 +10,7 @@ export type ZoomResTable = ReadonlyArray<readonly [number, number]>;
  * to keep pins readable and avoid over-plotting.
  */
 export const PINS_ZOOM_TO_RES: ZoomResTable = [
-  [12, 7], [13, 8], [14, 9], [15, 10], [16, 11]
+  [12, 7], [13, 8], [14, 9], [15, 10], [16, 11], [17, 12]
 ];
 
 const zoomToResolution = (zoom: number, table: ZoomResTable = PINS_ZOOM_TO_RES): number => {

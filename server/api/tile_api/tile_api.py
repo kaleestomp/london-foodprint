@@ -39,7 +39,7 @@ async def get_tiles(
     sw_lng: float = Query(...),
     ne_lat: float = Query(...),
     ne_lng: float = Query(...),
-    res: int = Query(..., ge=7, le=11),
+    res: int = Query(..., ge=7, le=16),
     cuisine: list[str] | None = Query(default=None),
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
@@ -49,8 +49,8 @@ async def get_tiles(
 ) -> dict[str, Any]:
     
     # VALIDATE INPUTS
-    if places_only and res < 11:
-        raise HTTPException(status_code=422, detail="places_only requires res=11")
+    if places_only and res < 12:
+        raise HTTPException(status_code=422, detail="places_only requires res=12")
 
     # Normalize filters: empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
     cuisine_values = normalize_dimension_list(cuisine)
