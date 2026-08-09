@@ -78,13 +78,13 @@ TILES_SQL = """
 # TO MATCH PLACES RESPONSE CONTRACT
 SINGLETON_SQL = """
     SELECT
-        h3_r10 AS tile,
+        {lookup_column} AS tile,
         id,
         lat,
         lon,
       {rank_column} AS tier
     FROM places
-    WHERE h3_r10 = ANY($1::TEXT[])
+    WHERE {lookup_column} = ANY($1::TEXT[])
       AND (
             CARDINALITY($2::TEXT[]) = 0  -- no filter, show all cuisines
             OR (CARDINALITY($2::TEXT[]) > 0 AND (

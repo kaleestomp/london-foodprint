@@ -18,7 +18,7 @@ const useFetchTiles = (enabled: boolean = true): Response => {
   // Get Current Viewport Params (bounds, zoom)
   const { viewportParams, setLastTilesParams } = useTileQuery();
   const { effectiveCuisines, venueType, effectivePriceRanges, scoreBasis, scoreTier } = useSearchFilters();
-
+  
   // Assemble API Request Params
   const requestParams = useMemo(() => {
     if (!enabled) return null;
@@ -39,6 +39,7 @@ const useFetchTiles = (enabled: boolean = true): Response => {
 
   // Call Request
   const { status, res, isFetching, isPlaceholderData } = useRequestTiles(requestParams);
+  // console.log(requestParams);
 
   // REPORT PARAMS TO CONTEXT
   useEffect(() => { 

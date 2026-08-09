@@ -34,7 +34,7 @@ const onUserRoam = (
       const { sw_lat, sw_lng, ne_lat, ne_lng } = getBucketedViewportBounds(map); //zoomBucket
       const zoom = map.getZoom();
       const res = zoomToResolution(zoom);
-
+      
       return {
         sw_lat, sw_lng, ne_lat, ne_lng, res,
         // At past 17 Zoom / 11 Res, always request individual places directly,

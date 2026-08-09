@@ -10,24 +10,38 @@ from api.tile_api.sql import PLACES_SQL, TILES_SQL, SINGLETON_SQL
 from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
 from api.map_util.map_util import PAGE_SIZE_ON_ZOOM, PAGE_SIZE_ON_ZOOM_INCREASED, PAGE_SIZE_ON_REQUEST, h3_cells_for_bbox
 
-def _expand_to_r10(tiles: list[str], resolution: int) -> tuple[list[str], dict[str, str]]:
+def _expand_to_lookup_cells(tiles: list[str], resolution: int) -> tuple[list[str], dict[str, str]]:
     """
-    Expand a list of H3 tiles at any resolution to their res-10 descendants.
+    Resolve a list of H3 tiles to the corresponding place lookup cell IDs.
     Returns:
-      r10_cells  - flat list of all res-10 cell IDs to query against h3_r10
-      reverse    - maps each r10 cell back to its parent singleton tile ID
-    At resolution == 10 the tiles are already r10 cells; no expansion needed.
+      lookup_cells - flat list of lookup cell IDs to query against the places table
+      reverse      - maps each lookup cell back to its parent singleton tile ID
+
+    - resolution <= 10: use h3_r10 lookup cells.
+      - resolution == 10: already at the target resolution; use the tile itself.
+      - resolution < 10: tile is coarser than res-10, so expand to its res-10 descendants.
+    - resolution >= 11: use h3_r11 lookup cells.
+      - resolution == 11: already at the target resolution; use the tile itself.
+      - resolution > 11: tile is finer than res-11, so collapse to its res-11 parent.
     """
-    if resolution == 10:
+    if resolution == 10 or resolution == 11:
         return tiles, {t: t for t in tiles}
-    r10_cells: list[str] = []
+
+    lookup_cells: list[str] = []
     reverse: dict[str, str] = {}
-    for tile in tiles:
-        children = list(h3.cell_to_children(tile, 10))
-        r10_cells.extend(children)
-        for child in children:
-            reverse[child] = tile
-    return r10_cells, reverse
+    if resolution < 10:
+        for tile in tiles:
+            children = list(h3.cell_to_children(tile, 10))
+            lookup_cells.extend(children)
+            for child in children:
+                reverse[child] = tile
+    else:
+        for tile in tiles:
+            parent = h3.cell_to_parent(tile, 11)
+            if parent:
+                lookup_cells.append(parent)
+                reverse[parent] = tile
+    return lookup_cells, reverse
 
 
 router = APIRouter()
@@ -142,23 +156,24 @@ async def get_tiles(
         }
 
     # Enrich singleton tiles (count=1) with the actual place lat/lon.
-    # At res < 10, tile IDs are coarse H3 parents — expand to r10 children
-    # so SINGLETON_SQL (which matches on h3_r10) can find the place.
+    # For res <= 10 we use h3_r10; for res >= 11 we use h3_r11 so the lookup
+    # matches the identifier stored on each place.
     singleton_tiles = [row["tile"] for row in tile_rows if int(row["count"]) == 1]
     singleton_map: dict[str, dict] = {}
     if singleton_tiles:
-        r10_cells, r10_to_tile = _expand_to_r10(singleton_tiles, resolution)
+        lookup_column = "h3_r11" if resolution >= 11 else "h3_r10"
+        lookup_cells, lookup_to_tile = _expand_to_lookup_cells(singleton_tiles, resolution)
         async with request.app.state.pool.acquire() as conn:
             s_rows = await conn.fetch(
-                SINGLETON_SQL.format(rank_column=tier_column),
-                r10_cells,
+                SINGLETON_SQL.format(rank_column=tier_column, lookup_column=lookup_column),
+                lookup_cells,
                 cuisine_values,
                 venue_value,
                 cost_values,
                 score_tier,
             )
         for s in s_rows:
-            parent_tile = r10_to_tile.get(s["tile"])
+            parent_tile = lookup_to_tile.get(s["tile"])
             if parent_tile and parent_tile not in singleton_map:
                 singleton_map[parent_tile] = {
                     "id":  s["id"],

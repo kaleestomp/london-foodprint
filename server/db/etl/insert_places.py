@@ -28,6 +28,7 @@ def insert_places(cur, df: pd.DataFrame) -> None:
             _v(row.venueType)   or None,
             float(row.lat), float(row.lon),
             row.h3_res10,
+            row.h3_r11 if pd.notna(row.h3_r11) else None,
             row.pcd       if pd.notna(row.pcd)      else None,
             row.areacode  if pd.notna(row.areacode) else None,
             _v(row.wheelchairAccess, bool),
@@ -47,7 +48,7 @@ def insert_places(cur, df: pd.DataFrame) -> None:
             rating, user_rating_count,
             short_formatted_address, google_maps_uri, website_uri,
             types, primary_type, is_chain, predicted_type,
-            cuisine_type, venue_type, lat, lon, h3_r10,
+            cuisine_type, venue_type, lat, lon, h3_r10, h3_r11,
             pcd, areacode, wheelchair_access, operational, cost,
             wilson_1, normal_1, tier, tier_d, tier_independent
         ) VALUES %s
@@ -68,6 +69,7 @@ def insert_places(cur, df: pd.DataFrame) -> None:
             lat               = EXCLUDED.lat,
             lon               = EXCLUDED.lon,
             h3_r10            = EXCLUDED.h3_r10,
+            h3_r11            = EXCLUDED.h3_r11,
             pcd               = EXCLUDED.pcd,
             areacode          = EXCLUDED.areacode,
             wheelchair_access = EXCLUDED.wheelchair_access,

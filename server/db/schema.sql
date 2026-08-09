@@ -39,6 +39,7 @@ CREATE TABLE places (
                             ST_SetSRID(ST_MakePoint(lon, lat), 4326)
                         ) STORED,
     h3_r10              TEXT             NOT NULL,  -- H3 res-10 cell ID
+    h3_r11              TEXT             NOT NULL,  -- H3 res-11 cell ID for precise singleton lookups
     pcd                 TEXT,
     areacode            TEXT,
     wheelchair_access   BOOLEAN,
@@ -55,6 +56,7 @@ CREATE TABLE places (
 
 -- h3_r10 index: drives the nearby-search k-ring pre-filter
 CREATE INDEX idx_places_h3_r10     ON places(h3_r10);
+CREATE INDEX idx_places_h3_r11     ON places(h3_r11);
 -- GIST index: drives ST_DWithin exact distance check
 CREATE INDEX idx_places_geom       ON places USING GIST(geom);
 -- Composite: cuisine filter + base ranking sort (normal_1)
