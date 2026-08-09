@@ -18,6 +18,7 @@ const useFetchTiles = (enabled: boolean = true): Response => {
   // Get Current Viewport Params (bounds, zoom)
   const { viewportParams, setLastTilesParams } = useTileQuery();
   const { effectiveCuisines, venueType, effectivePriceRanges, scoreBasis, scoreTier } = useSearchFilters();
+  const aggCenter = false; // Dev-only toggle for inspecting agg center payloads.
   
   // Assemble API Request Params
   const requestParams = useMemo(() => {
@@ -30,16 +31,16 @@ const useFetchTiles = (enabled: boolean = true): Response => {
       cost: effectivePriceRanges,
       score_basis: scoreBasis,
       score_tier: scoreTier,
+      agg_center: aggCenter,
     };
   }, [
     viewportParams, effectiveCuisines, 
     venueType, effectivePriceRanges, 
-    scoreBasis, scoreTier, enabled
+    scoreBasis, scoreTier, aggCenter, enabled
   ]);
 
   // Call Request
   const { status, res, isFetching, isPlaceholderData } = useRequestTiles(requestParams);
-  // console.log(requestParams);
 
   // REPORT PARAMS TO CONTEXT
   useEffect(() => { 

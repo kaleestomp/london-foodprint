@@ -9,6 +9,7 @@ const buildQueryKey = (params: TilesParams): string => {
     ne_lng: String(params.ne_lng),
     res: String(params.res),
     ...(params.places_only ? { places_only: 'true' } : {}),
+    ...(params.agg_center ? { agg_center: 'true' } : {}),
     venue_type: params.venue_type ?? '',
     score_basis: String(params.score_basis ?? 0),
     score_tier: String(params.score_tier ?? 0),

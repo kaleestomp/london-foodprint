@@ -9,6 +9,8 @@ export interface TilePlacePreview {
 export interface TileDensity {
   tile: string;
   count: number;
+  agg_lat?: number | null;
+  agg_lon?: number | null;
   singleton?: TilePlacePreview | null;
 }
 

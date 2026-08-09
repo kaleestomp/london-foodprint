@@ -22,6 +22,7 @@ export interface TilesParams {
   venue_type?: string;
   score_basis?: 0 | 1 | 2;
   score_tier?: 0 | 1 | 2 | 3 | 4;
+  agg_center?: boolean;
 }
 
 const useRequestTiles = (params: TilesParams | null): {

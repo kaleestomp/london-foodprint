@@ -51,7 +51,7 @@ PLACES_SQL = """
 # - if filter array is empty: select only rows where dimension = '__all__' (wildcard, counts all)
 # - if filter array has values: select rows matching those values ('__all__' and '__null__' included if in array)
 TILES_SQL = """
-    SELECT tile, SUM(count)::INT AS count
+    SELECT tile, SUM(count)::INT AS count, MAX(agg_lat) AS agg_lat, MAX(agg_lon) AS agg_lon
     FROM h3_density
     WHERE resolution = $1
       AND tile = ANY($2::TEXT[])

@@ -60,6 +60,7 @@ async def get_tiles(
     score_basis: int = Query(default=0, ge=0, le=2),
     score_tier: int = Query(default=0, ge=0, le=4),
     places_only: bool = Query(default=False),
+    agg_center: bool = Query(default=False),
 ) -> dict[str, Any]:
     
     # VALIDATE INPUTS
@@ -185,6 +186,9 @@ async def get_tiles(
     tile_data = []
     for row in tile_rows:
         entry = dict(row)
+        if not agg_center:
+            entry.pop("agg_lat", None)
+            entry.pop("agg_lon", None)
         if int(entry["count"]) == 1:
             entry["singleton"] = singleton_map.get(entry["tile"])
         tile_data.append(entry)
