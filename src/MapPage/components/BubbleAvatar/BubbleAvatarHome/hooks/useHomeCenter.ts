@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 
-import { useAppUI } from '../../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
 import { usePullUpPanelMetrics } from '../../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import type { Point } from '../../config';
 
 const useHomeCenter = (): Point => {
 
-    const { isMobile } = useAppUI();
+    const isMobile = useIsMobileCtx();
     const { translateY, panelHeight } = usePullUpPanelMetrics();
     const mobilePanel = isMobile ? { translateY, panelHeight } : undefined
 

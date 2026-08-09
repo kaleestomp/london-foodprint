@@ -19,7 +19,7 @@ import useNearbySearchParams from '../../Map/DataLayer/NearbyPlacesLayer/useNear
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import { useAppUI } from '../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 
 /**
  * Manages all Leaflet layers for the dropped bubble avatar.
@@ -38,7 +38,7 @@ const onBubbleDrop = (
   /** Clears the map avatar; receives screen coords so MapCard can reposition BubbleButton */
 
   const { focusMap } = useMapViewportNavigation({ mapRef });
-  const { isMobile } = useAppUI();
+  const isMobile = useIsMobileCtx();
   const { panelHeight, translateY } = usePullUpPanelMetrics();
   
   const markerRef = useRef<L.Marker | null>(null);

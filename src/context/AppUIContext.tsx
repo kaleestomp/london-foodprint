@@ -1,6 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'; 
 import type { ReactNode } from 'react'; 
-import useIsMobile from '../utils/browser/useIsMobile';
 
 export type ToolbarFilterTab = 'rating' | 'price' | 'cuisine' | 'search';
 export type ColorMode = 'light' | 'dark';
@@ -14,7 +13,6 @@ export type LiveLocation = {
 interface AppUIContextType { 
   isLoading: boolean;
   isSideCardVisible: boolean;
-  isMobile: boolean;
   activeToolbarTab: ToolbarFilterTab | null;
   liveLocation: LiveLocation | null;
   colorMode: ColorMode;
@@ -37,7 +35,6 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
   //   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   // };
 
-  const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(false);
   const [isSideCardVisible] = useState(true);
   const [activeToolbarTab, setActiveToolbarTab] = useState<ToolbarFilterTab | null>(null);
@@ -59,7 +56,6 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
   const exposed = useMemo<AppUIContextType>(() => ({ 
     isLoading,
     isSideCardVisible,
-    isMobile,
     activeToolbarTab,
     liveLocation,
     colorMode,
@@ -72,7 +68,6 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
     activeToolbarTab,
     colorMode,
     isLoading,
-    isMobile,
     isSideCardVisible,
     liveLocation,
     queueLiveLocationDrop,

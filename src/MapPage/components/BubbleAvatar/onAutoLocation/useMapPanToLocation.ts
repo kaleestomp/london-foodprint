@@ -5,6 +5,7 @@ import getVisibleMapTargetScreenPoint from '../MapNavigation/getVisibleMapTarget
 import useMapViewportNavigation from '../MapNavigation/useMapViewportNavigation';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import { useAppUI } from '../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 
 type UseMapPanToLocationArgs = {
   mapRef: React.RefObject<L.Map | null>;
@@ -23,7 +24,8 @@ const useMapPanToLocation = ({
   mapRef,
 }: UseMapPanToLocationArgs): out => {
   const { focusMap } = useMapViewportNavigation({ mapRef });
-  const { liveLocation, isMobile } = useAppUI();
+  const { liveLocation } = useAppUI();
+  const isMobile = useIsMobileCtx();
   const { panelHeight, translateY } = usePullUpPanelMetrics();
   // Token for flight triggered by geo location updates
   const [flightToken, setFlightToken] = useState<number | null>(null);

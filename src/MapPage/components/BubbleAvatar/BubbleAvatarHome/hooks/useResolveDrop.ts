@@ -3,7 +3,7 @@ import L from 'leaflet';
 
 import { HOME_SNAP_RADIUS, type Point } from '../../config';
 import { useBubbleAvatarState } from '../../BubbleAvatarStateContext';
-import { useAppUI } from '../../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
 import { usePullUpPanelMetrics } from '../../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import checkIsDropBlocked from './checkIsDropBlocked';
 
@@ -20,7 +20,7 @@ const useResolveDrop = (
 ) => {
   
   const { handleDropXY, handleDropCancel } = useBubbleAvatarState();
-  const { isMobile } = useAppUI();
+  const isMobile = useIsMobileCtx();
   const { translateY, panelHeight } = usePullUpPanelMetrics();
   
   const resolveDrop = useCallback((point: Point) => {

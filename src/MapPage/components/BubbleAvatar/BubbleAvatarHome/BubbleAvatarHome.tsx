@@ -1,7 +1,7 @@
 import { memo, useMemo, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
 
-import { useAppUI } from '../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import onBubbleDrag from '../onBubbleDrag/onBubbleDrag';
 import useHomeProximity from './hooks/useHomeProximity';
@@ -33,7 +33,7 @@ type Props = {
 
 const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
 
-  const { isMobile } = useAppUI();  
+  const isMobile = useIsMobileCtx();  
   const { pickupPos, isDragging, isNearHome } = useBubbleAvatarState();
 
   // FIND HOME CENTER

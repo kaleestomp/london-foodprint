@@ -24,12 +24,13 @@ const useNearbyPlacesLayer = (
     const layerRef = useRef<L.LayerGroup | null>(null);
 
     const nearbySearchParams = useNearbySearchParams();
+    const hasSearchParams = nearbySearchParams !== null;
     const { res: nearbyRes, queryKey: nearbyQueryKey, responseKey: nearbyResponseKey } = useRequestNearby(nearbySearchParams);
 
 
-    // Layer Created on Map Mount
+    // Layer Created only when a search mask is active (mirrors pre-refactor gate)
     useEffect(() => {
-        if (!enabled) return;
+        if (!enabled || !hasSearchParams) return;
         const map = mapRef.current;
         if (!map) return;
 
@@ -41,7 +42,7 @@ const useNearbyPlacesLayer = (
             layerRef.current = null;
             layer.remove();
         };
-    }, [mapRef, enabled]);
+    }, [mapRef, enabled, hasSearchParams]);
 
     // ── Add/replace places layer when nearby results arrive ───────────────
     useEffect(() => {

@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 
 import { AppUIProvider, useAppUI } from './context/AppUIContext';
+import { IsMobileProvider } from './context/IsMobileContext';
 import { SearchFiltersProvider } from './context/SearchFiltersContext';
 import MapPage from './MapPage/MapPage';
 import './App.css';
@@ -24,11 +25,13 @@ const AppRoutes = () => {
 const App = () => {
   return (
     <Router basename={import.meta.env.BASE_URL}>
+      <IsMobileProvider>
       <AppUIProvider>
         <SearchFiltersProvider>
           <AppRoutes />
         </SearchFiltersProvider>
       </AppUIProvider>
+      </IsMobileProvider>
     </Router>
   );
 };

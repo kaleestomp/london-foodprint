@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
-import { useAppUI } from '../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import useHomeCenter from '../BubbleAvatarHome/hooks/useHomeCenter';
 import DashedCircle from '../Searchmask/DashedCircle';
 import './BubbleHomeGhost.css';
@@ -18,7 +18,7 @@ type Props = {
  * enough to trigger snap-back behavior.
  */
 const BubbleHomeGhost: React.FC<Props> = ({ onResetHome }) => {
-  const { isMobile } = useAppUI();
+  const isMobile = useIsMobileCtx();
   const { isNearHome } = useBubbleAvatarState();
   const homeCenter = useHomeCenter();
   const ghostStyle = useMemo(() => {

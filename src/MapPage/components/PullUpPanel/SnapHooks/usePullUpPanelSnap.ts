@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { useAppUI } from '../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import useViewportHeightWithJitter from './helper/useViewportHeightWithJitter';
 import usePanelDragEngine from './helper/usePanelDragEngine';
 import useContentPullToClose from './helper/useContentPullToClose';
@@ -14,7 +14,7 @@ import {
 
 const usePullUpPanelSnap = () => {
   
-  const { isMobile } = useAppUI();
+  const isMobile = useIsMobileCtx();
   const viewportHeight = useViewportHeightWithJitter();
   const [snapState, setSnapState] = useState<SnapState>('closed');
   const [translateY, setTranslateY] = useState(() =>

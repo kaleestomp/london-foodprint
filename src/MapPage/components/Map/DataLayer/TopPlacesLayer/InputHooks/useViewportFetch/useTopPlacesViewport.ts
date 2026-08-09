@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 
 import { bucketViewportBounds } from '../../../utils/getBucketedViewportBounds';
-import { useAppUI } from '../../../../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../../../../context/IsMobileContext';
 import { MOBILE_PEEK_PX } from '../../../../../PullUpPanel/SnapHooks/config';
 
 const DESKTOP_LEFT_OFFSET_PX = 360;
@@ -20,7 +20,7 @@ const useTopPlacesViewport = (
   enabled: boolean,
   throttleMs: number = THROTTLE_MS,
 ): TopPlacesViewportParams | null => {
-  const { isMobile } = useAppUI();
+  const isMobile = useIsMobileCtx();
   const [viewportParams, setViewportParams] = useState<TopPlacesViewportParams | null>(null);
   const lastSignatureRef = useRef('');
 

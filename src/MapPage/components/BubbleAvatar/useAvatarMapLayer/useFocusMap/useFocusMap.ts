@@ -6,7 +6,7 @@ import { ZOOM_LEVEL } from '../../config';
 import useMapViewportNavigation from '../../MapNavigation/useMapViewportNavigation';
 import { usePullUpPanelMetrics } from '../../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import { useAppUI } from '../../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
 
 /**
  * Manages all Leaflet layers for the dropped bubble avatar.
@@ -20,7 +20,7 @@ const useFocusMap = (
     mapRef: React.RefObject<L.Map | null>,
 ) => {
 
-    const { isMobile } = useAppUI();
+    const isMobile = useIsMobileCtx();
     const { panelHeight, translateY } = usePullUpPanelMetrics();
     const pullUpPanelRef = useRef({ isMobile, panelHeight, translateY });
     useEffect(() => { pullUpPanelRef.current = { isMobile, panelHeight, translateY } }, [isMobile, panelHeight, translateY]);

@@ -73,13 +73,31 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
   const [edgeState, setEdgeState] = useState<EdgeState>(null);
 
   // Stable refs — avoid re-registering map listeners when callbacks change
-  const handlePickupRef = useRef(handlePickup);
-  const edgeStateRef   = useRef(edgeState);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wasLongPress   = useRef(false);
+  const handlePickupRef   = useRef(handlePickup);
+  const edgeStateRef      = useRef(edgeState);
+  const longPressTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wasLongPress      = useRef(false);
+  // Cached container rect — the container doesn't move during pan/zoom,
+  // so we only re-read it on resize rather than on every map move event.
+  const containerRectRef  = useRef<DOMRect | null>(null);
 
   useEffect(() => { handlePickupRef.current = handlePickup; }, [handlePickup]);
   useEffect(() => { edgeStateRef.current = edgeState;  }, [edgeState]);
+
+  // ── Cache container rect; refresh only on resize ───────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const container = map.getContainer();
+    const syncRect = () => { containerRectRef.current = container.getBoundingClientRect(); };
+    syncRect();
+    map.on('resize', syncRect);
+    window.addEventListener('resize', syncRect, { passive: true });
+    return () => {
+      map.off('resize', syncRect);
+      window.removeEventListener('resize', syncRect);
+    };
+  }, [mapRef]);
 
   // ── Track avatar screen position on every map move ─────────────────────
   useEffect(() => {
@@ -87,7 +105,9 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
     if (!map || !droppedPos) return;
 
     const update = () => {
-      const rect = map.getContainer().getBoundingClientRect();
+      // const rect = map.getContainer().getBoundingClientRect();
+      const rect = containerRectRef.current;
+      if (!rect) return;
       const sx   = droppedPos.x + rect.left;
       const sy   = droppedPos.y + rect.top;
       const W    = window.innerWidth;

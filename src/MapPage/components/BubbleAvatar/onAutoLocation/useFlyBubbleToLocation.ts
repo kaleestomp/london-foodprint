@@ -4,7 +4,7 @@ import L from 'leaflet';
 import getVisibleMapTargetScreenPoint from '../MapNavigation/getVisibleMapTargetScreenPoint';
 import { type LatLng, type Point } from '../config';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
-import { useAppUI } from '../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 
 type props = {
@@ -16,7 +16,7 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
 
     const { resetBubbleToHome, handleDropLatLng, droppedPos } = useBubbleAvatarState();
 
-    const { isMobile } = useAppUI();
+    const isMobile = useIsMobileCtx();
     const { panelHeight, translateY } = usePullUpPanelMetrics();
 
     // Handel Fly Bubble to User Location Logic (LIVE / GEOSEARCH)

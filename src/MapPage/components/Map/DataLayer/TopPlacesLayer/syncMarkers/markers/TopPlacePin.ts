@@ -46,7 +46,7 @@ const withShell = (marker: L.Marker, fn: (shell: HTMLElement) => void): void => 
 export const animateTopPlacePinExit = (marker: L.Marker): void => {
   withShell(marker, (shell) => {
     shell.classList.remove(ENTER_CLASS);
-    void shell.offsetWidth;
+    shell.getAnimations().forEach((a) => a.cancel());
     shell.classList.add(EXIT_CLASS);
   });
 };
@@ -61,7 +61,7 @@ export const restartTopPlacePinEnter = (marker: L.Marker): void => {
   withShell(marker, (shell) => {
     shell.classList.remove(EXIT_CLASS);
     shell.classList.remove(ENTER_CLASS);
-    void shell.offsetWidth;
+    shell.getAnimations().forEach((a) => a.cancel());
     shell.classList.add(ENTER_CLASS);
   });
 };
