@@ -54,7 +54,7 @@ const onBubbleDrop = (
 
   // Bubble drop owns nearby radius search.
   const nearbySearchParams = useNearbySearchParams();
-  const { res: nearbyRes, queryKey: nearbyQueryKey, responseKey: nearbyResponseKey } = useRequestNearby(nearbySearchParams);
+  const { res: nearbyRes, isPlaceholderData } = useRequestNearby(nearbySearchParams);
 
   // ── Clear all Leaflet layers ───────────────────────────────────────────
   // React root must unmount BEFORE marker removal (avoids detached-node warning).
@@ -79,7 +79,7 @@ const onBubbleDrop = (
     const map = mapRef.current;
     const center = searchMask?.center;
     if (!map || !nearbyRes || !center) return;
-    if (nearbyResponseKey !== nearbyQueryKey) return;
+    if (isPlaceholderData) return;
 
     if (placesLayerRef.current) {
       map.removeLayer(placesLayerRef.current);
@@ -105,7 +105,7 @@ const onBubbleDrop = (
       0, //entryDelayRef.current,
       25, // Stagger nearby pins to avoid overlap
     );
-  }, [nearbyRes, nearbyQueryKey, nearbyResponseKey, mapRef, searchMask]);
+  }, [nearbyRes, isPlaceholderData, mapRef, searchMask]);
 
   // ── React to droppedPos changes ────────────────────────────────────────
   useEffect(() => {
