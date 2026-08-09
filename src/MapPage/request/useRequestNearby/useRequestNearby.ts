@@ -43,7 +43,7 @@ const useRequestNearby = (params: NearbyParams | null): {
   error: Error | null;
   res: NearbyResponse | null;
   queryKey: string;
-  responseKey: string;
+  isPlaceholderData: boolean;
   isFetching: boolean;
 } => {
   const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
@@ -70,7 +70,7 @@ const useRequestNearby = (params: NearbyParams | null): {
     error: query.error as Error | null,
     res: query.data ?? null,
     queryKey,
-    responseKey: query.data ? queryKey : '',
+    isPlaceholderData: query.isPlaceholderData,
     isFetching: query.isFetching,
   };
 };

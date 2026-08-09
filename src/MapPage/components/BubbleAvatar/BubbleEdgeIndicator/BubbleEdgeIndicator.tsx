@@ -1,65 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import L from 'leaflet';
-import { LONGPRESS_MS, INDICATOR_R } from '../config';
+
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
+import useGetEdgeState from './useGetEdgeState';
+import { LONGPRESS_MS } from '../config';
+
 import './BubbleEdgeIndicator.css';
-
-type Edge = 'top' | 'bottom' | 'left' | 'right';
-type EdgeState = { x: number; y: number; edge: Edge } | null;
-
-// Visual offset calibration: top/left appears more inset than expected while
-// right/bottom appears less inset (can overflow). Gate inset scaling by side.
-const EDGE_INSET_TL_SCALE = 0.3;
-const EDGE_INSET_BR_SCALE = 2.0;
-const EDGE_INSET_LEFT = INDICATOR_R * EDGE_INSET_TL_SCALE;
-const EDGE_INSET_TOP = INDICATOR_R * EDGE_INSET_TL_SCALE;
-const EDGE_INSET_RIGHT = INDICATOR_R * EDGE_INSET_BR_SCALE;
-const EDGE_INSET_BOTTOM = INDICATOR_R * EDGE_INSET_BR_SCALE;
-const EDGE_INDICATOR_TARGET_ZOOM = 14;
-
-/**
- * Given the avatar's projected screen coordinates (possibly off-screen),
- * trace a ray from the viewport centre to the avatar and find where it
- * hits the viewport boundary. Returns the clamped edge position and which
- * edge was hit (used to orient the speech-bubble tail).
- */
-const computeEdgeState = (
-  screenX: number,
-  screenY: number,
-  W: number,
-  H: number,
-): EdgeState => {
-  const cx = W / 2;
-  const cy = H / 2;
-  const dx = screenX - cx;
-  const dy = screenY - cy;
-  if (dx === 0 && dy === 0) return null;
-
-  // Parametric t for each boundary (ray: P = centre + t * direction)
-  const tLeft   = dx < 0 ? (EDGE_INSET_LEFT - cx) / dx : Infinity;
-  const tRight  = dx > 0 ? (W - EDGE_INSET_RIGHT - cx) / dx : Infinity;
-  const tTop    = dy < 0 ? (EDGE_INSET_TOP - cy) / dy : Infinity;
-  const tBottom = dy > 0 ? (H - EDGE_INSET_BOTTOM - cy) / dy : Infinity;
-
-  const tH = dx < 0 ? tLeft : tRight;
-  const tV = dy < 0 ? tTop  : tBottom;
-  const t  = Math.min(tH, tV);
-
-  const x = cx + t * dx;
-  const y = cy + t * dy;
-
-  const edge: Edge = tH < tV
-    ? (dx < 0 ? 'left'  : 'right')
-    : (dy < 0 ? 'top'   : 'bottom');
-
-  return { x, y, edge };
-};
-
-type Props = {
-  mapRef: React.RefObject<L.Map | null>;
-};
 
 /**
  * Renders a small speech-bubble at the nearest viewport edge when the map
@@ -67,10 +15,12 @@ type Props = {
  *  - Tap/click          → map.setView() back to avatar
  *  - Long press (LONGPRESS_MS ms) → pick up the avatar (same state as map long-press)
  */
+type Props = { mapRef: React.RefObject<L.Map | null> };
 const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
-  const { droppedPos, handlePickup } = useBubbleAvatarState();
+  const { handlePickup } = useBubbleAvatarState();
+  
   const { searchMask } = useSearchFilters();
-  const [edgeState, setEdgeState] = useState<EdgeState>(null);
+  const edgeState = useGetEdgeState(mapRef, searchMask?.center);
 
   // Stable refs — avoid re-registering map listeners when callbacks change
   const handlePickupRef   = useRef(handlePickup);
@@ -79,52 +29,9 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
   const wasLongPress      = useRef(false);
   // Cached container rect — the container doesn't move during pan/zoom,
   // so we only re-read it on resize rather than on every map move event.
-  const containerRectRef  = useRef<DOMRect | null>(null);
 
   useEffect(() => { handlePickupRef.current = handlePickup; }, [handlePickup]);
   useEffect(() => { edgeStateRef.current = edgeState;  }, [edgeState]);
-
-  // ── Cache container rect; refresh only on resize ───────────────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    const container = map.getContainer();
-    const syncRect = () => { containerRectRef.current = container.getBoundingClientRect(); };
-    syncRect();
-    map.on('resize', syncRect);
-    window.addEventListener('resize', syncRect, { passive: true });
-    return () => {
-      map.off('resize', syncRect);
-      window.removeEventListener('resize', syncRect);
-    };
-  }, [mapRef]);
-
-  // ── Track avatar screen position on every map move ─────────────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !droppedPos) return;
-
-    const update = () => {
-      // const rect = map.getContainer().getBoundingClientRect();
-      const rect = containerRectRef.current;
-      if (!rect) return;
-      const sx   = droppedPos.x + rect.left;
-      const sy   = droppedPos.y + rect.top;
-      const W    = window.innerWidth;
-      const H    = window.innerHeight;
-
-      const inView =
-        sx >= EDGE_INSET_LEFT && sx <= W - EDGE_INSET_RIGHT &&
-        sy >= EDGE_INSET_TOP && sy <= H - EDGE_INSET_BOTTOM;
-
-      setEdgeState(inView ? null : computeEdgeState(sx, sy, W, H));
-    };
-
-    map.on('move', update);
-    update(); // evaluate immediately on mount / droppedPos change
-
-    return () => { map.off('move', update); };
-  }, [mapRef, droppedPos]);
 
   // ── Long-press helpers ─────────────────────────────────────────────────
   const cancelLongPress = useCallback(() => {
@@ -152,13 +59,14 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
     const center = searchMask?.center;
     if (!map || !center) return;
 
-    const currentZoom = map.getZoom();
     const target: L.LatLngExpression = [center.lat, center.lng];
-    if (currentZoom < EDGE_INDICATOR_TARGET_ZOOM) {
-      map.panTo(target, { animate: true });
-      return;
-    }
-    map.setView(target, EDGE_INDICATOR_TARGET_ZOOM, { animate: true });
+    map.panTo(target, { animate: true });
+    // const currentZoom = map.getZoom();
+    // if (currentZoom < 14) {
+    //   map.panTo(target, { animate: true });
+    //   return;
+    // }
+    // map.setView(target, 14, { animate: true });
     
   }, [mapRef, searchMask, cancelLongPress]);
 

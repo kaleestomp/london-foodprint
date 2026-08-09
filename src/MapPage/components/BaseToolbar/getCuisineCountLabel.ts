@@ -12,8 +12,6 @@ const getCuisineCountLabel = (): string => {
     const cuisineData = cuisineRes?.cuisine_histogram ?? [];
     const availableCuisines = cuisineData.map((entry) => entry.cuisine);
     
-    // Get Nearby Search based cuisine data
-    // const { droppedPos } = useBubbleAvatarState();
 
     const { cuisines, cuisineSelectionMode } = useSearchFilters();
     const cuisineCount = useMemo(() => {

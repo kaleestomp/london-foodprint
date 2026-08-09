@@ -18,7 +18,7 @@ const useHomeProximity = (
   homeCenter: Point,
 ) => {
   
-  const { isDragging, setNearHome } = useBubbleAvatarState();
+  const { isDragging, setIsNearHome: setNearHome } = useBubbleAvatarState();
 
   const prevRef = useRef(false);
   const updateNearHome = () => {

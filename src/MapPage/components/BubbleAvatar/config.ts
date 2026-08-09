@@ -9,7 +9,6 @@ export const DROP_ENTRY_DELAY_MS = 200;
 
 /** UI Specs */
 // Bubble centre sits this many px from the viewport edge
-export const INDICATOR_R = 26 + 14; // half of 52px + breathing room
 export const CIRCLE_COLOR = '#ba160c'; // iOS system blue, for now at least
 export const SEARCH_RADIUS = 800;
 

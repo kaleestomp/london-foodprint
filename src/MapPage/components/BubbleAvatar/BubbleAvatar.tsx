@@ -1,11 +1,15 @@
 import React, { memo, useCallback } from 'react';
 
+import { useSearchFilters } from '../../../context/SearchFiltersContext';
+import { useBubbleAvatarState } from './BubbleAvatarStateContext';
 import BubbleHome from './BubbleAvatarHome/BubbleAvatarHome';
 import onAutoLocation from './onAutoLocation/onAutoLocation';
 import useAvatarMapLayer from './useAvatarMapLayer/useAvatarMapLayer';
-import { useBubbleAvatarState } from './BubbleAvatarStateContext';
+
 import BubbleHomeGhost from './BubbleHomeGhost/BubbleHomeGhost';
 import BubbleEdgeIndicator from './BubbleEdgeIndicator/BubbleEdgeIndicator';
+// import useGetCurrentScreenXY from './Searchmask/useGetCurrentScreenXY';
+import getCurrentScreenXY from './Searchmask/getCurrentScreenXY';
 
 import './BubbleAvatar.css';
 
@@ -13,7 +17,10 @@ const BubbleAvatar: React.FC<{
     mapRef: React.RefObject<L.Map | null>;
 }> = ({ mapRef }) => {
 
-    const { droppedPos, pickupPos, isDragging, flyInFrom, resetBubbleToHome } = useBubbleAvatarState();
+    const { pickupPos, isDragging, flyInFrom, resetBubbleToHome } = useBubbleAvatarState();
+    const { searchMask } = useSearchFilters();
+    const { lat, lng } = searchMask?.center ?? { lat: undefined, lng: undefined };
+    // const currentScrPos = useGetCurrentScreenXY(mapRef, searchMask?.center);
 
     // HANDLE AUTO LOCATION ON GEOSEARCH
     const { flyOutTo, dropOnEndFlight } = onAutoLocation({ mapRef });
@@ -25,16 +32,17 @@ const BubbleAvatar: React.FC<{
         if (pickupPos) {
             resetBubbleToHome(pickupPos);
 
-        } else if (mapRef.current && droppedPos) {
-            resetBubbleToHome(droppedPos);
+        } else if (mapRef.current && lat !== undefined && lng !== undefined) {
+            const screenXY = getCurrentScreenXY(mapRef, lat, lng);
+            resetBubbleToHome(screenXY);
 
         } else {
             resetBubbleToHome();
         }
 
-    }, [pickupPos, resetBubbleToHome, droppedPos]);
+    }, [pickupPos, resetBubbleToHome, lat, lng]);
 
-    const isDropped = droppedPos !== null;
+    const isDropped = lat !== undefined && lng !== undefined;
     const isAwayFromHome = isDropped || isDragging || pickupPos !== null;
     return (
         <div className="bubble-avatar-root">
@@ -56,7 +64,7 @@ const BubbleAvatar: React.FC<{
                     onResetHome={handleResetHomeScenarios}
                 />
             )}
-            {isDropped && droppedPos && (
+            {isDropped && (
                 <BubbleEdgeIndicator
                     mapRef={mapRef}
                 />

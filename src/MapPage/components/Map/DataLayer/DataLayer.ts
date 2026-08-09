@@ -12,11 +12,10 @@ const DataLayer = (
 ): void => {
 
   const [activeTopPlaceIdSet, setActiveTopPlaceIds] = useState<Set<string> | undefined>(undefined);
-  // const { droppedPos } = useBubbleAvatarState();
 
   useTopPlacesLayer( mapRef, setActiveTopPlaceIds, enabled );
   useDynamicPlacesLayer( mapRef, activeTopPlaceIdSet, enabled );
-  useNearbyPlacesLayer(mapRef, enabled);
+  useNearbyPlacesLayer(mapRef, activeTopPlaceIdSet, enabled);
 
 };
 

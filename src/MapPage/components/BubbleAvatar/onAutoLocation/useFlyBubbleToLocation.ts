@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'; 
 import L from 'leaflet';
 
-import getVisibleMapTargetScreenPoint from '../MapNavigation/getVisibleMapTargetScreenPoint';
-import { type LatLng, type Point } from '../config';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
+import { useSearchFilters } from '../../../../context/SearchFiltersContext';
+import getVisibleMapTargetScreenPoint from '../MapNavigation/getVisibleMapTargetScreenPoint';
+import getCurrentScreenXY from '../Searchmask/getCurrentScreenXY';
+import { type LatLng, type Point } from '../config';
 
 type props = {
     mapRef: React.RefObject<L.Map | null>;
@@ -14,7 +16,11 @@ type props = {
 };
 const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => { 
 
-    const { resetBubbleToHome, handleDropLatLng, droppedPos } = useBubbleAvatarState();
+    const { resetBubbleToHome, handleDropLatLng } = useBubbleAvatarState();
+    const { searchMask } = useSearchFilters();
+    const { lat, lng } = searchMask?.center ?? { lat: undefined, lng: undefined };
+    const isDropped = lat !== undefined && lng !== undefined;
+    // const currentScrPos = useGetCurrentScreenXY(mapRef, searchMask?.center);
 
     const isMobile = useIsMobileCtx();
     const { panelHeight, translateY } = usePullUpPanelMetrics();
@@ -26,27 +32,22 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
     const handledFlightTokenRef = useRef<number | null>(null);
     // Calculate the screen point to fly the bubble to
     const startFlight = useCallback(() => {
-        if (!targetLatLng || !mapRef.current) return;
-
+        if (!targetLatLng || !mapRef.current) 
+            return;
         const map = mapRef.current;
         const rect = map.getContainer().getBoundingClientRect();
+        const screenXY = isDropped ? getCurrentScreenXY(mapRef, lat, lng, rect) : undefined;
+        resetBubbleToHome( screenXY ); // Swap with undefined to disable fly-in animation
+
         const latLng = L.latLng(targetLatLng.lat, targetLatLng.lng);
         const point = map.latLngToContainerPoint(latLng);
         const targetScreenPoint = getVisibleMapTargetScreenPoint(map, isMobile, panelHeight, translateY);
-        const resetFrom = droppedPos
-            ? {
-                x: rect.left + droppedPos.x,
-                y: rect.top + droppedPos.y,
-            }
-            : undefined;
-
-        resetBubbleToHome(resetFrom); // Swap with undefined to disable fly-in animation
         pendingTargetLatLngRef.current = { lat: latLng.lat, lng: latLng.lng };
         setFlyOutTo({
             x: targetScreenPoint?.x ?? rect.left + point.x,
             y: targetScreenPoint?.y ?? rect.top + point.y,
         });
-    }, [mapRef, targetLatLng, droppedPos, resetBubbleToHome, isMobile, panelHeight, translateY]);
+    }, [mapRef, targetLatLng, lat, lng, resetBubbleToHome, isMobile, panelHeight, translateY]);
     
     // Handle the drop pin logic when the flight animation completes
     const dropOnEndFlight = useCallback(() => {
@@ -55,8 +56,8 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
         if (!pendingTargetLatLng || !map) return;
 
         // Handle Bubble Drop Logic
-        handleDropLatLng(map, pendingTargetLatLng.lat, pendingTargetLatLng.lng);
-    }, [handleDropLatLng, mapRef]);
+        handleDropLatLng(pendingTargetLatLng.lat, pendingTargetLatLng.lng);
+    }, [handleDropLatLng]);
     // Clear all Bubble Flight States at end of flight animation
     const clear = useCallback(() => {
         setFlyOutTo(null);
@@ -76,9 +77,9 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
     useEffect(() => {
         // Only clear the programmatic flight once a real drop lands on the map.
         // Clearing on null would cancel an in-flight programmatic animation.
-        if (!droppedPos) return;
+        if (!searchMask?.center) return;
         clear();
-    }, [clear, droppedPos]);
+    }, [clear, searchMask?.center]);
 
     return  {
         flyOutTo,

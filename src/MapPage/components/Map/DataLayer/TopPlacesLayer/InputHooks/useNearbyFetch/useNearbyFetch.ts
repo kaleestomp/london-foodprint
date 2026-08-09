@@ -32,16 +32,18 @@ const useNearbyFetch = ( { limit, enabled = true }: Props ): Out => {
     searchMask, effectiveCuisines, effectivePriceRanges,
     venueType, scoreBasis, scoreTier, enabled, limit,
   ]);
-  const { res } = useRequestTopPlaces(radiusTopPlacesParams, { debounceMs: 0 });
+  const { res, queryKey, responseKey } = useRequestTopPlaces(radiusTopPlacesParams, { debounceMs: 0 });
 
   const [nearbyTopPlaces, setNearbyTopPlaces] = useState<TopPlaceItem[]>([]);
   useEffect(() => {
-    if (!enabled || !searchMask || !res) {
+    // IsPlaceholderData does not indicate 
+    // whether the data matches the latest UNDEBOUNCED params
+    if (!enabled || !searchMask || !res || responseKey !== queryKey) {
       setNearbyTopPlaces([]);
       return;
     }
     setNearbyTopPlaces(res.data);
-  }, [res, searchMask, enabled]);
+  }, [res, queryKey, responseKey, searchMask, enabled]);
 
   return { nearbyTopPlaces };
 }
