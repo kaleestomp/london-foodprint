@@ -8,11 +8,8 @@ from api.tile_api.tile_cache import (
 )
 from api.tile_api.sql import PLACES_SQL, TILES_SQL, SINGLETON_SQL
 from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
-from api.map_util.map_util import (
-    PAGE_SIZE_ON_ZOOM,
-    PAGE_SIZE_ON_REQUEST,
-    h3_cells_for_bbox,
-)
+from api.map_util.map_util import PAGE_SIZE_ON_ZOOM, PAGE_SIZE_ON_ZOOM_INCREASED, PAGE_SIZE_ON_REQUEST, h3_cells_for_bbox
+
 def _expand_to_r10(tiles: list[str], resolution: int) -> tuple[list[str], dict[str, str]]:
     """
     Expand a list of H3 tiles at any resolution to their res-10 descendants.
@@ -42,7 +39,7 @@ async def get_tiles(
     sw_lng: float = Query(...),
     ne_lat: float = Query(...),
     ne_lng: float = Query(...),
-    res: int = Query(..., ge=7, le=10),
+    res: int = Query(..., ge=7, le=11),
     cuisine: list[str] | None = Query(default=None),
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
@@ -52,8 +49,8 @@ async def get_tiles(
 ) -> dict[str, Any]:
     
     # VALIDATE INPUTS
-    if places_only and res < 10:
-        raise HTTPException(status_code=422, detail="places_only requires res=10")
+    if places_only and res < 11:
+        raise HTTPException(status_code=422, detail="places_only requires res=11")
 
     # Normalize filters: empty → '__all__' (no-filter marker), 'Unspecified' → '__null__' (sentinel)
     cuisine_values = normalize_dimension_list(cuisine)
@@ -120,10 +117,11 @@ async def get_tiles(
     inner_set = set(inner_tiles)
     inner_count = sum(int(row["count"]) for row in tile_rows if row["tile"] in inner_set)
 
-    if inner_count <= PAGE_SIZE_ON_ZOOM:
+    threshold = PAGE_SIZE_ON_ZOOM_INCREASED if resolution >= 10 else PAGE_SIZE_ON_ZOOM
+    if inner_count <= threshold:
         async with request.app.state.pool.acquire() as fallback_conn:
             fallback_rows = await fallback_conn.fetch(
-                PLACES_SQL.format(rank_column=tier_column, page_size=int(PAGE_SIZE_ON_ZOOM * 1.5)),
+                PLACES_SQL.format(rank_column=tier_column, page_size=int(threshold*1.5)),
                 sw_lat,
                 ne_lat,
                 sw_lng,
