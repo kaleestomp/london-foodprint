@@ -59,23 +59,3 @@ export const EYE_GAZE_ON_PIN: Point[] = [
   { x: 0, y: -MAX_OFFSET },
 ];
 
-/** Screen coordinates of BubbleButton's fixed home centre */
-export const getHomeCenter = (
-  mobilePanel?: { translateY: number; panelHeight: number },
-): Point => {
-  const isMobile = window.innerWidth <= 959;
-  const x = isMobile ? window.innerWidth - 70 : window.innerWidth / 2;
-
-  if (isMobile && mobilePanel) {
-    const bubbleBottomOffset = Math.max(16, mobilePanel.panelHeight - mobilePanel.translateY + 10);
-    return {
-      x,
-      y: window.innerHeight - bubbleBottomOffset - 40,
-    };
-  }
-
-  return {
-    x,
-    y: window.innerHeight - 70,
-  };
-};

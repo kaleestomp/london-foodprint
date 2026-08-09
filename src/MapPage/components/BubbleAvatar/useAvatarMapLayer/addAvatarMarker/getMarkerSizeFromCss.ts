@@ -1,10 +1,10 @@
-import { readCssCustomProperties } from '../../../../utils/styling/cssCustomProperties';
+import { readCssCustomProperties } from '../../../../../utils/styling/cssCustomProperties';
 
 const DEFAULT_HOME_SIZE = 80;
 const DEFAULT_PIN_SCALE = 0.625;
 const DEFAULT_PIN_SIZE = DEFAULT_HOME_SIZE * DEFAULT_PIN_SCALE;
 
-const getPinSizeFromCss = () => {
+const getMarkerSizeFromCSS = () => {
   const vars = readCssCustomProperties(
     ['--bubble-avatar-home-size', '--bubble-avatar-pin-scale'],
     {
@@ -26,4 +26,4 @@ const getPinSizeFromCss = () => {
   return DEFAULT_PIN_SIZE;
 };
 
-export default getPinSizeFromCss;
+export default getMarkerSizeFromCSS;

@@ -1,18 +1,18 @@
-import { memo, useCallback, useMemo, useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
+
+import { useAppUI } from '../../../../context/AppUIContext';
+import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import onBubbleDrag from '../onBubbleDrag/onBubbleDrag';
 import useHomeProximity from './hooks/useHomeProximity';
 import useBubbleFlightAnimation from './hooks/useBubbleFlightAnimation';
-import useResolvePickupWithoutDrag from './hooks/useResolvePickupWithoutDrag';
-import useIsDropOnPullUpPanel from './hooks/useIsDropOnPullUpPanel';
+import useResolveDrop from './hooks/useResolveDrop';
+// import useIsDropOnPullUpPanel from './hooks/useIsDropOnPullUpPanel';
 import usePickupBootstrap from './hooks/usePickupBootstrap';
 import useCoarsePointer from './hooks/useCoarsePointer';
 import useRawPointerDrag from './hooks/useRawPointerDrag';
 import useBubbleStyle from './hooks/useBubbleStyle';
-import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
-import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
-import useIsMobile from '../../../../utils/browser/useIsMobile';
-import { getHomeCenter } from '../config';
+import useHomeCenter from './hooks/useHomeCenter';
 import DashedCircle from '../Searchmask/DashedCircle';
 import Badge from '../Badge/Badge';
 import useDragRestaurantCount from '../Badge/useDragRestaurantCount';
@@ -32,105 +32,51 @@ type Props = {
 };
 
 const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
-  const isMobile = useIsMobile();
-  // Get Fly Animation State from Prop
+
+  const { isMobile } = useAppUI();  
+  const { pickupPos, isDragging, isNearHome } = useBubbleAvatarState();
+
+  // FIND HOME CENTER
+  const homeCenter = useHomeCenter();
+
+  // FLIGHT CONTROL
   const { flyInFrom, flyOutTo, onFlyOutComplete } = flight ?? {};
-  // Get Bubble State from Context
-  const {
-    pickupPos,
-    isDragging,
-    isNearHome,
-    setNearHome,
-    handleDrop,
-    handleDropCancel,
-  } = useBubbleAvatarState();
-  const { translateY, panelHeight } = usePullUpPanelMetrics();
-  const homeCenter = useMemo(
-    () => getHomeCenter(isMobile ? { translateY, panelHeight } : undefined),
-    [isMobile, panelHeight, translateY],
-  );
-  const isDropOnPullUpPanel = useIsDropOnPullUpPanel({
-    isMobile,
-    translateY,
-    panelHeight,
-  });
-
-  // Resolves pickup mode when pointer is released before drag starts. Prevents a "hovering" avatar
-  const resolvePickupWithoutDrag = useResolvePickupWithoutDrag(
-    mapRef,
-    handleDrop,
-    handleDropCancel,
-    homeCenter,
-    isDropOnPullUpPanel,
-  );
-
-  // Get Flight Animation Controls
-  const {
-    initial,
-    animate,
-    transition,
-    dragEnabled,
-    handleAnimationComplete,
-  } = useBubbleFlightAnimation({
+  const { initial, animate, transition, dragEnabled, handleAnimationComplete } = useBubbleFlightAnimation({
     pickupFrom: pickupPos ?? undefined,
-    flyInFrom,
-    flyOutTo,
+    flyInFrom, flyOutTo,
     onFlyOutComplete,
     homeCenter,
   });
 
-  // Get Drag Controls
-  const dragDropCallback = useCallback(
-    (lat: number, lng: number) => handleDrop(lat, lng),
-    [handleDrop],
-  );
-  const {
-    dragMotion,
-    hasDragStarted,
-    resetDragStarted,
-    handleDragStart,
-    handleDragStartAtPoint,
-    handleDrag,
-    handleDragMoveToPoint,
-    handleDragEnd,
-    handleDragEndAtPoint,
-  } = onBubbleDrag(
-    mapRef,
-    dragDropCallback,
-    homeCenter,
-    handleDropCancel,
-    isDropOnPullUpPanel,
-  );
+  // MASTER DROP EVENTS HANDLER
+  const resolveDrop = useResolveDrop(mapRef, homeCenter);
+  // MASTER DRAG HANDLERS
+  const onDrag = onBubbleDrag( mapRef, resolveDrop );
 
+  // DETECT NEAR-HOME
   // Detect when drag enters/leaves the home snap zone and UPDATE CONTEXT.
-  useHomeProximity(isDragging, dragMotion.pointer, homeCenter, setNearHome);
+  useHomeProximity( onDrag.dragMotion.pointer, homeCenter );
 
   const bubbleRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
   const isPickupPending = !!pickupPos && !isDragging;
 
-
   // Detect input capability so drag UX can adapt for touch/coarse pointers.
   const isCoarsePointer = useCoarsePointer();
   const rawDragEnabled = isCoarsePointer && dragEnabled;
   // Provide a raw pointer drag path used on coarse pointers instead of Framer drag events.
-  const { startRawDrag } = useRawPointerDrag(
-    rawDragEnabled,
-    isDragging,
-    handleDragStartAtPoint,
-    handleDragMoveToPoint,
-    handleDragEndAtPoint,
+  const { startRawDrag } = useRawPointerDrag( 
+    rawDragEnabled, isDragging, 
+    onDrag.handleDragStartAtPoint, 
+    onDrag.handleDragMoveToPoint, 
+    onDrag.handleDragEndAtPoint,
   );
 
   // Bootstrap pickup-mode drag and resolve pointer-up fallback if drag never starts.
   usePickupBootstrap(
-    pickupPos,
-    rawDragEnabled,
-    dragControls,
-    resetDragStarted,
-    startRawDrag,
-    hasDragStarted,
-    resolvePickupWithoutDrag,
+    pickupPos, rawDragEnabled, dragControls,
+    onDrag.resetDragStarted, onDrag.hasDragStarted,
+    startRawDrag, resolveDrop,
   );
 
   // Compute the bubble style based on drag/pickup state
@@ -140,7 +86,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
     : undefined;
   const bubbleStyle = useBubbleStyle({ style, homeCenter, pickupPos });
   const motionStyle = rawDragEnabled
-    ? { ...(bubbleStyle ?? {}), x: dragMotion.rawOffset.x, y: dragMotion.rawOffset.y }
+    ? { ...(bubbleStyle ?? {}), x: onDrag.dragMotion.rawOffset.x, y: onDrag.dragMotion.rawOffset.y }
     : bubbleStyle;
 
   const whileDragVisual = useMemo(
@@ -152,7 +98,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
 
   const { count: dragRestaurantCount, isLoading: isDragCountLoading } = useDragRestaurantCount({
     mapRef,
-    pointer: dragMotion.pointer,
+    pointer: onDrag.dragMotion.pointer,
     isActive: isDragging && !isNearHome,
   });
 
@@ -175,9 +121,9 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
         dragTransition={{ bounceStiffness: 320, bounceDamping: 28 }}
         whileTap={{ scale: isCoarsePointer ? 0.96 : 0.88 }}
         whileDrag={whileDragVisual}
-        onDragStart={rawDragEnabled ? undefined : handleDragStart}
-        onDrag={rawDragEnabled ? undefined : handleDrag}
-        onDragEnd={rawDragEnabled ? undefined : handleDragEnd}
+        onDragStart={rawDragEnabled ? undefined : onDrag.handleDragStart}
+        onDrag={rawDragEnabled ? undefined : onDrag.handleDrag}
+        onDragEnd={rawDragEnabled ? undefined : onDrag.handleDragEnd}
         onPointerDown={rawDragEnabled ? (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -193,7 +139,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
       {isDragging && !isNearHome && (
         <motion.div
           className="bubble-btn-drop-ring-shell"
-          style={{ left: dragMotion.pointer.x, top: dragMotion.pointer.y }}
+          style={{ left: onDrag.dragMotion.pointer.x, top: onDrag.dragMotion.pointer.y }}
         >
           <DashedCircle className="bubble-btn-drop-ring" />
           <Badge count={dragRestaurantCount} isLoading={isDragCountLoading} />

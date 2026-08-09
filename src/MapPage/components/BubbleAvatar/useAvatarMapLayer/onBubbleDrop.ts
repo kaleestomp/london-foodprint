@@ -14,7 +14,7 @@ import { ZOOM_LEVEL } from '../config';
 import useMapViewportNavigation from '../MapNavigation/useMapViewportNavigation';
 import addSearchRadiusMarker from './addSearchRadiusMarker/addSearchRadiusMarker';
 import addPointerListeners from './addAvatarMarker/addAvatarPointerListeners';
-import getNearbySearchParams from '../../Map/DataLayer/NearbyPlacesLayer/useNearbySearchParams';
+import useNearbySearchParams from '../../Map/DataLayer/NearbyPlacesLayer/useNearbySearchParams';
 
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
@@ -53,7 +53,7 @@ const onBubbleDrop = (
   useEffect(() => { panelMetricsRef.current = { isMobile, panelHeight, translateY } }, [isMobile, panelHeight, translateY]);
 
   // Bubble drop owns nearby radius search.
-  const nearbySearchParams = getNearbySearchParams();
+  const nearbySearchParams = useNearbySearchParams();
   const { res: nearbyRes, queryKey: nearbyQueryKey, responseKey: nearbyResponseKey } = useRequestNearby(nearbySearchParams);
 
   // ── Clear all Leaflet layers ───────────────────────────────────────────

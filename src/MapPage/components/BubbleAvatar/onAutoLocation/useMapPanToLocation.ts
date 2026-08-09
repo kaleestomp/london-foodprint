@@ -1,10 +1,9 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 
 import { type LatLng } from '../config';
-import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
-import useMapViewportNavigation from '../onBubbleDrag/useMapViewportNavigation';
+import getVisibleMapTargetScreenPoint from '../MapNavigation/getVisibleMapTargetScreenPoint';
+import useMapViewportNavigation from '../MapNavigation/useMapViewportNavigation';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
-import useIsMobile from '../../../../utils/browser/useIsMobile';
 import { useAppUI } from '../../../../context/AppUIContext';
 
 type UseMapPanToLocationArgs = {
@@ -24,11 +23,8 @@ const useMapPanToLocation = ({
   mapRef,
 }: UseMapPanToLocationArgs): out => {
   const { focusMap } = useMapViewportNavigation({ mapRef });
-  const isMobile = useIsMobile();
+  const { liveLocation, isMobile } = useAppUI();
   const { panelHeight, translateY } = usePullUpPanelMetrics();
-
-  // Handel Map Pan
-  const { liveLocation } = useAppUI();
   // Token for flight triggered by geo location updates
   const [flightToken, setFlightToken] = useState<number | null>(null);
   // Memoize targetLatLng to prevent unnecessary re-creation and infinite loops

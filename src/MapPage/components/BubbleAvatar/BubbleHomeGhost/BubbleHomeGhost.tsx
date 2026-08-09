@@ -2,9 +2,8 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
-import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
-import useIsMobile from '../../../../utils/browser/useIsMobile';
-import { getHomeCenter } from '../config';
+import { useAppUI } from '../../../../context/AppUIContext';
+import useHomeCenter from '../BubbleAvatarHome/hooks/useHomeCenter';
 import DashedCircle from '../Searchmask/DashedCircle';
 import './BubbleHomeGhost.css';
 
@@ -19,13 +18,9 @@ type Props = {
  * enough to trigger snap-back behavior.
  */
 const BubbleHomeGhost: React.FC<Props> = ({ onResetHome }) => {
-  const isMobile = useIsMobile();
+  const { isMobile } = useAppUI();
   const { isNearHome } = useBubbleAvatarState();
-  const { translateY, panelHeight } = usePullUpPanelMetrics();
-  const homeCenter = useMemo(
-    () => getHomeCenter(isMobile ? { translateY, panelHeight } : undefined),
-    [isMobile, panelHeight, translateY],
-  );
+  const homeCenter = useHomeCenter();
   const ghostStyle = useMemo(() => {
     if (!isMobile) return undefined;
 

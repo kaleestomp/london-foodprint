@@ -1,14 +1,12 @@
 import L from 'leaflet';
 
-import { LONGPRESS_MS } from '../config';
+import { LONGPRESS_MS } from '../../config';
 
-type SetupArgs = {
-  markerEl: HTMLElement;
-  map: L.Map;
-  onPickup: (x: number, y: number) => void;
-};
-
-const setupBubbleDropLongPress = ({ markerEl, map, onPickup }: SetupArgs) => {
+const addPointerListeners = (
+  markerEl: HTMLElement,
+  map: L.Map,
+  onPickup: (x: number, y: number) => void
+) => {
   let pressTimer: ReturnType<typeof setTimeout> | null = null;
   let startX = 0;
   let startY = 0;
@@ -59,4 +57,4 @@ const setupBubbleDropLongPress = ({ markerEl, map, onPickup }: SetupArgs) => {
   };
 };
 
-export default setupBubbleDropLongPress;
+export default addPointerListeners;

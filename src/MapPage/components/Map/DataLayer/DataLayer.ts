@@ -4,7 +4,7 @@ import L from 'leaflet';
 // import { useBubbleAvatarState } from '../../BubbleAvatar/BubbleAvatarStateContext';
 import useTopPlacesLayer from './TopPlacesLayer/useTopPlacesLayer';
 import useDynamicPlacesLayer from './DynamicPlacesLayer/useDynamicPlacesLayer';
-// import NearbyPlacesLayer from '../../BubbleAvatar/onBubbleDrop/onBubbleDrop';
+import useNearbyPlacesLayer from './NearbyPlacesLayer/useNearbyPlacesLayer';
 
 const DataLayer = (
   mapRef: React.RefObject<L.Map | null>,
@@ -16,7 +16,7 @@ const DataLayer = (
 
   useTopPlacesLayer( mapRef, setActiveTopPlaceIds, enabled );
   useDynamicPlacesLayer( mapRef, activeTopPlaceIdSet, enabled );
-  // NearbyPlacesLayer(mapRef, droppedPos);
+  useNearbyPlacesLayer(mapRef, enabled);
 
 };
 

@@ -1,19 +1,15 @@
-import { useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 
+import { useAppUI } from '../../../../../context/AppUIContext';
+import { usePullUpPanelMetrics } from '../../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import { type Point } from '../../config';
 
-type UseIsDropOnPullUpPanelArgs = {
-  isMobile: boolean;
-  translateY: number;
-  panelHeight: number;
-};
+const useIsDropOnPullUpPanel = (point: Point) => {
+  
+  const { isMobile } = useAppUI();
+  const { translateY, panelHeight } = usePullUpPanelMetrics();
 
-const useIsDropOnPullUpPanel = ({
-  isMobile,
-  translateY,
-  panelHeight,
-}: UseIsDropOnPullUpPanelArgs) => {
-  return useCallback((point: Point) => {
+  const check = useCallback((point: Point) => {
     if (!isMobile) return false;
 
     const safePanelHeight = Math.max(0, panelHeight);
@@ -27,6 +23,10 @@ const useIsDropOnPullUpPanel = ({
       point.y <= panelBottom
     );
   }, [isMobile, panelHeight, translateY]);
+
+  const isDropOnPullUpPanel = useMemo(() => check(point), [check, point]);
+
+  return isDropOnPullUpPanel;
 };
 
 export default useIsDropOnPullUpPanel;

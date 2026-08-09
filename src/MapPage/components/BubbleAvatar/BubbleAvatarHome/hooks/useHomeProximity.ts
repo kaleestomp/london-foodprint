@@ -1,5 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { type MotionValue, useMotionValueEvent } from 'framer-motion';
+
+import { useBubbleAvatarState } from '../../BubbleAvatarStateContext';
 import { HOME_SNAP_RADIUS, type Point } from '../../config';
 
 type PointerMotion = {
@@ -12,13 +14,13 @@ type PointerMotion = {
  * the home snap zone. Resets to false automatically when dragging stops.
  */
 const useHomeProximity = (
-  isDragging: boolean,
   pointer: PointerMotion,
   homeCenter: Point,
-  setNearHome?: (near: boolean) => void,
 ) => {
-  const prevRef = useRef(false);
+  
+  const { isDragging, setNearHome } = useBubbleAvatarState();
 
+  const prevRef = useRef(false);
   const updateNearHome = () => {
     if (!isDragging) return;
 
@@ -28,7 +30,7 @@ const useHomeProximity = (
 
     if (near !== prevRef.current) {
       prevRef.current = near;
-      setNearHome?.(near);
+      setNearHome(near);
     }
   };
 
@@ -39,7 +41,7 @@ const useHomeProximity = (
     if (!isDragging) {
       if (prevRef.current) {
         prevRef.current = false;
-        setNearHome?.(false);
+        setNearHome(false);
       }
       return;
     }

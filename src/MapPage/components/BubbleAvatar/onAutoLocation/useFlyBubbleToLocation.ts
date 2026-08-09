@@ -1,23 +1,22 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'; 
 import L from 'leaflet';
 
-import getVisibleMapTargetScreenPoint from '../getVisibleMapTargetScreenPoint';
+import getVisibleMapTargetScreenPoint from '../MapNavigation/getVisibleMapTargetScreenPoint';
 import { type LatLng, type Point } from '../config';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
-import useIsMobile from '../../../../utils/browser/useIsMobile';
+import { useAppUI } from '../../../../context/AppUIContext';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 
 type props = {
     mapRef: React.RefObject<L.Map | null>;
     targetLatLng: LatLng | null;
-    droppedPos: LatLng | null;
     token: number | null;
 };
-const useFlyBubbleToLocation = ({ mapRef, targetLatLng, droppedPos, token }: props) => { 
+const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => { 
 
-    const { resetBubbleToHome, handleDrop } = useBubbleAvatarState();
+    const { resetBubbleToHome, handleDropLatLng, droppedPos } = useBubbleAvatarState();
 
-    const isMobile = useIsMobile();
+    const { isMobile } = useAppUI();
     const { panelHeight, translateY } = usePullUpPanelMetrics();
 
     // Handel Fly Bubble to User Location Logic (LIVE / GEOSEARCH)
@@ -35,15 +34,10 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, droppedPos, token }: pro
         const point = map.latLngToContainerPoint(latLng);
         const targetScreenPoint = getVisibleMapTargetScreenPoint(map, isMobile, panelHeight, translateY);
         const resetFrom = droppedPos
-            ? (() => {
-                const droppedPoint = map.latLngToContainerPoint(
-                    L.latLng(droppedPos.lat, droppedPos.lng),
-                );
-                return {
-                    x: rect.left + droppedPoint.x,
-                    y: rect.top + droppedPoint.y,
-                };
-            })()
+            ? {
+                x: rect.left + droppedPos.x,
+                y: rect.top + droppedPos.y,
+            }
             : undefined;
 
         resetBubbleToHome(resetFrom); // Swap with undefined to disable fly-in animation
@@ -57,10 +51,12 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, droppedPos, token }: pro
     // Handle the drop pin logic when the flight animation completes
     const dropOnEndFlight = useCallback(() => {
         const pendingTargetLatLng = pendingTargetLatLngRef.current;
-        if (!pendingTargetLatLng) return;
+        const map = mapRef.current;
+        if (!pendingTargetLatLng || !map) return;
+
         // Handle Bubble Drop Logic
-        handleDrop(pendingTargetLatLng.lat, pendingTargetLatLng.lng);
-    }, [handleDrop]);
+        handleDropLatLng(map, pendingTargetLatLng.lat, pendingTargetLatLng.lng);
+    }, [handleDropLatLng, mapRef]);
     // Clear all Bubble Flight States at end of flight animation
     const clear = useCallback(() => {
         setFlyOutTo(null);

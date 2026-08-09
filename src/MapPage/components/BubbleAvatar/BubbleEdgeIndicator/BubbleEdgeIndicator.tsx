@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import L from 'leaflet';
 import { LONGPRESS_MS, INDICATOR_R } from '../config';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
+import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import './BubbleEdgeIndicator.css';
 
 type Edge = 'top' | 'bottom' | 'left' | 'right';
@@ -68,6 +69,7 @@ type Props = {
  */
 const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
   const { droppedPos, handlePickup } = useBubbleAvatarState();
+  const { searchMask } = useSearchFilters();
   const [edgeState, setEdgeState] = useState<EdgeState>(null);
 
   // Stable refs — avoid re-registering map listeners when callbacks change
@@ -85,10 +87,9 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
     if (!map || !droppedPos) return;
 
     const update = () => {
-      const pt   = map.latLngToContainerPoint([droppedPos.lat, droppedPos.lng]);
       const rect = map.getContainer().getBoundingClientRect();
-      const sx   = pt.x + rect.left;
-      const sy   = pt.y + rect.top;
+      const sx   = droppedPos.x + rect.left;
+      const sy   = droppedPos.y + rect.top;
       const W    = window.innerWidth;
       const H    = window.innerHeight;
 
@@ -128,17 +129,18 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
     cancelLongPress();
     if (wasLongPress.current) return; // long-press already handled
     const map = mapRef.current;
-    if (!map || !droppedPos) return;
+    const center = searchMask?.center;
+    if (!map || !center) return;
 
     const currentZoom = map.getZoom();
-    const target: L.LatLngExpression = [droppedPos.lat, droppedPos.lng];
+    const target: L.LatLngExpression = [center.lat, center.lng];
     if (currentZoom < EDGE_INDICATOR_TARGET_ZOOM) {
       map.panTo(target, { animate: true });
       return;
     }
     map.setView(target, EDGE_INDICATOR_TARGET_ZOOM, { animate: true });
     
-  }, [mapRef, droppedPos, cancelLongPress]);
+  }, [mapRef, searchMask, cancelLongPress]);
 
   return (
     <>

@@ -1,21 +1,21 @@
 import L from 'leaflet';
 
-import { SEARCH_RADIUS, CIRCLE_COLOR } from '../config';
-
+import { CIRCLE_COLOR } from '../../config';
 const CIRCLE_ENTRY_MS = 280;
 
-type SetupArgs = {
-  map: L.Map;
-  lat: number;
-  lng: number;
-  entryDelayMs: number;
-};
+const addSearchRadiusMarker = (
+  map: L.Map,
+  lat: number,
+  lng: number,
+  radius: number,
+  entryDelayMs: number
+) => {
 
-const setupBubbleDropCircle = ({ map, lat, lng, entryDelayMs }: SetupArgs) => {
   let circleAnimFrame: number | null = null;
   let circleStartTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // Start hidden so the circle does not flash before the delayed entry animation.
+  // START HIDDEN 
+  // so the circle does not flash before the delayed entry animation.
   const circle = L.circle([lat, lng], {
     radius:    1,
     color:     CIRCLE_COLOR,
@@ -25,33 +25,36 @@ const setupBubbleDropCircle = ({ map, lat, lng, entryDelayMs }: SetupArgs) => {
     opacity:   0,
   }).addTo(map);
 
+  // ANIMATION LOGIC
   const startCircleIn = () => {
     const startTs = performance.now();
     const animateCircleIn = (ts: number) => {
       const t = Math.min((ts - startTs) / CIRCLE_ENTRY_MS, 1);
       const eased = 1 - (1 - t) ** 3;
-      circle.setRadius(Math.max(1, SEARCH_RADIUS * eased));
+      circle.setRadius(Math.max(1, radius * eased));
       circle.setStyle({ opacity: 0.16 + 0.84 * eased });
-
-      if (t < 1) {
+      if (t < 1) 
         circleAnimFrame = window.requestAnimationFrame(animateCircleIn);
-      }
     };
 
     circleAnimFrame = window.requestAnimationFrame(animateCircleIn);
   };
 
+  // START ANIMATION
   if (entryDelayMs > 0) {
     circleStartTimer = setTimeout(startCircleIn, entryDelayMs);
   } else {
     startCircleIn();
   }
 
-  return () => {
+  // CLEANUP
+  const cleanup = () => {
     if (circleStartTimer) clearTimeout(circleStartTimer);
     if (circleAnimFrame !== null) window.cancelAnimationFrame(circleAnimFrame);
     map.removeLayer(circle);
   };
+
+  return cleanup;
 };
 
-export default setupBubbleDropCircle;
+export default addSearchRadiusMarker;

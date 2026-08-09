@@ -1,48 +1,42 @@
-import React, { memo, useCallback } from 'react'; 
+import React, { memo, useCallback } from 'react';
 
 import BubbleHome from './BubbleAvatarHome/BubbleAvatarHome';
 import onAutoLocation from './onAutoLocation/onAutoLocation';
-import onBubbleDrop from './onBubbleDrop/onBubbleDrop';
-import useUpdateSearchMask from './Searchmask/useUpdateSearchMask';
+import useAvatarMapLayer from './useAvatarMapLayer/useAvatarMapLayer';
 import { useBubbleAvatarState } from './BubbleAvatarStateContext';
 import BubbleHomeGhost from './BubbleHomeGhost/BubbleHomeGhost';
 import BubbleEdgeIndicator from './BubbleEdgeIndicator/BubbleEdgeIndicator';
 
 import './BubbleAvatar.css';
 
-const BubbleAvatar: React.FC<{ 
+const BubbleAvatar: React.FC<{
     mapRef: React.RefObject<L.Map | null>;
 }> = ({ mapRef }) => {
 
     const { droppedPos, pickupPos, isDragging, flyInFrom, resetBubbleToHome } = useBubbleAvatarState();
 
-    // Handle Search Mask Update to new positions
-    useUpdateSearchMask(droppedPos);
-
     // HANDLE AUTO LOCATION ON GEOSEARCH
-    const { flyOutTo, dropOnEndFlight } = onAutoLocation({ mapRef, droppedPos });
+    const { flyOutTo, dropOnEndFlight } = onAutoLocation({ mapRef });
 
-    // // HANDLE DROP: Call Nearby Seach and More
-    onBubbleDrop(mapRef, droppedPos);
+    // ADD AVATAR TO MAP ON DROPPED MODE
+    useAvatarMapLayer(mapRef);
 
     const handleResetHomeScenarios = useCallback(() => {
         if (pickupPos) {
             resetBubbleToHome(pickupPos);
-            return;
+
+        } else if (mapRef.current && droppedPos) {
+            resetBubbleToHome(droppedPos);
+
+        } else {
+            resetBubbleToHome();
         }
-        const map = mapRef.current;
-        if (map && droppedPos) {
-            const pt = map.latLngToContainerPoint([droppedPos.lat, droppedPos.lng]);
-            const rect = map.getContainer().getBoundingClientRect();
-            resetBubbleToHome({ x: rect.left + pt.x, y: rect.top + pt.y });
-            return;
-        }
-        resetBubbleToHome();
-    }, [pickupPos, resetBubbleToHome, mapRef, droppedPos]);
+
+    }, [pickupPos, resetBubbleToHome, droppedPos]);
 
     const isDropped = droppedPos !== null;
     const isAwayFromHome = isDropped || isDragging || pickupPos !== null;
-    return (  
+    return (
         <div className="bubble-avatar-root">
             {/* key forces a fresh Framer Motion instance when switching between
                 home mode and pickup mode so motion values reset cleanly */}

@@ -1,12 +1,12 @@
 import type { CSSProperties, FC, ReactNode } from 'react';
-import useIsMobile from '../../../../utils/browser/useIsMobile';
+import { useAppUI } from '../../../../context/AppUIContext';
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 
 import './PositioningWrapper.css';
 
 type PositioningWrapperProps = { children: ReactNode };
 const PositioningWrapper: FC<PositioningWrapperProps> = ({ children }) => {
-  const isMobile = useIsMobile();
+  const { isMobile } = useAppUI();
   const { panelHeight, translateY } = usePullUpPanelMetrics();
   const toolbarOffset = isMobile ? Math.max(16, panelHeight - translateY + 10) : 30;
   const toolbarStyle: CSSProperties & Record<string, string | number> = {

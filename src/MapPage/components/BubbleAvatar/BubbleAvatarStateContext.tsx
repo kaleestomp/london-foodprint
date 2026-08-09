@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import type { ReactNode, Dispatch, SetStateAction } from 'react';
-import { type LatLng } from './config';
+import L from 'leaflet';
+import { useSearchFilters } from '../../../context/SearchFiltersContext';
+import { SEARCH_RADIUS } from './config';
 
 type Point = { x: number; y: number };
 
 interface BubbleAvatarState {
-  /** World coordinate where drop off was triggered */
-  droppedPos: LatLng | null;
+  /** Screen-space coordinate where the bubble landed for UI styling/animation */
+  droppedPos: Point | null;
 
   /** Screen coordinate where pickup was triggered — mounts BubbleButton there
    *  instead of its home position and auto-starts the drag. */
@@ -32,8 +34,9 @@ interface BubbleAvatarState {
   /** Reset all floating state to HOME */
   resetBubbleToHome: (from?: Point) => void;
 
-  /** Handle user drop event: set real world coordinates and clear states */
-  handleDrop: (lat: number, lng: number) => void;
+  /** Handle user drop event: store the map location and the screen-space point */
+  handleDropLatLng: (map: L.Map, lat: number, lng: number) => void;
+  handleDropXY: (map: L.Map, x: number, y: number) => void;
 
   /** Set pickup position for manual drag start */
   handlePickup: (x: number, y: number) => void;
@@ -53,7 +56,8 @@ export const useBubbleAvatarState = (): BubbleAvatarState => {
 };
 
 export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [droppedPos, setDroppedPos] = useState<LatLng | null>(null);
+  const { setSearchMask } = useSearchFilters();
+  const [droppedPos, setDroppedPos] = useState<Point | null>(null);
   const [pickupPos, setPickupPos] = useState<Point | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isNearHome, setIsNearHome] = useState(false);
@@ -61,10 +65,11 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
 
   const resetBubbleToHome = useCallback((from?: Point) => {
     setDroppedPos(null);
+    setSearchMask(null);
     setPickupPos(null);
     setFlyInFrom(from ?? null);
     setIsDragging(false);
-  }, []);
+  }, [setSearchMask]);
 
   const beginDragging = useCallback(() => {
     setIsDragging(true);
@@ -74,18 +79,46 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((lat: number, lng: number) => {
-    setDroppedPos({ lat, lng });
+  const handleDropLatLng = useCallback((map: L.Map, lat: number, lng: number) => {
+
+    setSearchMask({ center: { lat, lng }, radiusM: SEARCH_RADIUS });
+    const pt = map.latLngToContainerPoint([lat, lng]);
+    const rect = map.getContainer().getBoundingClientRect();
+    const screenPos = { x: rect.left + pt.x, y: rect.top + pt.y };
+    setDroppedPos(screenPos);
     setPickupPos(null);
     setFlyInFrom(null);
     setIsDragging(false);
-  }, []);
+
+  }, [setSearchMask]);
+
+  const handleDropXY = useCallback((map: L.Map, x: number, y: number) => {
+
+    const rect = map.getContainer().getBoundingClientRect();
+    const insideMap = 
+      x >= rect.left && x <= rect.right &&
+      y >= rect.top && y <= rect.bottom;
+
+    if (insideMap) {
+      const leafletPoint = L.point(x - rect.left, y - rect.top);
+      const {lat, lng} = map.containerPointToLatLng(leafletPoint);
+      setSearchMask({ center: { lat, lng }, radiusM: SEARCH_RADIUS });
+      setDroppedPos({ x, y });
+      setPickupPos(null);
+      setFlyInFrom(null);
+      setIsDragging(false);
+    } else {
+      handleDropCancel();
+    }
+
+  }, [setSearchMask]);
 
   const handlePickup = useCallback((x: number, y: number) => {
     setDroppedPos(null);
+    setSearchMask(null);
     setPickupPos({ x, y });
     setFlyInFrom(null);
-  }, []);
+  }, [setSearchMask]);
 
   const handleDropCancel = useCallback(() => {
     setPickupPos(null);
@@ -102,7 +135,8 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
     setNearHome: setIsNearHome,
     flyInFrom,
     resetBubbleToHome,
-    handleDrop,
+    handleDropLatLng,
+    handleDropXY,
     handlePickup,
     handleDropCancel,
   }), [
@@ -115,7 +149,8 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
     setIsNearHome,
     flyInFrom,
     resetBubbleToHome,
-    handleDrop,
+    handleDropLatLng,
+    handleDropXY,
     handlePickup,
     handleDropCancel,
   ]);

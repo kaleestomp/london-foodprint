@@ -11,9 +11,9 @@ const usePickupBootstrap = (
   rawDragEnabled: boolean,
   dragControls: DragControls,
   resetDragStarted: () => void,
-  startRawDrag: (x: number, y: number, pointerId?: number) => void,
   hasDragStarted: () => boolean,
-  resolvePickupWithoutDrag: (point: Point) => void,
+  startRawDrag: (x: number, y: number, pointerId?: number) => void,
+  resolveDrop: (point: Point) => void,
 ) => {
   const firedPickupRef = useRef(false);
 
@@ -59,12 +59,12 @@ const usePickupBootstrap = (
 
     const onPointerUp = (e: PointerEvent) => {
       if (hasDragStarted()) return;
-      resolvePickupWithoutDrag({ x: e.clientX, y: e.clientY });
+      resolveDrop({ x: e.clientX, y: e.clientY });
     };
 
     window.addEventListener('pointerup', onPointerUp, { once: true });
     return () => window.removeEventListener('pointerup', onPointerUp);
-  }, [pickupPos, rawDragEnabled, resolvePickupWithoutDrag, hasDragStarted]);
+  }, [pickupPos, rawDragEnabled, resolveDrop, hasDragStarted]);
 };
 
 export default usePickupBootstrap;

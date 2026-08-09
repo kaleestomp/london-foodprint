@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
 import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
-import useMapViewportNavigation from '../BubbleAvatar/onBubbleDrag/useMapViewportNavigation';
-import getVisibleMapTargetScreenPoint from '../BubbleAvatar/getVisibleMapTargetScreenPoint';
+import useMapViewportNavigation from '../BubbleAvatar/MapNavigation/useMapViewportNavigation';
+import getVisibleMapTargetScreenPoint from '../BubbleAvatar/MapNavigation/getVisibleMapTargetScreenPoint';
 
 type Props = {
   mapRef: React.RefObject<L.Map | null>;

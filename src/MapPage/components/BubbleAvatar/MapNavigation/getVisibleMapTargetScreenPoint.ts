@@ -1,6 +1,6 @@
 import L from 'leaflet';
 
-import { type Point } from './config';
+import { type Point } from '../config';
 
 const TOP_PADDING = 80;
 
