@@ -5,7 +5,7 @@ import { type TilesParams } from '../../../request/useRequestTiles/useRequestTil
 import getBucketedViewportBounds from '../DataLayer/utils/getBucketedViewportBounds';
 import zoomToResolution from '../DataLayer/utils/zoomToResolution';
 
-const ZOOM_THRESHOLD_FOR_PLACES_ONLY = 16;
+const RES_THRESHOLD_FOR_PLACES_ONLY = 11;
 const VIEWPORT_UPDATE_THROTTLE_MS = 250;
 /**
  * Tracks map viewport and emits TilesParams whenever the user pans or zooms.
@@ -31,15 +31,14 @@ const onUserRoam = (
     let lastRunAt = 0;
 
     const readViewportParams = (): TilesParams => {
-      const { sw_lat, sw_lng, ne_lat, ne_lng, zoomBucket } = getBucketedViewportBounds(map);
+      const { sw_lat, sw_lng, ne_lat, ne_lng } = getBucketedViewportBounds(map); //zoomBucket
       const zoom = map.getZoom();
       const res = zoomToResolution(zoom);
 
       return {
         sw_lat, sw_lng, ne_lat, ne_lng, res,
-        // At past 16 Zoom, always request individual places directly,
-        // bypassing the density table regardless of place count.
-        ...(zoomBucket >= ZOOM_THRESHOLD_FOR_PLACES_ONLY ? { places_only: true } : {}),
+        // At past 17 Zoom / 11 Res, always request individual places directly,
+        ...(res >= RES_THRESHOLD_FOR_PLACES_ONLY ? { places_only: true } : {}),
       };
     };
 
