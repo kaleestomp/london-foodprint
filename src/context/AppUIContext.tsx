@@ -16,11 +16,15 @@ interface AppUIContextType {
   activeToolbarTab: ToolbarFilterTab | null;
   liveLocation: LiveLocation | null;
   colorMode: ColorMode;
+  heatmapEnabled: boolean;
+  mapMode: ColorMode;
   toggleLoading: (loading: boolean) => void;
   setActiveToolbarTab: (tab: ToolbarFilterTab | null) => void;
   queueLiveLocationDrop: (lat: number, lng: number) => void;
   setColorMode: (mode: ColorMode) => void;
   toggleColorMode: () => void;
+  toggleHeatmapEnabled: () => void;
+  toggleMapMode: () => void;
 }
 
 const AppUIContext = createContext<AppUIContextType | null>(null);
@@ -40,6 +44,8 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
   const [activeToolbarTab, setActiveToolbarTab] = useState<ToolbarFilterTab | null>(null);
   const [liveLocation, setLiveLocation] = useState<LiveLocation | null>(null);
   const [colorMode, setColorMode] = useState<ColorMode>('light'); //getInitialColorMode
+  const [heatmapEnabled, setHeatmapEnabled] = useState(true);
+  const [mapMode, setMapMode] = useState<ColorMode>('dark');
 
   const toggleLoading = useCallback((loading: boolean) => {
     setIsLoading((prev) => (prev === loading ? prev : loading));
@@ -53,27 +59,43 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
     setColorMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
   }, []);
 
+  const toggleHeatmapEnabled = useCallback(() => {
+    setHeatmapEnabled((prev) => !prev);
+  }, []);
+
+  const toggleMapMode = useCallback(() => {
+    setMapMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  }, []);
+
   const exposed = useMemo<AppUIContextType>(() => ({ 
     isLoading,
     isSideCardVisible,
     activeToolbarTab,
     liveLocation,
     colorMode,
+    heatmapEnabled,
+    mapMode,
     toggleLoading,
     setActiveToolbarTab,
     queueLiveLocationDrop,
     setColorMode,
     toggleColorMode,
+    toggleHeatmapEnabled,
+    toggleMapMode
   }), [
-    activeToolbarTab,
-    colorMode,
     isLoading,
     isSideCardVisible,
+    activeToolbarTab,
     liveLocation,
+    colorMode,
+    heatmapEnabled,
+    mapMode,
     queueLiveLocationDrop,
     setColorMode,
     toggleLoading,
     toggleColorMode,
+    toggleHeatmapEnabled,
+    toggleMapMode
   ]);
 
   return (

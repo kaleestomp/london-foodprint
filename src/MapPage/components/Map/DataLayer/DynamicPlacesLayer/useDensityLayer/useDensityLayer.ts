@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import L from 'leaflet';
 
+import { useAppUI } from '../../../../../../context/AppUIContext';
 import { type SearchMask } from '../../LayerStates/maskResults';
 import { type TileDensity } from '../../../../../request/useRequestTiles/request';
 import { cancelLayerRemoval, scheduleLayerRemoval } from '../lifecycle/lifecycle';
@@ -29,7 +30,9 @@ const useDensityLayer = (
   mapRef: React.RefObject<L.Map | null>,
   layerRef: React.RefObject<L.LayerGroup | null>,
 ): DensityLayer => {
-
+  const { mapMode } = useAppUI();
+  const densityIconColor: [number, number, number] = mapMode === 'dark' ? [255, 255, 255] : [0, 0, 0];
+  
   const markerRef = useRef<TileMarkerRegistry>(new Map()); // TRACK ALL TILE MARKERS
   const currentResRef = useRef<number | null>(null);
   const cleanupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -86,11 +89,11 @@ const useDensityLayer = (
 
     // Animate Marker Exit: burst, merge, or fade out CSS Class
     animateLayerClear(map, resolution, prevRes, outgoings);
-
+    
     // Add New Markers + Fly-In Entry
     const startOffsets = zoomingIn ? getExplodeFlyInOffset(map, outgoings, prevRes, incomingTiles) : undefined;
     addMarkers({
-      layer, tiles: incomingTiles, resolution: resolution, startOffsets,
+      layer, tiles: incomingTiles, resolution: resolution, startOffsets, iconColor: densityIconColor,
       markerRegistry: markerRef.current
     });
 
@@ -99,7 +102,7 @@ const useDensityLayer = (
     const delayMs = zoomingIn ? 0 : 280;
     scheduleRemoval(layer, outgoingMarkers, delayMs);
 
-  }, [cancelScheduledRemoval, resetLayerState, scheduleRemoval]);
+  }, [cancelScheduledRemoval, densityIconColor, resetLayerState, scheduleRemoval]);
 
   // ADD MARKERS ON PAN
   const addMarkersToLayer = useCallback((resolution: number, tiles: TileDensity[]): void => {
@@ -109,13 +112,13 @@ const useDensityLayer = (
     if (!layer || !map) return;
 
     addMarkers({
-      layer, tiles, resolution: resolution,
+      layer, tiles, resolution: resolution, iconColor: densityIconColor,
       markerRegistry: markerRef.current
     });
     if (currentResRef.current !== resolution)
       currentResRef.current = resolution;
 
-  }, []);
+  }, [densityIconColor]);
 
   // DEDUP MARKERS
   // eg.singletons against top places id

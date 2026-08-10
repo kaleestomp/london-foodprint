@@ -41,11 +41,12 @@
   --app-faint-outline-color: rgba(0, 0, 0, 0.15);
   --app-sheet-handle-color: #c5cad3;
   
-  --app-paper-color: #e0e0e0;
+  --app-paper-color-fixed: #e0e0e0;
+  --app-paper-color: var(--app-paper-color-fixed);
   --app-primary-black: rgb(45, 45, 45);
   --app-toolbar-icon-color: var(--app-primary-black);
   --app-primary-blue: rgb(31, 130, 192);
-  --app-secondary-blue: rgb(146, 199, 249);
+  --app-secondary-blue: rgb(21, 36, 50);
   --app-primary-grey: rgb(120, 120, 120);
   --app-secondary-grey: rgb(200, 200, 200);
   --app-tertiary-grey: rgb(240, 240, 240);
@@ -53,6 +54,7 @@
 }
 
 html[data-theme='dark'] {
+  --app-paper-color: #1e1e1e;
   --app-floating-card-bg: linear-gradient(45deg, #4a4a4a, #3e3e3e);
 
   --app-glass-card-bg: linear-gradient(
@@ -69,13 +71,13 @@ html[data-theme='dark'] {
   --app-glass-card-glow: rgba(84, 142, 248, 0.24);
   --app-glass-card-blob-opacity: 0.45;
   
-  --app-text-color: rgb(235, 238, 242);
-  --app-text-caption-color: rgb(164, 172, 182);
-  --app-divider-color: #edf0f4;
+  --app-text-color: rgba(255, 255, 255, 0.85);
+  --app-text-caption-color: rgba(255, 255, 255, 0.55);
+  --app-divider-color: rgba(255, 255, 255, 0.1);
   --app-faint-outline-color: rgba(255, 255, 255, 0.2);
   --app-floating-card-backdrop-filter: blur(18px) saturate(1.15);
-  --app-sheet-handle-color: #677284;
-  --app-toolbar-icon-color: var(--app-paper-color);
+  --app-sheet-handle-color: rgba(255, 255, 255, 0.15);
+  --app-toolbar-icon-color: var(--app-text-color);
 }
 
 @media (max-width: 959px) {

@@ -1,7 +1,8 @@
 .geo-searchbar-clear-button {
   margin-right: 0px !important;
+  color: var(--app-text-caption-color) !important;
 }
 
 .geo-searchbar-clear-button:hover {
-  background-color: rgba(0, 0, 0, 0.04) !important;
+  background-color: var(--app-divider-color) !important;
 }

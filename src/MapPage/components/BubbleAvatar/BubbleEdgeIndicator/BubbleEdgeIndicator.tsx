@@ -61,12 +61,6 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
 
     const target: L.LatLngExpression = [center.lat, center.lng];
     map.panTo(target, { animate: true });
-    // const currentZoom = map.getZoom();
-    // if (currentZoom < 14) {
-    //   map.panTo(target, { animate: true });
-    //   return;
-    // }
-    // map.setView(target, 14, { animate: true });
     
   }, [mapRef, searchMask, cancelLongPress]);
 

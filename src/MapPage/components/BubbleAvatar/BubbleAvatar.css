@@ -37,7 +37,7 @@
 
   --bubble-avatar-eye-color: #2a2a2a;
   --bubble-avatar-ring-color: #ba160c;
-  --bubble-avatar-bg-color: var(--app-paper-color); /* #eaeaea; */
+  --bubble-avatar-bg-color: var(--app-paper-color-fixed); /* #eaeaea; */
   --bubble-avatar-bg-blur: blur(0px);
 }
 

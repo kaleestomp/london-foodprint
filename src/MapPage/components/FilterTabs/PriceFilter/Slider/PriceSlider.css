@@ -6,7 +6,7 @@
     
     --tumb-size: 20px;
     --overun: calc((var(--tumb-size) / 2) + 6px);
-    --slider-color: var(--app-primary-black);
+    --slider-color: var(--app-toolbar-icon-color);
 
     margin: 0px;
     margin-top: -23px;
@@ -20,7 +20,7 @@
 
 .price-filter-panel__slider-wrap .MuiSlider-markLabel {
     /* color: var(--app-text-caption-color); */
-    color: var(--app-primary-black);
+    color: var(--slider-color);
 }
 
 .price-filter-panel__slider-wrap .MuiSlider-thumb {

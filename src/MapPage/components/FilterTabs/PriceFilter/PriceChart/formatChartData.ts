@@ -1,15 +1,17 @@
 import { useMemo } from 'react';
 
-import {
-  PRICE_RANGE_FILTER_OPTIONS,
-  useSearchFilters,
-} from '../../../../../context/SearchFiltersContext';
+import { useAppUI } from '../../../../../context/AppUIContext';
+import { PRICE_RANGE_FILTER_OPTIONS, useSearchFilters } from '../../../../../context/SearchFiltersContext';
 
 import { primaryBlack, secondaryGrey } from '../../../../../utils/styling/Colors';
 import './PriceChart.css';
 
 
 const formatChartData = (priceData: Array<{ cost: string; count: number }>) => {
+
+  const { colorMode } = useAppUI();
+  const primaryColor = colorMode === 'dark' ? '#fff' : primaryBlack;
+  const secondaryColor = colorMode === 'dark' ? '#aaa' : secondaryGrey;
 
   const countsByCategory = useMemo(() => {
     const empty = Object.fromEntries(PRICE_RANGE_FILTER_OPTIONS.map((label) => [label, 0])) as Record<string, number>;
@@ -36,14 +38,14 @@ const formatChartData = (priceData: Array<{ cost: string; count: number }>) => {
       return {
         value: countsByCategory[label] ?? 0,
         itemStyle: {
-          color: inRange ? primaryBlack : secondaryGrey,
+          color: inRange ? primaryColor : secondaryColor,
           borderRadius: [999, 999, 0, 0],
         },
         label: {
           show: true,
           position: 'top',
           formatter: (params: { value: number }) => (params.value > 0 ? `${params.value}` : ''),
-          color: inRange ? primaryBlack : secondaryGrey,
+          color: inRange ? primaryColor : secondaryColor,
           fontSize: 12,
           distance: 2,
         },

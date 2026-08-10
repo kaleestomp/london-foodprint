@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
+import { useAppUI } from '../../../../../context/AppUIContext';
 import { PRICE_RANGE_FILTER_OPTIONS } from '../../../../../context/SearchFiltersContext';
-// import { primaryBlack, secondaryGrey } from '../../../../../../utils/styling/Colors';
 import formatChartData from './formatChartData';
 import './PriceChart.css';
 
@@ -13,7 +13,10 @@ const PAD_CATEGORY_RIGHT = '__pad_right__';
 type Props = { priceData: Array<{ cost: string; count: number }> };
 
 const PriceChart: React.FC<Props> = ({ priceData }) => {
-  
+  const { colorMode } = useAppUI();
+  const primaryColor = colorMode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+  const secondaryColor = colorMode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+
   const chartCategories = [PAD_CATEGORY_LEFT, ...PRICE_RANGE_FILTER_OPTIONS, PAD_CATEGORY_RIGHT];
   const chartData = formatChartData(priceData);
   
@@ -40,13 +43,13 @@ const PriceChart: React.FC<Props> = ({ priceData }) => {
       min: 0,
       minInterval: 1,
       splitNumber: 3,
-      splitLine: { lineStyle: { color: 'rgba(0,0,0,0.08)' } },
+      splitLine: { lineStyle: { color: primaryColor } },
       axisLabel: { 
         inside: true,
         align: 'left',
         verticalAlign: 'bottom',
         padding: [2, 0, 0, 0],
-        color: 'rgba(0,0,0,0.2)',
+        color: secondaryColor,
         margin: 0,
         formatter: (value: number) => (value === 0 ? '' : `${value}`),
       },

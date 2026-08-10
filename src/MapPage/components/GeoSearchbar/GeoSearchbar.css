@@ -17,6 +17,8 @@
   transition: width 220ms ease;
 }
 
+
+
 .geo-searchbar.is-expanded {
   width: 100%;
   max-width: 800px;
@@ -32,7 +34,7 @@
   gap: 6px;
   width: 100%;
   background: transparent;
-  color: var(--app-primary-black);
+  color: var(--app-toolbar-icon-color);
   box-sizing: border-box;
   transition: transform 120ms ease;
 }
@@ -42,10 +44,13 @@
 }
 
 .geo-searchbar-panel {
+  position: relative;
+  isolation: isolate;
+
   width: 100%;
   background: var(--geo-searchbar-bg);
   backdrop-filter: var(--geo-searchbar-backdrop-filter);
-  color: var(--app-primary-black);
+  color: var(--app-toolbar-icon-color);
   border-radius: calc(var(--geo-searchbar-height) / 2);
   overflow: hidden;
   transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
@@ -62,6 +67,57 @@
   backdrop-filter: var(--geo-searchbar-backdrop-filter-active);
 }
 
+.geo-searchbar-panel > * {
+  position: relative;
+  z-index: 1;
+}
+@property --searchbar-ring-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes searchbar-ring-spin {
+  to { --searchbar-ring-angle: 360deg; }
+}
+/* .geo-searchbar-panel:focus-within::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--searchbar-ring-angle),
+    rgba(104, 167, 255, 0.92),
+    rgba(139, 209, 255, 0.82),
+    rgba(104, 167, 255, 0.92)
+  );
+  animation: searchbar-ring-spin 3s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+} */
+.geo-searchbar-panel:focus-within::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--rainbow-angle),
+    var(--app-toolbar-icon-color), var(--app-paper-color),
+    var(--app-paper-color), var(--app-toolbar-icon-color)
+  );
+  animation: rainbow-spin 4s linear infinite;
+  z-index: 0;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
 .geo-searchbar-icon {
   width: var(--geo-searchbar-icon-size);
   height: var(--geo-searchbar-icon-size);
@@ -73,5 +129,6 @@
 .geo-searchbar-icon svg {
   width: var(--geo-searchbar-icon-size);
   height: var(--geo-searchbar-icon-size);
+  color: var(--app-toolbar-icon-color);
 }
 

@@ -30,7 +30,7 @@
 .geo-searchbar-input-actions-divider {
   width: 1px;
   height: 22px;
-  background: var(--app-faint-outline-color);
+  background: var(--app-divider-color);
   margin-right: 10px;
 }
 
@@ -39,5 +39,5 @@
 }
 
 .geo-searchbar-input::placeholder {
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--app-text-caption-color);
 }

@@ -1,4 +1,33 @@
+.map-toolbar-layers-stack {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.map-toolbar-layers-flyout {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(-14px);
+  transform-origin: top center;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.map-toolbar-layers-stack-open .map-toolbar-layers-flyout {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
 .map-toolbar-layers-btn {
+  position: relative;
   width: var(--toolbar-height);
   height: var(--toolbar-height);
   min-width: var(--toolbar-height);
@@ -31,4 +60,27 @@
 .map-toolbar-layers-btn svg {
   width: var(--toolbar-icon-size);
   height: var(--toolbar-icon-size);
+}
+
+.map-toolbar-layers-btn-active::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from var(--rainbow-angle),
+    var(--app-toolbar-icon-color), var(--app-paper-color),
+    var(--app-paper-color), var(--app-toolbar-icon-color)
+  );
+  animation: rainbow-spin 4s linear infinite;
+  z-index: 0;
+  padding: 1px;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+.map-toolbar-layers-btn-active svg {
+  color: var(--app-toolbar-icon-color);
 }

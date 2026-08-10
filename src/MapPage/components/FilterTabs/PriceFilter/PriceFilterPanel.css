@@ -23,7 +23,6 @@
     align-items: flex-start;
     position: relative;
 
-    color: var(--app-primary-black);
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
     text-transform: uppercase;
@@ -31,10 +30,12 @@
 }
 
 .title-block .top {
+    color: var(--app-toolbar-icon-color);
     font-size: 16px;
 }
 
 .title-block .bottom {  
+    color: var(--app-toolbar-icon-color);
     font-size: 24px;
     font-weight: bold;
 }

@@ -12,8 +12,9 @@ type Props = {
     // checkedTiles: Set<string>,
     markerRegistry: TileMarkerRegistry,
     startOffsets?: Map<string, { dx: number; dy: number }>,
+    iconColor?: [number, number, number],
 }
-const addMarkers = ({ layer, tiles, resolution, markerRegistry, startOffsets }: Props): void => {
+const addMarkers = ({ layer, tiles, resolution, markerRegistry, startOffsets, iconColor }: Props): void => {
 
     // SYNC checkedTilesRef so subsequent addMarkers calls skip already-parsed tiles.
     // Without this, addMarkers sees an empty set and re-creates duplicate markers for
@@ -26,10 +27,10 @@ const addMarkers = ({ layer, tiles, resolution, markerRegistry, startOffsets }: 
 
     // SORT TILES 
     const { densityTiles, singletons } = sortTiles(newTiles);
-
+    
     // ADD DENSITY MARKERS
     if (densityTiles.length) {
-        const newDensityMarkers = addDensityMarkers(layer, densityTiles, resolution, startOffsets);
+        const newDensityMarkers = addDensityMarkers(layer, densityTiles, resolution, startOffsets, iconColor);
 
         newDensityMarkers.forEach(({ TileId, Marker }) => {
             markerRegistry.set(TileId, { Marker: Marker, SingletonId: null })

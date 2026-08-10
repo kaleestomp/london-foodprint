@@ -3,6 +3,7 @@ import L from 'leaflet';
 
 // import { useBubbleAvatarState } from '../../BubbleAvatar/BubbleAvatarStateContext';
 import useTopPlacesLayer from './TopPlacesLayer/useTopPlacesLayer';
+import useHeatmapLayer from './HeatmapLayer/useHeatmapLayer';
 import useDynamicPlacesLayer from './DynamicPlacesLayer/useDynamicPlacesLayer';
 import useNearbyPlacesLayer from './NearbyPlacesLayer/useNearbyPlacesLayer';
 
@@ -14,6 +15,7 @@ const DataLayer = (
   const [activeTopPlaceIdSet, setActiveTopPlaceIds] = useState<Set<string> | undefined>(undefined);
 
   useTopPlacesLayer( mapRef, setActiveTopPlaceIds, enabled );
+  useHeatmapLayer( mapRef, enabled );
   useDynamicPlacesLayer( mapRef, activeTopPlaceIdSet, enabled );
   useNearbyPlacesLayer(mapRef, activeTopPlaceIdSet, enabled);
 

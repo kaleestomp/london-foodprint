@@ -1,7 +1,8 @@
 import L from 'leaflet';
 import { cellToLatLng } from 'h3-js';
-import { type TileDensity } from '../../../../../../request/useRequestTiles/request';
+
 import densityMarkerIcon from './densityMarkerIcon';
+import { type TileDensity } from '../../../../../../request/useRequestTiles/request';
 
 /**
  * Adds a marker at each H3 centroid not yet in `rendered`. Returns the newly
@@ -17,8 +18,8 @@ const addDensityMarkers = (
   tiles: TileDensity[],
   resolution: number,
   startOffsets?: Map<string, { dx: number; dy: number }>,
+  iconColor?: [number, number, number],
 ): Array<{ TileId: string; Marker: L.Marker }> => {
-
   // maxCount from the full response batch keeps sizes consistent across the viewport.
   // Exclude singletons from the maxCount so they don't deflate density-marker sizing.
   const maxCount = tiles.reduce((m, d) => d.count > 1 ? Math.max(m, d.count) : m, 1);
@@ -29,7 +30,7 @@ const addDensityMarkers = (
   tiles.forEach((d) => {
     const [lat, lng] = cellToLatLng(d.tile);
     const startOffset = startOffsets?.get(d.tile); 
-    const icon = densityMarkerIcon(d.count, resolution, maxCount, { staggerMs: 0, startOffset });
+    const icon = densityMarkerIcon(d.count, resolution, maxCount, { staggerMs: 0, startOffset }, iconColor);
     const marker = L.marker([lat, lng], { icon }).addTo(layer);
     newMarkers.push({ TileId: d.tile, Marker: marker });
   });

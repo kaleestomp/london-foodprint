@@ -14,13 +14,14 @@
   --toolbar-icon-size: 25px;
   --toolbar-shadow: none;
   --toolbar-shadow-active: var(--app-glass-card-box-shadow);
-  --toolbar-background: rgba(255, 255, 255, 0.24);
-  --toolbar-background-hover: rgba(255, 255, 255, 0.36);
-  --toolbar-background-active: linear-gradient(
+  --toolbar-background: var(--app-paper-color);
+  --toolbar-background-hover: var(--app-paper-color);
+  --toolbar-background-active: var(--app-paper-color);
+  /* linear-gradient(
     165deg,
     rgba(226, 236, 255, 0.52) 0%,
     rgba(255, 255, 255, 0.16) 100%
-  );
+  ); */
   --toolbar-backdrop-filter: var(--app-glass-card-backdrop-filter);
   --toolbar-backdrop-filter-active: blur(24px) saturate(1.15);
   --toolbar-border: var(--app-glass-card-border);
@@ -39,9 +40,10 @@
 .map-toolbar-side-action {
   width: var(--toolbar-height);
   min-width: var(--toolbar-height);
-  overflow: hidden;
+  overflow: visible;
   transition: width 220ms ease, min-width 220ms ease, opacity 180ms ease;
   opacity: 1;
+  position: relative;
 }
 
 .map-toolbar.map-toolbar-search-open .map-toolbar-side-action {

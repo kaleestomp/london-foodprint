@@ -5,6 +5,7 @@ import L from 'leaflet';
 import useFocusMap from './useFocusMap/useFocusMap';
 import addSearchRadiusMarker from './addSearchRadiusMarker/addSearchRadiusMarker';
 import addAvatarMarker from './addAvatarMarker/addAvatarMarker';
+import { DROP_ENTRY_DELAY_MS, ZOOM_LEVEL } from '../config';
 
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
@@ -38,10 +39,12 @@ const useAvatarMapLayer = (
         if (!map) return;
         const {center, radiusM} = searchMask ?? {};
         if (!center || !radiusM) return;
-        const { lat, lng } = center;
-
+        
         // CICLE MARKER
-        const removeCircleMarker = addSearchRadiusMarker( map, lat, lng, radiusM, 0 );
+        const { lat, lng } = center;
+        const isAlreadyAtTargetZoom = map.getZoom() === ZOOM_LEVEL;
+        const entryDelayMs = isAlreadyAtTargetZoom ? 0 : DROP_ENTRY_DELAY_MS;
+        const removeCircleMarker = addSearchRadiusMarker( map, lat, lng, radiusM, entryDelayMs );
         // AVATAR MARKER
         const removeAvatarMarker = addAvatarMarker( map, lat, lng, reactRootRef, onPickupRef );
 
