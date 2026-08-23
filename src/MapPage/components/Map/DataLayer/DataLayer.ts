@@ -1,21 +1,18 @@
 import { useState } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
-// import { useBubbleAvatarState } from '../../BubbleAvatar/BubbleAvatarStateContext';
 import useTopPlacesLayer from './TopPlacesLayer/useTopPlacesLayer';
-import useHeatmapLayer from './HeatmapLayer/useHeatmapLayer';
 import useDynamicPlacesLayer from './DynamicPlacesLayer/useDynamicPlacesLayer';
 import useNearbyPlacesLayer from './NearbyPlacesLayer/useNearbyPlacesLayer';
 
 const DataLayer = (
-  mapRef: React.RefObject<L.Map | null>,
+  mapRef: React.RefObject<maplibregl.Map | null>,
   enabled = true,
 ): void => {
 
   const [activeTopPlaceIdSet, setActiveTopPlaceIds] = useState<Set<string> | undefined>(undefined);
 
   useTopPlacesLayer( mapRef, setActiveTopPlaceIds, enabled );
-  useHeatmapLayer( mapRef, enabled );
   useDynamicPlacesLayer( mapRef, activeTopPlaceIdSet, enabled );
   useNearbyPlacesLayer(mapRef, activeTopPlaceIdSet, enabled);
 

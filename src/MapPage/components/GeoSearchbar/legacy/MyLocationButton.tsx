@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
+import type maplibregl from 'maplibre-gl';
+
 import IconButton from '@mui/material/IconButton';
 import Snackbar from '@mui/material/Snackbar';
-// import NearMeIcon from '@mui/icons-material/NearMe';
-import L from 'leaflet';
-import useMyLocation from '../../../../request/useMyLocation/useMyLocation';
-import { LONDON_BOUNDS } from '../../Map/MapTemplate';
-import AnimatedLoadingDots from '../../../../components/LoadingDots/AnimatedLoadingDots';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
+import useMyLocation from '../../../../request/useMyLocation/useMyLocation';
+import { isWithinLondonBounds } from '../../Map/MapTemplate';
+import AnimatedLoadingDots from '../../../../components/LoadingDots/AnimatedLoadingDots';
 import './GeoSearch.css';
 
 type Props = {
-  mapRef: React.RefObject<L.Map | null>;
+  mapRef: React.RefObject<maplibregl.Map | null>;
   onLiveLocationDrop: (lat: number, lng: number) => void | Promise<void>;
 };
 
@@ -45,7 +45,7 @@ const MyLocationButton: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
 
     if (state.status !== 'success') { return; }
 
-    if (!LONDON_BOUNDS.contains(L.latLng(state.lat, state.lon))) {
+    if (!isWithinLondonBounds(state.lat, state.lon)) {
       handleOutsideLondon();
       return;
     }

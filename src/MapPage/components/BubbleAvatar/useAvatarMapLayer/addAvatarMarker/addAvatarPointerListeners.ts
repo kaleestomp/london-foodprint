@@ -1,10 +1,10 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { LONGPRESS_MS } from '../../config';
 
 const addPointerListeners = (
   markerEl: HTMLElement,
-  map: L.Map,
+  map: maplibregl.Map,
   onPickup: (x: number, y: number) => void
 ) => {
   let pressTimer: ReturnType<typeof setTimeout> | null = null;
@@ -20,19 +20,19 @@ const addPointerListeners = (
 
   const releasePress = () => {
     cancelPress();
-    map.dragging.enable();
+    map.dragPan.enable();
   };
 
   const onPointerDown = (e: PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     markerEl.setPointerCapture(e.pointerId);
-    map.dragging.disable();
+    map.dragPan.disable();
     startX = e.clientX;
     startY = e.clientY;
     pressTimer = setTimeout(() => {
       pressTimer = null;
-      map.dragging.enable();
+      map.dragPan.enable();
       onPickup(e.clientX, e.clientY);
     }, LONGPRESS_MS);
   };

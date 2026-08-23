@@ -1,13 +1,14 @@
 import { useCallback, useRef } from 'react';
 import { type PanInfo } from 'framer-motion';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
+
 import { type Point } from '../config';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import useDragMotionValues from './useDragMotionValues';
 
 /**
  * Handles the drag lifecycle for BubbleButton:
- *  - disables Leaflet map panning while the bubble is in flight
+ *  - disables map panning while the bubble is in flight
  *  - on release near home position: calls onCancel (snap back / return home)
  *  - on release over the map: converts the drop point to lat/lng and calls onDrop
  *  - on release anywhere else: calls onCancel (if provided), otherwise Framer Motion springs back
@@ -16,7 +17,7 @@ import useDragMotionValues from './useDragMotionValues';
  * container rect — without this, releasing near home would trigger a map drop.
  */
 const onBubbleDrag = (
-  mapRef: React.RefObject<L.Map | null>,
+  mapRef: React.RefObject<maplibregl.Map | null>,
   // onDrop: (lat: number, lng: number) => void,
   // homeCenter: Point,
   // onCancel?: () => void,
@@ -38,14 +39,14 @@ const onBubbleDrag = (
   const handleDragStart = useCallback(() => {
     hasDragStartedRef.current = true;
     beginDragging();
-    mapRef.current?.dragging.disable();
+    mapRef.current?.dragPan.disable();
   }, [beginDragging, mapRef]);
 
   const handleDragStartAtPoint = useCallback((x: number, y: number) => {
     hasDragStartedRef.current = true;
     beginDragging();
     beginAt(x, y);
-    mapRef.current?.dragging.disable();
+    mapRef.current?.dragPan.disable();
   }, [beginAt, beginDragging, mapRef]);
 
   const handleDrag = useCallback(
@@ -63,7 +64,7 @@ const onBubbleDrag = (
   const handleDragEndAtPoint = useCallback((x: number, y: number) => {
       endDragging();
       resetDragMotion();
-      mapRef.current?.dragging.enable();
+      mapRef.current?.dragPan.enable();
 
       resolveDrop({ x, y });
 

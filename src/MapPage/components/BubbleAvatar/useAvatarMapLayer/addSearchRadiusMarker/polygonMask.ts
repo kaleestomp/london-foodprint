@@ -1,15 +1,43 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
-export const WORLD_RING: L.LatLngTuple[] = [[90, -360], [90, 360], [-90, 360], [-90, -360]];
+export type LatLngTuple = [number, number];
+
+export const WORLD_RING: LatLngTuple[] = [[90, -360], [90, 360], [-90, 360], [-90, -360]];
 const toRad = (deg: number) => deg * (Math.PI / 180);
 const toDeg = (rad: number) => rad * (180 / Math.PI);
+
+const closeRing = (ring: LatLngTuple[]): LatLngTuple[] => {
+    if (ring.length === 0) return ring;
+
+    const firstPoint = ring[0];
+    const lastPoint = ring[ring.length - 1];
+    const alreadyClosed =
+        firstPoint[0] === lastPoint[0] &&
+        firstPoint[1] === lastPoint[1];
+
+    return alreadyClosed ? ring : [...ring, firstPoint];
+};
+
+const toGeoJsonPolygon = (rings: LatLngTuple[]) => {
+    const closedRing = closeRing(rings);
+    return closedRing.map(([lat, lng]) => [lng, lat]);
+};
+
+const buildPolygonFeature = (rings: LatLngTuple[][]) => ({
+    type: 'Feature' as const,
+    properties: {},
+    geometry: {
+        type: 'Polygon' as const,
+        coordinates: rings.map(toGeoJsonPolygon),
+    },
+});
 
 const projectDestination = (
     originLat: number,
     originLng: number,
     bearingDeg: number,
     distanceM: number,
-): L.LatLngTuple => {
+): LatLngTuple => {
 
     const EARTH_RADIUS_M = 6371000;
     const angularDistance = distanceM / EARTH_RADIUS_M; 
@@ -39,9 +67,9 @@ export const buildCircleHole = (
     lng: number,
     radiusM: number,
     segments = 96,
-): L.LatLngTuple[] => {
+): LatLngTuple[] => {
 
-    const points: L.LatLngTuple[] = [];
+    const points: LatLngTuple[] = [];
     for (let i = 0; i < segments; i += 1) {
         const bearing = (i / segments) * 360;
         points.push(projectDestination(lat, lng, bearing, radiusM));
@@ -49,6 +77,7 @@ export const buildCircleHole = (
     return points;
 };
 
+// export const MaskPane = (_map: unknown): string => 'bubble-avatar-mask-pane';
 export const MaskPane = (map: L.Map): string => {
     const MASK_PANE = 'bubble-avatar-mask-pane';
     const pane = map.getPane(MASK_PANE) ?? map.createPane(MASK_PANE);
@@ -57,24 +86,85 @@ export const MaskPane = (map: L.Map): string => {
     return MASK_PANE;
 };
 
+type PolygonMaskInstance = {
+    setLatLngs: (rings: LatLngTuple[][]) => void;
+    setStyle: (style: { fillOpacity?: number }) => void;
+    remove: () => void;
+};
+
 export const PolygonMask = (
-    map: L.Map,
+    map: maplibregl.Map,
     lat: number,
     lng: number,
-) => {
-    // Darkens everything outside the active search radius.
-    const polygonMask = L.polygon([WORLD_RING, buildCircleHole(lat, lng, 1)], {
-        stroke: false,
-        fill: true,
-        fillColor: '#000000',
-        fillOpacity: 0,
-        pane: MaskPane(map),
-        interactive: false,
-        fillRule: 'evenodd',
-        noClip: true,
-        renderer: L.canvas({ padding: 0.5 }),
-    });
+) : PolygonMaskInstance => {
+    const idSuffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const sourceId = `bubble-avatar-mask-source-${idSuffix}`;
+    const layerId = `bubble-avatar-mask-layer-${idSuffix}`;
+    let removed = false;
+    let currentOpacity = 0;
+    let currentRings: LatLngTuple[][] = [WORLD_RING, buildCircleHole(lat, lng, 1)];
 
-    return polygonMask;
+    const applyData = () => {
+        const source = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
+        if (!source) return;
+        source.setData(buildPolygonFeature(currentRings));
+    };
+
+    const ensureLayer = () => {
+        if (removed || !map.isStyleLoaded()) return;
+
+        if (!map.getSource(sourceId)) {
+            map.addSource(sourceId, {
+                type: 'geojson',
+                data: buildPolygonFeature(currentRings),
+            });
+        } else {
+            applyData();
+        }
+
+        if (!map.getLayer(layerId)) {
+            map.addLayer({
+                id: layerId,
+                type: 'fill',
+                source: sourceId,
+                paint: {
+                    'fill-color': '#000000',
+                    'fill-opacity': currentOpacity,
+                },
+            });
+        } else {
+            map.setPaintProperty(layerId, 'fill-opacity', currentOpacity);
+        }
+    };
+
+    map.on('styledata', ensureLayer);
+    ensureLayer();
+
+    const instance: PolygonMaskInstance = {
+        setLatLngs: (rings) => {
+            currentRings = rings;
+            ensureLayer();
+            applyData();
+        },
+        setStyle: ({ fillOpacity }) => {
+            if (typeof fillOpacity !== 'number' || !Number.isFinite(fillOpacity)) return;
+            currentOpacity = Math.max(0, Math.min(1, fillOpacity));
+            ensureLayer();
+            if (!map.getLayer(layerId)) return;
+            map.setPaintProperty(layerId, 'fill-opacity', currentOpacity);
+        },
+        remove: () => {
+            removed = true;
+            map.off('styledata', ensureLayer);
+            if (map.getLayer(layerId)) {
+                map.removeLayer(layerId);
+            }
+            if (map.getSource(sourceId)) {
+                map.removeSource(sourceId);
+            }
+        },
+    };
+
+    return instance;
 };
 

@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 import { type TileDensity, type TilePlacePreview } from '../../../../../../request/useRequestTiles/request';
 import { type TileMarkerRegistry } from '../useDensityLayer';
 import sortTiles from './sortTiles';
@@ -6,7 +6,7 @@ import addDensityMarkers from './addDensityMarkers';
 import addPlaceMarkers from '../../usePlacesLayer/placeMarkers/addPlaceMarkers';
 
 type Props = {
-    layer: L.Map | L.LayerGroup,
+    map: maplibregl.Map,
     tiles: TileDensity[],
     resolution: number,
     // checkedTiles: Set<string>,
@@ -14,7 +14,7 @@ type Props = {
     startOffsets?: Map<string, { dx: number; dy: number }>,
     iconColor?: [number, number, number],
 }
-const addMarkers = ({ layer, tiles, resolution, markerRegistry, startOffsets, iconColor }: Props): void => {
+const addMarkers = ({ map, tiles, resolution, markerRegistry, startOffsets, iconColor }: Props): void => {
 
     // SYNC checkedTilesRef so subsequent addMarkers calls skip already-parsed tiles.
     // Without this, addMarkers sees an empty set and re-creates duplicate markers for
@@ -30,7 +30,7 @@ const addMarkers = ({ layer, tiles, resolution, markerRegistry, startOffsets, ic
     
     // ADD DENSITY MARKERS
     if (densityTiles.length) {
-        const newDensityMarkers = addDensityMarkers(layer, densityTiles, resolution, startOffsets, iconColor);
+        const newDensityMarkers = addDensityMarkers(map, densityTiles, resolution, startOffsets, iconColor);
 
         newDensityMarkers.forEach(({ TileId, Marker }) => {
             markerRegistry.set(TileId, { Marker: Marker, SingletonId: null })
@@ -59,7 +59,7 @@ const addMarkers = ({ layer, tiles, resolution, markerRegistry, startOffsets, ic
             }
         }
 
-        const newSingletonMarkers = addPlaceMarkers(layer, places, undefined, startOffsetsMappedToPlaceId);
+        const newSingletonMarkers = addPlaceMarkers(map, places, undefined, startOffsetsMappedToPlaceId);
 
         for (const { PlaceId, Marker } of newSingletonMarkers) {
             const tileId = tileByPlaceId.get(PlaceId);

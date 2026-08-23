@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import L from 'leaflet';
+import maplibregl from 'maplibre-gl';
 
 import { type LatLng } from '../config';
 
@@ -14,30 +14,39 @@ type FocusMapArgs = {
 };
 
 type UseMapViewportNavigationArgs = {
-  mapRef: React.RefObject<L.Map | null>;
+  mapRef: React.RefObject<maplibregl.Map | null>;
 };
 
 const useMapViewportNavigation = ({ mapRef }: UseMapViewportNavigationArgs) => {
   const getFocusCenter = useCallback((
-    map: L.Map,
+    map: maplibregl.Map,
     target: LatLng,
     zoomLevel: number,
     targetScreenPoint?: { x: number; y: number },
   ) => {
     if (!targetScreenPoint) {
-      return L.latLng(target.lat, target.lng);
+      return new maplibregl.LngLat(target.lng, target.lat);
     }
 
     const mapRect = map.getContainer().getBoundingClientRect();
-    const containerPoint = L.point(
+    const containerPoint = new maplibregl.Point(
       targetScreenPoint.x - mapRect.left,
       targetScreenPoint.y - mapRect.top,
     );
-    const containerCenter = map.getSize().divideBy(2);
-    const focusOffset = containerPoint.subtract(containerCenter);
-    const projectedTarget = map.project(L.latLng(target.lat, target.lng), zoomLevel);
+    const containerCenter = new maplibregl.Point(mapRect.width / 2, mapRect.height / 2);
+    const focusOffset = containerPoint.sub(containerCenter);
 
-    return map.unproject(projectedTarget.subtract(focusOffset), zoomLevel);
+    // const projectedTarget = map.project(new maplibregl.LngLat(target.lng, target.lat));
+    const targetLngLat = new maplibregl.LngLat(target.lng, target.lat);
+    const currentCenterPoint = map.project(map.getCenter());
+    const projectedTarget = map.project(targetLngLat);
+    const zoomScale = 2 ** (zoomLevel - map.getZoom());
+    const projectedAtZoom = new maplibregl.Point(
+      currentCenterPoint.x + (projectedTarget.x - currentCenterPoint.x) * zoomScale,
+      currentCenterPoint.y + (projectedTarget.y - currentCenterPoint.y) * zoomScale,
+    );
+
+    return map.unproject(projectedAtZoom.sub(focusOffset));
   }, []);
 
   const focusMap = useCallback(({
@@ -57,10 +66,11 @@ const useMapViewportNavigation = ({ mapRef }: UseMapViewportNavigationArgs) => {
 
     const zoomLevel = zoom ?? map.getZoom();
     const focusCenter = getFocusCenter(map, target, zoomLevel, targetScreenPoint);
-    if (
-      skipIfWithinMeters != null &&
-      map.getCenter().distanceTo(focusCenter) < skipIfWithinMeters
-    ) {
+    const shouldSkip =
+      skipIfWithinMeters != null 
+      && map.getCenter().distanceTo(focusCenter) < skipIfWithinMeters 
+      // && (method !== 'setView' || map.getBearing() === 0);
+    if (shouldSkip) {
       onSettled?.();
       return () => {};
     }
@@ -76,7 +86,7 @@ const useMapViewportNavigation = ({ mapRef }: UseMapViewportNavigationArgs) => {
     }
 
     if (method === 'setView') {
-      map.setView(focusCenter, zoomLevel, { animate });
+      map.flyTo({ center: focusCenter, zoom: zoomLevel, bearing: 0, animate });
     } else {
       map.panTo(focusCenter, { animate });
     }

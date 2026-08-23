@@ -2,9 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import Snackbar from '@mui/material/Snackbar';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
-import L from 'leaflet';
 import useMyLocation from '../../../../request/useMyLocation/useMyLocation';
-import { LONDON_BOUNDS } from '../../Map/MapTemplate';
+import { isWithinLondonBounds } from '../../Map/MapTemplate';
 import AnimatedLoadingDots from '../../../../components/LoadingDots/AnimatedLoadingDots';
 import '../MapToolbar.css';
 
@@ -49,7 +48,7 @@ const MyLocation: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
       return;
     }
 
-    if (!LONDON_BOUNDS.contains(L.latLng(state.lat, state.lon))) {
+    if (!isWithinLondonBounds(state.lat, state.lon)) {
       handleOutsideLondon();
       return;
     }

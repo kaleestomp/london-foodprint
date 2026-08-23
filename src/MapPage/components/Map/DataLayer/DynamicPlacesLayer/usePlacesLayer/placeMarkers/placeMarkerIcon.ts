@@ -1,4 +1,3 @@
-import L from 'leaflet';
 // Fixed marker size for individual places.
 export const PIN_W = 14;
 export const PIN_H = 14;
@@ -18,7 +17,7 @@ const PLACE_MARKER_SVG_BY_SHAPE: Record<PlaceMarkerShape, string> = {
 const placeMarkerIcon = (
   staggerMs?: number,
   nStartOffset?: { dx: number; dy: number }
-): L.DivIcon => {
+): HTMLDivElement => {
   
   const markerSvg = PLACE_MARKER_SVG_BY_SHAPE[ACTIVE_SHAPE];
   const animClass  = nStartOffset ? 'density-pin-fly-in' : 'density-pin-enter';
@@ -26,15 +25,9 @@ const placeMarkerIcon = (
     ? `animation-delay:${Math.max(0, staggerMs ?? 0)}ms;--fly-dx:${nStartOffset.dx.toFixed(1)}px;--fly-dy:${nStartOffset.dy.toFixed(1)}px;transform-origin:50% 50%`
     : `animation-delay:${Math.max(0, staggerMs ?? 0)}ms;transform-origin:50% 50%`;
 
-  const icon = L.divIcon({
-    className: '',
-    iconSize:    [PIN_W, PIN_H],
-    iconAnchor:  [PIN_W / 2, PIN_H / 2],
-    popupAnchor: [0, -(PIN_H / 2)],
-    html: `<div class="density-pin ${animClass}" style="${styleExtra}">${markerSvg}</div>`,
-  });
-
-  return icon;
+  const element = document.createElement('div');
+  element.innerHTML = `<div class="density-pin ${animClass}" style="${styleExtra}">${markerSvg}</div>`;
+  return element;
 };
 
 export default placeMarkerIcon;

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
-import { type TilesParams } from '../../../request/useRequestTiles/useRequestTiles';
 import getBucketedViewportBounds from '../DataLayer/utils/getBucketedViewportBounds';
+import { type TilesParams } from '../../../request/useRequestTiles/useRequestTiles';
 import zoomToResolution from '../DataLayer/utils/zoomToResolution';
 
 const RES_THRESHOLD_FOR_PLACES_ONLY = 12;
@@ -18,15 +18,15 @@ const VIEWPORT_UPDATE_THROTTLE_MS = 250;
  * Metrics using this viewport param will always include edges results outside of view but inside of snapped bbox;
  */
 const onUserRoam = (
-  mapRef: React.RefObject<L.Map | null>,
+  mapRef: React.RefObject<maplibregl.Map | null>,
 ): TilesParams | null => {
-
   const [viewportParams, setViewportParams] = useState<TilesParams | null>(null);
   const lastSignatureRef = useRef('');
-  
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+
     let throttleTimer: ReturnType<typeof setTimeout> | null = null;
     let lastRunAt = 0;
 
@@ -34,7 +34,7 @@ const onUserRoam = (
       const { sw_lat, sw_lng, ne_lat, ne_lng } = getBucketedViewportBounds(map); //zoomBucket
       const zoom = map.getZoom();
       const res = zoomToResolution(zoom);
-      
+
       return {
         sw_lat, sw_lng, ne_lat, ne_lng, res,
         // At past 17 Zoom / 11 Res, always request individual places directly,
@@ -115,7 +115,6 @@ const onUserRoam = (
     };
   }, [mapRef]);
 
-  // console.log('viewportParams', viewportParams);
   return viewportParams;
 };
 

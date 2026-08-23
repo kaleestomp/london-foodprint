@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import type { TopPlaceItem } from '../../../../../request/useRequestTopPlaces/request';
 import type { MarkerLifecycleCache } from './markerLifecycle/markerLifecycle';
@@ -7,30 +7,30 @@ import handleSelectedMarker  from './handleSelectedMarker';
 import removeMarkers from './removeMarkers';
 
 type Props = {
-  layer: L.LayerGroup;
+  map: maplibregl.Map;
   topPlaces: TopPlaceItem[];
   cache: MarkerLifecycleCache;
   onPlaceClick?: (placeId: string) => void;
   selectedPlaceId?: string | null;
 }
 
-const syncMarkers = ({ layer, topPlaces, cache, onPlaceClick, selectedPlaceId }: Props ): Map<string, L.Marker> => {
+const syncMarkers = ({ map, topPlaces, cache, onPlaceClick, selectedPlaceId }: Props ): Map<string, maplibregl.Marker> => {
 
-  if (!Array.isArray(topPlaces) || !layer) return new Map();
+  if (!Array.isArray(topPlaces) || !map) return new Map();
   // Used to track active marker registry 
   // Created, populated and returned for EACH SYNC PASS;
   // The state is temporary therefore REF not needed; 
-  const activeMarkers = new Map<string, L.Marker>();
+  const activeMarkers = new Map<string, maplibregl.Marker>();
   const now = Date.now();
 
   // ADD / UPDATE MARKERS
-  addMarkers({ activeMarkers, layer, topPlaces, cache, onPlaceClick, now });
+  addMarkers({ activeMarkers, map, topPlaces, cache, onPlaceClick, now });
 
   // KEEP SELECTED MARKER VISIBLE
-  handleSelectedMarker({activeMarkers, selectedPlaceId: selectedPlaceId ?? null, layer, cache, now});
+  handleSelectedMarker({activeMarkers, selectedPlaceId: selectedPlaceId ?? null, map, cache, now});
 
   // SCHEDUDLE REMOVAL OF INACTIVE MARKERS + PRUNE EXPIRED CACHE
-  removeMarkers({ activeMarkers, layer, cache, now });
+  removeMarkers({ activeMarkers, cache, now });
 
   return activeMarkers;
 };

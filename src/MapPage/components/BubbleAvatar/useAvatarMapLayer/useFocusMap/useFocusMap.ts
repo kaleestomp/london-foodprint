@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import getVisibleMapTargetScreenPoint from '../../MapNavigation/getVisibleMapTargetScreenPoint';
 import { ZOOM_LEVEL } from '../../config';
@@ -17,7 +17,7 @@ import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
  * triggers useMapPickup to start a raw-pointer carry.
  */
 const useFocusMap = (
-    mapRef: React.RefObject<L.Map | null>,
+    mapRef: React.RefObject<maplibregl.Map | null>,
 ) => {
 
     const isMobile = useIsMobileCtx();

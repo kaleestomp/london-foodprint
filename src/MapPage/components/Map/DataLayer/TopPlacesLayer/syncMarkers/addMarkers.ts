@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import maplibregl from 'maplibre-gl';
 
 import type { TopPlaceItem } from '../../../../../request/useRequestTopPlaces/request';
 import TopPlacePin, { clearTopPlacePinTransitions, restartTopPlacePinEnter } from './markers/TopPlacePin';
@@ -8,23 +8,23 @@ import { cancelScheduledRemoval } from './markerLifecycle/scheduleRemoval';
 
 
 type Props = {
-    activeMarkers: Map<string, L.Marker>;
-    layer: L.LayerGroup;
+    activeMarkers: Map<string, maplibregl.Marker>;
+    map: maplibregl.Map;
     topPlaces: TopPlaceItem[];
     cache: MarkerLifecycleCache;
     onPlaceClick?: (placeId: string) => void;
     now: number;
 }
 
-const addMarkers = ({ activeMarkers, layer, topPlaces, cache, onPlaceClick, now }: Props): Map<string, L.Marker> => {
+const addMarkers = ({ activeMarkers, map, topPlaces, cache, onPlaceClick, now }: Props): Map<string, maplibregl.Marker> => {
 
     topPlaces.forEach((place) => {
         // CREATE / REUSE MARKER 
         const cached = cache.get(place.id);
-        const marker = cached?.marker ?? L.marker([place.lat, place.lon], {
-            icon: TopPlacePin(place?.cuisine_type ?? undefined),
-            zIndexOffset: 1400,
-        });
+        const marker = cached?.marker ?? new maplibregl.Marker({
+            element: TopPlacePin(place.cuisine_type ?? undefined),
+            anchor: 'center',
+        }).setLngLat([place.lon, place.lat]);
 
         // CANCEL SCHEDULED REMOVAL OF CACHED MARKER
         if (cached) { // If cache hits
@@ -36,16 +36,16 @@ const addMarkers = ({ activeMarkers, layer, topPlaces, cache, onPlaceClick, now 
 
         // ATTACH CLICK HANDLER FOR NEW MARKERS
         if (!cached && onPlaceClick) {
-            marker.on('click', (event) => {
-                L.DomEvent.stopPropagation(event);
+            marker.getElement().addEventListener('click', (event) => {
+                event.stopPropagation();
                 onPlaceClick(place.id);
             });
         }
 
         // ADD MARKER TO LAYER IF NOT ALREADY PRESENT
-        const wasOnLayer = layer.hasLayer(marker);
+        const wasOnLayer = marker.getElement().isConnected;
         if (!wasOnLayer) {
-            marker.addTo(layer);
+            marker.addTo(map);
         }
         // CLEAR & RESTART ENTER ANIMATION FOR RE-ADDED MARKERS
         if (cached && !wasOnLayer) {

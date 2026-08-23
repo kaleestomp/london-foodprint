@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
 import { maskPlaces } from '../LayerStates/maskResults';
@@ -20,7 +20,7 @@ import './useDensityLayer/densityMarkers/densityMarker.css';
 
 
 const useDynamicPlacesLayer = (
-  mapRef: React.RefObject<L.Map | null>, 
+  mapRef: React.RefObject<maplibregl.Map | null>, 
   topPlaceIdSet: Set<string> | undefined, 
   enabled?: boolean
 ): void => {

@@ -51,7 +51,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="London Explorer API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://kaleestomp.github.io/london-foodprint/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

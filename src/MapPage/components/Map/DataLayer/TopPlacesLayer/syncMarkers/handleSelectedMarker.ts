@@ -1,18 +1,18 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { clearTopPlacePinTransitions, restartTopPlacePinEnter } from './markers/TopPlacePin';
 import { cancelScheduledRemoval } from './markerLifecycle/scheduleRemoval';
 import type { MarkerLifecycleCache } from './markerLifecycle/markerLifecycle';
 
 type Props = {
-    activeMarkers: Map<string, L.Marker>;
+    activeMarkers: Map<string, maplibregl.Marker>;
     selectedPlaceId: string | null;
-    layer: L.LayerGroup;
+    map: maplibregl.Map;
     cache: MarkerLifecycleCache;
     now: number;
 }
 
-const handleSelectedMarker = ({ activeMarkers, selectedPlaceId, layer, cache, now }: Props) => {
+const handleSelectedMarker = ({ activeMarkers, selectedPlaceId, map, cache, now }: Props) => {
 
   // Keep the selected marker visible even when it is temporarily outside
   // the latest merged payload; it should only exit once unselected.
@@ -23,8 +23,8 @@ const handleSelectedMarker = ({ activeMarkers, selectedPlaceId, layer, cache, no
 
   cancelScheduledRemoval(selectedEntry);
   clearTopPlacePinTransitions(selectedEntry.marker);
-  if (!layer.hasLayer(selectedEntry.marker)) {
-    selectedEntry.marker.addTo(layer);
+  if (!selectedEntry.marker.getElement().isConnected) {
+    selectedEntry.marker.addTo(map);
     restartTopPlacePinEnter(selectedEntry.marker);
   }
   selectedEntry.lastSeenAt = now;

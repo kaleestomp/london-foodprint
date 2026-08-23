@@ -1,4 +1,5 @@
 import React, { memo, useCallback } from 'react';
+import type maplibregl from 'maplibre-gl';
 
 import { useSearchFilters } from '../../../context/SearchFiltersContext';
 import { useBubbleAvatarState } from './BubbleAvatarStateContext';
@@ -14,7 +15,7 @@ import getCurrentScreenXY from './Searchmask/getCurrentScreenXY';
 import './BubbleAvatar.css';
 
 const BubbleAvatar: React.FC<{
-    mapRef: React.RefObject<L.Map | null>;
+    mapRef: React.RefObject<maplibregl.Map | null>;
 }> = ({ mapRef }) => {
 
     const { pickupPos, isDragging, flyInFrom, resetBubbleToHome } = useBubbleAvatarState();

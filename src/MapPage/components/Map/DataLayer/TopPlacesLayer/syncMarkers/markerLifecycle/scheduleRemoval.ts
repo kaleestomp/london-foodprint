@@ -1,19 +1,17 @@
-import L from 'leaflet';
 import type { MarkerLifecycleEntry } from './markerLifecycle';
 
 type Props = {
-  layer: L.LayerGroup;
   entry: MarkerLifecycleEntry;
   delayMs: number;
-  onExit: (marker: L.Marker) => void;
+  onExit: (marker: maplibregl.Marker) => void;
 };
-export const scheduleExitRemoval = ({ layer, entry, delayMs, onExit }: Props): void => {
+export const scheduleExitRemoval = ({ entry, delayMs, onExit }: Props): void => {
   if (entry.removalTimer) return;
 
   onExit(entry.marker);
   entry.removalTimer = setTimeout(() => {
-    if (layer.hasLayer(entry.marker)) {
-      layer.removeLayer(entry.marker);
+    if (entry.marker.getElement().isConnected) {
+      entry.marker.remove();
     }
     entry.removalTimer = null;
   }, delayMs);

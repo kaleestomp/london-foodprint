@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LONDON_BOUNDS } from '../../Map/MapTemplate';
+import { isWithinLondonBounds } from '../../Map/MapTemplate';
 
 export type LocationResult = {
   place_id: number;
@@ -15,13 +15,13 @@ const GEOCODE_URL = `${API_BASE}/api/geocode`;
 const MIN_QUERY_LENGTH = 3;
 const DEBOUNCE_MS = 400;
 
-const isWithinLondonBounds = (result: LocationResult): boolean => {
+const isResultWithinLondonBounds = (result: LocationResult): boolean => {
   const lat = Number.parseFloat(result.lat);
   const lon = Number.parseFloat(result.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     return false;
   }
-  return LONDON_BOUNDS.contains([lat, lon]);
+  return isWithinLondonBounds(lat, lon);
 };
 
 const useGeoSearch = (query: string) => {
@@ -47,7 +47,7 @@ const useGeoSearch = (query: string) => {
         });
         if (!res.ok) { throw new Error(`Geocode error: ${res.status}`); }
         const data: LocationResult[] = await res.json();
-        const londonOnly = data.filter(isWithinLondonBounds);
+        const londonOnly = data.filter(isResultWithinLondonBounds);
         setFilteredOutAll(data.length > 0 && londonOnly.length === 0);
         setSuggestions(londonOnly);
       } catch (err) {

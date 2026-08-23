@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import type maplibregl from 'maplibre-gl';
 
 import { type LatLng } from '../config';
 import getVisibleMapTargetScreenPoint from '../MapNavigation/getVisibleMapTargetScreenPoint';
@@ -8,7 +9,7 @@ import { useAppUI } from '../../../../context/AppUIContext';
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 
 type UseMapPanToLocationArgs = {
-  mapRef: React.RefObject<L.Map | null>;
+  mapRef: React.RefObject<maplibregl.Map | null>;
 };
 type out = {
   targetLatLng: LatLng | null;
@@ -62,7 +63,7 @@ const useMapPanToLocation = ({
       skipIfWithinMeters: 1,
       targetScreenPoint,
     });
-  }, [targetLatLng, token, onReady, focusMap, isMobile, panelHeight, translateY, mapRef]);
+  }, [targetLatLng, token, onReady, focusMap, isMobile, panelHeight, translateY]);
 
   return {targetLatLng, flightToken};
 };

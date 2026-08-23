@@ -1,11 +1,12 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
+import type { PersistentLayer } from '../../LayerStates/createPersistentLayer';
 
 type MarkerRemovalTimer = ReturnType<typeof setTimeout>;
 export type RemovalTimerRef = { current: MarkerRemovalTimer | null };
-export type RemovalPendingRef = { current: L.Marker[] };
+export type RemovalPendingRef = { current: maplibregl.Marker[] };
 
 export const cancelLayerRemoval = (
-  layer: L.LayerGroup | null,
+  layer: PersistentLayer | null,
   timerRef: RemovalTimerRef,
   pendingRef: RemovalPendingRef,
 ): void => {
@@ -15,14 +16,17 @@ export const cancelLayerRemoval = (
   timerRef.current = null;
 
   if (layer) {
-    pendingRef.current.forEach((marker) => layer.removeLayer(marker));
+    pendingRef.current.forEach((marker) => {
+      marker.remove();
+      layer.markers.delete(marker);
+    });
   }
   pendingRef.current = [];
 };
 
 export const scheduleLayerRemoval = (
-  layer: L.LayerGroup,
-  markers: L.Marker[],
+  layer: PersistentLayer,
+  markers: maplibregl.Marker[],
   delayMs: number,
   timerRef: RemovalTimerRef,
   pendingRef: RemovalPendingRef,
@@ -30,7 +34,10 @@ export const scheduleLayerRemoval = (
 
   pendingRef.current = markers;
   timerRef.current = setTimeout(() => {
-    markers.forEach((marker) => layer.removeLayer(marker));
+    markers.forEach((marker) => {
+      marker.remove();
+      layer.markers.delete(marker);
+    });
     pendingRef.current = [];
     timerRef.current = null;
   }, delayMs);

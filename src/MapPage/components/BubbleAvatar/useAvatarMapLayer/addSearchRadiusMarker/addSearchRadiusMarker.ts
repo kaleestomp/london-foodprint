@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { WORLD_RING, buildCircleHole, PolygonMask } from './polygonMask';
 // import CircleMarker from './circleMarker';
@@ -6,7 +6,7 @@ const CIRCLE_ENTRY_MS = 280;
 const OUTSIDE_MASK_OPACITY = 0.24;
 
 const addSearchRadiusMarker = (
-  map: L.Map,
+  map: maplibregl.Map,
   lat: number,
   lng: number,
   radius: number,
@@ -20,7 +20,7 @@ const addSearchRadiusMarker = (
   // so the circle does not flash before the delayed entry animation.
   // const circle = CircleMarker(map, lat, lng).addTo(map);
   // Darkens everything outside the active search radius.
-  const outsideMask = PolygonMask(map, lat, lng).addTo(map);
+  const outsideMask = PolygonMask(map, lat, lng);
 
   // ANIMATION LOGIC
   const startCircleIn = () => {
@@ -53,7 +53,7 @@ const addSearchRadiusMarker = (
   const cleanup = () => {
     if (circleStartTimer) clearTimeout(circleStartTimer);
     if (circleAnimFrame !== null) window.cancelAnimationFrame(circleAnimFrame);
-    map.removeLayer(outsideMask);
+    outsideMask.remove();
     // map.removeLayer(circle);
   };
 

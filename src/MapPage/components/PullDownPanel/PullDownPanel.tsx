@@ -1,5 +1,5 @@
 import React, { memo, useEffect } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import PullDownContainer from '../../../components/PullDownContainer/PullDownContainer';
 import GeoSearch from '../GeoSearchbar/legacy/GeoSearch';
@@ -7,7 +7,7 @@ import { useAppUI } from '../../../context/AppUIContext';
 import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 
 
-const PullDownPanel: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = ({ mapRef }) => {
+const PullDownPanel: React.FC<{ mapRef: React.RefObject<maplibregl.Map | null> }> = ({ mapRef }) => {
 
     const {
         activeToolbarTab,

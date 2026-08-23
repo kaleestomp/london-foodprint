@@ -1,23 +1,32 @@
 import { useCallback } from 'react';
-import L from 'leaflet';
 
 import { syncMinZoomToWorldExtent } from '../MapTemplate';
+
+type ResizeCompatibleMap = {
+  on: (event: string, handler: () => void) => void;
+  off: (event: string, handler: () => void) => void;
+  resize?: () => void;
+  getZoom: () => number;
+  setZoom: (zoom: number) => void;
+};
 
 type CleanupFn = () => void;
 
 const useMapResizeSync = () => {
-  return useCallback((map: L.Map, mapContainer: HTMLElement): CleanupFn => {
+  return useCallback((map: ResizeCompatibleMap, mapContainer: HTMLElement): CleanupFn => {
     let rafId: number | null = null;
 
     const syncMapViewport = () => {
       if (rafId !== null) { cancelAnimationFrame(rafId); }
       rafId = requestAnimationFrame(() => {
-        map.invalidateSize();
-        syncMinZoomToWorldExtent(map);
+        if (map.resize) {
+          map.resize();
+        }
+        syncMinZoomToWorldExtent(map as never);
       });
     };
 
-    const handleResize = () => syncMinZoomToWorldExtent(map);
+    const handleResize = () => syncMinZoomToWorldExtent(map as never);
     map.on('resize', handleResize);
 
     const resizeObserver = new ResizeObserver(() => {

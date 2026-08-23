@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchTopPlaces from './InputHooks/useFetchTopPlaces';
@@ -10,7 +10,7 @@ import type { MarkerLifecycleCache } from './syncMarkers/markerLifecycle/markerL
 import './syncMarkers/markers/TopPlacePin.css';
 
 const useTopPlacesLayer = (
-  mapRef: React.RefObject<L.Map | null>,
+  mapRef: React.RefObject<maplibregl.Map | null>,
   setActiveTopPlaceIds: (ids: Set<string> | undefined) => void,
   enabled?: boolean,
 ): void => {
@@ -19,18 +19,12 @@ const useTopPlacesLayer = (
   useReportTopPlacesIDs( topPlaces, setActiveTopPlaceIds, enabled );
 
   const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
-  const topPlacesLayerRef = useRef<L.LayerGroup | null>(null);
   const topPlaceCacheRef = useRef<MarkerLifecycleCache>(new Map());
-  const topPlaceMarkersRef = useRef<Map<string, L.Marker>>(new Map());
+  const topPlaceMarkersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
   
-  // Layer Created on Map Mount
+  // Marker cleanup on map unmount.
   useEffect(() => {
     if (!enabled) return;
-    const map = mapRef.current;
-    if (!map) return;
-
-    const layer = L.layerGroup().addTo(map);
-    topPlacesLayerRef.current = layer;
 
     return () => {
       topPlaceCacheRef.current.forEach((entry) => {
@@ -38,18 +32,16 @@ const useTopPlacesLayer = (
       });
       topPlaceCacheRef.current.clear();
       topPlaceMarkersRef.current.clear();
-      topPlacesLayerRef.current = null;
-      layer.remove();
     };
   }, [mapRef, enabled]);
 
   // Sync Markers with TopPlaces Data
   useEffect(() => {
-    const layer = topPlacesLayerRef.current;
-    if (!enabled || !layer) return;
+    const map = mapRef.current;
+    if (!enabled || !map) return;
 
     topPlaceMarkersRef.current = syncMarkers({
-      layer,
+      map,
       topPlaces,
       cache: topPlaceCacheRef.current,
       onPlaceClick: (placeId) => setSelectedPlaceId(placeId),

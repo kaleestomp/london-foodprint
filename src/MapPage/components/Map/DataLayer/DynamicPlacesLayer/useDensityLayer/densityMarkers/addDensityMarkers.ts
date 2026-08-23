@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import maplibregl from 'maplibre-gl';
 import { cellToLatLng } from 'h3-js';
 
 import densityMarkerIcon from './densityMarkerIcon';
@@ -14,16 +14,16 @@ import { type TileDensity } from '../../../../../../request/useRequestTiles/requ
  *                       (used for zoom-in explode effect). Triggers `density-pin-fly-in`.
  */
 const addDensityMarkers = (
-  layer: L.Map | L.LayerGroup,
+  map: maplibregl.Map,
   tiles: TileDensity[],
   resolution: number,
   startOffsets?: Map<string, { dx: number; dy: number }>,
   iconColor?: [number, number, number],
-): Array<{ TileId: string; Marker: L.Marker }> => {
+): Array<{ TileId: string; Marker: maplibregl.Marker }> => {
   // maxCount from the full response batch keeps sizes consistent across the viewport.
   // Exclude singletons from the maxCount so they don't deflate density-marker sizing.
   const maxCount = tiles.reduce((m, d) => d.count > 1 ? Math.max(m, d.count) : m, 1);
-  const newMarkers: Array<{ TileId: string; Marker: L.Marker }> = [];
+  const newMarkers: Array<{ TileId: string; Marker: maplibregl.Marker }> = [];
 
   // DENSITY MARKER
   // plot density marker at H3 centroid.
@@ -31,7 +31,9 @@ const addDensityMarkers = (
     const [lat, lng] = cellToLatLng(d.tile);
     const startOffset = startOffsets?.get(d.tile); 
     const icon = densityMarkerIcon(d.count, resolution, maxCount, { staggerMs: 0, startOffset }, iconColor);
-    const marker = L.marker([lat, lng], { icon }).addTo(layer);
+    const marker = new maplibregl.Marker({ element: icon, anchor: 'center' })
+      .setLngLat([lng, lat])
+      .addTo(map);
     newMarkers.push({ TileId: d.tile, Marker: marker });
   });
 

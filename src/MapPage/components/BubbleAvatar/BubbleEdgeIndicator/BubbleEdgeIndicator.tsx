@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
@@ -15,7 +15,7 @@ import './BubbleEdgeIndicator.css';
  *  - Tap/click          → map.setView() back to avatar
  *  - Long press (LONGPRESS_MS ms) → pick up the avatar (same state as map long-press)
  */
-type Props = { mapRef: React.RefObject<L.Map | null> };
+type Props = { mapRef: React.RefObject<maplibregl.Map | null> };
 const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
   const { handlePickup } = useBubbleAvatarState();
   
@@ -59,7 +59,7 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
     const center = searchMask?.center;
     if (!map || !center) return;
 
-    const target: L.LatLngExpression = [center.lat, center.lng];
+    const target: maplibregl.LngLatLike = [center.lng, center.lat];
     map.panTo(target, { animate: true });
     
   }, [mapRef, searchMask, cancelLongPress]);

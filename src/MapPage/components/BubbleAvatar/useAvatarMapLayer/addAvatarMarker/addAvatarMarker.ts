@@ -1,13 +1,13 @@
 import { createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import L from 'leaflet';
+import maplibregl from 'maplibre-gl';
 
 import BubbleAvatarPin from '../../BubbleAvatarPin/BubbleAvatarPin';
 import getMarkerSizeFromCss from './getMarkerSizeFromCss';
 import addPointerListeners from './addAvatarPointerListeners';
 
 /**
- * Manages all Leaflet layers for the dropped bubble avatar.
+ * Manages the dropped bubble avatar marker.
  * Reactive: watches droppedPos state — React's effect cleanup handles
  * clearing layers whenever the position changes or becomes null.
  *
@@ -15,47 +15,57 @@ import addPointerListeners from './addAvatarPointerListeners';
  * triggers useMapPickup to start a raw-pointer carry.
  */
 const addAvatarMarker = (
-    map: L.Map,
+    map: maplibregl.Map,
     lat: number,
     lng: number,
     reactRootRef: React.RefObject<Root | null>,
     onPickupRef: React.RefObject<(x: number, y: number) => void>
 ) => {
 
-    // AVATAR MARKER 
-    // interactive: true lets Leaflet block map-pan on press
+    // AVATAR MARKER
     const markerSize = getMarkerSizeFromCss();
-    const icon = L.divIcon({
-        className: 'bubble-avatar-leaflet-icon',
-        html: '<div class="bubble-avatar-root"></div>',
-        iconSize: [markerSize, markerSize],
-        iconAnchor: [markerSize / 2, markerSize / 2],
-    });
-    const marker = L.marker([lat, lng], { icon, interactive: true, zIndexOffset: 10000 }).addTo(map);
-    const markerEl = marker.getElement();
+    const markerEl = document.createElement('div');
+    markerEl.className = 'bubble-avatar-maplibre-marker';
+    markerEl.style.width = `${markerSize}px`;
+    markerEl.style.height = `${markerSize}px`;
+
+    const rootEl = document.createElement('div');
+    rootEl.className = 'bubble-avatar-root';
+    markerEl.appendChild(rootEl);
+
+    const marker = new maplibregl.Marker({
+        element: markerEl,
+        anchor: 'center',
+        offset: [0, 0],
+    })
+        .setLngLat([lng, lat])
+        .addTo(map);
+
     let removeListeners = () => {};
-    if (markerEl) {
+    const markerElement = marker.getElement();
+    if (markerElement) {
         // Mount animated React avatar
-        const rootEl = markerEl.querySelector<HTMLElement>('.bubble-avatar-root');
-        if (rootEl) {
-            const root = createRoot(rootEl);
+        const markerRoot = markerElement.querySelector<HTMLElement>('.bubble-avatar-root');
+        if (markerRoot) {
+            const root = createRoot(markerRoot);
             reactRootRef.current = root;
             root.render(createElement(BubbleAvatarPin));
         }
-        removeListeners = addPointerListeners(markerEl, map, onPickupRef.current)
+        removeListeners = addPointerListeners(markerElement, map, onPickupRef.current);
     }
-    
+
     const cleanup = () => {
         removeListeners();
         const root = reactRootRef.current;
         reactRootRef.current = null;
-        // React root must unmount BEFORE marker removal 
+
+        // React root must unmount BEFORE marker removal
         // (avoids detached-node warning).
         window.setTimeout(() => {
             if (root) root.unmount();
-            if (marker) map.removeLayer(marker);
+            marker.remove();
         }, 0);
-    }
+    };
 
     return cleanup;
 };

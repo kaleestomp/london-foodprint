@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { type Root } from 'react-dom/client';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import useFocusMap from './useFocusMap/useFocusMap';
 import addSearchRadiusMarker from './addSearchRadiusMarker/addSearchRadiusMarker';
@@ -19,7 +19,7 @@ import { useSearchFilters } from '../../../../context/SearchFiltersContext';
  * triggers useMapPickup to start a raw-pointer carry.
  */
 const useAvatarMapLayer = (
-    mapRef: React.RefObject<L.Map | null>,
+    mapRef: React.RefObject<maplibregl.Map | null>,
 ) => {
     
     const reactRootRef = useRef<Root | null>(null);
@@ -54,8 +54,8 @@ const useAvatarMapLayer = (
             removeCircleMarker();
             removeAvatarMarker();
             // Defensive: if the marker was removed before pointerup/pointercancel,
-            // Leaflet dragging can remain disabled.
-            map.dragging.enable();
+            // Maplibre dragging can remain disabled.
+            map.dragPan.enable();
         };
     }, [searchMask, mapRef]);
 };

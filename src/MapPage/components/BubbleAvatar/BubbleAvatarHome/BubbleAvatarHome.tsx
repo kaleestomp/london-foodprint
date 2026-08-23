@@ -1,5 +1,6 @@
 import { memo, useMemo, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
+import type maplibregl from 'maplibre-gl';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
@@ -20,7 +21,7 @@ import BubbleEyes from '../BubbleEyes/BubbleEyes';
 import './BubbleAvatarHome.css';
 
 type Props = {
-  mapRef: React.RefObject<L.Map | null>;
+  mapRef: React.RefObject<maplibregl.Map | null>;
   flight?: {
     /** Spawn animation source when returning home via reset action */
     flyInFrom?: { x: number; y: number };

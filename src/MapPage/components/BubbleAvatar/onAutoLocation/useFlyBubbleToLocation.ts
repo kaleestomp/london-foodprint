@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'; 
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
@@ -10,7 +10,7 @@ import getCurrentScreenXY from '../Searchmask/getCurrentScreenXY';
 import { type LatLng, type Point } from '../config';
 
 type props = {
-    mapRef: React.RefObject<L.Map | null>;
+    mapRef: React.RefObject<maplibregl.Map | null>;
     targetLatLng: LatLng | null;
     token: number | null;
 };
@@ -39,8 +39,8 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
         const screenXY = isDropped ? getCurrentScreenXY(mapRef, lat, lng, rect) : undefined;
         resetBubbleToHome( screenXY ); // Swap with undefined to disable fly-in animation
 
-        const latLng = L.latLng(targetLatLng.lat, targetLatLng.lng);
-        const point = map.latLngToContainerPoint(latLng);
+        const latLng = { lat: targetLatLng.lat, lng: targetLatLng.lng };
+        const point = map.project(latLng);
         const targetScreenPoint = getVisibleMapTargetScreenPoint(map, isMobile, panelHeight, translateY);
         pendingTargetLatLngRef.current = { lat: latLng.lat, lng: latLng.lng };
         setFlyOutTo({

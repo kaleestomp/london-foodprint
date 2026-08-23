@@ -1,5 +1,5 @@
 import { memo, useState } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../context/AppUIContext';
 import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
@@ -10,7 +10,7 @@ import LayersButton from './LayersButton/LayersButton';
 import './MapToolbar.css';
 
 type Props = {
-  mapRef: React.RefObject<L.Map | null>;
+  mapRef: React.RefObject<maplibregl.Map | null>;
 };
 
 const MapToolbar: React.FC<Props> = ({

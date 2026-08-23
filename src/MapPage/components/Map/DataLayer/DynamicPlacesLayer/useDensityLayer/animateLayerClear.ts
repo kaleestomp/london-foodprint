@@ -1,9 +1,9 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 import getMergeOffsetOnExit from './markerTransitions/getMergeOffsetOnExit';
 import { type TileMarkerRegistry } from './useDensityLayer';
 
 const animateLayerClear = (
-    map: L.Map,
+    map: maplibregl.Map,
     res: number,
     prevRes: number | null,
     outgoingMarkers: TileMarkerRegistry,

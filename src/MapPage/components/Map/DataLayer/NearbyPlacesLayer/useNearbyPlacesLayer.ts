@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import maplibregl from 'maplibre-gl';
 
 import addPlaceMarkers from '../../../Map/DataLayer/DynamicPlacesLayer/usePlacesLayer/placeMarkers/addPlaceMarkers';
 import useRequestNearby from '../../../../request/useRequestNearby/useRequestNearby';
@@ -7,21 +7,17 @@ import { type TilePlacePreview } from '../../../../request/useRequestTiles/reque
 import useNearbySearchParams from './useNearbySearchParams';
 
 /**
- * Manages all Leaflet layers for the dropped bubble avatar.
- * Reactive: watches droppedPos state — React's effect cleanup handles
- * clearing layers whenever the position changes or becomes null.
- *
- * Long-press (150 ms) on the map avatar calls onPickup(x, y), which
- * triggers useMapPickup to start a raw-pointer carry.
+ * Manages nearby place markers on the map.
+ * Reactive: watches nearby search state and cleans up the previous markers
+ * whenever the result changes or the hook unmounts.
  */
 const useNearbyPlacesLayer = (
-    mapRef: React.RefObject<L.Map | null>,
+    mapRef: React.RefObject<maplibregl.Map | null>,
     activeTopPlaceIdSet: Set<string> | undefined,
     enabled?: boolean,
 ) => {
 
-    const markerRef = useRef<L.Marker | null>(null);
-    const layerRef = useRef<L.LayerGroup | null>(null);
+    const markersRef = useRef<maplibregl.Marker[]>([]);
 
     const nearbySearchParams = useNearbySearchParams();
     const hasSearchParams = nearbySearchParams !== null;
@@ -35,12 +31,8 @@ const useNearbyPlacesLayer = (
         const map = mapRef.current;
         if (!map || !res) return;
         if (isPlaceholderData) return;
-        if (layerRef.current) {
-            map.removeLayer(layerRef.current);
-            layerRef.current = null;
-        }
-        const layer = L.layerGroup().addTo(map);
-        layerRef.current = layer;
+        markersRef.current.forEach((marker) => marker.remove());
+        markersRef.current = [];
 
         const previewPlaces: TilePlacePreview[] = res.data
             .filter((place) => !activeTopPlaceIdSet?.has(place.id))
@@ -52,10 +44,12 @@ const useNearbyPlacesLayer = (
             }));
         
         const { lat, lng } = nearbySearchParams ?? {};
-        const center = lat && lng ? L.latLng(lat, lng) : null;
+        const center = lat != null && lng != null
+            ? new maplibregl.LngLat(lng, lat)
+            : null;
         if (!center) return;
-        addPlaceMarkers(
-            layer,
+        const newMarkers = addPlaceMarkers(
+            map,
             previewPlaces,
             undefined,
             undefined,
@@ -63,18 +57,13 @@ const useNearbyPlacesLayer = (
             0,
             25, // Stagger nearby pins to avoid overlap
         );
+        markersRef.current = newMarkers.map(({ Marker }) => Marker);
 
         return () => {
-            const marker = markerRef.current;
-            const layer = layerRef.current;
-        
-            markerRef.current = null;
-            layerRef.current = null;
-            
-            if (marker) map.removeLayer(marker);
-            if (layer) map.removeLayer(layer);
+            markersRef.current.forEach((marker) => marker.remove());
+            markersRef.current = [];
         };
-    }, [res, isPlaceholderData, hasSearchParams, enabled]);
+    }, [enabled, hasSearchParams, isPlaceholderData, res]);
 
 };
 

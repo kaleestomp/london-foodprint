@@ -1,12 +1,12 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 type MarkerRemovalTimer = ReturnType<typeof setTimeout>;
 export type MarkerState = Record<string, never>;
-export type MarkerLifecycleEntry = { marker: L.Marker; state: MarkerState; lastSeenAt: number; removalTimer: MarkerRemovalTimer | null };
+export type MarkerLifecycleEntry = { marker: maplibregl.Marker; state: MarkerState; lastSeenAt: number; removalTimer: MarkerRemovalTimer | null };
 export type MarkerLifecycleCache = Map<string, MarkerLifecycleEntry>;
 
 type Props = {
-  marker: L.Marker;
+  marker: maplibregl.Marker;
   cache: MarkerLifecycleCache;
   key: string;
   now: number;

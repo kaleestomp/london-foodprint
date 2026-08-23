@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import useMapViewportNavigation from '../BubbleAvatar/MapNavigation/useMapViewportNavigation';
 import getVisibleMapTargetScreenPoint from '../BubbleAvatar/MapNavigation/getVisibleMapTargetScreenPoint';
 
 type Props = {
-  mapRef: React.RefObject<L.Map | null>;
+  mapRef: React.RefObject<maplibregl.Map | null>;
 };
 
 type PanelSnapshot = {
@@ -107,14 +107,14 @@ const PullUpPanelMapViewportSync: React.FC<Props> = ({ mapRef }) => {
     if (isClosing) {
       openOffsetRef.current = null;
     }
-    const sourceContainerPoint = L.point(
+    const sourceContainerPoint: [number, number] = [
       sourceScreenPoint.x - mapRect.left,
       sourceScreenPoint.y - mapRect.top,
-    );
-    const sourceLatLng = map.containerPointToLatLng(sourceContainerPoint);
+    ];
+    const sourceLngLat = map.unproject(sourceContainerPoint);
 
     focusMap({
-      target: { lat: sourceLatLng.lat, lng: sourceLatLng.lng },
+      target: { lat: sourceLngLat.lat, lng: sourceLngLat.lng },
       method: 'pan',
       animate: true,
       targetScreenPoint,
@@ -128,7 +128,7 @@ const PullUpPanelMapViewportSync: React.FC<Props> = ({ mapRef }) => {
       panelHeight,
       translateY,
     };
-  }, [focusMap, isMobile, mapRef, panelHeight, snapState, translateY]);
+  }, [focusMap, isMobile, panelHeight, snapState, translateY]);
 
   return null;
 };

@@ -1,4 +1,6 @@
 import { useCallback, useState } from 'react';
+import type maplibregl from 'maplibre-gl';
+
 import useGeoSearch, { type LocationResult } from '../fetchHooks/useGeoSearch';
 import useReverseGeocode from '../fetchHooks/useReverseGeocode';
 import GeoSearchDropdown from './GeoSearchDropdown';
@@ -7,7 +9,7 @@ import MyLocationButton from './MyLocationButton';
 import './GeoSearch.css';
 
 type Props = {
-  mapRef: React.RefObject<L.Map | null>;
+  mapRef: React.RefObject<maplibregl.Map | null>;
   onProgrammaticDrop: (lat: number, lng: number) => void;
 };
 const GeoSearch: React.FC<Props> = ({ mapRef, onProgrammaticDrop }) => {

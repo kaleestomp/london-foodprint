@@ -1,24 +1,24 @@
 import { useCallback, useMemo, useRef } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { type DensityLayer } from '../useDensityLayer/useDensityLayer';
+import { type PersistentLayer } from '../../LayerStates/createPersistentLayer';
 import { type TileDensity, type TilePlacePreview } from '../../../../../request/useRequestTiles/request';
 import { usePlaceSelection } from '../../../../../../context/PlaceSelectionContext';
 import { cancelLayerRemoval, scheduleLayerRemoval } from '../lifecycle/lifecycle';
-
 import addPlaceMarkers from './placeMarkers/addPlaceMarkers';
 import animateLayerEntry from './markerTransitions/animateLayerEntry';
 import animateLayerExit from './markerTransitions/animateLayerExit';
 import sortTileMarkerRegistry from './sortTileMarkerRegistry';
 import sortPlaceMarkerRegistry from './sortPlaceMarkerRegistry';
 
-export type PlaceMarkerRegistry = Map<string, L.Marker>;
+export type PlaceMarkerRegistry = Map<string, maplibregl.Marker>;
 export interface PlacesLayer {
-  syncLayer: (places: TilePlacePreview[], replaceAll?: boolean, firstEntry?: boolean) => void,
-  removeLayer: (curRes: number, densityTiles: TileDensity[]) => void,
-  removeMarkerFromLayer: (placeIds: Set<string>) => void,
-  cancelScheduledRemoval: () => void,
-  resetLayerState: () => void,
+  syncLayer: (places: TilePlacePreview[], replaceAll?: boolean, firstEntry?: boolean) => void;
+  removeLayer: (curRes: number, densityTiles: TileDensity[]) => void;
+  removeMarkerFromLayer: (placeIds: Set<string>) => void;
+  cancelScheduledRemoval: () => void;
+  resetLayerState: () => void;
 }
 
 /**
@@ -27,47 +27,34 @@ export interface PlacesLayer {
  * Provides a public API for interacting with the places layer.
  */
 const usePlacesLayer = (
-  mapRef: React.RefObject<L.Map | null>,
-  layerRef: React.RefObject<L.LayerGroup | null>,
+  mapRef: React.RefObject<maplibregl.Map | null>,
+  layerRef: React.RefObject<PersistentLayer | null>,
   density: DensityLayer,
-) : PlacesLayer => {
-
+): PlacesLayer => {
   const { setSelectedPlaceId } = usePlaceSelection();
-
   const markerRef = useRef<PlaceMarkerRegistry>(new Map());
   const cleanupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingRemovalRef = useRef<L.Marker[]>([]);
-
-
-  // ── Public API ─────────────────────────────────────────────────────────────
+  const pendingRemovalRef = useRef<maplibregl.Marker[]>([]);
 
   // CANCEL PENDING REMOVAL
   const cancelScheduledRemoval = useCallback(() => {
     cancelLayerRemoval(layerRef.current, cleanupTimerRef, pendingRemovalRef);
   }, []);
+  
   // SCHEDULE REMOVAL
-  const scheduleRemoval = useCallback((layer:L.LayerGroup, markers: L.Marker[], delayMs: number) => {
-    scheduleLayerRemoval(
-      layer, markers, delayMs, // delayMs
-      cleanupTimerRef, // timerRef
-      pendingRemovalRef, // pendingRef
-    );
+  const scheduleRemoval = useCallback((markers: maplibregl.Marker[], delayMs: number) => {
+    const layer = layerRef.current;
+    if (layer) scheduleLayerRemoval(layer, markers, delayMs, cleanupTimerRef, pendingRemovalRef);
   }, []);
+
   // RESET LAYER STATE
-  const resetLayerState = useCallback(() => {
-    markerRef.current = new Map();
-  }, []);
+  const resetLayerState = useCallback(() => { markerRef.current = new Map(); }, []);
 
   // DENSITY → PLACES + PLACES PAN
   // First entry: burst density pins, fly place pins in from their host tile, then add all place markers.
   // Subsequent calls while in places mode (panning): only add place IDs not already tracked 
   // — existing markers persist until a res change.
-  const syncLayer = useCallback((
-    places: TilePlacePreview[],
-    replaceAll?: boolean,
-    firstEntry?: boolean,
-  ): void => {
-
+  const syncLayer = useCallback((places: TilePlacePreview[], replaceAll?: boolean, firstEntry?: boolean): void => {
     const map = mapRef.current;
     const layer = layerRef.current;
     if (!map || !layer) return;
@@ -77,7 +64,10 @@ const usePlacesLayer = (
       // Cancel pending removal orders - avoid conflict
       cancelScheduledRemoval();
       // Clear Layer - Instant Removal
-      markerRef.current.forEach((marker) => layer.removeLayer(marker));
+      markerRef.current.forEach((marker) => {
+        marker.remove();
+        layer.markers.delete(marker);
+      });
       // Clear Marker Ref Map
       markerRef.current.clear();
     }
@@ -94,53 +84,51 @@ const usePlacesLayer = (
       const { outgoings, retained } = sortTileMarkerRegistry(density.markerRef.current);
       const outgoingRes = density.currentResRef.current;
       density.resetLayerState();
-
+      
       // 3.INITIALIZE PLACE MARKER REGISTRY
-      markerRef.current = new Map(retained);
+      markerRef.current = retained;
       
       // 4. ANIMATE TRANSITION
       animateLayerEntry({
-        map, layer, places: places, markerRef,
-        outgoingTileMarker: outgoings, outgoingRes,
+        map,
+        places,
+        markerRef,
+        outgoingTileMarker: outgoings,
+        outgoingRes,
         onPlaceClick: setSelectedPlaceId,
+        onMarkersAdded: (markers) => markers.forEach((marker) => layer.markers.add(marker)),
       });
-
+      
       // 5.SCHEDULE REMOVAL OF DENSITY MARKERS
       // immediately after paint and not before
-      const outgoingMarkers = Array.from(outgoings.values()).map(v => v.Marker);
-      scheduleRemoval( layer, outgoingMarkers, 0 );
+      const outgoingMarkers = Array.from(outgoings.values()).map((entry) => entry.Marker)
+      scheduleRemoval(outgoingMarkers, 0);
     }
-
+    
     // SUBSEQUENT UPDATE: PLACES → PLACES
     // only add new markers, persist existing ones ─────────
     else {
-      // FILTER OUT EXISTING MARKERS
-      const newPlaces = places.filter((p) => !markerRef.current.has(p.id));
+      // FILTER OUT EXISTING  MARKERS
+      const newPlaces = places.filter((place) => !markerRef.current.has(place.id));
       if (!newPlaces.length) return;
 
       // CREATE REMAINING NEW MARKERS + UPDATE REF MAP
-      const newMarkers = addPlaceMarkers(layer, newPlaces, setSelectedPlaceId, undefined);
-      newMarkers.forEach(({ PlaceId, Marker }) => markerRef.current.set(PlaceId, Marker));
+      const newMarkers = addPlaceMarkers(map, newPlaces, setSelectedPlaceId, undefined);
+      newMarkers.forEach(({ PlaceId, Marker }) => {
+        markerRef.current.set(PlaceId, Marker);
+        layer.markers.add(Marker);
+      });
     }
-  }, [
-    density.markerRef,
-    density.currentResRef,
-    density.resetLayerState, 
-    density.cancelScheduledRemoval, 
-    cancelScheduledRemoval, 
-    setSelectedPlaceId, 
-    scheduleRemoval
-  ]);
+  }, [cancelScheduledRemoval, density, layerRef, mapRef, scheduleRemoval, setSelectedPlaceId]);
 
+  
   // PLACES -> DENSITY
   // Places fly back to their host tile
   // New density pins are added immediately alongside the exiting places
   const removeLayer = useCallback((resolution: number, incomingTiles: TileDensity[]): void => {
-
     const map = mapRef.current;
-    const layer = layerRef.current;
-    if (!map || !layer) return;
-
+    if (!map) return;
+    
     // 1.CANCEL PENDING REMOVALS - Tile + Places
     density.cancelScheduledRemoval();
     cancelScheduledRemoval();
@@ -161,48 +149,29 @@ const usePlacesLayer = (
 
     // 5. ADD NEW DENSITY MARKERS
     density.addMarkersToLayer(resolution, incomingTiles);
-    
-    // 6. SCHEDULE REMOVAL OF PLACE MARKERS
-    const outgoingMarkers = Array.from(outgoings.values());
-    scheduleRemoval( layer, outgoingMarkers, 400 );
-  }, [
-    density.currentResRef,
-    density.markerRef,
-    density.resetLayerState,
-    density.addMarkersToLayer,
-    density.cancelScheduledRemoval,
-    resetLayerState,
-    cancelScheduledRemoval, 
-    scheduleRemoval
-  ]);
 
-  // REMOVE MARKERS
+    // 6. SCHEDULE REMOVAL OF OUTGOING PLACE MARKERS
+    const outgoingMarkers = Array.from(outgoings.values())
+    scheduleRemoval(outgoingMarkers, 400);
+
+  }, [cancelScheduledRemoval, density, mapRef, resetLayerState, scheduleRemoval]);
+
   const removeMarkerFromLayer = useCallback((placeIds: Set<string>): void => {
-    const layer = layerRef.current;
-    if (!layer) return;
-
     placeIds.forEach((placeId) => {
-      if (!markerRef.current.has(placeId)) return;
       const marker = markerRef.current.get(placeId);
       if (!marker) return;
-
-      layer.removeLayer(marker);
+      marker.remove();
+      layerRef.current?.markers.delete(marker);
       markerRef.current.delete(placeId);
     });
   }, []);
 
-  return useMemo(() => ({
-    syncLayer,
-    removeLayer,
-    removeMarkerFromLayer,
-    cancelScheduledRemoval,
-    resetLayerState,
+  return useMemo(() => ({ 
+    syncLayer, removeLayer, removeMarkerFromLayer, 
+    cancelScheduledRemoval, resetLayerState 
   }), [
-    syncLayer,
-    removeLayer,
-    removeMarkerFromLayer,
-    cancelScheduledRemoval,
-    resetLayerState,
+    syncLayer, removeLayer, removeMarkerFromLayer, 
+    cancelScheduledRemoval, resetLayerState
   ]);
 };
 

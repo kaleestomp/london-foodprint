@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
+
+import type { PersistentLayer } from '../../LayerStates/createPersistentLayer';
 
 const ZOOM_THRESHOLD = 12;
 const MARKER_EXIT_DURATION_MS = 250;
@@ -18,18 +20,19 @@ const MARKER_EXIT_DURATION_MS = 250;
  */
 
 const useZoomThreshold = (
-  mapRef: React.RefObject<L.Map | null>, 
-  layerRef: React.RefObject<L.LayerGroup | null>, 
+  mapRef: React.RefObject<maplibregl.Map | null>,
+  layerRef: React.RefObject<PersistentLayer | null>,
   onThresholdCross: () => void, // Called when crossing from below to above threshold
   enabled?: boolean
 ): void => {
   const suppressedRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled || !mapRef.current) return;
+    const map = mapRef.current;
+    if (!enabled || !map) return;
 
     const handleZoom = () => {
-      const currentZoom = mapRef.current!.getZoom();
+      const currentZoom = map.getZoom();
       const isBelowThreshold = currentZoom < ZOOM_THRESHOLD;
 
       if (isBelowThreshold && !suppressedRef.current) {
@@ -37,33 +40,19 @@ const useZoomThreshold = (
         suppressedRef.current = true;
         const layer = layerRef.current;
         if (layer) {
-          const markersToRemove: L.Marker[] = [];
-
-          layer.eachLayer((markerLayer) => {
-            if (markerLayer instanceof L.Marker) {
-              const pin = markerLayer.getElement()?.querySelector<HTMLElement>('.density-pin, .place-pin');
-              if (pin) {
-                // Remove any existing animation classes
-                pin.classList.remove(
-                  'density-pin-enter',
-                  'density-pin-fly-in',
-                  'density-pin-burst',
-                  'density-pin-fly-out',
-                  'top-place-pin-enter'
-                );
-                // Apply exit fade animation
-                pin.classList.add('density-pin-exit');
-                markersToRemove.push(markerLayer);
-              }
-            }
+          const markersToRemove = Array.from(layer.markers);
+          markersToRemove.forEach((marker) => {
+            const pin = marker.getElement().querySelector<HTMLElement>('.density-pin, .place-pin');
+            if (!pin) return;
+            pin.classList.remove('density-pin-enter', 'density-pin-fly-in', 'density-pin-burst', 'density-pin-fly-out');
+            pin.classList.add('density-pin-exit');
           });
 
           // Remove markers after animation completes
           setTimeout(() => {
             markersToRemove.forEach((marker) => {
-              if (layer.hasLayer(marker)) {
-                layer.removeLayer(marker);
-              }
+              marker.remove();
+              layer.markers.delete(marker);
             });
           }, MARKER_EXIT_DURATION_MS);
         }
@@ -74,7 +63,6 @@ const useZoomThreshold = (
       }
     };
 
-    const map = mapRef.current;
     map.on('zoomend', handleZoom);
 
     return () => {

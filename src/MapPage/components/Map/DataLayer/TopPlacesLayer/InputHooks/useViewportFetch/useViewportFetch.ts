@@ -1,21 +1,19 @@
 import { useMemo } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { useSearchFilters } from '../../../../../../../context/SearchFiltersContext';
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../request/useRequestTopPlaces/useRequestTopPlaces';
 import useTopPlacesViewport from './useTopPlacesViewport';
 
-type Props = {
-  mapRef: React.RefObject<L.Map | null>;
-  limit?: number;
-  enabled?: boolean;
-};
-type Out = {
-  viewportTopPlaces: TopPlaceItem[];
-}
 
-const useViewportFetch = ({ mapRef, limit = 10, enabled = true }: Props): Out => {
+const useViewportFetch = (
+  mapRef: React.RefObject<maplibregl.Map | null>,
+  limit: number = 10,
+  enabled: boolean = true,
+): {
+  viewportTopPlaces: TopPlaceItem[];
+} => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier } = useSearchFilters();
   const viewportParams = useTopPlacesViewport(mapRef, enabled);

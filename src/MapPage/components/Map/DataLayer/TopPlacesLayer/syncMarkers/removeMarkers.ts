@@ -1,5 +1,3 @@
-import L from 'leaflet';
-
 import { animateTopPlacePinExit } from './markers/TopPlacePin';
 import { scheduleExitRemoval, cancelScheduledRemoval } from './markerLifecycle/scheduleRemoval';
 import type { MarkerLifecycleCache } from './markerLifecycle/markerLifecycle';
@@ -8,19 +6,18 @@ const TOP_PLACE_PIN_CACHE_TTL_MS = 30 * 1000;
 const TOP_PLACE_PIN_EXIT_MS = 360;
 
 type Props = {
-    activeMarkers: Map<string, L.Marker>;
-    layer: L.LayerGroup;
+    activeMarkers: Map<string, maplibregl.Marker>;
     cache: MarkerLifecycleCache;
     now: number;
 }
 
-const removeMarkers = ({ activeMarkers, layer, cache, now }: Props) => {
+const removeMarkers = ({ activeMarkers, cache, now }: Props) => {
 
     // SCHEDULE REMOVAL OF INACTIVE MARKERS
     for (const [placeId, entry] of cache) {
         const isActive = activeMarkers.has(placeId);
-        if (!isActive && layer.hasLayer(entry.marker)) {
-            scheduleExitRemoval({ layer, entry, delayMs: TOP_PLACE_PIN_EXIT_MS, onExit: animateTopPlacePinExit });
+        if (!isActive && entry.marker.getElement().isConnected) {
+            scheduleExitRemoval({ entry, delayMs: TOP_PLACE_PIN_EXIT_MS, onExit: animateTopPlacePinExit });
         }
     }
 

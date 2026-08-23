@@ -1,11 +1,11 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 import { latLngToCell } from 'h3-js';
 import { type TilePlacePreview } from '../../../../../../request/useRequestTiles/request';
 import { type TileMarkerRegistry } from '../../useDensityLayer/useDensityLayer';
 
 type Out = Map<string, { dx: number; dy: number }> | undefined;
 const getFlyInOffsetOnEntry = (
-    map: L.Map,
+    map: maplibregl.Map,
     places: TilePlacePreview[],
     resolution: number,
     outgoing: TileMarkerRegistry,
@@ -24,8 +24,8 @@ const getFlyInOffsetOnEntry = (
             // Fly-in animation skipped if host tile is not present in outgoing tiles
 
             // CONVERT LAT-LON TO PX COORDINATES
-            const tilePt = map.latLngToContainerPoint(tileMarker.getLatLng());
-            const placePt = map.latLngToContainerPoint(L.latLng(place.lat, place.lon));
+            const tilePt = map.project(tileMarker.getLngLat());
+            const placePt = map.project([place.lon, place.lat]);
 
             // LOG X/Y OFFSET VALUES (PLACE MARKER -> TILE MARKER)
             offsets.set(place.id, { dx: tilePt.x - placePt.x, dy: tilePt.y - placePt.y });

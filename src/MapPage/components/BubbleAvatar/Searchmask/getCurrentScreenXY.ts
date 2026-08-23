@@ -1,8 +1,8 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 import { checkIsInView, getEdgeState } from '../BubbleEdgeIndicator/getEdgeState';
 
 const getCurrentScreenXY = (
-    mapRef: React.RefObject<L.Map | null>,
+    mapRef: React.RefObject<maplibregl.Map | null>,
     lat: number,
     lng: number,
     rect?: DOMRect | null
@@ -14,7 +14,7 @@ const getCurrentScreenXY = (
     // if (rectRef) rectRef.current = rect ?? null; // Cache the rect for future calls
     if (!map || !mapRect) return undefined;
     
-    const pt = map.latLngToContainerPoint([lat, lng]);
+    const pt = map.project([lng, lat]);
     const screenX = mapRect.left + pt.x;
     const screenY = mapRect.top + pt.y;
     const W = window.innerWidth;

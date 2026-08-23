@@ -1,5 +1,5 @@
 import type { FC, RefObject } from 'react';
-import type L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 // import { useAppUI } from '../../../../context/AppUIContext';
 import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
@@ -10,7 +10,7 @@ import OverviewSection from '../OverviewSection/OverviewSection';
 import './PullUpPanelMobile.css';
 
 type Props = {
-    mapRef: RefObject<L.Map | null>;
+    mapRef: RefObject<maplibregl.Map | null>;
 };
 const PullUpPanelMobile: FC<Props> = ({ mapRef }) => {
     void mapRef;

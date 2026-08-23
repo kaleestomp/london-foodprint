@@ -1,4 +1,3 @@
-import L from 'leaflet';
 
 interface PinAnim {
     staggerMs: number;
@@ -21,7 +20,7 @@ const FONT_WEIGHT_RANGE = [500, 500]; // min, max
 const RGB = [255, 255, 255]; // white
 const PIN_STROKE_WIDTH = 0.25;
 
-const densityMarkerIcon = (count: number, resolution: number, maxCount: number, anim: PinAnim, rgb = RGB): L.DivIcon => {
+const densityMarkerIcon = (count: number, resolution: number, maxCount: number, anim: PinAnim, rgb = RGB): HTMLDivElement => {
     
     const label = count >= 1000 ? `${(count / 1000).toFixed(1)}k` : String(count);
     const fs = label.length > 3 ? 10 : label.length > 2 ? 12 : 14;
@@ -41,12 +40,8 @@ const densityMarkerIcon = (count: number, resolution: number, maxCount: number, 
     const fontWeight = Math.round(FONT_WEIGHT_RANGE[0] + (count / maxCount) * (FONT_WEIGHT_RANGE[1] - FONT_WEIGHT_RANGE[0]));
     
     // <circle cx="20" cy="20" r="20" fill="#ffffff00" stroke="white" stroke-width="0.25" stroke-dasharray="3 2"/>
-    return L.divIcon({
-        className: '',
-        iconSize: [w, w],
-        iconAnchor: [w / 2, w / 2], //[w / 2, h]
-        popupAnchor: [0, 0], //[0, -h]
-        html: `<div class="density-pin ${animClass}" style="${styleExtra}">
+    const element = document.createElement('div');
+    element.innerHTML = `<div class="density-pin ${animClass}" style="${styleExtra}">
         <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${w}" viewBox="0 0 40 40" style="overflow:visible;display:block">
           <circle cx="20" cy="20" r="20" fill="#ffffff00" stroke="${secondaryColor}" stroke-width="${PIN_STROKE_WIDTH}" stroke-dasharray="3 2"/>
           <text x="20" y="20" text-anchor="middle" dominant-baseline="central"
@@ -54,8 +49,8 @@ const densityMarkerIcon = (count: number, resolution: number, maxCount: number, 
               ${label}
           </text>
         </svg>
-    </div>`,
-    });
+      </div>`;
+      return element;
 };
 export default densityMarkerIcon;
 

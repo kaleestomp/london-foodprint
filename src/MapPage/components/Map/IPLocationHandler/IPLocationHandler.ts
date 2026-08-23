@@ -1,55 +1,64 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useEffect, useState } from 'react';
+import type maplibregl from 'maplibre-gl';
 
-import L from 'leaflet';
 import useIPLocation from '../../../../request/useIPLocation/useIPLocation';
 import { LONDON_BOUNDS, LONDON_INITIAL_ZOOM } from '../MapTemplate';
+
 const IP_LOCATION_CHECK_DURATION = 2000;
-const IPLocationHandler: React.FC<{ mapRef: React.RefObject<L.Map | null> }> = ({ mapRef }) => { 
 
-    const [mapReady, setMapReady] = useState(false);
-    const [ipLookupOpen, setIpLookupOpen] = useState(true);
-    const [hasAppliedIpCenter, setHasAppliedIpCenter] = useState(false);
-    const ipLocation = useIPLocation();
+const IPLocationHandler: React.FC<{ mapRef: React.RefObject<maplibregl.Map | null> }> = ({ mapRef }) => {
+  const [mapReady, setMapReady] = useState(false);
+  const [ipLookupOpen, setIpLookupOpen] = useState(true);
+  const [hasAppliedIpCenter, setHasAppliedIpCenter] = useState(false);
+  const ipLocation = useIPLocation();
+  // Track map readiness to avoid trying to fly to a location before the map is initialized. 
+  // This is important because the map may not be ready immediately after the component mounts, 
+  // and attempting to fly to a location before the map is ready could result in errors or 
+  // unexpected behavior. By tracking the map's readiness, we can ensure that we only attempt 
+  // to fly to the IP location when the map is fully initialized and ready to handle such actions.
+  useEffect(() => {
+    if (mapRef.current) {
+      setMapReady(true);
+      return;
+    }
+    const timer = setInterval(() => {
+      if (mapRef.current) {
+        setMapReady(true);
+        clearInterval(timer);
+      }
+    }, 50);
 
-    // Track map readiness for startup flows that need the Leaflet instance.
-    useEffect(() => {
-        if (mapRef.current) {
-            setMapReady(true);
-            return;
-        }
-        const timer = setInterval(() => {
-            if (mapRef.current) {
-                setMapReady(true);
-                clearInterval(timer);
-            }
-        }, 50);
+    return () => clearInterval(timer);
+  }, [mapRef]);
 
-        return () => clearInterval(timer);
-    }, []);
+  // Limit the duration of the IP location check to avoid keeping the user waiting indefinitely.
+  useEffect(() => {
+    const timer = setTimeout(() => setIpLookupOpen(false), IP_LOCATION_CHECK_DURATION);
+    return () => clearTimeout(timer);
+  }, []);
 
-    // Limit IP-based startup centering to a 2s best-effort window.
-    useEffect(() => {
-        const timer = setTimeout(() => setIpLookupOpen(false), IP_LOCATION_CHECK_DURATION);
-        return () => clearTimeout(timer);
-    }, []);
+  // Startup behaviour: If the IP location is available within 2s and within London bounds, 
+  // fly to that location on the map.
+  useEffect(() => {
+    if (!ipLookupOpen || hasAppliedIpCenter || !mapReady || !ipLocation || !ipLocation.lat || !ipLocation.lon) return;
 
-    // Startup behavior: if IP location arrives in <=2s and is in London, set view to zoom 15.
-    useEffect(() => {
-        if (!ipLookupOpen || hasAppliedIpCenter || !mapReady 
-            || !ipLocation || !ipLocation.lat || !ipLocation.lon
-        ) return; 
+    const point = { lng: ipLocation.lon, lat: ipLocation.lat };
+    const withinLondon =
+      point.lng >= LONDON_BOUNDS[0][0] &&
+      point.lng <= LONDON_BOUNDS[1][0] &&
+      point.lat >= LONDON_BOUNDS[0][1] &&
+      point.lat <= LONDON_BOUNDS[1][1];
 
-        const latLng = L.latLng(ipLocation.lat, ipLocation.lon);
-        if (!LONDON_BOUNDS.contains(latLng)) {
-            setIpLookupOpen(false);
-            return;
-        }
+    if (!withinLondon) {
+      setIpLookupOpen(false);
+      return;
+    }
 
-        mapRef.current?.setView(latLng, LONDON_INITIAL_ZOOM, { animate: true });
-        setHasAppliedIpCenter(true);
-        setIpLookupOpen(false);
-    }, [hasAppliedIpCenter, ipLocation, ipLookupOpen, mapReady]);
-}
+    mapRef.current?.flyTo({ center: [point.lng, point.lat], zoom: LONDON_INITIAL_ZOOM, essential: true });
+    setHasAppliedIpCenter(true);
+    setIpLookupOpen(false);
+  }, [hasAppliedIpCenter, ipLocation, ipLookupOpen, mapReady, mapRef]);
+};
 
 export default IPLocationHandler;
 

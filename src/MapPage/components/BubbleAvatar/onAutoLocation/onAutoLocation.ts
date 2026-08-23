@@ -1,11 +1,11 @@
 import React from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import useMapPanToLocation from './useMapPanToLocation';
 import useFlyBubbleToLocation from './useFlyBubbleToLocation';
 
 type props = {
-    mapRef: React.RefObject<L.Map | null>;
+    mapRef: React.RefObject<maplibregl.Map | null>;
 };
 const onAutoLocation = ({ mapRef }: props) => { 
 

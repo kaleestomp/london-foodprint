@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import type { ReactNode, Dispatch, SetStateAction } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 import { useSearchFilters } from '../../../context/SearchFiltersContext';
 import { SEARCH_RADIUS } from './config';
 
@@ -36,7 +36,7 @@ interface BubbleAvatarState {
 
   /** Handle user drop event: store the map location and the screen-space point */
   handleDropLatLng: (lat: number, lng: number) => void;
-  handleDropXY: (map: L.Map, x: number, y: number) => void;
+  handleDropXY: (map: maplibregl.Map, x: number, y: number) => void;
 
   /** Set pickup position for manual drag start */
   handlePickup: (x: number, y: number) => void;
@@ -88,7 +88,7 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
 
   }, [setSearchMask]);
 
-  const handleDropXY = useCallback((map: L.Map, x: number, y: number) => {
+  const handleDropXY = useCallback((map: maplibregl.Map, x: number, y: number) => {
 
     const rect = map.getContainer().getBoundingClientRect();
     const insideMap = 
@@ -96,8 +96,8 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
       y >= rect.top && y <= rect.bottom;
 
     if (insideMap) {
-      const leafletPoint = L.point(x - rect.left, y - rect.top);
-      const {lat, lng} = map.containerPointToLatLng(leafletPoint);
+      const point = { x: x - rect.left, y: y - rect.top };
+      const { lat, lng } = map.unproject([point.x, point.y]);
       setSearchMask({ center: { lat, lng }, radiusM: SEARCH_RADIUS });
       setPickupPos(null);
       setFlyInFrom(null);

@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { type TilePlacePreview } from '../../../../../../request/useRequestTiles/request';
 import { type TileMarkerRegistry } from '../../useDensityLayer/useDensityLayer';
@@ -6,20 +6,20 @@ import addPlaceMarkers from '../placeMarkers/addPlaceMarkers';
 import getFlyInOffsetOnEntry from '../markerTransitions/getFlyInOffsetOnEntry';
 
 type Props = {
-  map: L.Map | null,
-  layer: L.LayerGroup | null,
+  map: maplibregl.Map | null,
   places: TilePlacePreview[],
-  markerRef: React.RefObject<Map<string, L.Marker>>,
+  markerRef: React.RefObject<Map<string, maplibregl.Marker>>,
   outgoingTileMarker: TileMarkerRegistry,
   outgoingRes: number | null,
   onPlaceClick?: (placeId: string) => void,
+  onMarkersAdded?: (markers: maplibregl.Marker[]) => void,
 }
 const animateLayerEntry = ({
-  map, layer, places, markerRef,
+  map, places, markerRef,
   outgoingTileMarker, outgoingRes,
-  onPlaceClick,
+  onPlaceClick, onMarkersAdded,
 }: Props): void => {
-  if (!map || !layer) return;
+  if (!map) return;
 
   // Burst density markers into child place markers + fly out in from host marker.
   // Update Outgoing Markers CSS State
@@ -39,8 +39,9 @@ const animateLayerEntry = ({
     : undefined;
 
   // CREATE NEW MARKERS + UPDATE REF MAP
-  const newMarkers = addPlaceMarkers(layer, incomingPlaces, onPlaceClick, startOffsets);
+  const newMarkers = addPlaceMarkers(map, incomingPlaces, onPlaceClick, startOffsets);
   newMarkers.forEach(({ PlaceId, Marker }) => markerRef.current.set(PlaceId, Marker));
+  onMarkersAdded?.(newMarkers.map(({ Marker }) => Marker));
 
 };
 

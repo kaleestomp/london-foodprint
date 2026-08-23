@@ -1,10 +1,10 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 import { latLngToCell, cellToLatLng } from 'h3-js';
 
 const animateLayerExit = (
-    map: L.Map,
+    map: maplibregl.Map,
     resolution: number,
-    outgoing: Map<string, L.Marker>,
+    outgoing: Map<string, maplibregl.Marker>,
 ): void => {
 
     outgoing.forEach((place) => {
@@ -12,13 +12,13 @@ const animateLayerExit = (
         if (!pin) return;
         try {
             // Get Host H3 Tile Centroid
-            const latlng         = place.getLatLng();
+            const latlng         = place.getLngLat();
             const tileId         = latLngToCell(latlng.lat, latlng.lng, resolution);
             const [tLat, tLng]   = cellToLatLng(tileId);
 
             // Convert LatLng to PX Coordinates
-            const tilePt = map.latLngToContainerPoint(L.latLng(tLat, tLng));
-            const placePt = map.latLngToContainerPoint(latlng);
+            const tilePt = map.project([tLng, tLat]);
+            const placePt = map.project(latlng);
             
             // Set CSS Vars for Fly-Out Animation
             pin.style.setProperty('--merge-dx', `${(tilePt.x - placePt.x).toFixed(1)}px`);

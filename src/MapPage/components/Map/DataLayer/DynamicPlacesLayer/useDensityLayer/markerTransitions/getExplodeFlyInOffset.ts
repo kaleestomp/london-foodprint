@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 import { cellToParent, cellToLatLng } from 'h3-js';
 import { type TileDensity } from '../../../../../../request/useRequestTiles/request';
 import { type TileMarkerRegistry } from '../useDensityLayer';
@@ -16,7 +16,7 @@ import { type TileMarkerRegistry } from '../useDensityLayer';
  * `undefined` as `startOffsets` to `addDensityPins`.
  */
 const getExplodeFlyInOffset = (
-  map: L.Map,
+  map: maplibregl.Map,
   parentMarkers: TileMarkerRegistry,
   parentRes: number,
   tiles: TileDensity[],
@@ -35,8 +35,8 @@ const getExplodeFlyInOffset = (
       && typeof d.singleton?.lon === 'number' 
         ? [d.singleton.lat, d.singleton.lon] 
         : cellToLatLng(d.tile);
-      const childPt      = map.latLngToContainerPoint(L.latLng(childLat, childLon));
-      const parentPt     = map.latLngToContainerPoint(parentMarker.getLatLng());
+      const childPt      = map.project([childLon, childLat]);
+      const parentPt     = map.project(parentMarker.getLngLat());
 
       offsets.set(d.tile, { dx: parentPt.x - childPt.x, dy: parentPt.y - childPt.y });
     } catch {

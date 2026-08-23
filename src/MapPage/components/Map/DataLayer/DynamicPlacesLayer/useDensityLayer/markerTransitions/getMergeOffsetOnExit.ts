@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 import { cellToParent, cellToLatLng } from 'h3-js';
 import { type TileMarkerRegistry } from '../useDensityLayer';
 
@@ -13,7 +13,7 @@ import { type TileMarkerRegistry } from '../useDensityLayer';
  * mergeOffsets in usePinAnimations — the exit will fall back to `pin-collapse`.
  */
 const getMergeOffsetOnExit = (
-  map: L.Map,
+  map: maplibregl.Map,
   outgoingTiles: TileMarkerRegistry,
   mergeRes: number,
 ): Map<string, { dx: number; dy: number }> | undefined => {
@@ -25,8 +25,8 @@ const getMergeOffsetOnExit = (
     try {
       const parentTile        = cellToParent(tileId, mergeRes);
       const [pLat, pLng]      = cellToLatLng(parentTile);
-      const parentPt          = map.latLngToContainerPoint(L.latLng(pLat, pLng));
-      const childPt           = map.latLngToContainerPoint(Marker.getLatLng());
+      const parentPt          = map.project([pLng, pLat]);
+      const childPt           = map.project(Marker.getLngLat());
             
       offsets.set(tileId, { dx: parentPt.x - childPt.x, dy: parentPt.y - childPt.y });
     } catch {

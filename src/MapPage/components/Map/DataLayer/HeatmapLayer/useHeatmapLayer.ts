@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
-import createPersistentLayer from '../LayerStates/createPersistentLayer';
 import { type TileDensity } from '../../../../request/useRequestTiles/request';
 import { useAppUI } from '../../../../../context/AppUIContext';
 import useFetchTiles from './InputHooks/useFetchTiles';
@@ -10,30 +9,25 @@ import addHeatmap from './addHeatmap';
 const ZOOM_THRESHOLD = 11;
 
 const useHeatmapLayer = (
-  mapRef: React.RefObject<L.Map | null>,
+  mapRef: React.RefObject<maplibregl.Map | null>,
   enabled?: boolean,
 ): void => {
   const { heatmapEnabled } = useAppUI();
   const layerEnabled = Boolean(enabled) && heatmapEnabled;
 
   const { status, res, isPlaceholderData } = useFetchTiles(layerEnabled);
-  const layerRef = createPersistentLayer(mapRef);
-  const heatLayerRef = useRef<L.HeatLayer | null>(null);
+  const removeHeatmapRef = useRef<(() => void) | null>(null);
   const currentResRef = useRef<number | null>(null);
 
   const clearLayer = useCallback(() => {
-    const layer = layerRef.current;
-    const heatLayer = heatLayerRef.current;
-    if (layer && heatLayer) {
-      layer.removeLayer(heatLayer);
-    }
-    heatLayerRef.current = null;
+    removeHeatmapRef.current?.();
+    removeHeatmapRef.current = null;
   }, []);
 
   const renderHeatmap = useCallback((resolution: number, tiles: TileDensity[]) => {
     
-    const layer = layerRef.current;
-    if (!layer) return;
+    const map = mapRef.current;
+    if (!map) return;
 
     clearLayer();
 
@@ -43,10 +37,9 @@ const useHeatmapLayer = (
     }
 
     const zoom = mapRef.current?.getZoom();
-    const heatLayer = addHeatmap(layer, tiles, zoom);
-    heatLayerRef.current = heatLayer;
+    removeHeatmapRef.current = addHeatmap(map, tiles, zoom);
     currentResRef.current = resolution;
-  }, [clearLayer, layerRef]);
+  }, [clearLayer, mapRef]);
 
   const syncHeatmap = useCallback(() => {
     

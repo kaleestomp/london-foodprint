@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
+import type maplibregl from 'maplibre-gl';
+
 import Snackbar from '@mui/material/Snackbar';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
-import L from 'leaflet';
 import useMyLocation from '../../../../request/useMyLocation/useMyLocation';
-import { LONDON_BOUNDS } from '../../Map/MapTemplate';
+import { isWithinLondonBounds } from '../../Map/MapTemplate';
 import AnimatedLoadingDots from '../../../../components/LoadingDots/AnimatedLoadingDots';
 
 import './GeoSearchbarMyLocationButton.css';
 
 type Props = {
-  mapRef: React.RefObject<L.Map | null>;
+  mapRef: React.RefObject<maplibregl.Map | null>;
   onLiveLocationDrop: (lat: number, lng: number) => void | Promise<void>;
 };
 
@@ -44,7 +45,7 @@ const GeoSearchbarMyLocationButton: React.FC<Props> = ({ mapRef, onLiveLocationD
       return;
     }
 
-    if (!LONDON_BOUNDS.contains(L.latLng(state.lat, state.lon))) {
+    if (!isWithinLondonBounds(state.lat, state.lon)) {
       handleOutsideLondon();
       return;
     }

@@ -1,20 +1,26 @@
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
-const createPersistentLayer = (mapRef: React.RefObject<L.Map | null>): React.RefObject<L.LayerGroup | null> => {
+export type PersistentLayer = {
+  markers: Set<maplibregl.Marker>;
+};
 
-  const layerRef = useRef<L.LayerGroup | null>(null);
+const createPersistentLayer = (mapRef: React.RefObject<maplibregl.Map | null>): React.RefObject<PersistentLayer | null> => {
+
+  const layerRef = useRef<PersistentLayer | null>(null);
   // Create the persistent layer group once on mount, add to map, never remove it.
+  
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const layer = L.layerGroup().addTo(map);
+    const layer: PersistentLayer = { markers: new Set() };
     layerRef.current = layer;
     return () => {
-      layer.remove();
+      layer.markers.forEach((marker) => marker.remove());
+      layer.markers.clear();
       layerRef.current = null;
     };
-  }, []);
+  }, [mapRef]);
 
   return layerRef;
 };

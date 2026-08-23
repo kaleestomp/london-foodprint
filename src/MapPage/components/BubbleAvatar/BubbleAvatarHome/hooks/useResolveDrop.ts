@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { HOME_SNAP_RADIUS, type Point } from '../../config';
 import { useBubbleAvatarState } from '../../BubbleAvatarStateContext';
@@ -12,7 +12,7 @@ import checkIsDropBlocked from './checkIsDropBlocked';
  * This prevents a "hovering" avatar when pickup succeeds but drag events don't fire.
  */
 const useResolveDrop = (
-  mapRef: React.RefObject<L.Map | null>,
+  mapRef: React.RefObject<maplibregl.Map | null>,
   // handleDrop: (map: L.Map, lat: number, lng: number) => void,
   // handleDropCancel: () => void,
   homeCenter: Point,

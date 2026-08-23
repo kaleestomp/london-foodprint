@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import getCuisineIconSrc from './getCuisineIconSrc';
@@ -7,16 +7,12 @@ const ICON_SIZE = 26; // All pins same size 22
 const ENTER_CLASS = 'enter-animation';
 const EXIT_CLASS = 'exit-animation';
 
-const TopPlacePin = (cuisineType?: string): L.DivIcon => {
+const TopPlacePin = (cuisineType?: string): HTMLDivElement => {
 
   const iconSrc = getCuisineIconSrc(cuisineType);
+  const element = document.createElement('div');
 
-  return L.divIcon({
-    className: '',
-    iconSize: [ICON_SIZE, ICON_SIZE],
-    iconAnchor: [ICON_SIZE / 2, ICON_SIZE / 2],
-    popupAnchor: [0, -ICON_SIZE-3],
-    html: `<div class="top-place-pin-shell ${ENTER_CLASS}">
+  element.innerHTML = `<div class="top-place-pin-shell ${ENTER_CLASS}">
       <div class="top-place-pin-hover">
         <div class="top-place-pin-motion">
           ${renderToStaticMarkup(createElement('img', {
@@ -28,8 +24,8 @@ const TopPlacePin = (cuisineType?: string): L.DivIcon => {
           }))}
         </div>
       </div>
-    </div>`,
-  });
+    </div>`;
+  return element;
 };
 
 // <svg class="top-place-pin-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -37,13 +33,13 @@ const TopPlacePin = (cuisineType?: string): L.DivIcon => {
 // </svg>
 
 // ANIMATION HELPERS
-const withShell = (marker: L.Marker, fn: (shell: HTMLElement) => void): void => {
+const withShell = (marker: maplibregl.Marker, fn: (shell: HTMLElement) => void): void => {
   const shell = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-shell');
   if (!shell) return;
   fn(shell);
 };
 
-export const animateTopPlacePinExit = (marker: L.Marker): void => {
+export const animateTopPlacePinExit = (marker: maplibregl.Marker): void => {
   withShell(marker, (shell) => {
     shell.classList.remove(ENTER_CLASS);
     shell.getAnimations().forEach((a) => a.cancel());
@@ -51,13 +47,13 @@ export const animateTopPlacePinExit = (marker: L.Marker): void => {
   });
 };
 
-export const clearTopPlacePinTransitions = (marker: L.Marker): void => {
+export const clearTopPlacePinTransitions = (marker: maplibregl.Marker): void => {
   withShell(marker, (shell) => {
     shell.classList.remove(ENTER_CLASS, EXIT_CLASS);
   });
 };
 
-export const restartTopPlacePinEnter = (marker: L.Marker): void => {
+export const restartTopPlacePinEnter = (marker: maplibregl.Marker): void => {
   withShell(marker, (shell) => {
     shell.classList.remove(EXIT_CLASS);
     shell.classList.remove(ENTER_CLASS);

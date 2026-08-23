@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 import getCurrentScreenXY from './getCurrentScreenXY';
 
 type Point = { x: number; y: number };
 
 const useGetCurrentScreenXY = (
-    mapRef: React.RefObject<L.Map | null>,
+    mapRef: React.RefObject<maplibregl.Map | null>,
     latLng?: { lat: number; lng: number } | null
 ) => {
 

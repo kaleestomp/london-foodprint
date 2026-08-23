@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import L from 'leaflet';
+import maplibregl from 'maplibre-gl';
+
 import { cellToLatLng } from 'h3-js';
 import type { MotionValue } from 'framer-motion';
 
@@ -16,7 +17,7 @@ type PointerMotion = {
 const POLL_MS = 220;
 
 type Props = {
-  mapRef: React.RefObject<L.Map | null>;
+  mapRef: React.RefObject<maplibregl.Map | null>;
   pointer: PointerMotion;
   isActive: boolean;
 };
@@ -57,10 +58,10 @@ const useDragRestaurantCount = ({ mapRef, pointer, isActive }: Props) => {
   const { status, res } = useRequestTiles(requestParams);
 
   const densityCentroids = useMemo(() => {
-    if (!res || res.mode !== 'tiles') return [] as Array<{ latLng: L.LatLng; count: number }>;
+    if (!res || res.mode !== 'tiles') return [] as Array<{ latLng: maplibregl.LngLat; count: number }>;
     return res.data.map((tile) => {
       const [lat, lng] = cellToLatLng(tile.tile);
-      return { latLng: L.latLng(lat, lng), count: tile.count };
+      return { latLng: new maplibregl.LngLat(lng, lat), count: tile.count };
     });
   }, [res]);
 
@@ -80,7 +81,7 @@ const useDragRestaurantCount = ({ mapRef, pointer, isActive }: Props) => {
       const rect = map.getContainer().getBoundingClientRect();
       const px = pointer.x.get() - rect.left;
       const py = pointer.y.get() - rect.top;
-      const center = map.containerPointToLatLng(L.point(px, py));
+      const center = map.unproject([px, py]);
 
       if (res.mode === 'tiles') {
         let next = 0;
@@ -95,7 +96,7 @@ const useDragRestaurantCount = ({ mapRef, pointer, isActive }: Props) => {
 
       let next = 0;
       for (const place of res.data) {
-        if (L.latLng(place.lat, place.lon).distanceTo(center) <= SEARCH_RADIUS) {
+        if (new maplibregl.LngLat(place.lon, place.lat).distanceTo(center) <= SEARCH_RADIUS) {
           next += 1;
         }
       }

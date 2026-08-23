@@ -1,11 +1,11 @@
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { type Point } from '../config';
 
 const TOP_PADDING = 80;
 
 const getVisibleMapTargetScreenPoint = (
-  map: L.Map,
+  map: maplibregl.Map,
   isMobile: boolean,
   panelHeight: number,
   translateY: number,

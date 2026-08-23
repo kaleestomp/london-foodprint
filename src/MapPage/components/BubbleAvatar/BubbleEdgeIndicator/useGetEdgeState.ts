@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { checkIsInView, getEdgeState } from '../BubbleEdgeIndicator/getEdgeState';
 import type { EdgeState } from '../BubbleEdgeIndicator/getEdgeState';
 
 const useGetEdgeState = (
-    mapRef: React.RefObject<L.Map | null>,
+    mapRef: React.RefObject<maplibregl.Map | null>,
     latLng?: { lat: number; lng: number } | null
 ) => {
 
@@ -40,7 +40,7 @@ const useGetEdgeState = (
         const update = () => {
           const rect = containerRectRef.current; 
           if (!rect) return;
-          const projected = map.latLngToContainerPoint([latLng.lat, latLng.lng]);
+          const projected = map.project([latLng.lng, latLng.lat]);
           const sx   = rect.left + projected.x;
           const sy   = rect.top + projected.y;
           const W    = window.innerWidth;

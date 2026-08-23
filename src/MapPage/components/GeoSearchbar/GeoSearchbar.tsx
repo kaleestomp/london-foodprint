@@ -1,5 +1,5 @@
 import { useCallback, useId, useState } from 'react';
-import type L from 'leaflet';
+import type maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../context/AppUIContext';
 import useGeoSearch, { type LocationResult } from './fetchHooks/useGeoSearch';
@@ -15,7 +15,7 @@ import toLatLng from './DropDown/toLatLng';
 import './GeoSearchbar.css';
 
 type Props = {
-    mapRef: React.RefObject<L.Map | null>;
+    mapRef: React.RefObject<maplibregl.Map | null>;
     onDropdownOpenChange?: (isOpen: boolean) => void;
 };
 
