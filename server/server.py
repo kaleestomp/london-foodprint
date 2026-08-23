@@ -16,7 +16,7 @@ from api.ip_location.ip_location import router as ip_location_router
 from api.geocode.geocode_api import router as geocode_router
 from api.histogram_api.cuisine_histogram_api import router as cuisine_histogram_router
 from api.histogram_api.price_histogram_api import router as price_histogram_router
-from api.coordinates_api.heatmap_api import router as heatmap_router
+from api.heatmap_api.heatmap_api import router as heatmap_router
 
 load_dotenv()
 
