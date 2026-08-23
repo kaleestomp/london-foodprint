@@ -5,6 +5,7 @@ import useTopPlacesLayer from './TopPlacesLayer/useTopPlacesLayer';
 import useDynamicPlacesLayer from './DynamicPlacesLayer/useDynamicPlacesLayer';
 import useNearbyPlacesLayer from './NearbyPlacesLayer/useNearbyPlacesLayer';
 
+
 const DataLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
   enabled = true,
