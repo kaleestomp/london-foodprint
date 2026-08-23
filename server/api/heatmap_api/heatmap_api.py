@@ -53,7 +53,7 @@ async def get_heatmap_coordinates(
     tier_param = offset + 4
 
     sql = f"""
-        SELECT lat, lon
+        SELECT id, lat, lon
         FROM places
         WHERE TRUE
           {bbox_sql}
@@ -90,6 +90,9 @@ async def get_heatmap_coordinates(
         rows = await conn.fetch(sql, *params)
 
     return {
-        "data": [{"lat": row["lat"], "lng": row["lon"]} for row in rows],
+        "data": [
+            {"id": row["id"], "lat": row["lat"], "lng": row["lon"]}
+            for row in rows
+        ],
         "total": len(rows),
     }

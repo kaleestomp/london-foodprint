@@ -1,6 +1,7 @@
 import { apiBasePromise } from '../../../utils/apiBase';
 
 export interface HeatmapCoordinate {
+  id: string;
   lat: number;
   lng: number;
 }

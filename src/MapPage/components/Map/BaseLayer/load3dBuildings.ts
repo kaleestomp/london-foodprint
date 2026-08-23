@@ -33,7 +33,7 @@ const load3dBuildings = (
                 'source': 'openfreemap',
                 'source-layer': 'building',
                 'type': 'fill-extrusion',
-                'minzoom': 15,
+                'minzoom': 12, //15
                 'filter': ['!=', ['get', 'hide_3d'], true],
                 'paint': {
                     'fill-extrusion-color': '#384261', //#D4CDB4
@@ -41,13 +41,13 @@ const load3dBuildings = (
                         'interpolate',
                         ['linear'],
                         ['zoom'],
-                        15,
+                        12, //15
                         0,
-                        16,
+                        14, //16
                         ['get', 'render_height']
                     ],
                     'fill-extrusion-base': ['case',
-                        ['>=', ['get', 'zoom'], 16],
+                        ['>=', ['get', 'zoom'], 14], //16
                         ['get', 'render_min_height'], 0
                     ]
                 }
