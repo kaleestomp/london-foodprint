@@ -4,6 +4,7 @@ import type maplibregl from 'maplibre-gl';
 import useTopPlacesLayer from './TopPlacesLayer/useTopPlacesLayer';
 import useDynamicPlacesLayer from './DynamicPlacesLayer/useDynamicPlacesLayer';
 import useNearbyPlacesLayer from './NearbyPlacesLayer/useNearbyPlacesLayer';
+import useHeatmapLayer from './HeatmapLayer/useHeatmapLayer';
 
 
 const DataLayer = (
@@ -16,6 +17,7 @@ const DataLayer = (
   useTopPlacesLayer( mapRef, setActiveTopPlaceIds, enabled );
   useDynamicPlacesLayer( mapRef, activeTopPlaceIdSet, enabled );
   useNearbyPlacesLayer(mapRef, activeTopPlaceIdSet, enabled);
+  useHeatmapLayer(mapRef, enabled);
 
 };
 

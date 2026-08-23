@@ -5,7 +5,7 @@ import useRequestHeatmap, { type HeatmapParams } from '../../../../../request/us
 
 const useFetchCoordinates = (
   enabled = true,
-): void => {
+): { status: string; res: any } => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier } = useSearchFilters();
   const heatmapParams = useMemo<HeatmapParams | null>(() => {
@@ -21,9 +21,9 @@ const useFetchCoordinates = (
       effectiveCuisines, effectivePriceRanges,
       venueType, scoreBasis, scoreTier, enabled,
     ]);
-  const { res } = useRequestHeatmap(heatmapParams);
-  console.log(res);
+  const { status, res } = useRequestHeatmap(heatmapParams);
   
+  return { status, res };
 };
 
 export default useFetchCoordinates;
