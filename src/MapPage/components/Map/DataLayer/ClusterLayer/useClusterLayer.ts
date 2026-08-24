@@ -20,9 +20,9 @@ const COUNT_LAYER_ID = 'cluster-count';
 
 const useClusterLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
+  enabled: boolean = true,
 ): React.RefObject<Set<string>> => {
 
-  const { heatmapEnabled: enabled } = useAppUI();
   const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
   const { geojson } = useFetchHeatmap(enabled);
   const singletonIdsRef = useRef<Set<string>>(new Set());
