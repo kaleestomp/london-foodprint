@@ -1,16 +1,5 @@
 import type { CircleLayerSpecification, ExpressionSpecification, SymbolLayerSpecification } from 'maplibre-gl';
 
-export const clusterTextSize = (maxCount: number): ExpressionSpecification => {
-  const highestCount = Math.max(Math.ceil(maxCount / 10) * 10, 10);
-  return [
-    'interpolate',
-    ['linear'],
-    ['get', 'point_count'],
-    5, 10,
-    highestCount, 18,
-  ];
-};
-
 export const clusterCountLayer = (
   layerId: string,
   sourceId: string,
@@ -21,7 +10,7 @@ export const clusterCountLayer = (
   filter: ['has', 'point_count'],
   layout: {
     'text-field': ['get', 'point_count_abbreviated'],
-    'text-font': ['Open Sans Bold'],
+    'text-font': ['Open Sans SemiBold'],
     'text-size': 10,
     'text-allow-overlap': true,
   },
@@ -33,6 +22,28 @@ export const clusterCountLayer = (
   },
 });
 
+export const unclusteredPointLayer = (
+  layerId: string,
+  sourceId: string,
+): CircleLayerSpecification => ({
+  id: layerId,
+  type: 'circle',
+  source: sourceId,
+  filter: ['!', ['has', 'point_count']],
+  paint: {
+    'circle-color': '#dbdbdb',
+    'circle-radius': 3.6,
+    'circle-stroke-width': 0.45,
+    'circle-stroke-color': '#101010',
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      16, 0,
+      17, 1,
+    ],
+  }
+})
 
 export const clusterCircleLayer = (
   layerId: string,
@@ -59,4 +70,15 @@ export const clusterCircleLayer = (
     'circle-stroke-opacity': 0.5,
   },
 });
+
+export const clusterTextSize = (maxCount: number): ExpressionSpecification => {
+  const highestCount = Math.max(Math.ceil(maxCount / 20) * 20, 20);
+  return [
+    'interpolate',
+    ['linear'],
+    ['get', 'point_count'],
+    10, 10,
+    highestCount, 18,
+  ];
+};
 

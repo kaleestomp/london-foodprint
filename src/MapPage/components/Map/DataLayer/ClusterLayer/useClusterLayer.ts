@@ -1,21 +1,39 @@
-import { useEffect } from 'react';
-import type maplibregl from 'maplibre-gl';
+import { useEffect, useRef } from 'react';
+import maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../../../context/AppUIContext';
+import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchHeatmap from '../HeatmapLayer/InputHooks/useFetchHeatmap';
-import { clusterCountLayer, clusterTextSize } from './clusterLayers';
+import { clusterCountLayer, unclusteredPointLayer } from './clusterLayers';
 import sortLayerOrder from './sortLayerOrder';
+import updateTextSize from './updateTextSize';
+import TopPlacePin from '../TopPlacesLayer/syncMarkers/markers/TopPlacePin';
+
+import '../TopPlacesLayer/syncMarkers/markers/TopPlacePin.css';
 
 const SOURCE_ID = 'cluster-source';
-// const CIRCLE_LAYER_ID = 'cluster-circles';
+const PLACES_LAYER_ID = 'unclustered-point';
 const COUNT_LAYER_ID = 'cluster-count';
 
 const useClusterLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
-): void => {
+): React.RefObject<Set<string>> => {
 
   const { heatmapEnabled: enabled } = useAppUI();
+  const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
   const { geojson } = useFetchHeatmap(enabled);
+  const singletonIdsRef = useRef<Set<string>>(new Set());
+  const selectedSingletonMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const selectedSingletonIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const selectedSingletonId = selectedSingletonIdRef.current;
+    if (!selectedSingletonId || selectedSingletonId === selectedPlaceId) return;
+
+    selectedSingletonMarkerRef.current?.remove();
+    selectedSingletonMarkerRef.current = null;
+    selectedSingletonIdRef.current = null;
+  }, [selectedPlaceId]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -25,18 +43,47 @@ const useClusterLayer = (
       const currentMap = mapRef.current;
       if (!currentMap) return;
       if (currentMap.getLayer(COUNT_LAYER_ID)) currentMap.removeLayer(COUNT_LAYER_ID);
+      if (currentMap.getLayer(PLACES_LAYER_ID)) currentMap.removeLayer(PLACES_LAYER_ID);
       if (currentMap.getSource(SOURCE_ID)) currentMap.removeSource(SOURCE_ID);
     };
+    
+    const handleStateChange = () => {
+      console.log(map.getZoom());
+      updateTextSize(map, COUNT_LAYER_ID);
+      sortLayerOrder(map, [COUNT_LAYER_ID, PLACES_LAYER_ID]);
+      // singletonIdsRef.current = getSingletonIds(map, PLACES_LAYER_ID);
+    }
+    
 
-    const updateTextSize = () => {
-      if (!map.getLayer(COUNT_LAYER_ID)) return;
+    const handleSingletonClick = (event: maplibregl.MapLayerMouseEvent) => {
+      const feature = event.features?.[0];
+      const placeId = feature?.properties?.id ?? feature?.id;
+      if (placeId == null) return;
+      if (feature?.geometry.type !== 'Point') return;
 
-      const clusters = map.queryRenderedFeatures(undefined, { layers: [COUNT_LAYER_ID] });
-      const highestCount = clusters.reduce((highest, feature) => {
-        const count = Number(feature.properties?.point_count ?? 0);
-        return Math.max(highest, count);
-      }, 0);
-      map.setLayoutProperty( COUNT_LAYER_ID, 'text-size', clusterTextSize(highestCount) );
+      event.originalEvent.stopPropagation();
+      selectedSingletonMarkerRef.current?.remove();
+
+      const [lng, lat] = feature.geometry.coordinates;
+      const marker = new maplibregl.Marker({
+        element: TopPlacePin(),
+        anchor: 'center',
+      }).setLngLat([lng, lat]).addTo(map);
+      const motion = marker.getElement().querySelector<HTMLElement>('.top-place-pin-motion');
+      const shell = marker.getElement().querySelector<HTMLElement>('.top-place-pin-shell');
+      motion?.classList.add('is-selected');
+      shell?.classList.add('is-selected');
+      selectedSingletonMarkerRef.current = marker;
+      selectedSingletonIdRef.current = String(placeId);
+      setSelectedPlaceId(String(placeId));
+    };
+
+    const handleSingletonMouseEnter = () => {
+      map.getCanvas().style.cursor = 'pointer';
+    };
+
+    const handleSingletonMouseLeave = () => {
+      map.getCanvas().style.cursor = '';
     };
 
     const refreshLayer = () => {
@@ -52,39 +99,50 @@ const useClusterLayer = (
           type: 'geojson',
           data: geojson,
           cluster: true,
-          clusterMaxZoom: 16,
-          clusterRadius: 50,
+          clusterMaxZoom: 15,
+          clusterRadius: 40,
         });
       }
 
-      if (!map.getLayer(COUNT_LAYER_ID)) {
+      if (!map.getLayer(COUNT_LAYER_ID)) 
         map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID));
-      } else { updateTextSize() };
-      sortLayerOrder(map, [COUNT_LAYER_ID]);
+      if (!map.getLayer(PLACES_LAYER_ID)) 
+        map.addLayer(unclusteredPointLayer(PLACES_LAYER_ID, SOURCE_ID));
+      handleStateChange()
     };
     
     if (!enabled) removeLayer();
-    map.on('idle', refreshLayer); 
+    map.on('load', refreshLayer); 
     map.on('styledata', refreshLayer);
     map.on('pitch', refreshLayer);
+    map.on('idle', handleStateChange);
     // Maplibre internal race bug: 
     // Heatmap layer need to load first for both to show
     // hence on 'idle' event instead of 'load' event
-
-    map.on('zoom', updateTextSize);
-    map.on('load', updateTextSize);
+    
+    map.on('click', PLACES_LAYER_ID, handleSingletonClick);
+    map.on('mouseenter', PLACES_LAYER_ID, handleSingletonMouseEnter);
+    map.on('mouseleave', PLACES_LAYER_ID, handleSingletonMouseLeave);
 
     return () => {
-      map.off('idle', refreshLayer);
+      map.off('load', refreshLayer);
       map.off('styledata', refreshLayer);
       map.off('pitch', refreshLayer);
+      map.off('idle', handleStateChange);
 
-      map.off('zoom', updateTextSize);
-      map.off('load', updateTextSize);
+      map.off('click', PLACES_LAYER_ID, handleSingletonClick);
+      map.off('mouseenter', PLACES_LAYER_ID, handleSingletonMouseEnter);
+      map.off('mouseleave', PLACES_LAYER_ID, handleSingletonMouseLeave);
+      selectedSingletonMarkerRef.current?.remove();
+      selectedSingletonMarkerRef.current = null;
+      selectedSingletonIdRef.current = null;
       removeLayer();
+      singletonIdsRef.current = new Set();
+      map.getCanvas().style.cursor = '';
     };
-  }, [geojson, enabled]);
+  }, [geojson, enabled, setSelectedPlaceId]);
 
+  return singletonIdsRef;
 };
 
 export default useClusterLayer;

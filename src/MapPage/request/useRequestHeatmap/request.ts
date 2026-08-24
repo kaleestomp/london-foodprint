@@ -4,6 +4,7 @@ export interface HeatmapCoordinate {
   id: string;
   lat: number;
   lng: number;
+  cuisine_type: string | null;
 }
 
 export interface HeatmapResponse {

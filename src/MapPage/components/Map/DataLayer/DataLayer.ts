@@ -14,15 +14,14 @@ const DataLayer = (
 ): void => {
 
   const [activeTopPlaceIdSet, setActiveTopPlaceIds] = useState<Set<string> | undefined>(undefined);
-
+  
   useTopPlacesLayer( mapRef, setActiveTopPlaceIds, enabled );
   // useDynamicPlacesLayer( mapRef, activeTopPlaceIdSet, enabled );
   useNearbyPlacesLayer(mapRef, activeTopPlaceIdSet, enabled);
 
-  
-  useHeatmapLayer(mapRef);
   useClusterLayer(mapRef);
-
+  useHeatmapLayer(mapRef);
+  
 };
 
 export default DataLayer;

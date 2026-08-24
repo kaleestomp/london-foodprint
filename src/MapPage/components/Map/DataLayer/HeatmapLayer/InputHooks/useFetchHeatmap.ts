@@ -7,7 +7,7 @@ import heatmapGeojson from './heatmapGeojson';
 import type GeoJSON from 'geojson';
 
 const useFetchHeatmap = (
-  enabled = true,
+  enabled: boolean = true,
 ): { status: string; geojson: GeoJSON.FeatureCollection<GeoJSON.Point> } => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier } = useSearchFilters();
@@ -28,9 +28,10 @@ const useFetchHeatmap = (
   
   const geojson = useMemo(() => {
     const coordinates = res?.data ?? [];
+    // const filteredCoordinates = coordinates.filter(({ id }) => !maskIds.has(id));
     return heatmapGeojson(coordinates);
   }, [res]);
-
+  
   return { status, geojson };
 };
 

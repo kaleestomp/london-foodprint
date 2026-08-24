@@ -15,7 +15,7 @@ const useHeatmapLayer = (
 
   const { heatmapEnabled: enabled } = useAppUI();
   const { geojson } = useFetchHeatmap(enabled);
-
+  
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -47,12 +47,12 @@ const useHeatmapLayer = (
     };
 
     if (!enabled) removeLayer();
-    map.on('load', refreshLayer);
+    map.on('idle', refreshLayer);
     map.on('styledata', refreshLayer);
     map.on('pitch', refreshLayer);
 
     return () => {
-      map.off('load', refreshLayer);
+      map.off('idle', refreshLayer);
       map.off('styledata', refreshLayer);
       map.off('pitch', refreshLayer);
       removeLayer();

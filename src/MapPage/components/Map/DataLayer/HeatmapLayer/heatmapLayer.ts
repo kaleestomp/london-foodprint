@@ -7,7 +7,6 @@ const heatmapLayer = (
     id: layerId,
     type: 'heatmap',
     source: sourceId,
-    maxzoom: 17,
     paint: {
         'heatmap-weight': ['get', 'weight'],
         'heatmap-intensity': [
@@ -24,7 +23,13 @@ const heatmapLayer = (
             14, 24,
             17, 32,
         ],
-        'heatmap-opacity': 0.45,
+        'heatmap-opacity': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            16, 0.45,
+            17, 0,
+        ],
         'heatmap-color': [
             'interpolate', ['linear'], ['heatmap-density'],
             0, 'rgba(33, 102, 172, 0)',
