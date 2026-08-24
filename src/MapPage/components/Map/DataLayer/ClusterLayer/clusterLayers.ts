@@ -45,6 +45,22 @@ export const unclusteredPointLayer = (
   }
 })
 
+export const unclusteredPointHitLayer = (
+  layerId: string,
+  sourceId: string,
+): CircleLayerSpecification => ({
+  id: layerId,
+  type: 'circle',
+  source: sourceId,
+  filter: ['!', ['has', 'point_count']],
+  paint: {
+    'circle-color': '#ffffff',
+    'circle-radius': 14,
+    'circle-opacity': 0,
+    'circle-stroke-width': 0,
+  },
+});
+
 export const clusterCircleLayer = (
   layerId: string,
   sourceId: string,

@@ -4,15 +4,16 @@ import maplibregl from 'maplibre-gl';
 import { useAppUI } from '../../../../../context/AppUIContext';
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchHeatmap from '../HeatmapLayer/InputHooks/useFetchHeatmap';
-import { clusterCountLayer, unclusteredPointLayer } from './clusterLayers';
+import { clusterCountLayer, unclusteredPointHitLayer, unclusteredPointLayer } from './clusterLayers';
 import sortLayerOrder from './sortLayerOrder';
 import updateTextSize from './updateTextSize';
-import TopPlacePin from '../TopPlacesLayer/syncMarkers/markers/TopPlacePin';
+import showPlaceMarker from './showPlaceMarker';
 
 import '../TopPlacesLayer/syncMarkers/markers/TopPlacePin.css';
 
 const SOURCE_ID = 'cluster-source';
 const PLACES_LAYER_ID = 'unclustered-point';
+const PLACES_HIT_LAYER_ID = 'unclustered-point-hit-area';
 const COUNT_LAYER_ID = 'cluster-count';
 
 const useClusterLayer = (
@@ -43,37 +44,27 @@ const useClusterLayer = (
       const currentMap = mapRef.current;
       if (!currentMap) return;
       if (currentMap.getLayer(COUNT_LAYER_ID)) currentMap.removeLayer(COUNT_LAYER_ID);
+      if (currentMap.getLayer(PLACES_HIT_LAYER_ID)) currentMap.removeLayer(PLACES_HIT_LAYER_ID);
       if (currentMap.getLayer(PLACES_LAYER_ID)) currentMap.removeLayer(PLACES_LAYER_ID);
       if (currentMap.getSource(SOURCE_ID)) currentMap.removeSource(SOURCE_ID);
     };
     
     const handleStateChange = () => {
-      console.log(map.getZoom());
       updateTextSize(map, COUNT_LAYER_ID);
-      sortLayerOrder(map, [COUNT_LAYER_ID, PLACES_LAYER_ID]);
+      sortLayerOrder(map, [COUNT_LAYER_ID, PLACES_LAYER_ID, PLACES_HIT_LAYER_ID]);
       // singletonIdsRef.current = getSingletonIds(map, PLACES_LAYER_ID);
     }
     
-
     const handleSingletonClick = (event: maplibregl.MapLayerMouseEvent) => {
+
       const feature = event.features?.[0];
       const placeId = feature?.properties?.id ?? feature?.id;
       if (placeId == null) return;
       if (feature?.geometry.type !== 'Point') return;
 
       event.originalEvent.stopPropagation();
-      selectedSingletonMarkerRef.current?.remove();
+      showPlaceMarker(map, feature, selectedSingletonMarkerRef);
 
-      const [lng, lat] = feature.geometry.coordinates;
-      const marker = new maplibregl.Marker({
-        element: TopPlacePin(),
-        anchor: 'center',
-      }).setLngLat([lng, lat]).addTo(map);
-      const motion = marker.getElement().querySelector<HTMLElement>('.top-place-pin-motion');
-      const shell = marker.getElement().querySelector<HTMLElement>('.top-place-pin-shell');
-      motion?.classList.add('is-selected');
-      shell?.classList.add('is-selected');
-      selectedSingletonMarkerRef.current = marker;
       selectedSingletonIdRef.current = String(placeId);
       setSelectedPlaceId(String(placeId));
     };
@@ -108,6 +99,8 @@ const useClusterLayer = (
         map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID));
       if (!map.getLayer(PLACES_LAYER_ID)) 
         map.addLayer(unclusteredPointLayer(PLACES_LAYER_ID, SOURCE_ID));
+      if (!map.getLayer(PLACES_HIT_LAYER_ID))
+        map.addLayer(unclusteredPointHitLayer(PLACES_HIT_LAYER_ID, SOURCE_ID));
       handleStateChange()
     };
     
@@ -120,9 +113,9 @@ const useClusterLayer = (
     // Heatmap layer need to load first for both to show
     // hence on 'idle' event instead of 'load' event
     
-    map.on('click', PLACES_LAYER_ID, handleSingletonClick);
-    map.on('mouseenter', PLACES_LAYER_ID, handleSingletonMouseEnter);
-    map.on('mouseleave', PLACES_LAYER_ID, handleSingletonMouseLeave);
+    map.on('click', PLACES_HIT_LAYER_ID, handleSingletonClick);
+    map.on('mouseenter', PLACES_HIT_LAYER_ID, handleSingletonMouseEnter);
+    map.on('mouseleave', PLACES_HIT_LAYER_ID, handleSingletonMouseLeave);
 
     return () => {
       map.off('load', refreshLayer);
@@ -130,9 +123,9 @@ const useClusterLayer = (
       map.off('pitch', refreshLayer);
       map.off('idle', handleStateChange);
 
-      map.off('click', PLACES_LAYER_ID, handleSingletonClick);
-      map.off('mouseenter', PLACES_LAYER_ID, handleSingletonMouseEnter);
-      map.off('mouseleave', PLACES_LAYER_ID, handleSingletonMouseLeave);
+      map.off('click', PLACES_HIT_LAYER_ID, handleSingletonClick);
+      map.off('mouseenter', PLACES_HIT_LAYER_ID, handleSingletonMouseEnter);
+      map.off('mouseleave', PLACES_HIT_LAYER_ID, handleSingletonMouseLeave);
       selectedSingletonMarkerRef.current?.remove();
       selectedSingletonMarkerRef.current = null;
       selectedSingletonIdRef.current = null;
