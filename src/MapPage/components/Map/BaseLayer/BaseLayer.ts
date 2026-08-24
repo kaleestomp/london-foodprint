@@ -11,7 +11,7 @@ import {
 } from '../MapTemplate';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-const STYLE_FIORD = 'https://tiles.openfreemap.org/styles/fiord';
+const STYLE_BASE = 'https://tiles.openfreemap.org/styles/fiord';
 const DISABLE_BASE_LAYER = (import.meta.env as Record<string, string | undefined>).VITE_DEBUG_DISABLE_BASE_LAYER === 'true';
 // const MAPTILER_KEY = (import.meta.env as Record<string, string | undefined>).VITE_MAPTILER_KEY;
 // const STYLE_BASE = `https://api.maptiler.com/maps/base-v4/style.json?key=${MAPTILER_KEY}`;
@@ -31,7 +31,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: STYLE_FIORD,
+      style: STYLE_BASE,
       center: LONDON_CENTER,
       zoom: LONDON_INITIAL_ZOOM,
       minZoom: LONDON_MIN_ZOOM,
@@ -67,7 +67,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
     const map = mapRef.current;
     if (!map || DISABLE_BASE_LAYER) return;
 
-    map.setStyle(STYLE_FIORD);
+    map.setStyle(STYLE_BASE);
   }, [mapMode, mapRef]);
 
   return { mapContainerRef, mapRef };

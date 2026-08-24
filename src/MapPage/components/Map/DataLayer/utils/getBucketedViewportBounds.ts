@@ -50,8 +50,9 @@ const unprojectWithoutPitch = (
 export const bucketViewportBounds = (
     bounds: ViewportBounds,
     zoomLevel: number,
+    intervalFactor: number = 1,
 ): ViewportBounds => {
-    const bboxDegreeInterval = getBboxDegreeInterval(zoomLevel);
+    const bboxDegreeInterval = getBboxDegreeInterval(zoomLevel) * intervalFactor;
     return {
         sw_lat: snapDownToInterval(bounds.sw_lat, bboxDegreeInterval),
         sw_lng: snapDownToInterval(bounds.sw_lng, bboxDegreeInterval),

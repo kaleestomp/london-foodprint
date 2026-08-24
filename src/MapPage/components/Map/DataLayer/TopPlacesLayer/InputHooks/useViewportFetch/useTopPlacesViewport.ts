@@ -73,7 +73,7 @@ const useTopPlacesViewport = (
         sw_lng: Math.min(topLeft.lng, bottomRight.lng),
         ne_lat: Math.max(topLeft.lat, bottomRight.lat),
         ne_lng: Math.max(topLeft.lng, bottomRight.lng),
-      }, zoomBucket);
+      }, zoomBucket, 0.8);
 
       return bucketed;
     };

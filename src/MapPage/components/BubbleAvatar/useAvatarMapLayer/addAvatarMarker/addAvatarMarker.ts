@@ -28,6 +28,7 @@ const addAvatarMarker = (
     markerEl.className = 'bubble-avatar-maplibre-marker';
     markerEl.style.width = `${markerSize}px`;
     markerEl.style.height = `${markerSize}px`;
+    markerEl.style.zIndex = '1000';
 
     const rootEl = document.createElement('div');
     rootEl.className = 'bubble-avatar-root';

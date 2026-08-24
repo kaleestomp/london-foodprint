@@ -1,4 +1,13 @@
 import type { CircleLayerSpecification, ExpressionSpecification, SymbolLayerSpecification } from 'maplibre-gl';
+import { getCuisineColorExpression } from '../TopPlacesLayer/syncMarkers/markers/backdropColors/getCuisineColor';
+
+const singletonOpacity: ExpressionSpecification = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  16, 0,
+  17, 1,
+];
 
 export const clusterCountLayer = (
   layerId: string,
@@ -10,7 +19,7 @@ export const clusterCountLayer = (
   filter: ['has', 'point_count'],
   layout: {
     'text-field': ['get', 'point_count_abbreviated'],
-    'text-font': ['Open Sans SemiBold'],
+    // 'text-font': ['Open Sans SemiBold'],
     'text-size': 10,
     'text-allow-overlap': true,
   },
@@ -31,18 +40,46 @@ export const unclusteredPointLayer = (
   source: sourceId,
   filter: ['!', ['has', 'point_count']],
   paint: {
-    'circle-color': '#dbdbdb',
-    'circle-radius': 3.6,
+    'circle-color': getCuisineColorExpression(['get', 'cuisine_type']),
+    'circle-radius': 3.8,
     'circle-stroke-width': 0.45,
     'circle-stroke-color': '#101010',
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      16, 0,
-      17, 1,
-    ],
+    'circle-opacity': singletonOpacity,
   }
+})
+
+export const unclusteredPointShadowLayer = (
+  layerId: string,
+  sourceId: string,
+): CircleLayerSpecification => ({
+  id: layerId,
+  type: 'circle',
+  source: sourceId,
+  filter: ['!', ['has', 'point_count']],
+  paint: {
+    'circle-color': 'rgba(0, 0, 0, 0.42)',
+    'circle-radius': 4.6,
+    'circle-blur': 0.45,
+    'circle-translate': [1.4, 1.8],
+    'circle-opacity': singletonOpacity,
+  },
+})
+
+export const unclusteredPointHighlightLayer = (
+  layerId: string,
+  sourceId: string,
+): CircleLayerSpecification => ({
+  id: layerId,
+  type: 'circle',
+  source: sourceId,
+  filter: ['!', ['has', 'point_count']],
+  paint: {
+    'circle-color': 'rgba(255, 255, 255, 0.55)',
+    'circle-radius': 1.55,
+    'circle-blur': 0.2,
+    'circle-translate': [-1.2, -1.2],
+    'circle-opacity': singletonOpacity,
+  },
 })
 
 export const unclusteredPointHitLayer = (

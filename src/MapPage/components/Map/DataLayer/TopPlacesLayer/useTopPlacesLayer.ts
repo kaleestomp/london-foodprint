@@ -51,13 +51,20 @@ const useTopPlacesLayer = (
 
   // Update Selected Pin CSS State
   useEffect(() => {
+
+    const rankMapByPlaceId = new Map(topPlaces.map((place, index) => [place.id, index + 1]));
+
     topPlaceMarkersRef.current.forEach((marker, placeId) => {
       const motion = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-motion');
       const shell = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-shell');
+      const rankBadge = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-rank-badge');
+      const rankBadgeLabel = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-rank-badge-label');
       if (!motion) return;
 
       motion.classList.remove('is-selected');
       shell?.classList.remove('is-selected');
+      rankBadge?.classList.remove('has-rank');
+      if (rankBadgeLabel) rankBadgeLabel.textContent = '';
       if (!selectedPlaceId || placeId !== selectedPlaceId) {
         return;
       }
@@ -65,6 +72,13 @@ const useTopPlacesLayer = (
       // Selected top-place pins lift, scale up, and use selected floating motion.
       motion.classList.add('is-selected');
       shell?.classList.add('is-selected');
+      if (rankBadge) {
+        const rank = rankMapByPlaceId.get(placeId);
+        if (rank && rank <= 20) {
+          if (rankBadgeLabel) rankBadgeLabel.textContent = String(rank);
+          rankBadge.classList.add('has-rank');
+        }
+      }
     });
   }, [selectedPlaceId, topPlaces]);
 

@@ -22,7 +22,7 @@ const clusterTextSize = (maxCount: number): ExpressionSpecification => {
     ['linear'],
     ['get', 'point_count'],
     10, 10,
-    highestCount, 18,
+    highestCount, 14,
   ];
 };
 

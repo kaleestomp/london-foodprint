@@ -4,7 +4,7 @@ import maplibregl from 'maplibre-gl';
 import { useAppUI } from '../../../../../context/AppUIContext';
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchHeatmap from '../HeatmapLayer/InputHooks/useFetchHeatmap';
-import { clusterCountLayer, unclusteredPointHitLayer, unclusteredPointLayer } from './clusterLayers';
+import { clusterCountLayer, unclusteredPointHighlightLayer, unclusteredPointHitLayer, unclusteredPointLayer, unclusteredPointShadowLayer } from './clusterLayers';
 import sortLayerOrder from './sortLayerOrder';
 import updateTextSize from './updateTextSize';
 import showPlaceMarker from './showPlaceMarker';
@@ -12,7 +12,9 @@ import showPlaceMarker from './showPlaceMarker';
 import '../TopPlacesLayer/syncMarkers/markers/TopPlacePin.css';
 
 const SOURCE_ID = 'cluster-source';
+const PLACES_SHADOW_LAYER_ID = 'unclustered-point-shadow';
 const PLACES_LAYER_ID = 'unclustered-point';
+const PLACES_HIGHLIGHT_LAYER_ID = 'unclustered-point-highlight';
 const PLACES_HIT_LAYER_ID = 'unclustered-point-hit-area';
 const COUNT_LAYER_ID = 'cluster-count';
 
@@ -45,13 +47,15 @@ const useClusterLayer = (
       if (!currentMap) return;
       if (currentMap.getLayer(COUNT_LAYER_ID)) currentMap.removeLayer(COUNT_LAYER_ID);
       if (currentMap.getLayer(PLACES_HIT_LAYER_ID)) currentMap.removeLayer(PLACES_HIT_LAYER_ID);
+      if (currentMap.getLayer(PLACES_HIGHLIGHT_LAYER_ID)) currentMap.removeLayer(PLACES_HIGHLIGHT_LAYER_ID);
       if (currentMap.getLayer(PLACES_LAYER_ID)) currentMap.removeLayer(PLACES_LAYER_ID);
+      if (currentMap.getLayer(PLACES_SHADOW_LAYER_ID)) currentMap.removeLayer(PLACES_SHADOW_LAYER_ID);
       if (currentMap.getSource(SOURCE_ID)) currentMap.removeSource(SOURCE_ID);
     };
     
     const handleStateChange = () => {
       updateTextSize(map, COUNT_LAYER_ID);
-      sortLayerOrder(map, [COUNT_LAYER_ID, PLACES_LAYER_ID, PLACES_HIT_LAYER_ID]);
+      sortLayerOrder(map, [COUNT_LAYER_ID, PLACES_SHADOW_LAYER_ID, PLACES_LAYER_ID, PLACES_HIGHLIGHT_LAYER_ID, PLACES_HIT_LAYER_ID]);
       // singletonIdsRef.current = getSingletonIds(map, PLACES_LAYER_ID);
     }
     
@@ -97,8 +101,12 @@ const useClusterLayer = (
 
       if (!map.getLayer(COUNT_LAYER_ID)) 
         map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID));
+      if (!map.getLayer(PLACES_SHADOW_LAYER_ID))
+        map.addLayer(unclusteredPointShadowLayer(PLACES_SHADOW_LAYER_ID, SOURCE_ID));
       if (!map.getLayer(PLACES_LAYER_ID)) 
         map.addLayer(unclusteredPointLayer(PLACES_LAYER_ID, SOURCE_ID));
+      if (!map.getLayer(PLACES_HIGHLIGHT_LAYER_ID))
+        map.addLayer(unclusteredPointHighlightLayer(PLACES_HIGHLIGHT_LAYER_ID, SOURCE_ID));
       if (!map.getLayer(PLACES_HIT_LAYER_ID))
         map.addLayer(unclusteredPointHitLayer(PLACES_HIT_LAYER_ID, SOURCE_ID));
       handleStateChange()

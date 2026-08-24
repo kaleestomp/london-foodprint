@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 
 type Props = {
@@ -20,7 +19,10 @@ const useMergePlaces = ({ viewportPlaces, nearbyPlaces }: Props): TopPlaceItem[]
         if (!dedupedViewportPlaces.length) return nearbyPlaces ?? [];
         if (!nearbyPlaces?.length) return dedupedViewportPlaces;
 
-        return [...dedupedViewportPlaces, ...nearbyPlaces];
+        // DELIBRATELY KEEP NEARBY PLACES FIRST 
+        // SO RANK TAG ONLY RECOGNIZES THE TOP 20 FROM NEARBY SEARCH
+        return [...nearbyPlaces, ...dedupedViewportPlaces];
+        
     }, [dedupedViewportPlaces, nearbyPlaces]);
 
     return mergedPlaces;
