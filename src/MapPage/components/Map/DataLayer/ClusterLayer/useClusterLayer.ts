@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 
-import { useAppUI } from '../../../../../context/AppUIContext';
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchHeatmap from '../HeatmapLayer/InputHooks/useFetchHeatmap';
 import { clusterCountLayer, unclusteredPointHighlightLayer, unclusteredPointHitLayer, unclusteredPointLayer, unclusteredPointShadowLayer } from './clusterLayers';
