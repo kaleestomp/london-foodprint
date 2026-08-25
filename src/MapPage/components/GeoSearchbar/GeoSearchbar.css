@@ -107,7 +107,7 @@
   border-radius: inherit;
   background: conic-gradient(
     from var(--rainbow-angle),
-    var(--app-toolbar-icon-color), var(--app-paper-color),
+    var(--app-toolbar-icon-color), 
     var(--app-paper-color), var(--app-toolbar-icon-color)
   );
   animation: rainbow-spin 4s linear infinite;

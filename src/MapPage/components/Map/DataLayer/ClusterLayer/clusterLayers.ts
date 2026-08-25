@@ -12,6 +12,7 @@ const singletonOpacity: ExpressionSpecification = [
 export const clusterCountLayer = (
   layerId: string,
   sourceId: string,
+  darkMode: boolean = true,
 ): SymbolLayerSpecification => ({
   id: layerId,
   type: 'symbol',
@@ -24,9 +25,9 @@ export const clusterCountLayer = (
     'text-allow-overlap': true,
   },
   paint: {
-    'text-color': '#ffffff',
-    'text-halo-color': '#101010',
-    'text-halo-width': 0.25,
+    'text-color': darkMode ? '#ffffff' : '#101010',
+    'text-halo-color': darkMode ? '#101010' : '#ffffff',
+    'text-halo-width': darkMode ? 0.5 : 1,
     'text-opacity': 0.9,
   },
 });

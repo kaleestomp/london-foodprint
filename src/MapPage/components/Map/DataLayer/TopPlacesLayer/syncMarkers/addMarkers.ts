@@ -22,7 +22,7 @@ const addMarkers = ({ activeMarkers, map, topPlaces, cache, onPlaceClick, now }:
         // CREATE / REUSE MARKER 
         const cached = cache.get(place.id);
         const marker = cached?.marker ?? new maplibregl.Marker({
-            element: TopPlacePin(place.cuisine_type ?? undefined),
+            element: TopPlacePin(place.id, place.cuisine_type ?? undefined),
             anchor: 'center',
         }).setLngLat([place.lon, place.lat]);
 

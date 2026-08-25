@@ -8,7 +8,7 @@ const ICON_SIZE = 26; // All pins same size 22
 const ENTER_CLASS = 'enter-animation';
 const EXIT_CLASS = 'exit-animation';
 
-const TopPlacePin = (cuisineType?: string): HTMLDivElement => {
+const TopPlacePin = (placeId?: string, cuisineType?: string): HTMLDivElement => {
 
   const iconSrc = getCuisineIconSrc(cuisineType);
   const element = document.createElement('div');
@@ -35,7 +35,10 @@ const TopPlacePin = (cuisineType?: string): HTMLDivElement => {
 
   // Apply precomputed icon-tinted backdrop, fallback to white.
   const shell = element.querySelector<HTMLElement>('.top-place-pin-shell');
-  if (shell) shell.style.setProperty('--bubble-color', getCuisineColor(cuisineType));
+  if (shell) {
+    shell.dataset.placeId = placeId;
+    shell.style.setProperty('--bubble-color', getCuisineColor(cuisineType));
+  }
 
   return element;
 };

@@ -2,11 +2,9 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import { type LatLng } from '../config';
-import getVisibleMapTargetScreenPoint from '../MapNavigation/getVisibleMapTargetScreenPoint';
 import useMapViewportNavigation from '../MapNavigation/useMapViewportNavigation';
-import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import { useAppUI } from '../../../../context/AppUIContext';
-import { useIsMobileCtx } from '../../../../context/IsMobileContext';
+import useBottomPadding from '../../MapViewportSync/useBottomPadding/useBottomPadding';
 
 type UseMapPanToLocationArgs = {
   mapRef: React.RefObject<maplibregl.Map | null>;
@@ -26,8 +24,7 @@ const useMapPanToLocation = ({
 }: UseMapPanToLocationArgs): out => {
   const { focusMap } = useMapViewportNavigation({ mapRef });
   const { liveLocation } = useAppUI();
-  const isMobile = useIsMobileCtx();
-  const { panelHeight, translateY } = usePullUpPanelMetrics();
+  const bottomPadding = useBottomPadding(mapRef);
   // Token for flight triggered by geo location updates
   const [flightToken, setFlightToken] = useState<number | null>(null);
   // Memoize targetLatLng to prevent unnecessary re-creation and infinite loops
@@ -50,20 +47,20 @@ const useMapPanToLocation = ({
 
     handledTokenRef.current = token;
 
-    const map = mapRef.current;
-    const targetScreenPoint = map
-      ? getVisibleMapTargetScreenPoint(map, isMobile, panelHeight, translateY)
-      : undefined;
-
     return focusMap({
       target: targetLatLng,
       method: 'pan',
       animate: true,
       onSettled: onReady,
       skipIfWithinMeters: 1,
-      targetScreenPoint,
+      padding: {
+        top: 0,
+        right: 0,
+        bottom: bottomPadding,
+        left: 0,
+      },
     });
-  }, [targetLatLng, token, onReady, focusMap, isMobile, panelHeight, translateY]);
+  }, [targetLatLng, token, onReady, focusMap, bottomPadding]);
 
   return {targetLatLng, flightToken};
 };

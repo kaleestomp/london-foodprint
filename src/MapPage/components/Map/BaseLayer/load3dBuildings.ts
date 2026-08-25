@@ -1,8 +1,10 @@
 import type maplibregl from 'maplibre-gl';
 
 const load3dBuildings = (
-    map: maplibregl.Map
+    map: maplibregl.Map,
+    darkMode: boolean = true
 ): void => {
+
     map.once('load', () => {
 
         map.setSky({
@@ -36,7 +38,7 @@ const load3dBuildings = (
                 'minzoom': 12, //15
                 'filter': ['!=', ['get', 'hide_3d'], true],
                 'paint': {
-                    'fill-extrusion-color': '#384261', //#D4CDB4
+                    'fill-extrusion-color': darkMode ? '#384261' : '#D4CDB4',
                     'fill-extrusion-height': [
                         'interpolate',
                         ['linear'],

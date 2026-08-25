@@ -1,12 +1,10 @@
 import { useEffect, useRef } from 'react';
 import type maplibregl from 'maplibre-gl';
 
-import getVisibleMapTargetScreenPoint from '../../MapNavigation/getVisibleMapTargetScreenPoint';
 import { ZOOM_LEVEL } from '../../config';
 import useMapViewportNavigation from '../../MapNavigation/useMapViewportNavigation';
-import { usePullUpPanelMetrics } from '../../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
+import useBottomPadding from '../../../MapViewportSync/useBottomPadding/useBottomPadding';
 
 /**
  * Manages all Leaflet layers for the dropped bubble avatar.
@@ -20,26 +18,41 @@ const useFocusMap = (
     mapRef: React.RefObject<maplibregl.Map | null>,
 ) => {
 
-    const isMobile = useIsMobileCtx();
-    const { panelHeight, translateY } = usePullUpPanelMetrics();
-    const pullUpPanelRef = useRef({ isMobile, panelHeight, translateY });
-    useEffect(() => { pullUpPanelRef.current = { isMobile, panelHeight, translateY } }, [isMobile, panelHeight, translateY]);
-
     const { searchMask } = useSearchFilters();
     const { focusMap } = useMapViewportNavigation({ mapRef });
+    const bottomPadding = useBottomPadding(mapRef);
+    const lastFocusedCenterKeyRef = useRef<string>('');
 
     useEffect(() => {
         const map = mapRef.current;
         const {center} = searchMask ?? {};
-        if (!map || !center) return;
+        if (!map || !center) {
+            lastFocusedCenterKeyRef.current = '';
+            return;
+        }
+
+        // Avoid focus calls when bottom padding changes 
+        // (e.g., due to pull-up panel openning / closing)
+        const centerKey = `${center.lat}|${center.lng}`;
+        if (lastFocusedCenterKeyRef.current === centerKey) return;
 
         // FOCUS MAP TO LOCATION
         const { lat, lng } = center;
-        const { isMobile, panelHeight, translateY } = pullUpPanelRef.current;
-        const targetScreenPoint = getVisibleMapTargetScreenPoint( map, isMobile, panelHeight, translateY);
-        focusMap({ target: { lat, lng }, method: 'setView', zoom: ZOOM_LEVEL, animate: true, targetScreenPoint });
+        focusMap({
+            target: { lat, lng },
+            method: 'setView',
+            zoom: ZOOM_LEVEL,
+            animate: true,
+            padding: {
+                top: 0,
+                right: 0,
+                bottom: bottomPadding,
+                left: 0,
+            },
+        });
+        lastFocusedCenterKeyRef.current = centerKey;
 
-    },[searchMask, mapRef, focusMap]);
+    },[searchMask, mapRef, focusMap, bottomPadding]);
     
 };
 

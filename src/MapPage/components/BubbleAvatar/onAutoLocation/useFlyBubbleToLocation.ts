@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'; 
 import type maplibregl from 'maplibre-gl';
 
-import { usePullUpPanelMetrics } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
-import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import getVisibleMapTargetScreenPoint from '../MapNavigation/getVisibleMapTargetScreenPoint';
 import getCurrentScreenXY from '../Searchmask/getCurrentScreenXY';
 import { type LatLng, type Point } from '../config';
+import useBottomPadding from '../../MapViewportSync/useBottomPadding/useBottomPadding';
+import getPaddedViewportCenterScreenPoint from '../MapNavigation/getPaddedViewportCenterScreenPoint';
 
 type props = {
     mapRef: React.RefObject<maplibregl.Map | null>;
@@ -21,9 +20,7 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
     const { lat, lng } = searchMask?.center ?? { lat: undefined, lng: undefined };
     const isDropped = lat !== undefined && lng !== undefined;
     // const currentScrPos = useGetCurrentScreenXY(mapRef, searchMask?.center);
-
-    const isMobile = useIsMobileCtx();
-    const { panelHeight, translateY } = usePullUpPanelMetrics();
+    const bottomPadding = useBottomPadding(mapRef);
 
     // Handel Fly Bubble to User Location Logic (LIVE / GEOSEARCH)
     // ==========================================================
@@ -40,14 +37,13 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
         resetBubbleToHome( screenXY ); // Swap with undefined to disable fly-in animation
 
         const latLng = { lat: targetLatLng.lat, lng: targetLatLng.lng };
-        const point = map.project(latLng);
-        const targetScreenPoint = getVisibleMapTargetScreenPoint(map, isMobile, panelHeight, translateY);
+        const paddedCenter = getPaddedViewportCenterScreenPoint(map, bottomPadding);
         pendingTargetLatLngRef.current = { lat: latLng.lat, lng: latLng.lng };
         setFlyOutTo({
-            x: targetScreenPoint?.x ?? rect.left + point.x,
-            y: targetScreenPoint?.y ?? rect.top + point.y,
+            x: paddedCenter.x,
+            y: paddedCenter.y,
         });
-    }, [mapRef, targetLatLng, lat, lng, resetBubbleToHome, isMobile, panelHeight, translateY]);
+    }, [mapRef, targetLatLng, lat, lng, resetBubbleToHome, bottomPadding]);
     
     // Handle the drop pin logic when the flight animation completes
     const dropOnEndFlight = useCallback(() => {

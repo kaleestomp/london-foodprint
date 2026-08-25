@@ -38,12 +38,17 @@
 }
 
 .map-toolbar-side-action {
-  width: var(--toolbar-height);
-  min-width: var(--toolbar-height);
+  width: calc((var(--toolbar-height) * 2) + var(--app-toolbar-button-gap));
+  min-width: calc((var(--toolbar-height) * 2) + var(--app-toolbar-button-gap));
   overflow: visible;
   transition: width 220ms ease, min-width 220ms ease, opacity 180ms ease;
   opacity: 1;
   position: relative;
+  
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--app-toolbar-button-gap);
 }
 
 .map-toolbar.map-toolbar-search-open .map-toolbar-side-action {

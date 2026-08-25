@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 
+import { useAppUI } from '../../../../../context/AppUIContext';
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchHeatmap from '../HeatmapLayer/InputHooks/useFetchHeatmap';
 import { clusterCountLayer, unclusteredPointHighlightLayer, unclusteredPointHitLayer, unclusteredPointLayer, unclusteredPointShadowLayer } from './clusterLayers';
@@ -22,6 +23,7 @@ const useClusterLayer = (
   enabled: boolean = true,
 ): React.RefObject<Set<string>> => {
 
+  const { mapMode } = useAppUI();
   const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
   const { geojson } = useFetchHeatmap(enabled);
   const singletonIdsRef = useRef<Set<string>>(new Set());
@@ -97,9 +99,8 @@ const useClusterLayer = (
           clusterRadius: 40,
         });
       }
-
       if (!map.getLayer(COUNT_LAYER_ID)) 
-        map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID));
+        map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID, mapMode === 'dark'));
       if (!map.getLayer(PLACES_SHADOW_LAYER_ID))
         map.addLayer(unclusteredPointShadowLayer(PLACES_SHADOW_LAYER_ID, SOURCE_ID));
       if (!map.getLayer(PLACES_LAYER_ID)) 
@@ -140,7 +141,7 @@ const useClusterLayer = (
       singletonIdsRef.current = new Set();
       map.getCanvas().style.cursor = '';
     };
-  }, [geojson, enabled, setSelectedPlaceId]);
+  }, [geojson, enabled, setSelectedPlaceId, mapMode]);
 
   return singletonIdsRef;
 };

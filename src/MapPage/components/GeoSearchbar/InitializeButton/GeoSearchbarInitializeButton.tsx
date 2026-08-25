@@ -1,4 +1,4 @@
-import NearMeOutlinedIcon from '@mui/icons-material/NearMeOutlined';
+import SearchIcon from '@mui/icons-material/Search';
 import './GeoSearchbarInitializeButton.css';
 
 type Props = {
@@ -18,7 +18,7 @@ const GeoSearchbarInitializeButton: React.FC<Props> = ({ dropdownId, showDropdow
       onClick={onExpand}
     >
       <span className="geo-searchbar-icon" aria-hidden="true">
-        <NearMeOutlinedIcon fontSize="small" />
+        <SearchIcon fontSize="small" />
       </span>
     </button>
   );

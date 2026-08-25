@@ -1,0 +1,7 @@
+.map-toolbar-compass-btn {
+  position: relative;
+}
+
+.map-toolbar-compass-icon {
+  transition: transform 180ms ease;
+}

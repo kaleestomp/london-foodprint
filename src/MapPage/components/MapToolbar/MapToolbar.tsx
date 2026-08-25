@@ -5,6 +5,7 @@ import { useAppUI } from '../../../context/AppUIContext';
 import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import GeoSearchbar from '../GeoSearchbar/GeoSearchbar';
 import LayersButton from './LayersButton/LayersButton';
+import NorthResetButton from './NorthResetButton/NorthResetButton';
 // import MyLocationButton from './MyLocationButtonFAB/MyLocationButton';
 
 import './MapToolbar.css';
@@ -30,6 +31,7 @@ const MapToolbar: React.FC<Props> = ({
         onDropdownOpenChange={setIsSearchDropdownOpen}
       />
       <div className="map-toolbar-side-action" aria-hidden={isSearchDropdownOpen}>
+        <NorthResetButton mapRef={mapRef} />
         <LayersButton />
         {/* <MyLocationButton mapRef={mapRef} onLiveLocationDrop={() => {}} /> */}
       </div>
