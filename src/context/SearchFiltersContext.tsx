@@ -45,6 +45,7 @@ type SearchFiltersContextType = {
 const SearchFiltersContext = createContext<SearchFiltersContextType | null>(null);
 
 export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => {
+  
   const [cuisines, setCuisines] = useState<string[]>([]);
   const [cuisineSelectionMode, setCuisineSelectionMode] = useState<CuisineSelectionMode>('include');
   const [scoreBasis, setScoreBasis] = useState<ScoreBasis>(2);
@@ -66,60 +67,60 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
     return PRICE_RANGE_FILTER_OPTIONS[start] ?? null;
   }, [priceRangeInterval]);
 
-  const exposed = useMemo<SearchFiltersContextType>(() => ({
-    cuisines,
-    cuisineSelectionMode,
-    scoreBasis,
-    effectiveCuisines: cuisineSelectionMode === 'include'
-      ? cuisines
-      : CUISINE_FILTER_OPTIONS.filter((option) => !cuisines.includes(option)),
-    venueType,
-    priceRange,
-    priceRangeInterval,
-    effectivePriceRanges,
-    scoreTier,
-    searchMask,
-    toggleCuisine: (value: string) => {
-      setCuisines((prev) => {
-        const next = prev.includes(value)
-          ? prev.filter((item) => item !== value)
-          : [...prev, value];
+  const effectiveCuisines = useMemo<string[]>(() => {
+    return cuisineSelectionMode === 'include'
+      ? cuisines : CUISINE_FILTER_OPTIONS.filter((option) => !cuisines.includes(option));
+  }, [cuisineSelectionMode, cuisines]);
 
-        return [...next].sort((left, right) => left.localeCompare(right));
-      });
-    },
-    clearCuisines: () => setCuisines([]),
-    setCuisineSelectionMode,
-    setScoreBasis,
-    setVenueType,
-    setPriceRange: (value: PriceRangeFilterOption | null) => {
-      if (value === null) {
-        setPriceRangeInterval(null);
-        return;
-      }
-      const index = PRICE_RANGE_FILTER_OPTIONS.indexOf(value);
-      if (index === -1) {
-        setPriceRangeInterval(null);
-        return;
-      }
-      setPriceRangeInterval([index, index]);
-    },
-    setPriceRangeInterval,
-    setScoreTier,
-    setSearchMask,
-    resetFilters: () => {
-      setCuisines([]);
-      setCuisineSelectionMode('include');
-      setScoreBasis(2);
-      setVenueType(null);
+  const toggleCuisine = (value: string) => {
+    setCuisines((prev) => {
+      const next = prev.includes(value)
+        ? prev.filter((item) => item !== value)
+        : [...prev, value];
+
+      return [...next].sort((left, right) => left.localeCompare(right));
+    });
+  };
+
+  const setPriceRange = (value: PriceRangeFilterOption | null) => {
+    if (value === null) {
       setPriceRangeInterval(null);
-      setScoreTier(2);
-      setSearchMask(null);
-    },
+      return;
+    }
+    const index = PRICE_RANGE_FILTER_OPTIONS.indexOf(value);
+    if (index === -1) {
+      setPriceRangeInterval(null);
+      return;
+    }
+    setPriceRangeInterval([index, index]);
+  };
+
+  const resetFilters = () => {
+    setCuisines([]);
+    setCuisineSelectionMode('include');
+    setScoreBasis(2);
+    setVenueType(null);
+    setPriceRangeInterval(null);
+    setScoreTier(2);
+    setSearchMask(null);
+  };
+
+  const exposed = useMemo<SearchFiltersContextType>(() => ({
+    cuisines, toggleCuisine, 
+    effectiveCuisines, clearCuisines: () => setCuisines([]),
+    cuisineSelectionMode, setCuisineSelectionMode,
+    scoreBasis, setScoreBasis,
+    venueType, setVenueType,
+    priceRange, setPriceRange,
+    priceRangeInterval, setPriceRangeInterval,
+    effectivePriceRanges, 
+    scoreTier, setScoreTier,
+    searchMask, setSearchMask,
+    resetFilters,
   }), [
-    cuisineSelectionMode, cuisines, 
-    scoreBasis, venueType, priceRange, 
-    priceRangeInterval, effectivePriceRanges, 
+    cuisineSelectionMode, cuisines,
+    scoreBasis, venueType, priceRange,
+    priceRangeInterval, effectivePriceRanges,
     scoreTier, searchMask
   ]);
 
