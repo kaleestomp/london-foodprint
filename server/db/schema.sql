@@ -59,12 +59,28 @@ CREATE INDEX idx_places_h3_r10     ON places(h3_r10);
 CREATE INDEX idx_places_h3_r11     ON places(h3_r11);
 -- GIST index: drives ST_DWithin exact distance check
 CREATE INDEX idx_places_geom       ON places USING GIST(geom);
+
+-- Hot endpoint: bbox first, then stable rank ordering. The id tie-breaker prevents
+-- page drift when two places have identical rankings.
+CREATE INDEX idx_places_lat_lon_normal_1 ON places(lat, lon, normal_1 DESC, id);
+CREATE INDEX idx_places_lat_lon_wilson_1 ON places(lat, lon, wilson_1 DESC, id);
+
 -- Composite: cuisine filter + base ranking sort (normal_1)
-CREATE INDEX idx_places_normal_1   ON places(cuisine_type, normal_1 DESC);
+CREATE INDEX idx_places_normal_1   ON places(cuisine_type, normal_1 DESC, id);
 -- Composite: cuisine filter + raw Wilson ranking sort (wilson_1)
-CREATE INDEX idx_places_wilson_1   ON places(cuisine_type, wilson_1 DESC);
--- Note: score_tier is a display-only field (card badge). Filtering always uses
--- normal_1/wilson_1 float thresholds directly — no extra sort columns needed.
+CREATE INDEX idx_places_wilson_1   ON places(cuisine_type, wilson_1 DESC, id);
+
+-- NOTE ON DB COST / INDEX CHOICES
+-- 1. The bbox + rank index is the most important for the hot list endpoint because
+--    the query always filters by lat/lon and then orders by rank within the search box.
+-- 2. The cuisine-based indexes are useful when filtering to a single cuisine or a small
+--    subset, but they are less universal than lat/lon + rank.
+-- 3. Avoid creating too many highly selective indexes on low-cardinality columns such as
+--    venue_type or cost unless real query telemetry shows they are used.
+-- 4. If a single ranking column is clearly dominant in production (likely normal_1), keep
+--    only the corresponding lat/lon+rank index to reduce write amplification and cloud cost.
+-- 5. score_tier is a display-only field; filtering should continue to use the real float
+--    thresholds rather than extra derived sort columns unless there is a clear benchmark win.
 
 
 -- ─── TABLE 2: h3_density ─────────────────────────────────────────────────────

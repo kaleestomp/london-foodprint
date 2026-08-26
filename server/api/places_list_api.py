@@ -52,7 +52,7 @@ async def get_places_list(
 
     sql = f"""
         SELECT
-            normal_1 AS ranking,
+            {sort_column} AS ranking,
             display_name,
             cuisine_type,
             is_chain,
@@ -94,7 +94,7 @@ async def get_places_list(
                 )
               )
           AND {tier_column} >= $12
-                ORDER BY {sort_column} DESC
+        ORDER BY {sort_column} DESC, id ASC
         LIMIT {PAGE_SIZE}
         OFFSET $13
     """
