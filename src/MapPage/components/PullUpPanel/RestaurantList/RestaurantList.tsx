@@ -4,7 +4,7 @@ import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
 import usePullUpPanelListQuery from './InputHook/usePullUpPanelListQuery';
 import ListLoading from './AltState/ListLoading';
 import NoResults from './AltState/NoResult';
-import ListItem from './ListItem';
+import ListItem from './ListItem/ListItem';
 import RefreshButton from './RefreshButton/RefreshButton';
 
 import './RestaurantList.css';

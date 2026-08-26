@@ -17,23 +17,6 @@
     0 16px 38px rgba(70, 48, 48, 0.16);
   --app-floating-card-shadow-inset: inset 2px 5px 10px rgba(5, 5, 5, 0.145);
 
-  /* --app-glass-card-bg: var(--app-paper-color); */
-  --app-glass-card-bg: linear-gradient(
-    165deg,
-    rgba(226, 236, 255, 0.52) 0%,
-    rgba(255, 255, 255, 0.16) 100%
-  );
-  --app-glass-card-bg-2: transparent;
-  --app-glass-card-border: 1px solid rgba(255, 255, 255, 0.55);
-  --app-glass-card-highlight: rgba(255, 255, 255, 0.72);
-  --app-glass-card-box-shadow:  
-    var(--app-floating-card-shadow),
-    inset 0 1px 0 var(--app-glass-card-highlight),
-    0 0 0 1px rgba(255, 255, 255, 0.06);
-  --app-glass-card-glow: rgba(109, 166, 248, 0.2);
-  --app-glass-card-backdrop-filter: blur(14px) saturate(1.15);
-  --app-glass-card-blob-opacity: 0.95;
-
   --app-text-color: #202124;
   --app-text-caption-color: #6c727c;
   --app-divider-color: #afafaf7a; /* #6c727c7a; */
@@ -43,6 +26,22 @@
   
   --app-paper-color-fixed: #e0e0e0;
   --app-paper-color: var(--app-paper-color-fixed);
+  --app-background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.8) 0%, /* 0.5 */
+    rgba(255, 255, 255, 0.6) 100% /* 0.8 */
+    /* 165deg,
+    rgba(226, 236, 255, 0.52) 0%,
+    rgba(255, 255, 255, 0.16) 100% */
+  );
+  --app-backdrop-filter: blur(48px) saturate(1.8);
+  --app-card-border: 1px solid rgba(255, 255, 255, 0.5);
+  --app-card-box-shadow: 0 -8px 16px rgba(0, 0, 0, 0.16);
+    /* var(--app-floating-card-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 0 0 1px rgba(255, 255, 255, 0.06); */
+
+
   --app-primary-black: rgb(45, 45, 45);
   --app-toolbar-icon-color: var(--app-primary-black);
   --app-primary-blue: rgb(31, 130, 192);

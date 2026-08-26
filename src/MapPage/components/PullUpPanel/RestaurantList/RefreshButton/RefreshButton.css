@@ -1,10 +1,11 @@
 .restaurant-list-refresh-wrap {
   position: sticky;
-  top: 8px;
+  top: 18px; /* 24px */
   z-index: 5;
   display: flex;
   justify-content: flex-end;
-  margin-bottom: -30px;
+  padding-right: 0px;
+  margin-bottom: -40px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease-in-out, transform 180ms ease-in-out;
@@ -23,12 +24,19 @@
   transform: translateY(-4px);
 }
 
-.restaurant-list-refresh-button {
-  border: 1px solid var(--app-divider-color);
-  background: rgba(255, 255, 255, 0.96);
+.restaurant-list-refresh-button,
+.restaurant-list-refresh-button.MuiIconButton-root {
+  border: 1px solid var(--app-divider-color) !important;
+  border-radius: 999px;
+  /* background-color: rgba(255, 255, 255, 0.96) !important; */
   color: var(--app-text-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: opacity 180ms ease-in-out, background-color 180ms ease-in-out;
+  transition: opacity 180ms ease-in-out, background-color 180ms ease-in-out, box-shadow 180ms ease-in-out;
+}
+
+.restaurant-list-refresh-button:hover,
+.restaurant-list-refresh-button.MuiIconButton-root:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .restaurant-list-refresh-button:disabled {

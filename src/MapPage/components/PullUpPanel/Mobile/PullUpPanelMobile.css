@@ -6,24 +6,17 @@
   display: flex;
   flex-direction: column;
   z-index: 800;
-  background: var(--app-paper-color);
+  
   border: none;
-  box-shadow: var(--app-opaque-card-box-shadow);
+  box-shadow: var(--app-card-box-shadow);
   touch-action: pan-y;
   overflow: hidden;
-  /* backdrop-filter: var(--app-glass-card-backdrop-filter);
-  -webkit-backdrop-filter: var(--app-glass-card-backdrop-filter); */
+
+  background: var(--app-background);
+  backdrop-filter: var(--app-backdrop-filter);
+  -webkit-backdrop-filter: var(--app-backdrop-filter);
   border-radius: var(--app-card-border-radius) var(--app-card-border-radius) 0 0;
-}
-.restaurant-sheet-mobile::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  /* background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.05) 38%, rgba(255, 255, 255, 0) 56%),
-    radial-gradient(circle at 14% 8%, var(--app-glass-card-glow) 0%, rgba(0, 0, 0, 0) 55%); */
+  border: var(--app-card-border);
 }
 
 .restaurant-panel-content {

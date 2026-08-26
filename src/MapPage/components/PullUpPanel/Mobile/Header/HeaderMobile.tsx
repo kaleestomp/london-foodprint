@@ -15,16 +15,16 @@ const HeaderMobile: FC<Props> = ({
 
   return (
     <div
-      className="restaurant-sheet-header"
+      className="pull-up-panel-header"
       onPointerDown={onHandlePointerDown}
     >
-      <div className="restaurant-sheet-handle-wrap">
-        <div className="restaurant-sheet-handle" />
+      <div className="pull-up-panel-handle-wrap">
+        <div className="pull-up-panel-handle" />
       </div>
-      <div className="restaurant-sheet-title-row">
-        <div className="restaurant-sheet-title-main">
-          <div className="restaurant-sheet-title">{headline}</div>
-          {/* <div className="restaurant-sheet-subtitle">
+      <div className="pull-up-panel-title-row">
+        <div className="pull-up-panel-title-block">
+          <div className="pull-up-panel-title">{headline}</div>
+          {/* <div className="pull-up-panel-subtitle">
             Ranked Top 25% of Metroplitan Area
           </div> */}
         </div>

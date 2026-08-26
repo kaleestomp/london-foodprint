@@ -21,11 +21,11 @@ const RefreshButton: FC<{
                 type="button"
                 className="restaurant-list-refresh-button"
                 onClick={onListRefresh}
-                size="small"
+                size="medium"
                 aria-label="Refresh list"
                 disabled={!isVisible}
             >
-                <RefreshIcon fontSize="small" />
+                <RefreshIcon fontSize="large" />
             </IconButton>
         </div>
     );
