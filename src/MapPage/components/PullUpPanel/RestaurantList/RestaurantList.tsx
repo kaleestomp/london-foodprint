@@ -72,7 +72,7 @@ const RestaurantList: FC = () => {
       });
     }
   }, [isListStale]);
-
+  console.log(items);
   return (
     <div
       ref={scrollRef}

@@ -12,7 +12,7 @@ const NORTH_EPSILON_DEG = 0.1;
 
 const normalizeBearing = (bearing: number): number => {
   if (!Number.isFinite(bearing)) return 0;
-  const normalized = ((bearing % 360) + 360) % 360;
+  const normalized = 360 - ((bearing % 360) + 360) % 360;
   return normalized > 180 ? normalized - 360 : normalized;
 };
 

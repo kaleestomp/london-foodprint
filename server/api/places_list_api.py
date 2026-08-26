@@ -55,6 +55,7 @@ async def get_places_list(
             {sort_column} AS ranking,
             display_name,
             cuisine_type,
+            cost AS price,
             is_chain,
             venue_type,
             google_maps_uri,
@@ -94,11 +95,14 @@ async def get_places_list(
                 )
               )
           AND {tier_column} >= $12
-        ORDER BY {sort_column} DESC, id ASC
+        ORDER BY {sort_column} DESC, id ASC 
         LIMIT {PAGE_SIZE}
         OFFSET $13
     """
-
+    # ORDER BY {sort_column} DESC, id ASC 
+    # (Previous) ORDER BY {sort_column} DESC 
+    # id ASC added the second sort key by id 
+    # in case the rank is tied 
     async with request.app.state.pool.acquire() as conn:
         rows = await conn.fetch(
             sql,
