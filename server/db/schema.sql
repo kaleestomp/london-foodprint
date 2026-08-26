@@ -62,25 +62,14 @@ CREATE INDEX idx_places_geom       ON places USING GIST(geom);
 
 -- Hot endpoint: bbox first, then stable rank ordering. The id tie-breaker prevents
 -- page drift when two places have identical rankings.
-CREATE INDEX idx_places_lat_lon_normal_1 ON places(lat, lon, normal_1 DESC, id);
-CREATE INDEX idx_places_lat_lon_wilson_1 ON places(lat, lon, wilson_1 DESC, id);
-
--- Composite: cuisine filter + base ranking sort (normal_1)
-CREATE INDEX idx_places_normal_1   ON places(cuisine_type, normal_1 DESC, id);
--- Composite: cuisine filter + raw Wilson ranking sort (wilson_1)
-CREATE INDEX idx_places_wilson_1   ON places(cuisine_type, wilson_1 DESC, id);
+CREATE INDEX idx_places_lat_lon_normal_1 ON places(lat, lon, normal_1 DESC, id ASC);
 
 -- NOTE ON DB COST / INDEX CHOICES
--- 1. The bbox + rank index is the most important for the hot list endpoint because
---    the query always filters by lat/lon and then orders by rank within the search box.
--- 2. The cuisine-based indexes are useful when filtering to a single cuisine or a small
---    subset, but they are less universal than lat/lon + rank.
--- 3. Avoid creating too many highly selective indexes on low-cardinality columns such as
---    venue_type or cost unless real query telemetry shows they are used.
--- 4. If a single ranking column is clearly dominant in production (likely normal_1), keep
---    only the corresponding lat/lon+rank index to reduce write amplification and cloud cost.
--- 5. score_tier is a display-only field; filtering should continue to use the real float
---    thresholds rather than extra derived sort columns unless there is a clear benchmark win.
+-- 1. This is the only bbox+rank index retained for the hot list endpoint.
+-- 2. It matches the main query shape: filter by viewport lat/lon, then order by rank.
+-- 3. The extra cuisine-based indexes were removed to keep write cost and cloud resource use low.
+-- 4. score_tier is a display-only field; filtering should continue to use the real float
+--    thresholds rather than extra derived sort columns unless queries show a clear gain.
 
 
 -- ─── TABLE 2: h3_density ─────────────────────────────────────────────────────

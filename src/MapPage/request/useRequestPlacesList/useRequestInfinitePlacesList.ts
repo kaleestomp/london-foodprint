@@ -49,8 +49,7 @@ const useRequestInfinitePlacesList = (
         placeholderData: (previousData) => previousData,
         initialPageParam: 1,
         queryFn: async ({ pageParam, signal }) => {
-            const requestParams = params ? { ...params, page: Number(pageParam) } : null;
-            return request(buildQueryKey(requestParams), { signal });
+            return request(buildQueryKey(params, Number(pageParam)), { signal });
         },
         getNextPageParam: (lastPage, allPages) => {
             if (!lastPage || lastPage.data.length < 20) return undefined;
