@@ -1,39 +1,48 @@
 import { useEffect, useState } from 'react';
 
-import useRequestPlacesList from '../../../../request/useRequestPlacesList/useRequestPlacesList';
 import useGetSearchBounds from './useGetSearchBounds';
 import useGetFilterParams from './useGetFilterParams';
-import type { PlacesListParams } from '../../../../request/useRequestPlacesList/useRequestPlacesList';
-import type { PlacesListResponse } from '../../../../request/useRequestPlacesList/request';
+import useRequestInfinitePlacesList, { type PlacesListParams } from '../../../../request/useRequestPlacesList/useRequestInfinitePlacesList';
+import { type PlacesListResponse } from '../../../../request/useRequestPlacesList/request';
 
-/**
- * Owns all logic for the restaurant list query:
- * - resolves spatial bounds from bubble mask or viewport
- * - derives stable scope/filter keys for page resets
- * - manages pagination state
- * - calls useRequestPlacesList
- */
-const usePullUpPanelListQuery = (
-  enabled: boolean =  true
-): {
+type ListQueryResult = {
   status: 'empty' | 'loading' | 'success' | 'error';
   res: PlacesListResponse | null;
-  page: number;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
-} => {
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isFetching: boolean;
+  isFetchingNextPage: boolean;
+  isListStale: boolean;
+};
 
+const usePullUpPanelListQuery = (
+  enabled: boolean = true,
+): ListQueryResult => {
   const { geoBounds, geoKey } = useGetSearchBounds();
   const { filterParams, filterKey } = useGetFilterParams();
-  const [page, setPage] = useState(1);
-  useEffect(() => {
-    setPage((prev) => (prev === 1 ? prev : 1));
+  const [isListStale, setIsListStale] = useState(false);
+  
+
+  useEffect(() => { 
+    setIsListStale(true); 
   }, [geoKey, filterKey]);
 
-  const placeListQueryParams : PlacesListParams | null = geoBounds 
-    ? { ...geoBounds, ...filterParams, page, enabled } : null;
-  const { status, res } = useRequestPlacesList( placeListQueryParams );
+  const placeListQueryParams : PlacesListParams | null = geoBounds
+    ? { ...geoBounds, ...filterParams }
+    : null;
+  const { status, res, isReady, isFetching,
+    hasNextPage, isFetchingNextPage, fetchNextPage
+  } = useRequestInfinitePlacesList(placeListQueryParams, enabled);
 
-  return { status, res, page, setPage };
+  useEffect(() => {
+    if (isReady) setIsListStale(false);
+  }, [isReady]);
+
+  return {
+    status, res, isFetching,
+    hasNextPage, isFetchingNextPage,
+    isListStale, fetchNextPage,
+  };
 };
 
 export default usePullUpPanelListQuery;

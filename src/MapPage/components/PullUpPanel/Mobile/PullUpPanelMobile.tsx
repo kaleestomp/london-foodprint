@@ -14,9 +14,8 @@ type Props = {
 };
 const PullUpPanelMobile: FC<Props> = ({ mapRef }) => {
     void mapRef;
-    const { handlePanelPointerDown, handleHandlePointerDown, 
+    const { handlePanelPointerDown, handleHandlePointerDown,
         isDragging, panelHeight, translateY } = usePullUpPanelSnapState();
-
 
     return (
         <>
@@ -35,14 +34,7 @@ const PullUpPanelMobile: FC<Props> = ({ mapRef }) => {
                 />
                 <div className="restaurant-panel-content">
                     <OverviewSection />
-                    <RestaurantList
-                        // isPanelOpen={isPanelOpen}
-                        // allowScroll={isPanelOpen}
-                        // onContentPointerDown={handleContentPointerDown}
-                        // onContentPointerMove={handleContentPointerMove}
-                        // onContentPointerUp={handleContentPointerUp}
-                        // onContentPointerCancel={handleContentPointerCancel}
-                    />
+                    <RestaurantList />
                 </div>
             </section>
         </>

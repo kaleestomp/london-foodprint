@@ -30,7 +30,7 @@ type Props = {
   onContentPointerUp: () => void;
   onContentPointerCancel: () => void;
 };
-const RestaurantList: FC<Props> = ({
+const PlaceDetail: FC<Props> = ({
   // isPanelOpen,
   allowScroll,
   onContentPointerDown,
@@ -39,11 +39,11 @@ const RestaurantList: FC<Props> = ({
   onContentPointerCancel,
 }) => {
   const { selectedPlaceId } = usePlaceSelection();
-  const { status: listStatus, res: listRes, page, setPage } = usePullUpPanelListQuery();
+  const { status: listStatus, res: listRes } = usePullUpPanelListQuery();
   const { status: detailStatus, res: detailRes } = useRequestPlaceDetail(selectedPlaceId);
   console.log(listRes);
   const showEmptyList = listStatus !== 'loading' && (!listRes || listRes.data.length === 0);
-  const canGoNextPage = Boolean(listRes && listRes.data.length >= 20);
+  // const canGoNextPage = Boolean(listRes && listRes.data.length >= 20);
 
   return (
     <div
@@ -79,10 +79,10 @@ const RestaurantList: FC<Props> = ({
           );
         })}
 
-        <div className="restaurant-list-pagination">
+        {/* <div className="restaurant-list-pagination">
           <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Prev</button>
           <button type="button" onClick={() => setPage((p) => p + 1)} disabled={!canGoNextPage}>Next</button>
-        </div>
+        </div> */}
       </div>
 
       <div className="restaurant-list-section restaurant-list-detail">
@@ -110,4 +110,4 @@ const RestaurantList: FC<Props> = ({
   );
 };
 
-export default RestaurantList;
+export default PlaceDetail;

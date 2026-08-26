@@ -9,7 +9,7 @@
   background: var(--app-paper-color);
   border: none;
   box-shadow: var(--app-opaque-card-box-shadow);
-  touch-action: none;
+  touch-action: pan-y;
   overflow: hidden;
   /* backdrop-filter: var(--app-glass-card-backdrop-filter);
   -webkit-backdrop-filter: var(--app-glass-card-backdrop-filter); */

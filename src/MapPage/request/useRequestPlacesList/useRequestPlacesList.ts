@@ -20,7 +20,7 @@ export interface PlacesListParams {
   enabled?: boolean;
 }
 
-const buildQueryKey = (params: PlacesListParams): string => {
+export const buildQueryKey = (params: PlacesListParams): string => {
   const qs = new URLSearchParams({
     sw_lat: String(params.sw_lat),
     sw_lng: String(params.sw_lng),
