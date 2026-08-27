@@ -52,6 +52,9 @@ async def get_places_list(
 
     sql = f"""
         SELECT
+            id,
+            lat,
+            lon,
             {sort_column} AS ranking,
             display_name,
             cuisine_type,

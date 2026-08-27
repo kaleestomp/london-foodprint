@@ -1,6 +1,9 @@
 import { apiBasePromise } from '../../../utils/apiBase';
 
 export interface PlacesListItem {
+  id: string;
+  lat: number;
+  lon: number;
   ranking: number | null;
   display_name: string;
   cuisine_type: string | null;
