@@ -1,5 +1,5 @@
-import Typography from '@mui/material/Typography';
 import type { FC } from 'react';
+import Typography from '@mui/material/Typography';
 
 import { getCuisineColor } from '../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/backdropColors/getCuisineColor';
 import { type PlacesListItem } from '../../../../request/useRequestPlacesList/request';
@@ -8,20 +8,9 @@ import brightenColor from './brightenColor';
 import RankBadge from './RankBadgeSimple/RankBadge';
 import ExtendedContent from './ExtendedContent/ExtendedContent';
 import CloseButton from './CloseButton/CloseButton';
+import { formatDistance, formatPrice } from './formatMetrics';
 
 import './ListItem.css';
-const formatPrice = (price: string ): string => {
-  if (!price) return '';
-  if (price?.startsWith('<')) 
-    return `~£${price.slice(1)}`
-  else return `£${price}`;
-};
-
-const formatDistance = (distanceM: number | null): string => {
-  if (typeof distanceM !== 'number' || Number.isNaN(distanceM)) return '';
-  if (distanceM < 1000) return `${Math.round(distanceM)}m`;
-  return `${(distanceM / 1000).toFixed(1)}km`;
-};
 
 const ListItem: FC<{
     item: PlacesListItem;
@@ -59,11 +48,13 @@ const ListItem: FC<{
           {item.display_name}
         </Typography>
         <Typography variant="subtitle1" className="list-item-row-subtitle" >
-          {[
+          
+          {!isSelected ? [
             item.cuisine_type ?? '',
+            formatDistance(item.distance_m), 
             formatPrice(item.price?.trim() ?? ''),
-            formatDistance(item.distance_m),
-          ].filter(Boolean).join(' · ')}
+          ].filter(Boolean).join(' · ') 
+          : item.cuisine_type ?? ''}
         </Typography>
 
         <ExtendedContent item={item} />
