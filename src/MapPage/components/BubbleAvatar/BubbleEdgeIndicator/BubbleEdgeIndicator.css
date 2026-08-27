@@ -6,7 +6,7 @@
 /* Bubble body — centred on the computed edge position via translate */
 .bubble-edge-indicator {
   position: fixed;
-  transform: translate(-50%, -50%) scale(0.92);
+  transform: translate(-50%, -50%);
 
   width: calc(var(--bubble-avatar-home-size) * var(--bubble-avatar-edge-scale)); /* 52px */
   height: calc(var(--bubble-avatar-home-size) * var(--bubble-avatar-edge-scale)); /* 52px */
@@ -26,13 +26,6 @@
   justify-content: center;
 
   transition: transform 0.1s ease;
-  opacity: 0;
-}
-
-.bubble-edge-indicator.is-visible {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
 }
 
 .bubble-edge-indicator:active {

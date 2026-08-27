@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import { type PanInfo } from 'framer-motion';
 import type maplibregl from 'maplibre-gl';
 
 import { type Point } from '../config';
@@ -35,12 +36,25 @@ const onBubbleDrag = (
 
   const hasDragStarted = useCallback(() => hasDragStartedRef.current, []);
 
+  const handleDragStart = useCallback(() => {
+    hasDragStartedRef.current = true;
+    beginDragging();
+    mapRef.current?.dragPan.disable();
+  }, [beginDragging, mapRef]);
+
   const handleDragStartAtPoint = useCallback((x: number, y: number) => {
     hasDragStartedRef.current = true;
     beginDragging();
     beginAt(x, y);
     mapRef.current?.dragPan.disable();
   }, [beginAt, beginDragging, mapRef]);
+
+  const handleDrag = useCallback(
+    (_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      updatePointer(info.point.x, info.point.y);
+    },
+    [updatePointer],
+  );
 
   const handleDragMoveToPoint = useCallback((x: number, y: number) => {
     updatePointer(x, y);
@@ -88,13 +102,23 @@ const onBubbleDrag = (
     [endDragging, handleDropCancel, handleDropXY, resetDragMotion],
   );
 
+  const handleDragEnd = useCallback(
+    (_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      handleDragEndAtPoint(info.point.x, info.point.y);
+    },
+    [handleDragEndAtPoint],
+  );
+
   return {
     isDragging,
     dragMotion,
     hasDragStarted,
     resetDragStarted,
+    handleDragStart,
     handleDragStartAtPoint,
+    handleDrag,
     handleDragMoveToPoint,
+    handleDragEnd,
     handleDragEndAtPoint,
   };
 };

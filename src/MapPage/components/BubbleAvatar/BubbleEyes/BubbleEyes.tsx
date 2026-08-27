@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import useBubbleHomeEyes from './useBubbleHomeEyes';
 import './BubbleEyes.css';
 
@@ -17,31 +18,31 @@ const BubbleEyes: React.FC<Props> = ({ bubbleRef, pickupPos, isDragging }) => {
     isVisuallyDragging,
   });
 
-  const baseEyeStyle: React.CSSProperties = {
-    transform: `translate3d(${eyeX}px, ${eyeY}px, 0) scaleY(${eyeScaleY})`,
-    transition: 'transform 130ms cubic-bezier(0.22, 1, 0.36, 1)',
-  };
-
-  const rightEyeStyle: React.CSSProperties = {
-    ...baseEyeStyle,
-    transitionDelay: isBlinking ? '40ms' : '0ms',
-  };
-
   return (
     <div className="bubble-inner">
         <div className="bubble-face">
         <div className="bubble-eyes">
 
             {/* Left eye */}
-            <div
+            <motion.div
             className={`bubble-eye${isSmileEye ? ' is-smile' : ''}`}
-            style={baseEyeStyle}
+            animate={{ x: eyeX, y: eyeY, scaleY: eyeScaleY }}
+            transition={{
+                x: { type: 'spring', stiffness: 200, damping: 20 },
+                y: { type: 'spring', stiffness: 200, damping: 20 },
+                scaleY: { duration: 0.13 },
+            }}
             />
 
             {/* Right eye — 40 ms stagger on blink close only */}
-            <div
+            <motion.div
             className={`bubble-eye${isSmileEye ? ' is-smile' : ''}`}
-            style={rightEyeStyle}
+            animate={{ x: eyeX, y: eyeY, scaleY: eyeScaleY }}
+            transition={{
+                x: { type: 'spring', stiffness: 200, damping: 20 },
+                y: { type: 'spring', stiffness: 200, damping: 20 },
+                scaleY: { duration: 0.13, delay: isBlinking ? 0.04 : 0 },
+            }}
             />
 
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import type maplibregl from 'maplibre-gl';
 
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
@@ -64,24 +65,32 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
   }, [mapRef, searchMask, cancelLongPress]);
 
   return (
-    edgeState ? (
-      <button
-        key={`edge-indicator-${edgeState.edge}`}
-        className={`bubble-edge-indicator is-visible edge-${edgeState.edge}`}
-        style={{ left: edgeState.x, top: edgeState.y }}
-        onPointerDown={handlePointerDown}
-        onPointerUp={cancelLongPress}
-        onPointerLeave={cancelLongPress}
-        onPointerCancel={cancelLongPress}
-        onClick={handleClick}
-        aria-label="Navigate back to avatar"
-      >
-        <div className="bubble-edge-eyes">
-          <div className="bubble-edge-eye" />
-          <div className="bubble-edge-eye" />
-        </div>
-      </button>
-    ) : null
+    <>
+      <AnimatePresence>
+        {edgeState && (
+          <motion.button
+            key={`edge-indicator-${edgeState.edge}`}
+            className={`bubble-edge-indicator edge-${edgeState.edge}`}
+            style={{ left: edgeState.x, top: edgeState.y }}
+            onPointerDown={handlePointerDown}
+            onPointerUp={cancelLongPress}
+            onPointerLeave={cancelLongPress}
+            onPointerCancel={cancelLongPress}
+            onClick={handleClick}
+            aria-label="Navigate back to avatar"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <div className="bubble-edge-eyes">
+              <div className="bubble-edge-eye" />
+              <div className="bubble-edge-eye" />
+            </div>
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
