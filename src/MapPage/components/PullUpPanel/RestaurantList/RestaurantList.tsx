@@ -6,6 +6,7 @@ import ListLoading from './AltState/ListLoading';
 import NoResults from './AltState/NoResult';
 import ListItem from './ListItem/ListItem';
 import RefreshButton from './RefreshButton/RefreshButton';
+import useSelectedItemKey, { getListItemKey } from './useSelectedItemKey';
 
 import './RestaurantList.css';
 
@@ -18,16 +19,17 @@ const RestaurantList: FC = () => {
     handleContentPointerCancel, isPanelOpen } = usePullUpPanelSnapState();
 
   // SCROLL STATES
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const isProgrammaticScrollRef = useRef(false);
   const [hasScrolledSinceLastRefresh, setHasScrolledSinceLastRefresh] = useState(false);
   const [isAtTop, setIsAtTop] = useState(true);
   const shouldAutoRefresh = isAtTop && !hasScrolledSinceLastRefresh;
 
-  const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale 
+  // NETWORK CALL
+  const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale
   } = usePullUpPanelListQuery(shouldAutoRefresh);
-  const items = res?.data ?? [];
 
+  // SCROLL HANDLER
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const isProgrammaticScrollRef = useRef(false);
   const onScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -47,7 +49,7 @@ const RestaurantList: FC = () => {
 
     // NEAR BOTTOM
     const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - NEAR_BOTTOM_THRESHOLD;
-    if (nearBottom && hasNextPage && !isFetchingNextPage) 
+    if (nearBottom && hasNextPage && !isFetchingNextPage)
       void fetchNextPage();
 
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
@@ -72,6 +74,11 @@ const RestaurantList: FC = () => {
       });
     }
   }, [isListStale]);
+
+
+  // SELECTION STATE
+  const items = res?.data ?? [];
+  const [selectedItemKey, setSelectedItemKey] = useSelectedItemKey(items);
   console.log(items);
   return (
     <div
@@ -84,20 +91,30 @@ const RestaurantList: FC = () => {
       onPointerUp={handleContentPointerUp}
       onPointerCancel={handleContentPointerCancel}
     >
-      <RefreshButton onListRefresh={ onListRefresh } isVisible={ refreshAvaliable } />
+      <RefreshButton onListRefresh={onListRefresh} isVisible={refreshAvaliable} />
       <div className="restaurant-list-section">
         <ListLoading enabled={status === 'loading' && items.length === 0} />
         <NoResults enabled={status !== 'loading' && items.length === 0} />
 
-        {items.map((row, idx) => (
-          <ListItem key={`${row.display_name}-${idx}`} item={row} />
-        ))}
+        {items.map((row, idx) => {
+          const itemKey = getListItemKey(row.display_name, idx);
+          return (<ListItem
+            key={itemKey}
+            item={row}
+            isSelected={selectedItemKey === itemKey}
+            onSelect={() => setSelectedItemKey(itemKey)}
+            onClose={() => {
+              setSelectedItemKey((prev) => (prev === itemKey ? null : prev));
+            }}
+          />);
+        })}
+
         {isFetchingNextPage && (
           <div className="restaurant-list-pagination">
             <span>Loading more…</span>
           </div>
         )}
-        
+
       </div>
     </div>
   );

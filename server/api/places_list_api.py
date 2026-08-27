@@ -56,6 +56,18 @@ async def get_places_list(
             display_name,
             cuisine_type,
             cost AS price,
+            CASE
+                WHEN $8::BOOLEAN THEN (
+                    6371000 * 2 * ASIN(
+                        SQRT(
+                            POWER(SIN(RADIANS((lat - $9) / 2)), 2)
+                            + COS(RADIANS($9)) * COS(RADIANS(lat))
+                            * POWER(SIN(RADIANS((lon - $10) / 2)), 2)
+                        )
+                    )
+                )
+                ELSE NULL
+            END AS distance_m,
             is_chain,
             venue_type,
             google_maps_uri,

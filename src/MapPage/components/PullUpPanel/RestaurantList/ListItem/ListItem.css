@@ -4,18 +4,38 @@
   align-items: flex-start;
   gap: 12px;
   text-align: left;
-  padding: 14px 16px 12px;
+  padding: 18px 18px 24px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(17, 24, 39, 0.06);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  transition: transform 180ms ease, box-shadow 180ms ease;
   will-change: transform, box-shadow;
+  cursor: pointer;
+
+  max-height: 94px;
+  overflow: hidden;
+  transition: max-height 240ms ease, transform 180ms ease, 
+    box-shadow 180ms ease, padding 180ms ease;
 }
 
 .list-item-row:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 4px 8px rgba(15, 23, 42, 0.12);
+}
+
+.list-item-row.is-selected {
+  padding-bottom: 18px;
+  max-height: 300px;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.36); /* 0.16 */
+
+  position: sticky;
+  top: 16px;
+  bottom: 0px;
+  z-index: 4;
+}
+
+.list-item-row.is-selected:hover {
+  transform: translateY(-1px) scale(1.01);
 }
 
 .list-item-content {
@@ -25,11 +45,39 @@
 
 .list-item-row-title {
   color: var(--app-text-color);
-  margin-bottom: 4px;
-  line-height: 1.3;
+  font-size: 1.1rem !important;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: font-size 240ms ease, line-height 240ms ease;
+}
+.list-item-row.is-selected .list-item-row-title {
+  font-size: 1.25rem !important;
+  white-space: normal;
+}
+
+.list-item-row-subtitle {
+  color: var(--app-text-caption-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: font-size 220ms ease, opacity 220ms ease;
+}
+.list-item-row.is-selected .list-item-row-subtitle {
+  white-space: normal;
 }
 
 
+
+
+.list-item-row .list-item-extra {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 200ms ease;
+}
+.list-item-row.is-selected .list-item-extra {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}

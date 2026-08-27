@@ -5,6 +5,7 @@ export interface PlacesListItem {
   display_name: string;
   cuisine_type: string | null;
   price: string | null;
+  distance_m: number | null;
   is_chain: boolean | null;
   venue_type: string | null;
   google_maps_uri: string | null;
