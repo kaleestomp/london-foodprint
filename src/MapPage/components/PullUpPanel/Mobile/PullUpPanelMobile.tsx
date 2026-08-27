@@ -2,7 +2,7 @@ import type { FC, RefObject } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 // import { useAppUI } from '../../../../context/AppUIContext';
-import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
+import { usePullUpPanelMetrics, usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
 import RestaurantList from '../RestaurantList/RestaurantList';
 import HeaderMobile from './Header/HeaderMobile';
 import OverviewSection from '../OverviewSection/OverviewSection';
@@ -15,7 +15,8 @@ type Props = {
 const PullUpPanelMobile: FC<Props> = ({ mapRef }) => {
     void mapRef;
     const { handlePanelPointerDown, handleHandlePointerDown,
-        isDragging, panelHeight, translateY } = usePullUpPanelSnapState();
+        isDragging } = usePullUpPanelSnapState();
+    const { panelHeight, translateY } = usePullUpPanelMetrics();
 
     return (
         <>

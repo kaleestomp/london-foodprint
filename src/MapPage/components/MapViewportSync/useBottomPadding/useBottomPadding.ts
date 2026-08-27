@@ -3,14 +3,15 @@ import type maplibregl from 'maplibre-gl';
 
 import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import { usePullUpPanelSnapState } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
+import { usePullUpPanelMetrics, usePullUpPanelSnapState } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import getRecenterOffset from './isMarkerWouldbeBlocked';
 
 const useBottomPadding = (
   mapRef: React.RefObject<maplibregl.Map | null>
 ): number => {
 
-  const { isMobile, snapState, panelHeight, translateY } = usePullUpPanelSnapState();
+  const { isMobile, snapState } = usePullUpPanelSnapState();
+  const { panelHeight, translateY } = usePullUpPanelMetrics();
   const { searchMask } = useSearchFilters();
   const { selectedPlaceId } = usePlaceSelection();
 

@@ -1,4 +1,4 @@
-import type { FC, PointerEvent as ReactPointerEvent } from 'react';
+import { memo, type FC, type PointerEvent as ReactPointerEvent } from 'react';
 
 import useResultSummary from '../../HeaderContent/ResultSummary';
 
@@ -33,4 +33,4 @@ const HeaderMobile: FC<Props> = ({
   );
 };
 
-export default HeaderMobile;
+export default memo(HeaderMobile);
