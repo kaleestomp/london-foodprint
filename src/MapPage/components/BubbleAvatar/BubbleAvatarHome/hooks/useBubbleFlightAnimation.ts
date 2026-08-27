@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { type Point } from '../../config';
 
@@ -21,6 +21,9 @@ const useBubbleFlightAnimation = ({
 }: UseBubbleFlightAnimationArgs) => {
   const flyInCompletedRef = useRef(false);
   const flyOutCompletedRef = useRef(false);
+  const [flightOffset, setFlightOffset] = useState<Point>({ x: 0, y: 0 });
+  const [opacity, setOpacity] = useState(1);
+  const [transitionCss, setTransitionCss] = useState('none');
   const shouldFlyIn = !pickupFrom && !!flyInFrom;
   const flyInOffset = shouldFlyIn && flyInFrom
     ? { x: flyInFrom.x - homeCenter.x, y: flyInFrom.y - homeCenter.y }
@@ -37,24 +40,38 @@ const useBubbleFlightAnimation = ({
     flyOutCompletedRef.current = false;
   }, [flyOutTo, homeCenter]);
 
+  useEffect(() => {
+    if (!flyInOffset) {
+      setTransitionCss('none');
+      setOpacity(1);
+      setFlightOffset({ x: 0, y: 0 });
+      return;
+    }
+
+    setTransitionCss('none');
+    setOpacity(0);
+    setFlightOffset(flyInOffset);
+    const raf = window.requestAnimationFrame(() => {
+      setTransitionCss('transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 160ms ease-out');
+      setOpacity(1);
+      setFlightOffset({ x: 0, y: 0 });
+    });
+
+    return () => window.cancelAnimationFrame(raf);
+  }, [flyInOffset]);
+
+  useEffect(() => {
+    if (!flyOutOffset) return;
+
+    setTransitionCss('transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 160ms ease-out');
+    setOpacity(1);
+    setFlightOffset(flyOutOffset);
+  }, [flyOutOffset]);
+
   return {
-    initial: flyInOffset ? { x: flyInOffset.x, y: flyInOffset.y, opacity: 0 } : false,
-    animate:
-      flyOutOffset ? { x: flyOutOffset.x, y: flyOutOffset.y, opacity: 1 }
-      : flyInOffset ? { x: 0, y: 0, opacity: 1 }
-      : undefined,
-    transition:
-      flyOutOffset ? {
-        x: { type: 'spring' as const, stiffness: 220, damping: 20 },
-        y: { type: 'spring' as const, stiffness: 220, damping: 20 },
-        opacity: { duration: 0.16 },
-      }
-      : flyInOffset ? {
-        x: { type: 'spring' as const, stiffness: 280, damping: 24 },
-        y: { type: 'spring' as const, stiffness: 280, damping: 24 },
-        opacity: { duration: 0.16 },
-      }
-      : undefined,
+    flightOffset,
+    opacity,
+    transitionCss,
     dragEnabled: !flyOutTo,
     handleAnimationComplete: () => {
       if (flyOutOffset && !flyOutCompletedRef.current) {

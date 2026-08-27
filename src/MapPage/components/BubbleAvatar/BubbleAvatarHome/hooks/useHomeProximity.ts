@@ -1,12 +1,12 @@
 import { useRef, useEffect } from 'react';
-import { type MotionValue, useMotionValueEvent } from 'framer-motion';
 
 import { useBubbleAvatarState } from '../../BubbleAvatarStateContext';
 import { HOME_SNAP_RADIUS, type Point } from '../../config';
+import type { ValueChannel } from '../../onBubbleDrag/useDragMotionValues';
 
 type PointerMotion = {
-  x: MotionValue<number>;
-  y: MotionValue<number>;
+  x: ValueChannel;
+  y: ValueChannel;
 };
 
 /**
@@ -34,8 +34,14 @@ const useHomeProximity = (
     }
   };
 
-  useMotionValueEvent(pointer.x, 'change', updateNearHome);
-  useMotionValueEvent(pointer.y, 'change', updateNearHome);
+  useEffect(() => {
+    const unsubscribeX = pointer.x.subscribe(updateNearHome);
+    const unsubscribeY = pointer.y.subscribe(updateNearHome);
+    return () => {
+      unsubscribeX();
+      unsubscribeY();
+    };
+  }, [pointer.x, pointer.y, isDragging, homeCenter]);
 
   useEffect(() => {
     if (!isDragging) {

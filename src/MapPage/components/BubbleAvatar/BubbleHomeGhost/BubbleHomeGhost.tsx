@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
@@ -31,27 +30,20 @@ const BubbleHomeGhost: React.FC<Props> = ({ onResetHome }) => {
   }, [homeCenter.y, isMobile]);
   
   return (
-    <motion.button
+    <button
       className="bubble-home-reset"
       style={ghostStyle}
       onClick={onResetHome}
       aria-label="Return avatar to home"
       title="Return avatar home"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 0.88 }}
-      whileTap={{ scale: 0.9 }}
-      exit={{ opacity: 0 }}
-      transition={{ opacity: { duration: 0.2, ease: 'easeOut' } }}
     >
-      <motion.div
-        className="bubble-home-reset-ring"
-        animate={{ scale: isNearHome ? 1.16 : 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+      <div
+        className={`bubble-home-reset-ring${isNearHome ? ' is-near-home' : ''}`}
       >
         <DashedCircle className="bubble-home-reset-ring-svg" />
-      </motion.div>
+      </div>
       <ReplayRoundedIcon fontSize="large" aria-hidden="true" />
-    </motion.button>
+    </button>
   );
 };
 

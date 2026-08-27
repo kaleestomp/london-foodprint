@@ -2,16 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 
 import { cellToLatLng } from 'h3-js';
-import type { MotionValue } from 'framer-motion';
 
 import { useTileQuery } from '../../../../context/TileQueryContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import useRequestTiles from '../../../request/useRequestTiles/useRequestTiles';
 import { SEARCH_RADIUS } from '../config';
+import type { ValueChannel } from '../onBubbleDrag/useDragMotionValues';
 
 type PointerMotion = {
-  x: MotionValue<number>;
-  y: MotionValue<number>;
+  x: ValueChannel;
+  y: ValueChannel;
 };
 
 const POLL_MS = 220;
