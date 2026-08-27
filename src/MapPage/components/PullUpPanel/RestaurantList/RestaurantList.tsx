@@ -79,7 +79,8 @@ const RestaurantList: FC = () => {
   // SELECTION STATE
   const items = res?.data ?? [];
   const [selectedItemKey, setSelectedItemKey] = useSelectedItemKey(items);
-  // console.log(items);
+  console.log(items);
+
   return (
     <div
       ref={scrollRef}
@@ -97,7 +98,7 @@ const RestaurantList: FC = () => {
         <NoResults enabled={status !== 'loading' && items.length === 0} />
 
         {items.map((row, idx) => {
-          const itemKey = getListItemKey(row.display_name, idx);
+          const itemKey = getListItemKey(row.id, idx);
           return (<ListItem
             key={itemKey}
             item={row}
