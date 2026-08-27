@@ -79,7 +79,7 @@ const RestaurantList: FC = () => {
   // SELECTION STATE
   const items = res?.data ?? [];
   const [selectedItemKey, setSelectedItemKey] = useSelectedItemKey(items);
-  console.log(items);
+  // console.log(items);
 
   return (
     <div
