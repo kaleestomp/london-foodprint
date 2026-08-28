@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "postinstall": "patch-package",
     "server:dev": "server/.venv/Scripts/python -m server.server",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
@@ -42,6 +43,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "gh-pages": "^6.3.0",
     "globals": "^17.6.0",
+    "patch-package": "^8.0.1",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12"

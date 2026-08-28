@@ -6,7 +6,7 @@ import { Drawer } from 'vaul';
 
 import './VaulDrawer.css';
 
-const snapPoints = ['148px', '355px', 0.9];
+const snapPoints = ['148px', '355px', 1];
 
 export default function VaulDrawer() {
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0]);
