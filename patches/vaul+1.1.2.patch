@@ -1,5 +1,5 @@
 diff --git a/node_modules/vaul/dist/index.mjs b/node_modules/vaul/dist/index.mjs
-index 0dbbce5..2f6d5f2 100644
+index 0dbbce5..115fe55 100644
 --- a/node_modules/vaul/dist/index.mjs
 +++ b/node_modules/vaul/dist/index.mjs
 @@ -445,7 +445,7 @@ const TRANSITIONS = {
@@ -107,7 +107,24 @@ index 0dbbce5..2f6d5f2 100644
              const isDraggingInDirection = draggedDistance > 0;
              // Pre condition for disallowing dragging in the close direction.
              const noCloseSnapPointsPreCondition = snapPoints && !dismissible && !isDraggingInDirection;
-@@ -1216,6 +1254,9 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -1044,13 +1082,14 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+             const wrapper = document.querySelector('[data-vaul-drawer-wrapper]');
+             const drawerDimension = direction === 'bottom' || direction === 'top' ? drawerHeightRef.current : drawerWidthRef.current;
+             // Calculate the percentage dragged, where 1 is the closed position
+-            let percentageDragged = absDraggedDistance / drawerDimension;
++            const rawPercentageDragged = absDraggedDistance / drawerDimension;
++            let percentageDragged = rawPercentageDragged;
+             const snapPointPercentageDragged = getSnapPointsPercentageDragged(absDraggedDistance, isDraggingInDirection);
+             if (snapPointPercentageDragged !== null) {
+                 percentageDragged = snapPointPercentageDragged;
+             }
+             // Disallow close dragging beyond the smallest snap point.
+-            if (noCloseSnapPointsPreCondition && percentageDragged >= 1) {
++            if (noCloseSnapPointsPreCondition && rawPercentageDragged >= 1) {
+                 return;
+             }
+             if (!isAllowedToDrag.current && !shouldDrag(event.target, isDraggingInDirection)) return;
+@@ -1216,6 +1255,9 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
          if (!isDragging || !drawerRef.current) return;
          drawerRef.current.classList.remove(DRAG_CLASS);
          isAllowedToDrag.current = false;
@@ -117,7 +134,7 @@ index 0dbbce5..2f6d5f2 100644
          setIsDragging(false);
          dragEndTime.current = new Date();
      }
-@@ -1223,6 +1264,9 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -1223,6 +1265,9 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
          if (!isDragging || !drawerRef.current) return;
          drawerRef.current.classList.remove(DRAG_CLASS);
          isAllowedToDrag.current = false;
@@ -127,7 +144,7 @@ index 0dbbce5..2f6d5f2 100644
          setIsDragging(false);
          dragEndTime.current = new Date();
          const swipeAmount = getTranslate(drawerRef.current, direction);
-@@ -1236,7 +1280,7 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -1236,7 +1281,7 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
              setJustReleased(true);
              setTimeout(()=>{
                  setJustReleased(false);
