@@ -20,8 +20,6 @@ const usePanelDragEngine = ({
   const [isDragging, setIsDragging] = useState(false);
   const moveHandlerRef = useRef<((event: PointerEvent) => void) | null>(null);
   const endHandlerRef = useRef<(() => void) | null>(null);
-  const rafRef = useRef<number | null>(null);
-  const latestTranslateRef = useRef<number>(currentTranslate);
 
   const cleanupActiveListeners = useCallback(() => {
     if (moveHandlerRef.current) {
@@ -32,10 +30,6 @@ const usePanelDragEngine = ({
       window.removeEventListener('pointerup', endHandlerRef.current);
       window.removeEventListener('pointercancel', endHandlerRef.current);
       endHandlerRef.current = null;
-    }
-    if (rafRef.current !== null) {
-      window.cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
     }
   }, []);
 
@@ -52,32 +46,17 @@ const usePanelDragEngine = ({
 
     const startTranslate = currentTranslate;
     let dragCurrentTranslate = startTranslate;
-    latestTranslateRef.current = startTranslate;
     setIsDragging(true);
-    const dragElement = element as HTMLElement;
-    dragElement.setPointerCapture(pointerId);
+    (element as HTMLElement).setPointerCapture(pointerId);
 
     const onMove = (event: PointerEvent) => {
       const deltaY = event.clientY - clientY;
       const next = clamp(startTranslate + deltaY, minOffset, maxOffset);
       dragCurrentTranslate = next;
-      latestTranslateRef.current = next;
-      if (rafRef.current !== null) return;
-      rafRef.current = window.requestAnimationFrame(() => {
-        rafRef.current = null;
-        onMoveTranslate(latestTranslateRef.current);
-      });
+      onMoveTranslate(next);
     };
 
     const onEnd = () => {
-      if (dragElement.hasPointerCapture(pointerId)) {
-        dragElement.releasePointerCapture(pointerId);
-      }
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-      onMoveTranslate(latestTranslateRef.current);
       cleanupActiveListeners();
       onDragEnd({
         source,

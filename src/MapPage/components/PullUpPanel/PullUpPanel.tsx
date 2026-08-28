@@ -9,6 +9,7 @@ type Props = {
   mapRef: React.RefObject<maplibregl.Map | null>;
 };
 const PullUpPanel: FC<Props> = ({ mapRef }) => {
+  
   const isMobile = useIsMobileCtx();
 
   return isMobile ? (

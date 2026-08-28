@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
 
-import { RESIZE_HEIGHT_JITTER_PX } from '../../../../../utils/browser/config';
+const RESIZE_HEIGHT_JITTER_PX = 120
 
 const getViewportHeight = () => (
-  typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 800
+  typeof window !== 'undefined' ? 
+    (window.visualViewport?.height ?? window.innerHeight) : 800
 );
 
-const useViewportHeightWithJitter = () => {
+// Gets the active viewport height
+const useVisualViewportHeight = () => {
+  
   const [viewportHeight, setViewportHeight] = useState(getViewportHeight);
 
   useEffect(() => {
+    
     const onResize = () => {
       const nextHeight = getViewportHeight();
       setViewportHeight((prev) => {
@@ -30,4 +34,4 @@ const useViewportHeightWithJitter = () => {
   return viewportHeight;
 };
 
-export default useViewportHeightWithJitter;
+export default useVisualViewportHeight;

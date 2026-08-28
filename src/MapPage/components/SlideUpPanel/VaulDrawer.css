@@ -1,0 +1,149 @@
+.vaul-trigger {
+  position: relative;
+  display: flex;
+  height: 40px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 9999px;
+  background: #ffffff;
+  padding: 0 16px;
+  color: #111111;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.vaul-trigger:hover {
+  background: #fafafa;
+}
+
+.vaul-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 0, 0, 0.4);
+}
+
+.vaul-content {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin-right: -1px;
+  margin-left: -1px;
+  display: flex;
+  height: 100%;
+  max-height: 97%;
+  flex-direction: column;
+  border: 1px solid #e5e7eb;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: #ffffff;
+  outline: none;
+}
+
+.vaul-body {
+  display: flex;
+  width: 100%;
+  max-width: 448px;
+  flex-direction: column;
+  margin: 0 auto;
+  padding: 20px 16px 16px;
+}
+
+.vaul-body-scroll {
+  overflow-y: auto;
+}
+
+.vaul-body-clip {
+  overflow: hidden;
+}
+
+.vaul-stars-row {
+  display: flex;
+  align-items: center;
+}
+
+.vaul-star {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #facc15;
+}
+
+.vaul-title {
+  margin: 8px 0 0;
+  color: #111827;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.vaul-subtitle {
+  margin: 4px 0 24px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.vaul-paragraph {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.vaul-cta {
+  margin-top: 32px;
+  height: 48px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 6px;
+  background: #000000;
+  color: #f9fafb;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.vaul-section {
+  margin-top: 48px;
+}
+
+.vaul-section-title {
+  margin: 0;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.vaul-items-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.vaul-item-title {
+  display: block;
+  color: #111827;
+}
+
+.vaul-item-copy {
+  color: #4b5563;
+}
+
+.vaul-quote {
+  margin: 0;
+  color: #111827;
+  font-family: Georgia, 'Times New Roman', serif;
+  line-height: 1.6;
+}
+
+.vaul-caption {
+  display: block;
+  margin-top: 8px;
+  color: #4b5563;
+  font-size: 14px;
+}

@@ -17,6 +17,7 @@ type PanelSnapshot = {
 const PANEL_PADDING_ANIMATION_MS = 240;
 
 const PullUpPanelMapViewportSync: React.FC<Props> = ({ mapRef }) => {
+  
   const { isDragging } = usePullUpPanelSnapState();
   const { selectedPlaceId } = usePlaceSelection();
 

@@ -1,4 +1,4 @@
-import { memo, type FC } from 'react';
+import type { FC } from 'react';
 
 import { useAppUI } from '../../../../context/AppUIContext';
 import PriceFilterPanel from '../../FilterTabs/PriceFilter/PriceFilterPanel';
@@ -28,4 +28,4 @@ const OverviewSection: FC= () => {
     );
 };
 
-export default memo(OverviewSection);
+export default OverviewSection;

@@ -1,41 +1,39 @@
 import { useCallback, useEffect, useMemo, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
-import useViewportHeightWithJitter from './helper/useViewportHeightWithJitter';
+import useVisualViewportHeight from '../../../../utils/browser/useVisualViewportHeight';
 import usePanelDragEngine from './helper/usePanelDragEngine';
 import useContentPullToClose from './helper/useContentPullToClose';
 import useClearActiveToolbarTabOnClose from './helper/useClearActiveToolbarTabOnClose';
 
 import { TAP_THRESHOLD_PX } from '../../../../utils/browser/config';
-import { 
-  MOBILE_PEEK_PX, MOBILE_OPEN_HEIGHT_RATIO, 
-  getClosedOffsetForHeight, 
-  type DragSource, type SnapState,
-} from './config';
+import { getPanelFullHeight, getTranslateYMax, 
+  type DragSource, type SnapState } from './config';
 
 const usePullUpPanelSnap = () => {
   
   const isMobile = useIsMobileCtx();
-  const viewportHeight = useViewportHeightWithJitter();
+  const visualViewportHeight = useVisualViewportHeight();
+  
   const [snapState, setSnapState] = useState<SnapState>('closed');
-  const [translateY, setTranslateY] = useState(() =>
-    typeof window !== 'undefined'
-      ? getClosedOffsetForHeight(window.visualViewport?.height ?? window.innerHeight)
-      : getClosedOffsetForHeight(800),
+  const [translateY, setTranslateY] = useState(
+    // Lazy initializer so JS does not evaluate per render
+    () => typeof window !== 'undefined' 
+      ? getTranslateYMax(window.visualViewport?.height ?? window.innerHeight)
+      : getTranslateYMax(800),
   );
 
   const metrics = useMemo(() => {
-    const sheetHeight = Math.max(MOBILE_PEEK_PX, Math.round(viewportHeight * MOBILE_OPEN_HEIGHT_RATIO));
     const snapOffsets: Record<SnapState, number> = {
-      closed: Math.max(0, sheetHeight - MOBILE_PEEK_PX),
+      closed: getTranslateYMax(visualViewportHeight),
       open: 0,
     };
     return {
-      snapOffsets,
-      maxOffset: snapOffsets.closed,
-      minOffset: snapOffsets.open,
-      sheetHeight,
+      snapOffsets, // Describes all snap positions
+      maxOffset: snapOffsets.closed, // The maximum translateY value (panel fully closed)
+      minOffset: snapOffsets.open, // The minimum translateY value (panel fully open)
+      sheetHeight: getPanelFullHeight(visualViewportHeight),
     };
-  }, [viewportHeight]);
+  }, [visualViewportHeight]);
 
   const handleDragEnd = useCallback(({ source, startTranslate, endTranslate }: {
     source: DragSource;

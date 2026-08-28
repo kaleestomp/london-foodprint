@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef, useState, type FC } from 'react';
+import { useCallback, useRef, useState, type FC } from 'react';
 
 import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
 import usePullUpPanelListQuery from './InputHook/usePullUpPanelListQuery';
@@ -121,4 +121,4 @@ const RestaurantList: FC = () => {
   );
 };
 
-export default memo(RestaurantList);
+export default RestaurantList;

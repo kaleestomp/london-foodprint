@@ -8,7 +8,7 @@ export type DragSource = 'panel' | 'handle' | 'content';
 
 
 export const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-export const getClosedOffsetForHeight = (viewportHeight: number) => {
-  const sheetHeight = Math.max(MOBILE_PEEK_PX, Math.round(viewportHeight * MOBILE_OPEN_HEIGHT_RATIO));
-  return Math.max(0, sheetHeight - MOBILE_PEEK_PX);
-};
+export const getPanelFullHeight = (viewportHeight: number) => 
+  Math.max(MOBILE_PEEK_PX, Math.round(viewportHeight * MOBILE_OPEN_HEIGHT_RATIO)); 
+export const getTranslateYMax = (viewportHeight: number) => 
+  Math.max(0, getPanelFullHeight(viewportHeight) - MOBILE_PEEK_PX);
