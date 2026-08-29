@@ -12,7 +12,7 @@ import Loading from '../components/Loading/Loading';
 import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 // import IPLocationHandler from './components/Map/IPLocationHandler/IPLocationHandler';
 import PullDownPanel from './components/PullDownPanel/PullDownPanel';
-import BaseToolbar from './components/BaseToolbar/BaseToolbar';
+// import BaseToolbar from './components/BaseToolbar/BaseToolbar';
 import MapToolbar from './components/MapToolbar/MapToolbar';
 import PullUpPanelMapViewportSync from './components/MapViewportSync/PullUpPanelMapViewportSync';
 // import PullUpPanel from './components/PullUpPanel/PullUpPanel';
