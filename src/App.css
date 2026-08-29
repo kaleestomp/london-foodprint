@@ -11,7 +11,7 @@
   --app-toolbar-height: 56px;
   --app-toolbar-button-gap: 12px;
   --app-floating-card-bg: #dee7f7;
-  --app-card-border-radius: 20px;
+  --app-card-border-radius: 10px; /* 20px */
   --app-floating-card-shadow:
     0 2px 8px rgba(0, 0, 0, 0.08),
     0 16px 38px rgba(70, 48, 48, 0.16);
@@ -22,8 +22,9 @@
   --app-divider-color: #afafaf7a; /* #6c727c7a; */
   --app-floating-card-backdrop-filter: blur(14px);
   --app-faint-outline-color: rgba(0, 0, 0, 0.15);
-  --app-sheet-handle-color: #c5cad3;
+  --app-handle-color: #c5cad3;
   
+
   --app-paper-color-fixed: #e0e0e0;
   --app-paper-color: var(--app-paper-color-fixed);
   --app-background: linear-gradient(
@@ -34,13 +35,15 @@
     rgba(226, 236, 255, 0.52) 0%,
     rgba(255, 255, 255, 0.16) 100% */
   );
-  --app-backdrop-filter: blur(48px) saturate(1.8);
+  --app-backdrop-filter: blur(50px) saturate(1.8);
   --app-card-border: 1px solid rgba(255, 255, 255, 0.5);
   --app-card-box-shadow: 0 -8px 16px rgba(0, 0, 0, 0.16);
-    /* var(--app-floating-card-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 0 0 1px rgba(255, 255, 255, 0.06); */
-
+  --app-glass-bg: rgba(255, 255, 255, 0.15);
+  --app-glass-border: 1px solid rgba(255, 255, 255, 0.3);
+  --app-glass-shadow: 0 -8px 32px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 20px 10px rgba(255, 255, 255, 0.25);
 
   --app-primary-black: rgb(45, 45, 45);
   --app-toolbar-icon-color: var(--app-primary-black);
@@ -75,7 +78,7 @@ html[data-theme='dark'] {
   --app-divider-color: rgba(255, 255, 255, 0.1);
   --app-faint-outline-color: rgba(255, 255, 255, 0.2);
   --app-floating-card-backdrop-filter: blur(18px) saturate(1.15);
-  --app-sheet-handle-color: rgba(255, 255, 255, 0.15);
+  --app-handle-color: #d1d5db;
   --app-toolbar-icon-color: var(--app-text-color);
 }
 

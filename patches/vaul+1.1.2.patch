@@ -1,5 +1,63 @@
+diff --git a/node_modules/vaul/dist/index.d.mts b/node_modules/vaul/dist/index.d.mts
+index 6315d99..d34caa7 100644
+--- a/node_modules/vaul/dist/index.d.mts
++++ b/node_modules/vaul/dist/index.d.mts
+@@ -65,6 +65,12 @@ type DialogProps = {
+      */
+     dismissible?: boolean;
+     onDrag?: (event: React.PointerEvent<HTMLDivElement>, percentageDragged: number) => void;
++    // CUSTOM PATCH -----------------
++    /**
++     * Gets triggered for every accepted drag frame with the visible drawer height or width in pixels.
++     */
++    onDragPositionChange?: (visibleDimension: number) => void;
++    // -----------------
+     onRelease?: (event: React.PointerEvent<HTMLDivElement>, open: boolean) => void;
+     /**
+      * When `false` it allows to interact with elements outside of the drawer without closing it.
+@@ -110,7 +116,10 @@ type DialogProps = {
+     preventScrollRestoration?: boolean;
+     autoFocus?: boolean;
+ } & (WithFadeFromProps | WithoutFadeFromProps);
+-declare function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRelease: onReleaseProp, snapPoints, shouldScaleBackground, setBackgroundColorOnScale, closeThreshold, scrollLockTimeout, dismissible, handleOnly, fadeFromIndex, activeSnapPoint: activeSnapPointProp, setActiveSnapPoint: setActiveSnapPointProp, fixed, modal, onClose, nested, noBodyStyles, direction, defaultOpen, disablePreventScroll, snapToSequentialPoint, preventScrollRestoration, repositionInputs, onAnimationEnd, container, autoFocus, }: DialogProps): React.JSX.Element;
++// CUSTOM PATCH -----------------
++// declare function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRelease: onReleaseProp, snapPoints, shouldScaleBackground, setBackgroundColorOnScale, closeThreshold, scrollLockTimeout, dismissible, handleOnly, fadeFromIndex, activeSnapPoint: activeSnapPointProp, setActiveSnapPoint: setActiveSnapPointProp, fixed, modal, onClose, nested, noBodyStyles, direction, defaultOpen, disablePreventScroll, snapToSequentialPoint, preventScrollRestoration, repositionInputs, onAnimationEnd, container, autoFocus, }: DialogProps): React.JSX.Element;
++declare function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onDragPositionChange, onRelease: onReleaseProp, snapPoints, shouldScaleBackground, setBackgroundColorOnScale, closeThreshold, scrollLockTimeout, dismissible, handleOnly, fadeFromIndex, activeSnapPoint: activeSnapPointProp, setActiveSnapPoint: setActiveSnapPointProp, fixed, modal, onClose, nested, noBodyStyles, direction, defaultOpen, disablePreventScroll, snapToSequentialPoint, preventScrollRestoration, repositionInputs, onAnimationEnd, container, autoFocus, }: DialogProps): React.JSX.Element;
++// -----------------
+ declare const Overlay: React.ForwardRefExoticComponent<Omit<DialogPrimitive.DialogOverlayProps & React.RefAttributes<HTMLDivElement>, "ref"> & React.RefAttributes<HTMLDivElement>>;
+ type ContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>;
+ declare const Content: React.ForwardRefExoticComponent<Omit<DialogPrimitive.DialogContentProps & React.RefAttributes<HTMLDivElement>, "ref"> & React.RefAttributes<HTMLDivElement>>;
+diff --git a/node_modules/vaul/dist/index.d.ts b/node_modules/vaul/dist/index.d.ts
+index 6315d99..d34caa7 100644
+--- a/node_modules/vaul/dist/index.d.ts
++++ b/node_modules/vaul/dist/index.d.ts
+@@ -65,6 +65,12 @@ type DialogProps = {
+      */
+     dismissible?: boolean;
+     onDrag?: (event: React.PointerEvent<HTMLDivElement>, percentageDragged: number) => void;
++    // CUSTOM PATCH -----------------
++    /**
++     * Gets triggered for every accepted drag frame with the visible drawer height or width in pixels.
++     */
++    onDragPositionChange?: (visibleDimension: number) => void;
++    // -----------------
+     onRelease?: (event: React.PointerEvent<HTMLDivElement>, open: boolean) => void;
+     /**
+      * When `false` it allows to interact with elements outside of the drawer without closing it.
+@@ -110,7 +116,10 @@ type DialogProps = {
+     preventScrollRestoration?: boolean;
+     autoFocus?: boolean;
+ } & (WithFadeFromProps | WithoutFadeFromProps);
+-declare function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRelease: onReleaseProp, snapPoints, shouldScaleBackground, setBackgroundColorOnScale, closeThreshold, scrollLockTimeout, dismissible, handleOnly, fadeFromIndex, activeSnapPoint: activeSnapPointProp, setActiveSnapPoint: setActiveSnapPointProp, fixed, modal, onClose, nested, noBodyStyles, direction, defaultOpen, disablePreventScroll, snapToSequentialPoint, preventScrollRestoration, repositionInputs, onAnimationEnd, container, autoFocus, }: DialogProps): React.JSX.Element;
++// CUSTOM PATCH -----------------
++// declare function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRelease: onReleaseProp, snapPoints, shouldScaleBackground, setBackgroundColorOnScale, closeThreshold, scrollLockTimeout, dismissible, handleOnly, fadeFromIndex, activeSnapPoint: activeSnapPointProp, setActiveSnapPoint: setActiveSnapPointProp, fixed, modal, onClose, nested, noBodyStyles, direction, defaultOpen, disablePreventScroll, snapToSequentialPoint, preventScrollRestoration, repositionInputs, onAnimationEnd, container, autoFocus, }: DialogProps): React.JSX.Element;
++declare function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onDragPositionChange, onRelease: onReleaseProp, snapPoints, shouldScaleBackground, setBackgroundColorOnScale, closeThreshold, scrollLockTimeout, dismissible, handleOnly, fadeFromIndex, activeSnapPoint: activeSnapPointProp, setActiveSnapPoint: setActiveSnapPointProp, fixed, modal, onClose, nested, noBodyStyles, direction, defaultOpen, disablePreventScroll, snapToSequentialPoint, preventScrollRestoration, repositionInputs, onAnimationEnd, container, autoFocus, }: DialogProps): React.JSX.Element;
++// -----------------
+ declare const Overlay: React.ForwardRefExoticComponent<Omit<DialogPrimitive.DialogOverlayProps & React.RefAttributes<HTMLDivElement>, "ref"> & React.RefAttributes<HTMLDivElement>>;
+ type ContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>;
+ declare const Content: React.ForwardRefExoticComponent<Omit<DialogPrimitive.DialogContentProps & React.RefAttributes<HTMLDivElement>, "ref"> & React.RefAttributes<HTMLDivElement>>;
 diff --git a/node_modules/vaul/dist/index.mjs b/node_modules/vaul/dist/index.mjs
-index 0dbbce5..115fe55 100644
+index 0dbbce5..aac764a 100644
 --- a/node_modules/vaul/dist/index.mjs
 +++ b/node_modules/vaul/dist/index.mjs
 @@ -445,7 +445,7 @@ const TRANSITIONS = {
@@ -33,17 +91,43 @@ index 0dbbce5..115fe55 100644
          if (activeSnapPoint || activeSnapPointProp) {
              var _snapPoints_findIndex;
              const newIndex = (_snapPoints_findIndex = snapPoints == null ? void 0 : snapPoints.findIndex((snapPoint)=>snapPoint === activeSnapPointProp || snapPoint === activeSnapPoint)) != null ? _snapPoints_findIndex : -1;
-@@ -913,6 +919,9 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -675,6 +681,9 @@ function useSnapPoints({ activeSnapPointProp, setActiveSnapPointProp, snapPoints
+         set(drawerRef.current, {
+             transform: isVertical(direction) ? `translate3d(0, ${newValue}px, 0)` : `translate3d(${newValue}px, 0, 0)`
+         });
++        // CUSTOM PATCH -----------------
++        return newValue;
++        // -----------------
+     }
+     function getPercentageDragged(absDraggedDistance, isDraggingDown) {
+         if (!snapPoints || typeof activeSnapPointIndex !== 'number' || !snapPointsOffset || fadeFromIndex === undefined) return null;
+@@ -875,8 +884,10 @@ let previousBodyPosition = null;
+         restorePositionSetting
+     };
+ }
+-
+-function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRelease: onReleaseProp, snapPoints, shouldScaleBackground = false, setBackgroundColorOnScale = true, closeThreshold = CLOSE_THRESHOLD, scrollLockTimeout = SCROLL_LOCK_TIMEOUT, dismissible = true, handleOnly = false, fadeFromIndex = snapPoints && snapPoints.length - 1, activeSnapPoint: activeSnapPointProp, setActiveSnapPoint: setActiveSnapPointProp, fixed, modal = true, onClose, nested, noBodyStyles = false, direction = 'bottom', defaultOpen = false, disablePreventScroll = true, snapToSequentialPoint = false, preventScrollRestoration = false, repositionInputs = true, onAnimationEnd, container, autoFocus = false }) {
++// CUSTOM PATCH -----------------
++// function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRelease: onReleaseProp, snapPoints, shouldScaleBackground = false, setBackgroundColorOnScale = true, closeThreshold = CLOSE_THRESHOLD, scrollLockTimeout = SCROLL_LOCK_TIMEOUT, dismissible = true, handleOnly = false, fadeFromIndex = snapPoints && snapPoints.length - 1, activeSnapPoint: activeSnapPointProp, setActiveSnapPoint: setActiveSnapPointProp, fixed, modal = true, onClose, nested, noBodyStyles = false, direction = 'bottom', defaultOpen = false, disablePreventScroll = true, snapToSequentialPoint = false, preventScrollRestoration = false, repositionInputs = true, onAnimationEnd, container, autoFocus = false }) {
++function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onDragPositionChange, onRelease: onReleaseProp, snapPoints, shouldScaleBackground = false, setBackgroundColorOnScale = true, closeThreshold = CLOSE_THRESHOLD, scrollLockTimeout = SCROLL_LOCK_TIMEOUT, dismissible = true, handleOnly = false, fadeFromIndex = snapPoints && snapPoints.length - 1, activeSnapPoint: activeSnapPointProp, setActiveSnapPoint: setActiveSnapPointProp, fixed, modal = true, onClose, nested, noBodyStyles = false, direction = 'bottom', defaultOpen = false, disablePreventScroll = true, snapToSequentialPoint = false, preventScrollRestoration = false, repositionInputs = true, onAnimationEnd, container, autoFocus = false }) {
++// -----------------
+     var _drawerRef_current, _drawerRef_current1;
+     const [isOpen = false, setIsOpen] = useControllableState({
+         defaultProp: defaultOpen,
+@@ -913,6 +924,12 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
      const isAllowedToDrag = React__default.useRef(false);
      const nestedOpenChangeTimer = React__default.useRef(null);
      const pointerStart = React__default.useRef(0);
++    // CUSTOM PATCH -----------------
++    const positionAnimationFrame = React__default.useRef(null);
++    // -----------------
 +    // CUSTOM PATCH -----------------
 +    const dragStartOffset = React__default.useRef(0);
 +    // ------------------------------
      const keyboardIsOpen = React__default.useRef(false);
      const shouldAnimate = React__default.useRef(!defaultOpen);
      const previousDiffFromInitial = React__default.useRef(0);
-@@ -934,8 +943,14 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -934,8 +951,14 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
          onSnapPointChange,
          direction,
          container,
@@ -59,8 +143,47 @@ index 0dbbce5..115fe55 100644
      usePreventScroll({
          isDisabled: !isOpen || isDragging || !modal || justReleased || !hasBeenOpened || !repositionInputs || !disablePreventScroll
      });
-@@ -956,6 +971,26 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -950,12 +973,65 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+     function getScale() {
+         return (window.innerWidth - WINDOW_TOP_OFFSET) / window.innerWidth;
+     }
++    // CUSTOM PATCH -----------------
++    function reportDragPosition() {
++        if (!drawerRef.current || !onDragPositionChange) return;
++        const position = getTranslate(drawerRef.current, direction);
++        if (position === null || Number.isNaN(position)) return;
++        const drawerDimension = isVertical(direction) ? drawerRef.current.getBoundingClientRect().height : drawerRef.current.getBoundingClientRect().width;
++        const visibleDimension = direction === 'bottom' || direction === 'right' ? drawerDimension - position : drawerDimension + position;
++        onDragPositionChange(visibleDimension);
++    }
++    function trackSnapAnimationPosition() {
++        if (!onDragPositionChange) return;
++        if (positionAnimationFrame.current !== null) {
++            window.cancelAnimationFrame(positionAnimationFrame.current);
++        }
++        const animationStart = performance.now();
++        const trackPosition = ()=>{
++            reportDragPosition();
++            if (performance.now() - animationStart < TRANSITIONS.DURATION * 1000) {
++                positionAnimationFrame.current = window.requestAnimationFrame(trackPosition);
++            } else {
++                positionAnimationFrame.current = null;
++                reportDragPosition();
++            }
++        };
++        positionAnimationFrame.current = window.requestAnimationFrame(trackPosition);
++    }
++    // -----------------
+     function onPress(event) {
+         var _drawerRef_current, _drawerRef_current1;
+         if (!dismissible && !snapPoints) return;
          if (drawerRef.current && !drawerRef.current.contains(event.target)) return;
++        // CUSTOM PATCH -----------------
++        if (positionAnimationFrame.current !== null) {
++            window.cancelAnimationFrame(positionAnimationFrame.current);
++            positionAnimationFrame.current = null;
++        }
++        // -----------------
          drawerHeightRef.current = ((_drawerRef_current = drawerRef.current) == null ? void 0 : _drawerRef_current.getBoundingClientRect().height) || 0;
          drawerWidthRef.current = ((_drawerRef_current1 = drawerRef.current) == null ? void 0 : _drawerRef_current1.getBoundingClientRect().width) || 0;
 +        // CUSTOM PATCH -----------------
@@ -86,7 +209,7 @@ index 0dbbce5..115fe55 100644
          setIsDragging(true);
          dragStartTime.current = new Date();
          // iOS doesn't trigger mouseUp after scrolling so we need to listen to touched in order to disallow dragging
-@@ -985,7 +1020,7 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -985,7 +1061,7 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
              return true;
          }
          // Allow scrolling when animating
@@ -95,7 +218,7 @@ index 0dbbce5..115fe55 100644
              return false;
          }
          if (swipeAmount !== null) {
-@@ -1033,7 +1068,10 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -1033,7 +1109,10 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
          // We need to know how much of the drawer has been dragged in percentages so that we can transform background accordingly
          if (isDragging) {
              const directionMultiplier = direction === 'bottom' || direction === 'right' ? 1 : -1;
@@ -107,7 +230,7 @@ index 0dbbce5..115fe55 100644
              const isDraggingInDirection = draggedDistance > 0;
              // Pre condition for disallowing dragging in the close direction.
              const noCloseSnapPointsPreCondition = snapPoints && !dismissible && !isDraggingInDirection;
-@@ -1044,13 +1082,14 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -1044,13 +1123,14 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
              const wrapper = document.querySelector('[data-vaul-drawer-wrapper]');
              const drawerDimension = direction === 'bottom' || direction === 'top' ? drawerHeightRef.current : drawerWidthRef.current;
              // Calculate the percentage dragged, where 1 is the closed position
@@ -124,7 +247,28 @@ index 0dbbce5..115fe55 100644
                  return;
              }
              if (!isAllowedToDrag.current && !shouldDrag(event.target, isDraggingInDirection)) return;
-@@ -1216,6 +1255,9 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -1064,9 +1144,19 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+                 transition: 'none'
+             });
+             if (snapPoints) {
+-                onDragSnapPoints({
++                // CUSTOM PATCH -----------------
++                // onDragSnapPoints({
++                const position = onDragSnapPoints({
++                // -----------------
+                     draggedDistance
+                 });
++                // CUSTOM PATCH -----------------
++                if (typeof position === 'number') {
++                    const drawerDimension = isVertical(direction) ? drawerHeightRef.current : drawerWidthRef.current;
++                    const visibleDimension = direction === 'bottom' || direction === 'right' ? drawerDimension - position : drawerDimension + position;
++                    onDragPositionChange == null ? void 0 : onDragPositionChange(visibleDimension);
++                }
++                // -----------------
+             }
+             // Run this only if snapPoints are not defined or if we are at the last snap point (highest one)
+             if (isDraggingInDirection && !snapPoints) {
+@@ -1216,6 +1306,9 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
          if (!isDragging || !drawerRef.current) return;
          drawerRef.current.classList.remove(DRAG_CLASS);
          isAllowedToDrag.current = false;
@@ -134,7 +278,7 @@ index 0dbbce5..115fe55 100644
          setIsDragging(false);
          dragEndTime.current = new Date();
      }
-@@ -1223,6 +1265,9 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -1223,6 +1316,9 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
          if (!isDragging || !drawerRef.current) return;
          drawerRef.current.classList.remove(DRAG_CLASS);
          isAllowedToDrag.current = false;
@@ -144,7 +288,7 @@ index 0dbbce5..115fe55 100644
          setIsDragging(false);
          dragEndTime.current = new Date();
          const swipeAmount = getTranslate(drawerRef.current, direction);
-@@ -1236,7 +1281,7 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+@@ -1236,7 +1332,7 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
              setJustReleased(true);
              setTimeout(()=>{
                  setJustReleased(false);
@@ -153,3 +297,13 @@ index 0dbbce5..115fe55 100644
          }
          if (snapPoints) {
              const directionMultiplier = direction === 'bottom' || direction === 'right' ? 1 : -1;
+@@ -1246,6 +1342,9 @@ function Root({ open: openProp, onOpenChange, children, onDrag: onDragProp, onRe
+                 velocity,
+                 dismissible
+             });
++            // CUSTOM PATCH -----------------
++            trackSnapAnimationPosition();
++            // -----------------
+             onReleaseProp == null ? void 0 : onReleaseProp(event, true);
+             return;
+         }

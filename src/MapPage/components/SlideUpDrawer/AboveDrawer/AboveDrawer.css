@@ -1,0 +1,7 @@
+.above-drawer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -10px; /* 56px height + 10px gap, sits just above the drawer content's top edge */
+  z-index: 10;
+}

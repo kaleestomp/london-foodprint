@@ -24,8 +24,7 @@ const BaseToolbar: FC = () => {
     setActiveToolbarTab(tab);
     openPanel();
   };
-  
-
+    
   // Request Price Info
   const AbstractPriceRangeLabel = getAbstractPriceRangeLabel();
   // Request Cuisine Info

@@ -1,0 +1,11 @@
+.filter-buttons {
+    position: absolute;
+    right: calc(var(--app-layout-margin) + var(--bubble-avatar-home-size, 80px) + 8px);
+    bottom: 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    pointer-events: auto;
+}
