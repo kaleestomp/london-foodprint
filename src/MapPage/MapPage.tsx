@@ -17,7 +17,7 @@ import React from 'react'; //, { useRef }
 // import PullUpPanelMapViewportSync from './components/MapViewportSync/PullUpPanelMapViewportSync';
 // import PullUpPanel from './components/PullUpPanel/PullUpPanel';
 
-import VaulDrawer from './components/SlideUpPanel/VaulDrawer.tsx';
+import VaulDrawer from './components/SlideUpDrawer/SlideUpDrawer.tsx';
 
 import './MapPage.css';
 
