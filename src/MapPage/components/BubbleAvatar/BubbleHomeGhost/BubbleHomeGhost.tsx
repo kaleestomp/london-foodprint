@@ -1,35 +1,27 @@
-import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
-import useHomeCenter from '../BubbleAvatarHome/hooks/useHomeCenter';
 import DashedCircle from '../Searchmask/DashedCircle';
+import useBubbleStyle from '../BubbleAvatarHome/hooks/useBubbleStyle';
 import './BubbleHomeGhost.css';
-
-type Props = {
-  /** Returns the avatar to home from any active state */
-  onResetHome: () => void;
-};
 
 /**
  * Home reset action rendered at BubbleButton's fixed home position while the
  * avatar is away from home. The ring scales up when the avatar is close
  * enough to trigger snap-back behavior.
  */
-const BubbleHomeGhost: React.FC<Props> = ({ onResetHome }) => {
-  const isMobile = useIsMobileCtx();
-  const { isNearHome } = useBubbleAvatarState();
-  const homeCenter = useHomeCenter();
-  const ghostStyle = useMemo(() => {
-    if (!isMobile) return undefined;
+const BubbleHomeGhost: React.FC<{
+  /** Returns the avatar to home from any active state */
+  onResetHome: () => void;
+}> = ({ onResetHome }) => {
 
-    return {
-      bottom: 'auto',
-      top: `calc(${homeCenter.y}px - (var(--bubble-avatar-home-size) / 2))`,
-    };
-  }, [homeCenter.y, isMobile]);
-  
+  const isMobile = useIsMobileCtx();
+  const ghostStyle = useBubbleStyle( isMobile ? 'mobile-home' : undefined);
+  const { isNearHome } = useBubbleAvatarState();
+
+  if (typeof document === 'undefined') return null;
   return (
     <motion.button
       className="bubble-home-reset"

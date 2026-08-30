@@ -1,0 +1,20 @@
+.drop-ring-shell {
+  position: fixed;
+  pointer-events: none;
+  z-index: 899;
+}
+
+/* Drop zone hint – a faint ring pulses on the map while carrying */
+@keyframes drop-ring-pulse {
+  0%   { transform: translate(-50%, -50%) scale(1.25); opacity: 1.0; }
+  50%  { transform: translate(-50%, -50%) scale(1.5);    opacity: 1.0; }
+  100% { transform: translate(-50%, -50%) scale(1.25); opacity: 1.0; }
+}
+.drop-ring {
+  width: var(--bubble-avatar-drop-ring-size);
+  height: var(--bubble-avatar-drop-ring-size);
+  color: var(--bubble-avatar-ring-color);
+  overflow: visible;
+  animation: drop-ring-pulse 1.6s ease-in-out infinite;
+  display: block;
+}

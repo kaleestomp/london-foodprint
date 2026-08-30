@@ -1,38 +1,41 @@
 import { useMemo } from 'react';
 import type { CSSProperties } from 'react';
 
-type Point = { x: number; y: number };
+import { useDrawerState } from '../../../SlideUpDrawer/DrawerStateContext';
 
-type HomeCenter = Point;
+const useBubbleStyle = (
+  style: 'default' | 'mobile-home' | 'pickup' | undefined,
+  // homeCenter: Point | null,
+  pickupPos?: { x: number; y: number } | null,
+): CSSProperties | undefined => {
+  
+  const { isAtFullHeight: isDrawerAtFullHeight, snap: drawerHeight } = useDrawerState();
 
-export type BubbleStyleKeyword = 'default' | 'mobile-home' | 'pickup';
-
-type Args = {
-  style: BubbleStyleKeyword | undefined;
-  homeCenter: HomeCenter | null;
-  pickupPos: Point | null;
-};
-
-const useBubbleStyle = ({ style: styleKeyword, homeCenter, pickupPos }: Args): CSSProperties | undefined => {
   return useMemo(() => {
-    if (styleKeyword === 'mobile-home' && homeCenter) {
+    if (style === 'mobile-home') { // && homeCenter
       return {
-        bottom: 'auto',
-        top: `calc(${homeCenter.y}px - (var(--bubble-avatar-home-size) / 2))`,
+        bottom: 'auto', 
+        top: 'calc(var(--bubble-avatar-home-size)*-1 - 10px)',
+        // top: `calc(${homeCenter.y}px - (var(--bubble-avatar-home-size) / 2))`,
+        opacity: isDrawerAtFullHeight ? 0 : 1,
+        transition: 'opacity 250ms ease 100ms',
       };
     }
 
-    if (styleKeyword === 'pickup' && pickupPos) {
+    if (style === 'pickup' && pickupPos) {
+      const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+      const drawerTop = vh - (drawerHeight ?? 64);
+      const relativeTop = pickupPos.y - drawerTop;
       return {
         bottom: 'auto',
         left: `calc(${pickupPos.x}px - (var(--bubble-avatar-home-size) / 2))`,
-        top: `calc(${pickupPos.y}px - (var(--bubble-avatar-home-size) / 2))`,
+        top: `calc(${relativeTop}px - (var(--bubble-avatar-home-size) / 2))`,
         marginLeft: 0,
       };
     }
 
     return undefined;
-  }, [styleKeyword, homeCenter, pickupPos]);
+  }, [style, pickupPos, isDrawerAtFullHeight, drawerHeight]); // homeCenter
 };
 
 export default useBubbleStyle;

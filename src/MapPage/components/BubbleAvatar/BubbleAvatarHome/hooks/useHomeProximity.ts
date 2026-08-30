@@ -18,19 +18,20 @@ const useHomeProximity = (
   homeCenter: Point,
 ) => {
   
-  const { isDragging, setIsNearHome: setNearHome } = useBubbleAvatarState();
+  const { isDragging, setIsNearHome } = useBubbleAvatarState();
 
   const prevRef = useRef(false);
   const updateNearHome = () => {
     if (!isDragging) return;
+    
 
     const x = pointer.x.get();
     const y = pointer.y.get();
     const near = Math.sqrt((x - homeCenter.x) ** 2 + (y - homeCenter.y) ** 2) < HOME_SNAP_RADIUS;
-
+    
     if (near !== prevRef.current) {
       prevRef.current = near;
-      setNearHome(near);
+      setIsNearHome(near);
     }
   };
 
@@ -41,12 +42,12 @@ const useHomeProximity = (
     if (!isDragging) {
       if (prevRef.current) {
         prevRef.current = false;
-        setNearHome(false);
+        setIsNearHome(false);
       }
       return;
     }
     updateNearHome();
-  }, [homeCenter, isDragging, pointer, setNearHome]);
+  }, [homeCenter, isDragging, pointer, setIsNearHome]);
 };
 
 export default useHomeProximity;

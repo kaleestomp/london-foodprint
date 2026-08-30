@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type maplibregl from 'maplibre-gl';
@@ -15,8 +16,9 @@ import './BubbleEdgeIndicator.css';
  *  - Tap/click          → map.setView() back to avatar
  *  - Long press (LONGPRESS_MS ms) → pick up the avatar (same state as map long-press)
  */
-type Props = { mapRef: React.RefObject<maplibregl.Map | null> };
-const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
+const BubbleEdgeIndicator: React.FC<{ 
+  mapRef: React.RefObject<maplibregl.Map | null> 
+}> = ({ mapRef }) => {
   const { handlePickup } = useBubbleAvatarState();
   
   const { searchMask } = useSearchFilters();
@@ -64,33 +66,33 @@ const BubbleEdgeIndicator: React.FC<Props> = ({ mapRef }) => {
     
   }, [mapRef, searchMask, cancelLongPress]);
 
-  return (
-    <>
+  if (!edgeState || typeof document === 'undefined') return null;
+  return createPortal(
+    <div className="bubble-avatar-root">
       <AnimatePresence>
-        {edgeState && (
-          <motion.button
-            key={`edge-indicator-${edgeState.edge}`}
-            className={`bubble-edge-indicator edge-${edgeState.edge}`}
-            style={{ left: edgeState.x, top: edgeState.y }}
-            onPointerDown={handlePointerDown}
-            onPointerUp={cancelLongPress}
-            onPointerLeave={cancelLongPress}
-            onPointerCancel={cancelLongPress}
-            onClick={handleClick}
-            aria-label="Navigate back to avatar"
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.92 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-          >
-            <div className="bubble-edge-eyes">
-              <div className="bubble-edge-eye" />
-              <div className="bubble-edge-eye" />
-            </div>
-          </motion.button>
-        )}
+        <motion.button
+          key={`edge-indicator-${edgeState.edge}`}
+          className={`bubble-edge-indicator edge-${edgeState.edge}`}
+          style={{ left: edgeState.x, top: edgeState.y }}
+          onPointerDown={handlePointerDown}
+          onPointerUp={cancelLongPress}
+          onPointerLeave={cancelLongPress}
+          onPointerCancel={cancelLongPress}
+          onClick={handleClick}
+          aria-label="Navigate back to avatar"
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.92 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+        >
+          <div className="bubble-edge-eyes">
+            <div className="bubble-edge-eye" />
+            <div className="bubble-edge-eye" />
+          </div>
+        </motion.button>
       </AnimatePresence>
-    </>
+    </div>,
+    document.body
   );
 };
 

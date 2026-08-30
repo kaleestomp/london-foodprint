@@ -4,12 +4,12 @@ import type maplibregl from 'maplibre-gl';
 import { useAppUI } from '../context/AppUIContext';
 import { TileQueryProvider } from '../context/TileQueryContext';
 import { PlaceSelectionProvider } from '../context/PlaceSelectionContext';
-import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
+// import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
 import { PullUpPanelSnapProvider } from './components/PullUpPanel/SnapHooks/PullUpPanelSnapContext.tsx';
 
 import Map from './components/Map/Map';
 import Loading from '../components/Loading/Loading';
-import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
+// import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 // import IPLocationHandler from './components/Map/IPLocationHandler/IPLocationHandler';
 import PullDownPanel from './components/PullDownPanel/PullDownPanel';
 // import BaseToolbar from './components/BaseToolbar/BaseToolbar';
@@ -41,12 +41,12 @@ const MapPage: FC = () => {
                 <PullDownPanel mapRef={mapRef} />
                 <MapToolbar mapRef={mapRef} />
                 <PullUpPanelMapViewportSync mapRef={mapRef} />
-                <VaulDrawer />
+                <VaulDrawer mapRef={mapRef} />
                 {/* <PullUpPanel mapRef={mapRef} /> */}
                 {/* <BaseToolbar /> */}
-                <BubbleAvatarStateProvider>
+                {/* <BubbleAvatarStateProvider>
                   <BubbleAvatar mapRef={mapRef} />
-                </BubbleAvatarStateProvider>
+                </BubbleAvatarStateProvider> */}
               </DrawerStateProvider>
             </PullUpPanelSnapProvider>
           </PlaceSelectionProvider>

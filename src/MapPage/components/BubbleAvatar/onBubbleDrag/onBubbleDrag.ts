@@ -26,10 +26,10 @@ const onBubbleDrag = (
 ) => {
   
 
-  const { isDragging, beginDragging, endDragging, handleDropXY, handleDropCancel } = useBubbleAvatarState();
+  const { isDragging, beginDragging, endDragging } = useBubbleAvatarState();
   const hasDragStartedRef = useRef(false);
   const { dragMotion, beginAt, updatePointer, updateRawOffset, reset: resetDragMotion} = useDragMotionValues();
-
+  
   const resetDragStarted = useCallback(() => {
     hasDragStartedRef.current = false;
   }, []);
@@ -99,7 +99,7 @@ const onBubbleDrag = (
       //   onCancel?.();
       // }
     },
-    [endDragging, handleDropCancel, handleDropXY, resetDragMotion],
+    [endDragging, resetDragMotion, resolveDrop], //handleDropCancel, handleDropXY
   );
 
   const handleDragEnd = useCallback(

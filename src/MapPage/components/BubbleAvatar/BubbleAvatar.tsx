@@ -60,16 +60,8 @@ const BubbleAvatar: React.FC<{
                     }}
                 />
             )}
-            {isAwayFromHome && (
-                <BubbleHomeGhost
-                    onResetHome={handleResetHomeScenarios}
-                />
-            )}
-            {isDropped && (
-                <BubbleEdgeIndicator
-                    mapRef={mapRef}
-                />
-            )}
+            {isAwayFromHome && (<BubbleHomeGhost onResetHome={handleResetHomeScenarios}/>)}
+            {isDropped && (<BubbleEdgeIndicator mapRef={mapRef} />)}
         </div>
     );
 }

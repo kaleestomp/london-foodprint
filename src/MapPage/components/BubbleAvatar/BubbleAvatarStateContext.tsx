@@ -94,7 +94,6 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
     const insideMap = 
       x >= rect.left && x <= rect.right &&
       y >= rect.top && y <= rect.bottom;
-
     if (insideMap) {
       const point = { x: x - rect.left, y: y - rect.top };
       const { lat, lng } = map.unproject([point.x, point.y]);

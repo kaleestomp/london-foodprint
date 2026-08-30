@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { memo, useMemo, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
 import type maplibregl from 'maplibre-gl';
@@ -15,12 +16,11 @@ import useRawPointerDrag from './hooks/useRawPointerDrag';
 import useBubbleStyle from './hooks/useBubbleStyle';
 import useHomeCenter from './hooks/useHomeCenter';
 import DashedCircle from '../Searchmask/DashedCircle';
-import Badge from '../Badge/Badge';
-import useDragRestaurantCount from '../Badge/useDragRestaurantCount';
 import BubbleEyes from '../BubbleEyes/BubbleEyes';
+import DropRing from '../DropRing/DropRing';
 import './BubbleAvatarHome.css';
 
-type Props = {
+const BubbleHome: React.FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
   flight?: {
     /** Spawn animation source when returning home via reset action */
@@ -30,13 +30,10 @@ type Props = {
     /** Fires after the fly-out animation completes */
     onFlyOutComplete?: () => void;
   };
-};
-
-const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
+}> = ({ mapRef, flight }) => {
 
   const isMobile = useIsMobileCtx();  
   const { pickupPos, isDragging, isNearHome } = useBubbleAvatarState();
-
   // FIND HOME CENTER
   const homeCenter = useHomeCenter();
 
@@ -53,6 +50,7 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
   const resolveDrop = useResolveDrop(mapRef, homeCenter);
   // MASTER DRAG HANDLERS
   const onDrag = onBubbleDrag( mapRef, resolveDrop );
+  // console.log(onDrag.dragMotion.pointer.y);
 
   // DETECT NEAR-HOME
   // Detect when drag enters/leaves the home snap zone and UPDATE CONTEXT.
@@ -81,11 +79,10 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
   );
 
   // Compute the bubble style based on drag/pickup state
-  const style = pickupPos
-    ? 'pickup' : isMobile
-    ? 'mobile-home'
+  const style = pickupPos ? 'pickup' 
+    : isMobile ? 'mobile-home'
     : undefined;
-  const bubbleStyle = useBubbleStyle({ style, homeCenter, pickupPos });
+  const bubbleStyle = useBubbleStyle( style, pickupPos );
   const motionStyle = rawDragEnabled
     ? { ...(bubbleStyle ?? {}), x: onDrag.dragMotion.rawOffset.x, y: onDrag.dragMotion.rawOffset.y }
     : bubbleStyle;
@@ -96,12 +93,6 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
       : { scale: 1.18, boxShadow: '0 10px 36px rgba(0,0,0,0.22), 0 3px 10px rgba(0,0,0,0.12)' }),
     [isCoarsePointer],
   );
-
-  const { count: dragRestaurantCount, isLoading: isDragCountLoading } = useDragRestaurantCount({
-    mapRef,
-    pointer: onDrag.dragMotion.pointer,
-    isActive: isDragging && !isNearHome,
-  });
 
   return (
     <>
@@ -137,20 +128,14 @@ const BubbleHome: React.FC<Props> = ({ mapRef, flight }) => {
       </motion.div>
 
       {/* ── Drop-ring overlay (follows pointer while dragging) ───────────── */}
-      {isDragging && !isNearHome && (
-        <motion.div
-          className="bubble-btn-drop-ring-shell"
-          style={{ left: onDrag.dragMotion.pointer.x, top: onDrag.dragMotion.pointer.y }}
-        >
-          <DashedCircle className="bubble-btn-drop-ring" />
-          <Badge count={dragRestaurantCount} isLoading={isDragCountLoading} />
-        </motion.div>
-      )}
+      <DropRing mapRef={mapRef} pointer={onDrag.dragMotion.pointer} isActive={isDragging && !isNearHome} /> 
 
-      {isPickupPending && pickupPos && (
-        <div className="bubble-btn-drop-ring-shell" style={{ left: pickupPos.x, top: pickupPos.y }}>
-          <DashedCircle className="bubble-btn-drop-ring" />
-        </div>
+      {isPickupPending && pickupPos && typeof document !== 'undefined' &&createPortal(
+        <div className="bubble-avatar-root">
+          <div className="drop-ring-shell" style={{ left: pickupPos.x, top: pickupPos.y }}>
+            <DashedCircle className="drop-ring" />
+          </div>
+        </div>, document.body
       )}
     </>
   );

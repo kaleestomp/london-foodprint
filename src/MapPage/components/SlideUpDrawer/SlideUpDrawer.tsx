@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { type FC, useState, useEffect } from 'react';
+import type maplibregl from 'maplibre-gl';
 import { Drawer } from 'vaul';
 
 // import SampleContent from './SampleContent/SampleContent';
@@ -10,26 +11,34 @@ import { useDrawerState } from './DrawerStateContext';
 
 import './SlideUpDrawer.css';
 
-const SNAP_HEIGHTS = ['56px', 0.5, `${window.innerHeight-56}px`];
+const SNAP_HEIGHTS = ['64px', 0.5, `${window.innerHeight - 64}px`];
 
-export default function SlideUpDrawer() {
+const SlideUpDrawer: FC<{
+  mapRef: React.RefObject<maplibregl.Map | null>;
+}> = ({ mapRef }) => {
 
+  const { isAtFullHeight, reportIsAtFullHeight, reportSnap } = useDrawerState();
   const [snap, setSnap] = useState<number | string | null>(SNAP_HEIGHTS[0]);
-  const { reportDrawerHeight } = useDrawerState();
+  useEffect(() => { 
+    reportSnap(snap); // used to track avatar home position
+    reportIsAtFullHeight(snap === SNAP_HEIGHTS[2]);
+    // isFullHeight is used to conditionally fade out avatar
+  }, [snap]);
 
   return (
-    <Drawer.Root 
+    <Drawer.Root
       defaultOpen={true} dismissible={false} modal={false}
-      snapPoints={SNAP_HEIGHTS} activeSnapPoint={snap} 
+      snapPoints={SNAP_HEIGHTS} activeSnapPoint={snap}
       setActiveSnapPoint={setSnap} snapToSequentialPoint={true}
       fadeFromIndex={2}
-      onDragPositionChange={(visibleHeight) => reportDrawerHeight(visibleHeight)}
+    // onDragPositionChange={(visibleHeight) => void}
     >
       <Drawer.Portal>
-        <Drawer.Overlay className="vaul-overlay" />
+        {/* <Drawer.Overlay className="vaul-overlay" /> */}
+        <div className={`vaul-overlay${isAtFullHeight ? ' is-visible' : ''}`} />
         <Drawer.Content data-testid="content" className="vaul-content">
-          <AboveDrawer />
-          <div className="vaul-drawer-body">
+          <AboveDrawer mapRef={mapRef} />
+          <div className={`vaul-drawer-body${isAtFullHeight ? ' is-full-height' : ''}`}>
             <Drawer.Handle className="vaul-handle" />
             <Header />
             {/* <SampleContent snap={snap} /> */}
@@ -39,4 +48,6 @@ export default function SlideUpDrawer() {
       </Drawer.Portal>
     </Drawer.Root>
   );
-}
+};
+
+export default SlideUpDrawer;
