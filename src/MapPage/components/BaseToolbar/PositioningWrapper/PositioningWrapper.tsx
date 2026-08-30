@@ -11,8 +11,8 @@ const PositioningWrapper: FC<PositioningWrapperProps> = ({ children }) => {
   // const { panelHeight, translateY } = usePullUpPanelMetrics();
   // const toolbarOffset = isMobile ? Math.max(16, panelHeight - translateY + 10) : 30;
   
-  const { drawerHeight } = useDrawerState();
-  const toolbarOffset = isMobile ? Math.max(16, drawerHeight + 10) : 30;
+  const { snap: drawerHeight } = useDrawerState();
+  const toolbarOffset = isMobile ? Math.max(16, (drawerHeight ?? 0) + 10) : 30;
 
   const toolbarStyle: CSSProperties & Record<string, string | number> = {
     bottom: 0,
