@@ -30,7 +30,7 @@ TOP_PLACES_IN_VIEW_BBOX_SQL = """
                 ))
           )
       AND {rank_column} >= $8
-    ORDER BY {rank_column} DESC
+    ORDER BY normal_1 DESC NULLS LAST, id ASC
     LIMIT $9
 """
 
@@ -68,6 +68,6 @@ TOP_PLACES_IN_VIEW_RADIUS_SQL = """
                 ))
           )
       AND {rank_column} >= $7
-    ORDER BY {rank_column} DESC
+    ORDER BY normal_1 DESC NULLS LAST, id ASC
     LIMIT $8
 """

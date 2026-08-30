@@ -5,6 +5,7 @@ import { useSearchFilters } from '../../../../../../../context/SearchFiltersCont
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../request/useRequestTopPlaces/useRequestTopPlaces';
 import useTopPlacesViewport from './useTopPlacesViewport';
+// import useDebugViewportRect from './useDebugViewportRect';
 
 
 const useViewportFetch = (
@@ -17,6 +18,7 @@ const useViewportFetch = (
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier } = useSearchFilters();
   const viewportParams = useTopPlacesViewport(mapRef, enabled);
+  // useDebugViewportRect(mapRef, viewportParams, enabled);
   const topPlacesParams = useMemo<TopPlacesParams | null>(() => {
     if (!enabled || !viewportParams) return null;
     return {

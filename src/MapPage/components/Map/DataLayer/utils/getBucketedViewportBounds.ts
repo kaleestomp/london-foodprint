@@ -1,19 +1,14 @@
 import { MercatorCoordinate, type LngLat } from 'maplibre-gl';
 import type maplibregl from 'maplibre-gl';
 
-export type BucketedViewportBounds = {
-    sw_lat: number;
-    sw_lng: number;
-    ne_lat: number;
-    ne_lng: number;
-    zoomBucket: number;
-};
-
 export type ViewportBounds = {
     sw_lat: number;
     sw_lng: number;
     ne_lat: number;
     ne_lng: number;
+};
+export type BucketedViewportBounds = ViewportBounds & {
+    zoomBucket: number;
 };
 
 const getBboxDegreeInterval = (zoomBucket: number): number => {
