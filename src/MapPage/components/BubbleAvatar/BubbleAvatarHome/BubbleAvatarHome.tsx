@@ -39,7 +39,7 @@ const BubbleHome: React.FC<{
 
   // FLIGHT CONTROL
   const { flyInFrom, flyOutTo, onFlyOutComplete } = flight ?? {};
-  const { initial, animate, transition, dragEnabled, handleAnimationComplete } = useBubbleFlightAnimation({
+  const { initial, animate, transition, dragEnabled, isFlying, handleAnimationComplete } = useBubbleFlightAnimation({
     pickupFrom: pickupPos ?? undefined,
     flyInFrom, flyOutTo,
     onFlyOutComplete,
@@ -83,7 +83,8 @@ const BubbleHome: React.FC<{
     : isMobile ? 'mobile-home'
     : undefined;
   const bubbleStyle = useBubbleStyle( style, pickupPos );
-  const motionStyle = rawDragEnabled
+  // A MotionValue in `style` outranks `animate`, so x/y must stay out while a flight is animating.
+  const motionStyle = rawDragEnabled && !isFlying
     ? { ...(bubbleStyle ?? {}), x: onDrag.dragMotion.rawOffset.x, y: onDrag.dragMotion.rawOffset.y }
     : bubbleStyle;
 

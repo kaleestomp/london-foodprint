@@ -17,8 +17,8 @@ const useBubbleStyle = (
         bottom: 'auto', 
         top: 'calc(var(--bubble-avatar-home-size)*-1 - 10px)',
         // top: `calc(${homeCenter.y}px - (var(--bubble-avatar-home-size) / 2))`,
-        opacity: isDrawerAtFullHeight ? 0 : 1,
-        transition: 'opacity 250ms ease 100ms',
+        // opacity: isDrawerAtFullHeight ? 0 : 1,
+        // transition: 'opacity 400ms ease 100ms',
       };
     }
 

@@ -1,15 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { type Point } from '../../config';
-
-type UseBubbleFlightAnimationArgs = {
-  pickupFrom?: Point;
-  flyInFrom?: Point;
-  flyOutTo?: Point;
-  onFlyInComplete?: () => void;
-  onFlyOutComplete?: () => void;
-  homeCenter: Point;
-};
 
 const useBubbleFlightAnimation = ({
   pickupFrom,
@@ -18,16 +9,29 @@ const useBubbleFlightAnimation = ({
   onFlyInComplete,
   onFlyOutComplete,
   homeCenter,
-}: UseBubbleFlightAnimationArgs) => {
+}: {
+  pickupFrom?: Point;
+  flyInFrom?: Point;
+  flyOutTo?: Point;
+  onFlyInComplete?: () => void;
+  onFlyOutComplete?: () => void;
+  homeCenter: Point;
+}) => {
   const flyInCompletedRef = useRef(false);
   const flyOutCompletedRef = useRef(false);
   const shouldFlyIn = !pickupFrom && !!flyInFrom;
+  // Seeded synchronously so the very first render already knows a flight is starting.
+  const [isFlying, setIsFlying] = useState(() => !pickupFrom && !!(flyInFrom || flyOutTo));
   const flyInOffset = shouldFlyIn && flyInFrom
     ? { x: flyInFrom.x - homeCenter.x, y: flyInFrom.y - homeCenter.y }
     : null;
   const flyOutOffset = !pickupFrom && flyOutTo
     ? { x: flyOutTo.x - homeCenter.x, y: flyOutTo.y - homeCenter.y }
     : null;
+
+  useEffect(() => {
+    setIsFlying(!pickupFrom && !!(flyInFrom || flyOutTo));
+  }, [pickupFrom, flyInFrom, flyOutTo]);
 
   useEffect(() => {
     flyInCompletedRef.current = false;
@@ -56,14 +60,17 @@ const useBubbleFlightAnimation = ({
       }
       : undefined,
     dragEnabled: !flyOutTo,
+    isFlying,
     handleAnimationComplete: () => {
       if (flyOutOffset && !flyOutCompletedRef.current) {
         flyOutCompletedRef.current = true;
+        setIsFlying(false);
         onFlyOutComplete?.();
         return;
       }
       if (!flyInOffset || flyInCompletedRef.current) return;
       flyInCompletedRef.current = true;
+      setIsFlying(false);
       onFlyInComplete?.();
     },
   };
