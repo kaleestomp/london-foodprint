@@ -7,7 +7,6 @@ import ItemIcon from './itemIcon/itemIcon';
 import brightenColor from './brightenColor';
 import RankBadge from './RankBadgeSimple/RankBadge';
 import ExtendedContent from './ExtendedContent/ExtendedContent';
-import CloseButton from './CloseButton/CloseButton';
 import { formatDistance, formatPrice } from './formatMetrics';
 
 import './ListItem.css';
@@ -16,7 +15,7 @@ const ListItem: FC<{
     item: PlacesListItem;
     isSelected: boolean;
     onSelect: () => void;
-  onClose: () => void;
+    onClose: () => void;
 }> = ({ item, isSelected, onSelect, onClose }) => {
 
   const cuisineColor = getCuisineColor(item.cuisine_type);
@@ -27,19 +26,14 @@ const ListItem: FC<{
       role="button"
       tabIndex={0}
       aria-expanded={isSelected}
-      onClick={() => {
-        if (isSelected) return;
-        onSelect();
-      }}
-      onKeyDown={(event) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        event.preventDefault();
-        if (isSelected) return;
-        onSelect();
-      }}
+      onClick={() => isSelected ? onClose() : onSelect()}
+      // onKeyDown={(event) => {
+      //   if (event.key !== 'Enter' && event.key !== ' ') return;
+      //   event.preventDefault();
+      //   if (isSelected) return;
+      //   onSelect();
+      // }}
     >
-      {isSelected && <CloseButton onClose={onClose} />}
-
       <ItemIcon item={item} accentColor={cuisineColor} />
       <RankBadge item={item} accentColor={brightenColor(cuisineColor, -0.8)} />{/* -2.4 */}
 

@@ -50,15 +50,33 @@
 }
 
 .vaul-handle {
-  flex: 0 0 4px;
+  position: relative;
+  flex: 0 0 var(--drawer-header-height);
+  width: 100% !important;
+  margin: 0 !important;
+  height: var(--drawer-header-height) !important;
+  background: transparent !important;
+  z-index: 9;
+}.vaul-handle-visual {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 40px;
+  height: 4px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: var(--app-handle-color);
+  pointer-events: none;
+  z-index: 10;
+}
+/* .vaul-handle {
   width: 40px;
   height: 4px;
   margin: 8px auto;
   border-radius: 2px;
   background: var(--app-handle-color);
   z-index: 9;
-}
-
+} */
 .vaul-overlay {
   position: fixed;
   inset: 0;

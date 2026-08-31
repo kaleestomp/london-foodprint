@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, type FC } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
 // import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
@@ -32,13 +33,17 @@ const RestaurantList: FC<{
   // SCROLL HANDLER
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const isProgrammaticScrollRef = useRef(false);
+  const [isResettingScroll, setIsResettingScroll] = useState(false);
   const onScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
 
     // DISGARD PROGRAM SCROLLS
     if (isProgrammaticScrollRef.current) {
-      if (el.scrollTop <= 0) isProgrammaticScrollRef.current = false;
+      if (el.scrollTop <= 0) {
+        isProgrammaticScrollRef.current = false;
+        setIsResettingScroll(false);
+      }
       return;
     }
 
@@ -59,7 +64,7 @@ const RestaurantList: FC<{
   // REFRESH BUTTON STATES
   // button may disappear mid pan due to matching geo params to last fetch
   // this triggers 'isReady' to true; meaning list is no longer stale
-  const refreshAvaliable = isListStale && !shouldAutoRefresh;
+  const refreshAvaliable = isListStale && !shouldAutoRefresh && !isResettingScroll;
   const onListRefresh = useCallback(() => {
 
     if (!isListStale) return;
@@ -70,9 +75,10 @@ const RestaurantList: FC<{
     // PROGRAMMED SCROLL TO TOP
     const el = scrollRef.current;
     if (el && el.scrollTop > 0) {
+      isProgrammaticScrollRef.current = true;
+      setIsResettingScroll(true);
       requestAnimationFrame(() => {
         el.scrollTo({ top: 0, behavior: 'smooth' });
-        isProgrammaticScrollRef.current = true;
       });
     }
   }, [isListStale]);
@@ -81,7 +87,13 @@ const RestaurantList: FC<{
   // SELECTION STATE
   const items = res?.data ?? [];
   const [selectedItemKey, setSelectedItemKey] = useSelectedItemKey(items);
-  // console.log(items);
+  const rowVirtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 86,
+    getItemKey: (index) => getListItemKey(items[index].id, index),
+    overscan: 5,
+  });
 
   return (
     <div
@@ -89,29 +101,44 @@ const RestaurantList: FC<{
       className="restaurant-panel-scroll-content"
       style={{ overflowY: snap && snap > 100 ? 'auto' : 'hidden' }}
       onScroll={onScroll}
-      // onPointerDown={handleContentPointerDown}
-      // onPointerMove={handleContentPointerMove}
-      // onPointerUp={handleContentPointerUp}
-      // onPointerCancel={handleContentPointerCancel}
     >
       <RefreshButton onListRefresh={onListRefresh} isVisible={refreshAvaliable} />
       <div className="restaurant-list-section">
         <ListLoading enabled={status === 'loading' && items.length === 0} />
         <NoResults enabled={status !== 'loading' && items.length === 0} />
+        <div className="restaurant-list-virtualizer" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const row = items[virtualRow.index];
+            const itemKey = getListItemKey(row.id, virtualRow.index);
 
-        {items.map((row, idx) => {
+            return (
+              <div
+                key={itemKey}
+                ref={rowVirtualizer.measureElement}
+                data-index={virtualRow.index}
+                className="restaurant-list-virtual-row"
+                style={{ transform: `translateY(${virtualRow.start}px)` }}
+              >
+                <ListItem
+                  item={row}
+                  isSelected={selectedItemKey === itemKey}
+                  onSelect={() => setSelectedItemKey(itemKey)}
+                  onClose={() => { setSelectedItemKey((prev) => (prev === itemKey ? null : prev)); }}
+                />
+              </div>
+            );
+          })}
+        </div>
+        {/* {items.map((row, idx) => {
           const itemKey = getListItemKey(row.id, idx);
           return (<ListItem
             key={itemKey}
             item={row}
             isSelected={selectedItemKey === itemKey}
             onSelect={() => setSelectedItemKey(itemKey)}
-            onClose={() => {
-              setSelectedItemKey((prev) => (prev === itemKey ? null : prev));
-            }}
+            onClose={() => { setSelectedItemKey((prev) => (prev === itemKey ? null : prev))}}
           />);
-        })}
-
+        })} */}
         {isFetchingNextPage && (
           <div className="restaurant-list-pagination">
             <span>Loading more…</span>

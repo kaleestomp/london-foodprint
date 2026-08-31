@@ -1,9 +1,9 @@
 .drawer-header {
-  margin-top: -20px; /*-17 or -20px size of handle block */
+  margin-top: -64px; /*-17 or -20px size of handle block */
   flex: 0 0 auto;
   user-select: none;
   min-height: var(--drawer-header-height);
-  background: red;
+  background: transparent;
 }
 
 .drawer-title-row {

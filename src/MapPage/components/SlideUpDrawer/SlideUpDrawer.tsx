@@ -30,7 +30,8 @@ const SlideUpDrawer: FC<{
       defaultOpen={true} dismissible={false} modal={false}
       snapPoints={SNAP_HEIGHTS} activeSnapPoint={snap}
       setActiveSnapPoint={setSnap} snapToSequentialPoint={true}
-      fadeFromIndex={2} //onDragPositionChange={(visibleHeight) => void}
+      fadeFromIndex={2} handleOnly={true} 
+      //onDragPositionChange={(visibleHeight) => void}
     >
       <Drawer.Portal>
         {/* <Drawer.Overlay className="vaul-overlay" /> */}
@@ -39,6 +40,7 @@ const SlideUpDrawer: FC<{
           <AboveDrawer mapRef={mapRef} />
           <div className={`vaul-drawer-body${isAtFullHeight ? ' is-full-height' : ''}`}>
             <Drawer.Handle className="vaul-handle" />
+            <div className="vaul-handle-visual" aria-hidden="true" />
             <Header />
             {/* <SampleContent snap={snap} /> */}
             <Content />

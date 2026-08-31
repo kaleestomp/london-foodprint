@@ -5,13 +5,35 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 0 var(--app-layout-margin) 24px;
-  border-top: 1px solid var(--app-divider-color);
+  padding: 0 var(--app-layout-margin) calc(24px + 64px);
+  /* border-top: 1px solid var(--app-divider-color); */
+  /* background: red; */
 }
 
 .restaurant-list-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  margin-top: 8px;
   color: var(--app-text-color);
+}
+
+.restaurant-list-virtualizer {
+  position: relative;
+  width: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 86' preserveAspectRatio='none'%3E%3Crect x='1' y='1' width='998' height='76' rx='10' fill='rgb(255,255,255)' fill-opacity='.9' stroke='rgb(17,24,39)' stroke-opacity='.06'/%3E%3Crect x='64' y='20' width='500' height='8' rx='4' fill='rgb(17,24,39)' fill-opacity='.1'/%3E%3Crect x='64' y='43' width='300' height='8' rx='4' fill='rgb(17,24,39)' fill-opacity='.07'/%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-size: 100% 86px;
+}
+
+.restaurant-list-virtual-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding-bottom: 8px;
+}
+
+.restaurant-list-virtual-row .list-item-row.is-selected {
+  margin: 0;
 }

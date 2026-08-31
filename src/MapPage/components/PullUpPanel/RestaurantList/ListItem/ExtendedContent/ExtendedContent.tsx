@@ -20,10 +20,7 @@ const ExtendedContent: FC<{
   const distance = formatDistance(item.distance_m);
 
   return (
-    <div
-      className="list-item-extra"
-      onClick={(event) => event.stopPropagation()}
-    >
+    <div className="list-item-extra">
       
       <div className="list-item-extended-row">
         {typeof item.is_chain === 'boolean' && item.is_chain
