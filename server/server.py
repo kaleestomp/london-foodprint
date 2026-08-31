@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.nearby_api.nearby_api import router as nearby_router
 from api.place_api import router as place_router
-from api.places_list_api import router as places_list_router
+from server.api.places_list_api.places_list_api import router as places_list_router
 from api.tile_api.tile_api import router as tiles_router
 from api.top_places_in_view_api.top_places_in_view_api import router as top_places_in_view_router
 from api.ip_location.ip_location import router as ip_location_router

@@ -3,8 +3,9 @@ import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 
 import buildQueryKey from './buildQueryKey';
 import { type PlacesListResponse, request } from './request';
-type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
+export const DEFAULT_PAGE_SIZE = 10;
 
+type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 export interface PlacesListParams {
     sw_lat: number;
     sw_lng: number;
@@ -19,9 +20,9 @@ export interface PlacesListParams {
     score_basis?: 0 | 1 | 2;
     score_tier?: 0 | 1 | 2 | 3 | 4;
     page?: number;
+    page_size?: number;
     enabled?: boolean;
 }
-
 const useRequestInfinitePlacesList = (
     params: PlacesListParams | null,
     enabled: boolean = true,
@@ -52,7 +53,7 @@ const useRequestInfinitePlacesList = (
             return request(buildQueryKey(params, Number(pageParam)), { signal });
         },
         getNextPageParam: (lastPage, allPages) => {
-            if (!lastPage || lastPage.data.length < 20) return undefined;
+            if (!lastPage || lastPage.data.length < (params?.page_size ?? DEFAULT_PAGE_SIZE)) return undefined;
             return allPages.length + 1;
         },
     });
@@ -63,7 +64,7 @@ const useRequestInfinitePlacesList = (
 
         return {
             page: pages[pages.length - 1]?.page ?? 1,
-            page_size: pages[0]?.page_size ?? 20,
+            page_size: pages[0]?.page_size ?? DEFAULT_PAGE_SIZE,
             data: pages.flatMap((pageData) => pageData.data),
         };
     }, [query.data]);
@@ -86,5 +87,6 @@ const useRequestInfinitePlacesList = (
         hasNextPage, isFetchingNextPage, fetchNextPage 
     };
 };
+
 
 export default useRequestInfinitePlacesList;

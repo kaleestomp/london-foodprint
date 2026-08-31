@@ -13,7 +13,9 @@ import './RestaurantList.css';
 
 const NEAR_BOTTOM_THRESHOLD = 180;
 
-const RestaurantList: FC = () => {
+const RestaurantList: FC<{
+  pageSize?: number;
+}> = ({ pageSize = 10 }) => {
 
   // PARENT PULL-UP PANEL STATES
   const { snap } = useDrawerState();
@@ -29,7 +31,7 @@ const RestaurantList: FC = () => {
 
   // NETWORK CALL
   const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale
-  } = usePullUpPanelListQuery(shouldAutoRefresh);
+  } = usePullUpPanelListQuery(shouldAutoRefresh, pageSize);
 
   // SCROLL HANDLER
   const scrollRef = useRef<HTMLDivElement | null>(null);

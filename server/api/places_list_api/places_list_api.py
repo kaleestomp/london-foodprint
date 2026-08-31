@@ -3,8 +3,9 @@ from typing import Any
 from fastapi import APIRouter, Query, Request
 
 from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
+from api.places_list_api.sql import SQL_PLACES_LIST
 
-PAGE_SIZE = 20
+DEFAULT_PAGE_SIZE = 10
 router = APIRouter()
 
 
@@ -22,9 +23,10 @@ async def get_places_list(
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
     rank_column: str = Query(default="normal_1"),
-    score_basis: int = Query(default=0, ge=0, le=2),
+    score_basis: int | None = Query(default=None, ge=0, le=2),
     score_tier: int = Query(default=0, ge=0, le=4),
     page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=DEFAULT_PAGE_SIZE, ge=1)
 ) -> dict[str, Any]:
     """
     Fetch paginated list of places with optional circle filter.
@@ -46,74 +48,18 @@ async def get_places_list(
     venue_value = normalize_dimension(venue_type)
     allowed_rank_columns = {"normal_1", "wilson_1"}
     sort_column = rank_column if rank_column in allowed_rank_columns else "normal_1"
-    tier_column = get_score_basis_column(score_basis)
-    offset = (page - 1) * PAGE_SIZE
+    tier_filter = ""
+    if score_basis is not None:
+        tier_column = get_score_basis_column(score_basis)
+        tier_filter = f"AND {tier_column} >= $12"
+    offset = (page - 1) * page_size
     has_circle_filter = center_lat is not None and center_lng is not None and radius_m is not None
 
-    sql = f"""
-        SELECT
-            id,
-            lat,
-            lon,
-            {sort_column} AS ranking,
-            display_name,
-            cuisine_type,
-            cost AS price,
-            CASE
-                WHEN $8::BOOLEAN THEN (
-                    6371000 * 2 * ASIN(
-                        SQRT(
-                            POWER(SIN(RADIANS((lat - $9) / 2)), 2)
-                            + COS(RADIANS($9)) * COS(RADIANS(lat))
-                            * POWER(SIN(RADIANS((lon - $10) / 2)), 2)
-                        )
-                    )
-                )
-                ELSE NULL
-            END AS distance_m,
-            is_chain,
-            venue_type,
-            google_maps_uri,
-            website_uri
-        FROM places
-        WHERE lat BETWEEN $1 AND $2
-          AND lon BETWEEN $3 AND $4
-          AND (
-                CARDINALITY($5::TEXT[]) = 0  -- no filter, show all cuisines
-                OR (CARDINALITY($5::TEXT[]) > 0 AND (
-                      cuisine_type = ANY(ARRAY_REMOVE($5::TEXT[], '__null__'))
-                      OR ('__null__' = ANY($5::TEXT[]) AND cuisine_type IS NULL)
-                    ))
-              )
-          AND (
-                $6 = '__all__'  -- no filter, all venues
-                OR ($6 = '__null__' AND venue_type IS NULL)
-                OR ($6 != '__all__' AND $6 != '__null__' AND venue_type = $6)
-              )
-          AND (
-                CARDINALITY($7::TEXT[]) = 0  -- no filter, show all costs
-                OR (CARDINALITY($7::TEXT[]) > 0 AND (
-                      cost = ANY(ARRAY_REMOVE($7::TEXT[], '__null__'))
-                      OR ('__null__' = ANY($7::TEXT[]) AND cost IS NULL)
-                    ))
-              )
-          AND (
-                NOT $8::BOOLEAN
-                OR (
-                    6371000 * 2 * ASIN(
-                        SQRT(
-                            POWER(SIN(RADIANS((lat - $9) / 2)), 2)
-                            + COS(RADIANS($9)) * COS(RADIANS(lat))
-                            * POWER(SIN(RADIANS((lon - $10) / 2)), 2)
-                        )
-                    ) <= $11
-                )
-              )
-          AND {tier_column} >= $12
-        ORDER BY {sort_column} DESC, id ASC 
-        LIMIT {PAGE_SIZE}
-        OFFSET $13
-    """
+    sql = SQL_PLACES_LIST.format(
+        sort_column=sort_column,
+        tier_filter=tier_filter,
+        page_size=page_size
+    )
     # ORDER BY {sort_column} DESC, id ASC 
     # (Previous) ORDER BY {sort_column} DESC 
     # id ASC added the second sort key by id 
@@ -138,6 +84,6 @@ async def get_places_list(
 
     return {
         "page": page,
-        "page_size": PAGE_SIZE,
+        "page_size": len(rows),
         "data": [dict(row) for row in rows],
     }

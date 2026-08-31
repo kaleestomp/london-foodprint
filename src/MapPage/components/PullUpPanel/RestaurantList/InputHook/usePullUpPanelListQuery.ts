@@ -17,7 +17,10 @@ type ListQueryResult = {
 
 const usePullUpPanelListQuery = (
   enabled: boolean = true,
+  page_size: number = 10,
 ): ListQueryResult => {
+
+
   const { geoBounds, geoKey } = useGetSearchBounds();
   const { filterParams, filterKey } = useGetFilterParams();
   const [isListStale, setIsListStale] = useState(false);
@@ -28,7 +31,7 @@ const usePullUpPanelListQuery = (
   }, [geoKey, filterKey]);
 
   const placeListQueryParams : PlacesListParams | null = geoBounds
-    ? { ...geoBounds, ...filterParams }
+    ? { ...geoBounds, ...filterParams, page_size }
     : null;
   const { status, res, isReady, isFetching,
     hasNextPage, isFetchingNextPage, fetchNextPage

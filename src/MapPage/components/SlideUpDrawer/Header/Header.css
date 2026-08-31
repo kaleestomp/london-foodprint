@@ -1,19 +1,18 @@
 .drawer-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-
+  margin-top: -20px; /*-17 or -20px size of handle block */
   flex: 0 0 auto;
   user-select: none;
   min-height: var(--drawer-header-height);
+  background: red;
 }
 
 .drawer-title-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  padding: 22px var(--app-layout-gap) 0px;  
+  height: 100%;
+  /* padding-inline: var(--app-layout-gap); */
+  padding: 12px var(--app-layout-gap) 0px;  
 }
 
 .drawer-title-block {

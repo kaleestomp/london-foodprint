@@ -1,24 +1,9 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { type PlacesListResponse, request } from './request';
+import type { PlacesListParams } from '../useRequestPlacesList/useRequestInfinitePlacesList';
+import { DEFAULT_PAGE_SIZE } from '../useRequestPlacesList/useRequestInfinitePlacesList';
 type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
-
-export interface PlacesListParams {
-  sw_lat: number;
-  sw_lng: number;
-  ne_lat: number;
-  ne_lng: number;
-  center_lat?: number;
-  center_lng?: number;
-  radius_m?: number;
-  cuisines?: string[];
-  cost?: string[];
-  venue_type?: string;
-  score_basis?: 0 | 1 | 2;
-  score_tier?: 0 | 1 | 2 | 3 | 4;
-  page?: number;
-  enabled?: boolean;
-}
 
 export const buildQueryKey = (params: PlacesListParams): string => {
   const qs = new URLSearchParams({
@@ -28,7 +13,7 @@ export const buildQueryKey = (params: PlacesListParams): string => {
     ne_lng: String(params.ne_lng),
     venue_type: params.venue_type ?? '',
     score_basis: String(params.score_basis ?? 0),
-    score_tier: String(params.score_tier ?? 0),
+    page_size: String(params.page_size ?? DEFAULT_PAGE_SIZE),
     page: String(params.page ?? 1),
   });
 

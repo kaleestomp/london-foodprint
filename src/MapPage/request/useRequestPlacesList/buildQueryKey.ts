@@ -1,4 +1,4 @@
-import { type PlacesListParams } from './useRequestPlacesList';
+import { type PlacesListParams, DEFAULT_PAGE_SIZE } from './useRequestInfinitePlacesList';
 
 export const buildQueryKey = (
   params: PlacesListParams | null,
@@ -16,7 +16,7 @@ export const buildQueryKey = (
     ne_lng: String(params.ne_lng),
     venue_type: params.venue_type ?? '',
     score_basis: String(params.score_basis ?? 0),
-    score_tier: String(params.score_tier ?? 0),
+    page_size: String(params.page_size ?? DEFAULT_PAGE_SIZE),
   });
 
   if (typeof page === 'number') {

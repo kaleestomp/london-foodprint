@@ -366,7 +366,7 @@ Behavior:
 - Default sorting column: `normal_1`
 - Optional sort allowlist: `normal_1`, `wilson_1`
 - Applies the same bbox/cuisine/cost/venue filters as map place queries
-- Applies score threshold via selected basis tier column
+- Applies score threshold via selected basis tier column when `score_basis` is provided
 - Pagination: 20 per page
 
 Returns list rows:
