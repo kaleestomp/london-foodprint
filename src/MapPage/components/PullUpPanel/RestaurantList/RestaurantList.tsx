@@ -20,10 +20,6 @@ const RestaurantList: FC<{
   // PARENT PULL-UP PANEL STATES
   const { snap } = useDrawerState();
 
-  // const { handleContentPointerDown, handleContentPointerMove, handleContentPointerUp,
-  //   handleContentPointerCancel, isPanelOpen } = usePullUpPanelSnapState();
-  
-
   // SCROLL STATES
   const [hasScrolledSinceLastRefresh, setHasScrolledSinceLastRefresh] = useState(false);
   const [isAtTop, setIsAtTop] = useState(true);
