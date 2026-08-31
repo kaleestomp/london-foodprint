@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import type { TopPlaceItem } from '../../../../../request/useRequestTopPlaces/request';
 
-
+// MADE FOR DEDUPLICATION OF TOP PLACE MARKER 
+// FROM PLACES MARKERS + SINGLETON MARKERS FROM DYNAMIC PLACES LAYER
 const useReportTopPlacesIDs = (
   topPlaces: TopPlaceItem[],
   setActiveTopPlaceIds: (ids: Set<string> | undefined) => void,

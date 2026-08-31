@@ -4,19 +4,19 @@ import type maplibregl from 'maplibre-gl';
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchTopPlaces from './InputHooks/useFetchTopPlaces';
 import syncMarkers from './syncMarkers/syncMarkers';
-import useReportTopPlacesIDs from './reportHooks/useReportTopPlacesIDs';
+// import useReportTopPlacesIDs from './reportHooks/useReportTopPlacesIDs';
 import type { MarkerLifecycleCache } from './syncMarkers/markerLifecycle/markerLifecycle';
 
 import './syncMarkers/markers/TopPlacePin.css';
 
 const useTopPlacesLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
-  setActiveTopPlaceIds: (ids: Set<string> | undefined) => void,
+  // setActiveTopPlaceIds: (ids: Set<string> | undefined) => void,
   enabled?: boolean,
 ): void => {
 
-  const topPlaces = useFetchTopPlaces({ mapRef, enabled });
-  useReportTopPlacesIDs( topPlaces, setActiveTopPlaceIds, enabled );
+  const topPlaces = useFetchTopPlaces({ enabled });
+  // useReportTopPlacesIDs( topPlaces, setActiveTopPlaceIds, enabled );
 
   const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
   const topPlaceCacheRef = useRef<MarkerLifecycleCache>(new Map());

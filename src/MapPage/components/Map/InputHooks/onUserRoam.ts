@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 
-import getBucketedViewportBounds from '../DataLayer/utils/getBucketedViewportBounds';
+import { useIsMobileCtx } from '../../../../context/IsMobileContext';
+import readViewportParams from './readViewportParams/readViewportParams';
 import { type TilesParams } from '../../../request/useRequestTiles/useRequestTiles';
-import zoomToResolution from '../DataLayer/utils/zoomToResolution';
 
-const RES_THRESHOLD_FOR_PLACES_ONLY = 12;
-const VIEWPORT_UPDATE_THROTTLE_MS = 250;
+const THROTTLE_MS = 250;
+
 /**
  * Tracks map viewport and emits TilesParams whenever the user pans or zooms.
  * `resolveRes` converts the current Leaflet zoom level to the H3 resolution
@@ -19,7 +19,11 @@ const VIEWPORT_UPDATE_THROTTLE_MS = 250;
  */
 const onUserRoam = (
   mapRef: React.RefObject<maplibregl.Map | null>,
+  throttleMs: number = THROTTLE_MS,
 ): TilesParams | null => {
+
+  const isMobile = useIsMobileCtx();
+
   const [viewportParams, setViewportParams] = useState<TilesParams | null>(null);
   const lastSignatureRef = useRef('');
 
@@ -30,47 +34,23 @@ const onUserRoam = (
     let throttleTimer: ReturnType<typeof setTimeout> | null = null;
     let lastRunAt = 0;
 
-    const readViewportParams = (): TilesParams => {
-      const { sw_lat, sw_lng, ne_lat, ne_lng } = getBucketedViewportBounds(map); //zoomBucket
-      const zoom = map.getZoom();
-      const res = zoomToResolution(zoom);
+    const reportParamsIfChanged = (): void => {
+      const { params, signature } = readViewportParams(map, isMobile);
+      if (signature === lastSignatureRef.current) return;
 
-      return {
-        sw_lat, sw_lng, ne_lat, ne_lng, res,
-        // At past 17 Zoom / 11 Res, always request individual places directly,
-        ...(res > RES_THRESHOLD_FOR_PLACES_ONLY ? { places_only: true } : {}),
-      };
-    };
-
-    const buildSignature = (params: TilesParams): string => {
-      return [
-        params.sw_lat,
-        params.sw_lng,
-        params.ne_lat,
-        params.ne_lng,
-        params.res,
-        params.places_only ? 1 : 0,
-      ].join('|');
-    };
-
-    const emitIfChanged = (): void => {
-      const nextParams = readViewportParams();
-      const nextSignature = buildSignature(nextParams);
-      if (nextSignature === lastSignatureRef.current) return;
-
-      lastSignatureRef.current = nextSignature;
-      setViewportParams(nextParams);
+      lastSignatureRef.current = signature;
+      setViewportParams(params);
     };
 
     const runNow = (): void => {
-      emitIfChanged();
-      lastRunAt = Date.now();
+      reportParamsIfChanged();
+      lastRunAt = performance.now();
     };
 
     const scheduleUpdate = (): void => {
-      const now = Date.now();
+      const now = performance.now();
       const elapsed = now - lastRunAt;
-      const remaining = VIEWPORT_UPDATE_THROTTLE_MS - elapsed;
+      const remaining = throttleMs - elapsed;
 
       if (remaining <= 0) {
         if (throttleTimer) {
@@ -113,7 +93,7 @@ const onUserRoam = (
       map.off('moveend', flushUpdate);
       map.off('zoomend', flushUpdate);
     };
-  }, [mapRef]);
+  }, [mapRef, throttleMs, isMobile]);
 
   return viewportParams;
 };

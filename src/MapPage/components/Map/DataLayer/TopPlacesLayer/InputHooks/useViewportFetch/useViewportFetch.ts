@@ -1,15 +1,11 @@
 import { useMemo } from 'react';
-import type maplibregl from 'maplibre-gl';
 
 import { useSearchFilters } from '../../../../../../../context/SearchFiltersContext';
+import { useTileQuery } from '../../../../../../../context/TileQueryContext';
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../request/useRequestTopPlaces/useRequestTopPlaces';
-import useTopPlacesViewport from './useTopPlacesViewport';
-// import useDebugViewportRect from './useDebugViewportRect';
-
 
 const useViewportFetch = (
-  mapRef: React.RefObject<maplibregl.Map | null>,
   limit: number = 10,
   enabled: boolean = true,
 ): {
@@ -17,8 +13,8 @@ const useViewportFetch = (
 } => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier } = useSearchFilters();
-  const viewportParams = useTopPlacesViewport(mapRef, enabled);
-  // useDebugViewportRect(mapRef, viewportParams, enabled);
+  const { viewportParams } = useTileQuery();
+
   const topPlacesParams = useMemo<TopPlacesParams | null>(() => {
     if (!enabled || !viewportParams) return null;
     return {

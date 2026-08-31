@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import useTopPlacesLayer from './TopPlacesLayer/useTopPlacesLayer';
-// import useDynamicPlacesLayer from './DynamicPlacesLayer/useDynamicPlacesLayer';
-// import useNearbyPlacesLayer from './NearbyPlacesLayer/useNearbyPlacesLayer';
 import useHeatmapLayer from './HeatmapLayer/useHeatmapLayer';
 import useClusterLayer from './ClusterLayer/useClusterLayer';
+import DebugViewportLayer from './DebugViewportLayer/useDebugViewportLayer';
 
 
 const DataLayer = (
@@ -13,14 +11,12 @@ const DataLayer = (
   enabled = true,
 ): void => {
 
-  const [_, setActiveTopPlaceIds] = useState<Set<string> | undefined>(undefined);
+  // const [_, setActiveTopPlaceIds] = useState<Set<string> | undefined>(undefined);
   
-  useTopPlacesLayer( mapRef, setActiveTopPlaceIds, enabled );
-  // useDynamicPlacesLayer( mapRef, activeTopPlaceIdSet, enabled );
-  // useNearbyPlacesLayer(mapRef, activeTopPlaceIdSet, enabled);
-
+  useTopPlacesLayer( mapRef, enabled );
   useClusterLayer(mapRef);
   useHeatmapLayer(mapRef);
+  DebugViewportLayer(mapRef, false);
   
 };
 

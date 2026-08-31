@@ -2,51 +2,37 @@
 import { useEffect } from 'react';
 import type maplibregl from 'maplibre-gl';
 
-import { type ViewportBounds } from '../../../utils/getBucketedViewportBounds';
+import getRectFeature from './getRectFeature';
+import { useTileQuery } from '../../../../../context/TileQueryContext';
 
 const SOURCE_ID = 'debug-viewport-rect-source';
 const FILL_LAYER_ID = 'debug-viewport-rect-fill';
 const LINE_LAYER_ID = 'debug-viewport-rect-line';
 
-const toRectFeature = (bounds: ViewportBounds): GeoJSON.Feature<GeoJSON.Polygon> => ({
-    type: 'Feature',
-    properties: {},
-    geometry: {
-        type: 'Polygon',
-        coordinates: [[
-            [bounds.sw_lng, bounds.sw_lat],
-            [bounds.ne_lng, bounds.sw_lat],
-            [bounds.ne_lng, bounds.ne_lat],
-            [bounds.sw_lng, bounds.ne_lat],
-            [bounds.sw_lng, bounds.sw_lat],
-        ]],
-    },
-});
-
 const useDebugViewportRect = (
     mapRef: React.RefObject<maplibregl.Map | null>,
-    bounds: ViewportBounds | null,
     enabled: boolean = true,
 ): void => {
 
+    const { viewportParams } = useTileQuery();
     
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
+        if ( !map || !enabled ) return;
 
         let removed = false;
 
         const render = (): void => {
             if (removed) return;
 
-            if (!enabled || !bounds) {
+            if (!enabled || !viewportParams) {
                 if (map.getLayer(LINE_LAYER_ID)) map.removeLayer(LINE_LAYER_ID);
                 if (map.getLayer(FILL_LAYER_ID)) map.removeLayer(FILL_LAYER_ID);
                 if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
                 return;
             }
 
-            const data = toRectFeature(bounds);
+            const data = getRectFeature(viewportParams);
             const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
 
             if (source) {
@@ -70,7 +56,6 @@ const useDebugViewportRect = (
             // Move layer to front
             map.moveLayer(FILL_LAYER_ID);
             map.moveLayer(LINE_LAYER_ID);
-            console.log(bounds);
         };
 
         if (map.isStyleLoaded()) {
@@ -87,7 +72,7 @@ const useDebugViewportRect = (
             if (map.getLayer(FILL_LAYER_ID)) map.removeLayer(FILL_LAYER_ID);
             if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
         };
-    }, [mapRef, bounds, enabled]);
+    }, [mapRef, viewportParams, enabled]);
 };
 
 export default useDebugViewportRect;

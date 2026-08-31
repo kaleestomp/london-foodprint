@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import readViewportParams from './readViewportParams';
-import { useIsMobileCtx } from '../../../../../../../context/IsMobileContext';
-import { type ViewportBounds } from '../../../utils/getBucketedViewportBounds';
+import { useIsMobileCtx } from '../../../../../../../../context/IsMobileContext';
+import { type ViewportBounds } from '../../../../../InputHooks/readViewportParams/getBucketedViewportBounds/snapViewportLatLng';
 
 const THROTTLE_MS = 80;
 
