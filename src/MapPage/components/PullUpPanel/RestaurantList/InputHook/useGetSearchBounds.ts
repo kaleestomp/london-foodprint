@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import { useTileQuery } from '../../../../../context/TileQueryContext';
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import getLatLngboxFromCircle from '../../../../../MapPage/components/Map/DataLayer/utils/getLatLngboxFromCircle';
 
 type GeoBounds = {
     sw_lat: number;
@@ -20,27 +21,9 @@ const useGetSearchBounds = () : {
     // NEARBY SEARCH BOUNDS - RADIUS BASED
     // Bounding box derived from the bubble drop radius, if a bubble is active
     const { searchMask } = useSearchFilters();
-    const circleBoundingBox = useMemo(() => {
-        if (!searchMask) return null;
-
-        const { lat, lng } = searchMask.center;
-        const { radiusM } = searchMask;
-        const earthRadiusM = 6378137;
-
-        const latDeltaDeg = (radiusM / earthRadiusM) * (180 / Math.PI);
-        const cosLat = Math.max(Math.cos((lat * Math.PI) / 180), 1e-6);
-        const lngDeltaDeg = (radiusM / (earthRadiusM * cosLat)) * (180 / Math.PI);
-
-        return {
-            sw_lat: lat - latDeltaDeg,
-            sw_lng: lng - lngDeltaDeg,
-            ne_lat: lat + latDeltaDeg,
-            ne_lng: lng + lngDeltaDeg,
-            center_lat: searchMask?.center.lat,
-            center_lng: searchMask?.center.lng,
-            radius_m: searchMask?.radiusM,
-        };
-    }, [searchMask]);
+    const circleBoundingBox = useMemo(() => (
+        searchMask ? getLatLngboxFromCircle(searchMask) : null
+    ), [searchMask]);
 
     // VIEWPORT SEARCH BOUNDS - ACTIVE VIEW BASED
     // Bounding box from the last tile query viewport (only used when no bubble is active)

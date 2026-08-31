@@ -12,6 +12,8 @@
   border-bottom: none;
   outline: none;
   touch-action: pan-y;
+
+  --drawer-header-height: 64px;
 }
 
 .vaul-drawer-body {

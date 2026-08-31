@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState, type FC } from 'react';
 
-import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
+import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
+// import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
 import usePullUpPanelListQuery from './InputHook/usePullUpPanelListQuery';
 import ListLoading from './AltState/ListLoading';
 import NoResults from './AltState/NoResult';
@@ -15,8 +16,11 @@ const NEAR_BOTTOM_THRESHOLD = 180;
 const RestaurantList: FC = () => {
 
   // PARENT PULL-UP PANEL STATES
-  const { handleContentPointerDown, handleContentPointerMove, handleContentPointerUp,
-    handleContentPointerCancel, isPanelOpen } = usePullUpPanelSnapState();
+  const { snap } = useDrawerState();
+
+  // const { handleContentPointerDown, handleContentPointerMove, handleContentPointerUp,
+  //   handleContentPointerCancel, isPanelOpen } = usePullUpPanelSnapState();
+  
 
   // SCROLL STATES
   const [hasScrolledSinceLastRefresh, setHasScrolledSinceLastRefresh] = useState(false);
@@ -85,12 +89,12 @@ const RestaurantList: FC = () => {
     <div
       ref={scrollRef}
       className="restaurant-panel-scroll-content"
-      style={{ overflowY: isPanelOpen ? 'auto' : 'hidden' }}
+      style={{ overflowY: snap && snap > 100 ? 'auto' : 'hidden' }}
       onScroll={onScroll}
-      onPointerDown={handleContentPointerDown}
-      onPointerMove={handleContentPointerMove}
-      onPointerUp={handleContentPointerUp}
-      onPointerCancel={handleContentPointerCancel}
+      // onPointerDown={handleContentPointerDown}
+      // onPointerMove={handleContentPointerMove}
+      // onPointerUp={handleContentPointerUp}
+      // onPointerCancel={handleContentPointerCancel}
     >
       <RefreshButton onListRefresh={onListRefresh} isVisible={refreshAvaliable} />
       <div className="restaurant-list-section">

@@ -6,8 +6,7 @@
 
   flex: 0 0 auto;
   user-select: none;
-  min-height: 56px;
-  background-color: rgba(255, 0, 0, 0.9);
+  min-height: var(--drawer-header-height);
 }
 
 .drawer-title-row {

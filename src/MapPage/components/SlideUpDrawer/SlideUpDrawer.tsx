@@ -5,7 +5,7 @@ import { Drawer } from 'vaul';
 
 // import SampleContent from './SampleContent/SampleContent';
 import Header from './Header/Header';
-// import Content from './Content/Content';
+import Content from './Content/Content';
 import AboveDrawer from './AboveDrawer/AboveDrawer';
 import { useDrawerState } from './DrawerStateContext';
 
@@ -19,7 +19,7 @@ const SlideUpDrawer: FC<{
 
   const { isAtFullHeight, reportIsAtFullHeight, reportSnap } = useDrawerState();
   const [snap, setSnap] = useState<number | string | null>(SNAP_HEIGHTS[0]);
-  useEffect(() => { 
+  useEffect(() => {
     reportSnap(snap); // used to track avatar home position
     reportIsAtFullHeight(snap === SNAP_HEIGHTS[2]);
     // isFullHeight is used to conditionally fade out avatar
@@ -30,8 +30,7 @@ const SlideUpDrawer: FC<{
       defaultOpen={true} dismissible={false} modal={false}
       snapPoints={SNAP_HEIGHTS} activeSnapPoint={snap}
       setActiveSnapPoint={setSnap} snapToSequentialPoint={true}
-      fadeFromIndex={2}
-    // onDragPositionChange={(visibleHeight) => void}
+      fadeFromIndex={2} //onDragPositionChange={(visibleHeight) => void}
     >
       <Drawer.Portal>
         {/* <Drawer.Overlay className="vaul-overlay" /> */}
@@ -42,7 +41,7 @@ const SlideUpDrawer: FC<{
             <Drawer.Handle className="vaul-handle" />
             <Header />
             {/* <SampleContent snap={snap} /> */}
-            {/* <Content /> */}
+            <Content />
           </div>
         </Drawer.Content>
       </Drawer.Portal>

@@ -129,7 +129,7 @@ const BubbleHome: React.FC<{
       </motion.div>
 
       {/* ── Drop-ring overlay (follows pointer while dragging) ───────────── */}
-      <DropRing mapRef={mapRef} pointer={onDrag.dragMotion.pointer} isActive={isDragging && !isNearHome} /> 
+      <DropRing pointer={onDrag.dragMotion.pointer} isActive={isDragging && !isNearHome} /> 
 
       {isPickupPending && pickupPos && typeof document !== 'undefined' &&createPortal(
         <div className="bubble-avatar-root">

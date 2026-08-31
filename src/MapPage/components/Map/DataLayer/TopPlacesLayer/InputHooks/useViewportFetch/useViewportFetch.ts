@@ -4,6 +4,8 @@ import { useSearchFilters } from '../../../../../../../context/SearchFiltersCont
 import { useTileQuery } from '../../../../../../../context/TileQueryContext';
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../request/useRequestTopPlaces/useRequestTopPlaces';
+import resolveConstraint from './resolveConstraint';
+import useMaskFilter from './useMaskFilter';
 
 const useViewportFetch = (
   limit: number = 10,
@@ -12,16 +14,16 @@ const useViewportFetch = (
   viewportTopPlaces: TopPlaceItem[];
 } => {
 
-  const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier } = useSearchFilters();
+  const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, searchMask } = useSearchFilters();
   const { viewportParams } = useTileQuery();
-
+  const geoParams = resolveConstraint(viewportParams, searchMask);
   const topPlacesParams = useMemo<TopPlacesParams | null>(() => {
-    if (!enabled || !viewportParams) return null;
+    if (!enabled || !geoParams) return null;
     return {
-      sw_lat: viewportParams.sw_lat,
-      sw_lng: viewportParams.sw_lng,
-      ne_lat: viewportParams.ne_lat,
-      ne_lng: viewportParams.ne_lng,
+      sw_lat: geoParams.sw_lat,
+      sw_lng: geoParams.sw_lng,
+      ne_lat: geoParams.ne_lat,
+      ne_lng: geoParams.ne_lng,
       cuisines: effectiveCuisines,
       cost: effectivePriceRanges,
       venue_type: venueType ?? undefined,
@@ -30,13 +32,15 @@ const useViewportFetch = (
       limit,
     };
   }, [
-    viewportParams, effectiveCuisines, effectivePriceRanges,
+    geoParams, effectiveCuisines, effectivePriceRanges,
     venueType, scoreBasis, scoreTier, enabled,
   ]);
+  
   const { res } = useRequestTopPlaces(topPlacesParams, { debounceMs: 0 });
   const viewportTopPlaces = enabled && res ? res.data : [];
+  const masked = useMaskFilter(viewportTopPlaces, searchMask); 
 
-  return { viewportTopPlaces };
+  return { viewportTopPlaces: masked };
 }
 
 export default useViewportFetch;
