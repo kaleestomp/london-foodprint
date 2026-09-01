@@ -23,18 +23,22 @@
   flex-direction: column;
   overflow: hidden;
 
-  background: var(--app-glass-bg);
+  background: var(--app-paper-color);
+  border-radius: var(--app-card-border-radius) var(--app-card-border-radius) 0 0;
+  box-shadow: var(--app-card-box-shadow);
+
+  /* background: var(--app-glass-bg);
   backdrop-filter: var(--app-backdrop-filter);
   -webkit-backdrop-filter: var(--app-backdrop-filter);
   border-radius: var(--app-card-border-radius) var(--app-card-border-radius) 0 0;
   border: var(--app-glass-border);
-  box-shadow: var(--app-glass-shadow);
+  box-shadow: var(--app-glass-shadow); */
   /* transition: background 500ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 .vaul-drawer-body.is-full-height {
   background: #e0e0e0; */
 }
-.vaul-drawer-body::before {
+/* .vaul-drawer-body::before {
   content: '';
   position: absolute;
   top: 0;
@@ -47,7 +51,7 @@
     rgba(255, 255, 255, 0.8),
     transparent
   );
-}
+} */
 
 .vaul-handle {
   position: relative;

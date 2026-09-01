@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FC } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
 import usePullUpPanelListQuery from './InputHook/usePullUpPanelListQuery';
 import ListLoading from './AltState/ListLoading';
 import NoResults from './AltState/NoResult';
@@ -17,16 +16,12 @@ const RestaurantList: FC<{
   pageSize?: number;
 }> = ({ pageSize = 10 }) => {
 
-  // PARENT PULL-UP PANEL STATES
-  const { snap } = useDrawerState();
-  const panelUp = snap && snap > 100;
-
   // REFRESH STATE
   const [shouldAutoRefresh, setShouldAutoRefresh] = useState(true);
 
   // NETWORK CALL
   const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale, filterKey
-  } = usePullUpPanelListQuery(shouldAutoRefresh, panelUp ? 20 : pageSize);
+  } = usePullUpPanelListQuery(shouldAutoRefresh, pageSize);
 
   // SELECTION STATE
   const items = res?.data ?? [];
@@ -97,7 +92,7 @@ const RestaurantList: FC<{
 
   return (
     <div ref={scrollRef} className="list-scroll-content"
-      style={{ overflowY: panelUp ? 'auto' : 'hidden' }}
+      // style={{ overflowY: panelUp ? 'auto' : 'hidden' }}
       onScroll={onScroll}
     >
       <RefreshButton onListRefresh={onListRefresh} isVisible={refreshAvaliable || isRefreshPending} isLoading={isRefreshPending} />
