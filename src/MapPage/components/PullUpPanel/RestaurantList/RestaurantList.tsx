@@ -1,8 +1,7 @@
-import { useCallback, useRef, useState, type FC } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FC } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
-// import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
 import usePullUpPanelListQuery from './InputHook/usePullUpPanelListQuery';
 import ListLoading from './AltState/ListLoading';
 import NoResults from './AltState/NoResult';
@@ -18,41 +17,31 @@ const RestaurantList: FC<{
   pageSize?: number;
 }> = ({ pageSize = 10 }) => {
 
-  // PARENT PULL-UP PANEL STATES
-  const { snap } = useDrawerState();
-
-  // SCROLL STATES
-  const [hasScrolledSinceLastRefresh, setHasScrolledSinceLastRefresh] = useState(false);
-  const [isAtTop, setIsAtTop] = useState(true);
-  const shouldAutoRefresh = isAtTop && !hasScrolledSinceLastRefresh;
+  // REFRESH STATE
+  const [shouldAutoRefresh, setShouldAutoRefresh] = useState(true);
 
   // NETWORK CALL
-  const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale
+  const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale, filterKey
   } = usePullUpPanelListQuery(shouldAutoRefresh, pageSize);
+
+  // SELECTION STATE
+  const items = res?.data ?? [];
+  const [selectedItemKey, setSelectedItemKey] = useSelectedItemKey(items);
+
+  // FILTER CHANGE → AUTO-REFRESH (bypass refresh button)
+  useEffect(() => {
+    setShouldAutoRefresh(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterKey]);
 
   // SCROLL HANDLER
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const isProgrammaticScrollRef = useRef(false);
-  const [isResettingScroll, setIsResettingScroll] = useState(false);
   const onScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
 
-    // DISGARD PROGRAM SCROLLS
-    if (isProgrammaticScrollRef.current) {
-      if (el.scrollTop <= 0) {
-        isProgrammaticScrollRef.current = false;
-        setIsResettingScroll(false);
-      }
-      return;
-    }
-
-    // AT TOP
-    setIsAtTop(el.scrollTop <= 0);
-
-    // USER SCROLLED
-    const userScrolled = el.scrollTop > 0;
-    setHasScrolledSinceLastRefresh((prev) => prev || userScrolled);
+    // AT TOP — latch off auto-refresh once user scrolls
+    if (el.scrollTop > 0) setShouldAutoRefresh(false);
 
     // NEAR BOTTOM
     const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - NEAR_BOTTOM_THRESHOLD;
@@ -61,52 +50,60 @@ const RestaurantList: FC<{
 
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  // UPDATE SCROLL CONTAINER WHEN A REFRESHED LIST HAS SETTLED
+  const [scrollResetEpoch, setScrollResetEpoch] = useState(0);
+  const [shouldFade, setShouldFade] = useState(false);
+  const [isRefreshPending, setIsRefreshPending] = useState(false);
+  const pendingFadeRef = useRef(false);
+  const wasListStaleRef = useRef(false);
+  useEffect(() => {
+    if (wasListStaleRef.current && !isListStale) { 
+      setShouldFade(pendingFadeRef.current);
+      pendingFadeRef.current = false;
+      setIsRefreshPending(false);
+      setScrollResetEpoch((e) => e + 1);
+    }
+    wasListStaleRef.current = isListStale;
+  }, [isListStale]);
+
   // REFRESH BUTTON STATES
   // button may disappear mid pan due to matching geo params to last fetch
   // this triggers 'isReady' to true; meaning list is no longer stale
-  const refreshAvaliable = isListStale && !shouldAutoRefresh && !isResettingScroll;
+  const refreshAvaliable = isListStale && !shouldAutoRefresh;
   const onListRefresh = useCallback(() => {
-
     if (!isListStale) return;
-    // RESET SCROLL STATES
-    setHasScrolledSinceLastRefresh(false);
-    setIsAtTop(true);
-
-    // PROGRAMMED SCROLL TO TOP
-    const el = scrollRef.current;
-    if (el && el.scrollTop > 0) {
-      isProgrammaticScrollRef.current = true;
-      setIsResettingScroll(true);
-      requestAnimationFrame(() => {
-        el.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    }
+    pendingFadeRef.current = true;
+    setIsRefreshPending(true);
+    setShouldAutoRefresh(true);
   }, [isListStale]);
 
-
-  // SELECTION STATE
-  const items = res?.data ?? [];
-  const [selectedItemKey, setSelectedItemKey] = useSelectedItemKey(items);
+  // VIRTUALIZER
   const rowVirtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => 86,
+    estimateSize: () => 86, // estimated height of each list item
     getItemKey: (index) => getListItemKey(items[index].id, index),
     overscan: 5,
   });
+  // SYNC VIRTUALIZER OFFSET AFTER A REFRESHED LIST HAS SETTLED
+  useLayoutEffect(() => {
+    rowVirtualizer.scrollToOffset(0, { behavior: 'auto' });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollResetEpoch]);
 
+
+  // PARENT PULL-UP PANEL STATES
+  const { snap } = useDrawerState();
   return (
-    <div
-      ref={scrollRef}
-      className="restaurant-panel-scroll-content"
+    <div ref={scrollRef} className="list-scroll-content"
       style={{ overflowY: snap && snap > 100 ? 'auto' : 'hidden' }}
       onScroll={onScroll}
     >
-      <RefreshButton onListRefresh={onListRefresh} isVisible={refreshAvaliable} />
-      <div className="restaurant-list-section">
+      <RefreshButton onListRefresh={onListRefresh} isVisible={refreshAvaliable || isRefreshPending} isLoading={isRefreshPending} />
+      <div className={`list-section${shouldFade ? ' list-fade-in' : ''}`}>
         <ListLoading enabled={status === 'loading' && items.length === 0} />
         <NoResults enabled={status !== 'loading' && items.length === 0} />
-        <div className="restaurant-list-virtualizer" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+        <div className="list-virtualizer" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const row = items[virtualRow.index];
             const itemKey = getListItemKey(row.id, virtualRow.index);
@@ -116,7 +113,7 @@ const RestaurantList: FC<{
                 key={itemKey}
                 ref={rowVirtualizer.measureElement}
                 data-index={virtualRow.index}
-                className="restaurant-list-virtual-row"
+                className="list-virtual-row"
                 style={{ transform: `translateY(${virtualRow.start}px)` }}
               >
                 <ListItem
@@ -140,7 +137,7 @@ const RestaurantList: FC<{
           />);
         })} */}
         {isFetchingNextPage && (
-          <div className="restaurant-list-pagination">
+          <div className="list-pagination">
             <span>Loading more…</span>
           </div>
         )}

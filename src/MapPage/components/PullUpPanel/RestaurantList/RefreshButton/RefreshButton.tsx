@@ -1,5 +1,6 @@
 import { type FC } from 'react';
-import IconButton from '@mui/material/IconButton';
+import Fab from '@mui/material/Fab';
+import CircularProgress from '@mui/material/CircularProgress';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 import './RefreshButton.css';
@@ -7,26 +8,22 @@ import './RefreshButton.css';
 const RefreshButton: FC<{
     onListRefresh: () => void;
     isVisible: boolean;
-}> = ({ onListRefresh, isVisible }) => {
+    isLoading: boolean;
+}> = ({ onListRefresh, isVisible, isLoading }) => {
 
     return (
-        <div
-            className={[
-                'restaurant-list-refresh-wrap',
-                isVisible ? 'restaurant-list-refresh-wrap-visible'
-                    : 'restaurant-list-refresh-wrap-hidden',
-            ].join(' ')}
-        >
-            <IconButton
-                type="button"
-                className="restaurant-list-refresh-button"
+        <div className={['list-refresh-wrap', isVisible ? 'list-refresh-wrap-visible' : 'list-refresh-wrap-hidden' ].join(' ')}>
+            <Fab className="list-refresh-button"
                 onClick={onListRefresh}
                 size="medium"
                 aria-label="Refresh list"
-                disabled={!isVisible}
+                disabled={isLoading}
             >
-                <RefreshIcon fontSize="large" />
-            </IconButton>
+                {isLoading
+                    ? <CircularProgress size={20} color="inherit" />
+                    : <RefreshIcon fontSize="large" />
+                }
+            </Fab>
         </div>
     );
 };

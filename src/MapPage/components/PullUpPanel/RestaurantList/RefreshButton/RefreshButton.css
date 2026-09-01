@@ -1,45 +1,44 @@
-.restaurant-list-refresh-wrap {
+.list-refresh-wrap {
   position: sticky;
   top: 18px; /* 24px */
   z-index: 5;
   display: flex;
   justify-content: flex-end;
   padding-right: 0px;
-  margin-bottom: -53px;
+  margin-bottom: -40px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease-in-out, transform 180ms ease-in-out;
   transform: translateY(-4px);
 }
 
-.restaurant-list-refresh-wrap-visible {
+.list-refresh-wrap-visible {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
 }
 
-.restaurant-list-refresh-wrap-hidden {
+.list-refresh-wrap-hidden {
   opacity: 0;
   pointer-events: none;
   transform: translateY(-4px);
 }
 
-.restaurant-list-refresh-button,
-.restaurant-list-refresh-button.MuiIconButton-root {
-  border: 1px solid var(--app-divider-color) !important;
-  border-radius: 999px;
-  /* background-color: rgba(255, 255, 255, 0.96) !important; */
-  color: var(--app-text-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: opacity 180ms ease-in-out, background-color 180ms ease-in-out, box-shadow 180ms ease-in-out;
+.list-refresh-button,
+.list-refresh-button.MuiFab-root {
+  border: none !important;
+  background-color: var(--app-primary-black) !important;
+  color: #fff !important;
+  transition: opacity 180ms ease-in-out, background-color 180ms ease-in-out, box-shadow 180ms ease-in-out !important;
 }
 
-.restaurant-list-refresh-button:hover,
-.restaurant-list-refresh-button.MuiIconButton-root:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+.list-refresh-button:hover,
+.list-refresh-button.MuiFab-root:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
 }
 
-.restaurant-list-refresh-button:disabled {
-  opacity: 0.2;
+/* .list-refresh-button.Mui-disabled,
+.list-refresh-button.MuiFab-root.Mui-disabled {
+  opacity: 1 !important;
   cursor: default;
-}
+} */

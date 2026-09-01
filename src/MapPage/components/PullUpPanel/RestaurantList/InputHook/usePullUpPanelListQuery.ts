@@ -13,6 +13,7 @@ type ListQueryResult = {
   isFetching: boolean;
   isFetchingNextPage: boolean;
   isListStale: boolean;
+  filterKey: string;
 };
 
 const usePullUpPanelListQuery = (
@@ -45,6 +46,7 @@ const usePullUpPanelListQuery = (
     status, res, isFetching,
     hasNextPage, isFetchingNextPage,
     isListStale, fetchNextPage,
+    filterKey,
   };
 };
 
