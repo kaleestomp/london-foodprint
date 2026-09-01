@@ -1,5 +1,5 @@
 .drawer-header {
-  margin-top: -64px; /*-17 or -20px size of handle block */
+  margin-top: calc(-1 * var(--drawer-header-height)); /*-64 -17 or -20px size of handle block */
   flex: 0 0 auto;
   user-select: none;
   min-height: var(--drawer-header-height);
@@ -8,11 +8,11 @@
 
 .drawer-title-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   height: 100%;
   /* padding-inline: var(--app-layout-gap); */
-  padding: 12px var(--app-layout-gap) 0px;  
+  padding: var(--app-layout-gap) var(--app-layout-gap) 0px;  
 }
 
 .drawer-title-block {
