@@ -3,8 +3,8 @@ import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 
 import useGetSearchBounds from './useGetSearchBounds';
 import useGetFilterParams from './useGetFilterParams';
-import { buildQueryKey } from '../../../../request/useRequestPlacesList/useRequestPlacesList';
-import { request, type PlacesListResponse } from '../../../../request/useRequestPlacesList/request';
+import { buildQueryKey } from '../../../request/useRequestPlacesList/useRequestPlacesList';
+import { request, type PlacesListResponse } from '../../../request/useRequestPlacesList/request';
 
 type ListQueryResult = {
   listStatus: 'empty' | 'loading' | 'success' | 'error';

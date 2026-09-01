@@ -1,8 +1,8 @@
 import type { FC } from 'react';
 import Typography from '@mui/material/Typography';
 
-import { getCuisineColor } from '../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/backdropColors/getCuisineColor';
-import { type PlacesListItem } from '../../../../request/useRequestPlacesList/request';
+import { getCuisineColor } from '../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/backdropColors/getCuisineColor';
+import { type PlacesListItem } from '../../../request/useRequestPlacesList/request';
 import ItemIcon from './itemIcon/itemIcon';
 import brightenColor from './brightenColor';
 import RankBadge from './RankBadgeSimple/RankBadge';

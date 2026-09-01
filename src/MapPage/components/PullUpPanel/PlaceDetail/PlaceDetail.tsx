@@ -2,7 +2,7 @@ import Typography from '@mui/material/Typography';
 import type { FC, PointerEvent as ReactPointerEvent } from 'react';
 
 import useRequestPlaceDetail from '../../../request/useRequestPlaceDetail/useRequestPlaceDetail';
-import usePullUpPanelListQuery from '../RestaurantList/InputHook/usePullUpPanelListQuery';
+import useFetchInfinitePlacesList from '../../RestaurantList/InputHook/useFetchInfinitePlacesList';
 import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 import './PlaceDetail.css';
 
@@ -39,7 +39,7 @@ const PlaceDetail: FC<Props> = ({
   onContentPointerCancel,
 }) => {
   const { selectedPlaceId } = usePlaceSelection();
-  const { status: listStatus, res: listRes } = usePullUpPanelListQuery();
+  const { status: listStatus, res: listRes } = useFetchInfinitePlacesList();
   const { status: detailStatus, res: detailRes } = useRequestPlaceDetail(selectedPlaceId);
   console.log(listRes);
   const showEmptyList = listStatus !== 'loading' && (!listRes || listRes.data.length === 0);

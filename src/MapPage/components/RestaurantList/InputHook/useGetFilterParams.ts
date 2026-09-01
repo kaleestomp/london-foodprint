@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import { type PlacesListParams } from '../../../../request/useRequestPlacesList/useRequestInfinitePlacesList';
+import { useSearchFilters } from '../../../../context/SearchFiltersContext';
+import { type PlacesListParams } from '../../../request/useRequestPlacesList/useRequestInfinitePlacesList';
 
 type FilterParams = Pick<
     PlacesListParams, 

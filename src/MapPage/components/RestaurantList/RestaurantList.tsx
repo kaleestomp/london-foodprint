@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FC } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-import usePullUpPanelListQuery from './InputHook/usePullUpPanelListQuery';
+import useFetchInfinitePlacesList from './InputHook/useFetchInfinitePlacesList';
 import ListLoading from './AltState/ListLoading';
 import NoResults from './AltState/NoResult';
 import ListItem from './ListItem/ListItem';
@@ -14,14 +14,16 @@ const NEAR_BOTTOM_THRESHOLD = 180;
 
 const RestaurantList: FC<{
   pageSize?: number;
-}> = ({ pageSize = 10 }) => {
-
+  autoUpdate?: boolean;
+}> = ({ pageSize = 10, autoUpdate = false }) => {
+  
   // REFRESH STATE
   const [shouldAutoRefresh, setShouldAutoRefresh] = useState(true);
 
   // NETWORK CALL
+  const resetSignal = autoUpdate ? autoUpdate : shouldAutoRefresh;
   const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale, filterKey
-  } = usePullUpPanelListQuery(shouldAutoRefresh, pageSize);
+  } = useFetchInfinitePlacesList(resetSignal, pageSize);
 
   // SELECTION STATE
   const items = res?.data ?? [];

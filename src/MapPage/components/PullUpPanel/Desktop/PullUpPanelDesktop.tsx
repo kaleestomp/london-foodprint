@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 
 // import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
-import RestaurantList from '../RestaurantList/RestaurantList';
+import RestaurantList from '../../RestaurantList/RestaurantList';
 import HeaderDesktop from './Header/HeaderDesktop';
 
 import './PullUpPanelDesktop.css';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { type PlacesListItem } from '../../../request/useRequestPlacesList/request'
+import { type PlacesListItem } from '../../request/useRequestPlacesList/request'
 
 export const getListItemKey = (id: string, index: number): string => `${id}-${index}`;
 const useSelectedItemKey = (

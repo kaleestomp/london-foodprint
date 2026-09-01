@@ -1,8 +1,8 @@
 
 import { useMemo } from 'react';
-import { useTileQuery } from '../../../../../context/TileQueryContext';
-import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import getLatLngboxFromCircle from '../../../../../MapPage/components/Map/DataLayer/utils/getLatLngboxFromCircle';
+import { useTileQuery } from '../../../../context/TileQueryContext';
+import { useSearchFilters } from '../../../../context/SearchFiltersContext';
+import getLatLngboxFromCircle from '../../Map/DataLayer/utils/getLatLngboxFromCircle';
 
 type GeoBounds = {
     sw_lat: number;

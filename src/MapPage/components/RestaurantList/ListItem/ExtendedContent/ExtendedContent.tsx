@@ -9,7 +9,7 @@ import CurrencyPoundIcon from '@mui/icons-material/CurrencyPound';
 
 import IconPair from './IconPair';
 import { formatWalkDistance, formatDistance } from '../formatMetrics';
-import type { PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
+import type { PlacesListItem } from '../../../../request/useRequestPlacesList/request';
 import './ExtendedContent.css';
 
 const ExtendedContent: FC<{

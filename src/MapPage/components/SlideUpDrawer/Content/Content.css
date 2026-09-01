@@ -8,4 +8,10 @@
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   background: transparent;
+
+  margin-top: 30px;
+  transition: margin-top 200ms ease;
+}
+.drawer-content.open {
+  margin-top: 0;
 }

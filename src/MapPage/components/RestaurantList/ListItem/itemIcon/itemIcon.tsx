@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 
-import getCuisineIconSrc from '../../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/getCuisineIconSrc';
-import { type PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
+import getCuisineIconSrc from '../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/getCuisineIconSrc';
+import { type PlacesListItem } from '../../../../request/useRequestPlacesList/request';
 import brightenColor from '../brightenColor';
 
 import './itemIcon.css';

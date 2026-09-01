@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-import { type PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
+import { type PlacesListItem } from '../../../../request/useRequestPlacesList/request';
 import './RankBadge.css';
 
 const RankBadge: FC<{

@@ -3,7 +3,7 @@ import type maplibregl from 'maplibre-gl';
 
 // import { useAppUI } from '../../../../context/AppUIContext';
 import { usePullUpPanelSnapState } from '../SnapHooks/PullUpPanelSnapContext';
-import RestaurantList from '../RestaurantList/RestaurantList';
+import RestaurantList from '../../RestaurantList/RestaurantList';
 import HeaderMobile from './Header/HeaderMobile';
 import OverviewSection from '../OverviewSection/OverviewSection';
 
