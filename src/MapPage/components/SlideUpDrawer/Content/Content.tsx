@@ -2,7 +2,7 @@ import type { FC } from 'react';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import RestaurantList from '../../RestaurantList/RestaurantList';
-import OverviewSection from '../../PullUpPanel/OverviewSection/OverviewSection';
+import OverviewSection from '../../FilterTabs/FilterSection';
 
 import './Content.css';
 

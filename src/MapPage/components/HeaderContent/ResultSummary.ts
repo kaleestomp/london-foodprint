@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchFilters } from '../../../../context/SearchFiltersContext';
+import { useSearchFilters } from '../../../context/SearchFiltersContext';
 import useRestaurantCount from './useRestaurantCount';
 
 const TIMEOUT_MS = 1000;

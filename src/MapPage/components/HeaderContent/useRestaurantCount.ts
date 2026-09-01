@@ -3,9 +3,9 @@ import { useMemo } from 'react';
 import {
   PRICE_RANGE_FILTER_OPTIONS,
   useSearchFilters,
-} from '../../../../context/SearchFiltersContext';
-import useRequestPriceHistogram from '../../../request/useRequestPriceHistogram/useRequestPriceHistogram';
-import getPriceHistRequestParams from '../../FilterTabs/PriceFilter/Input/getPriceHistRequestParams';
+} from '../../../context/SearchFiltersContext';
+import useRequestPriceHistogram from '../../request/useRequestPriceHistogram/useRequestPriceHistogram';
+import getPriceHistRequestParams from '../FilterTabs/PriceFilter/Input/getPriceHistRequestParams';
 
 interface UseRestaurantCountResult {
   count: number | null;

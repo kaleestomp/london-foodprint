@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-import useResultSummary from '../../PullUpPanel/HeaderContent/ResultSummary';
+import useResultSummary from '../../HeaderContent/ResultSummary';
 import './Header.css';
 
 const HeaderMobile: FC = () => {

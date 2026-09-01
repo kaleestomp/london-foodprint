@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 
-import MaterialUISwitch from '../../../../components/Switch/MaterialUISwitch';
-import { useAppUI } from '../../../../context/AppUIContext';
+import MaterialUISwitch from './MaterialUISwitch';
+import { useAppUI } from '../../context/AppUIContext';
 
 const DarkModeToggle: FC = () => {
   const { colorMode, setColorMode } = useAppUI();

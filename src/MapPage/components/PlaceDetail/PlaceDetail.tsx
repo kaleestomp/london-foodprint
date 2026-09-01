@@ -1,9 +1,9 @@
 import Typography from '@mui/material/Typography';
 import type { FC, PointerEvent as ReactPointerEvent } from 'react';
 
-import useRequestPlaceDetail from '../../../request/useRequestPlaceDetail/useRequestPlaceDetail';
-import useFetchInfinitePlacesList from '../../RestaurantList/InputHook/useFetchInfinitePlacesList';
-import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
+import useRequestPlaceDetail from '../../request/useRequestPlaceDetail/useRequestPlaceDetail';
+import useFetchInfinitePlacesList from '../RestaurantList/InputHook/useFetchInfinitePlacesList';
+import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
 import './PlaceDetail.css';
 
 type ExternalLinksProps = {
