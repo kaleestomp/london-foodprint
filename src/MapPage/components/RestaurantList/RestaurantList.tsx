@@ -91,7 +91,7 @@ const RestaurantList: FC<{
     rowVirtualizer.scrollToOffset(0, { behavior: 'auto' });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollResetEpoch]);
-
+  
   return (
     <div ref={scrollRef} className="list-scroll-content"
       // style={{ overflowY: panelUp ? 'auto' : 'hidden' }}

@@ -18,7 +18,7 @@ type Props = {
 
 const CuisineFilterChips: React.FC<Props> = ({ cuisineData }) => {
 
-    const { cuisines, cuisineSelectionMode, toggleCuisine, clearCuisines } = useSearchFilters();
+    const { cuisines, cuisineSelectionMode, addCuisine, clearCuisines } = useSearchFilters();
     const [visibleCount, setVisibleCount] = useState(COLLAPSED_COUNT);
     const wasAtBottomRef = useRef(false);
     const isExcludeMode = cuisineSelectionMode === 'exclude';
@@ -85,7 +85,7 @@ const CuisineFilterChips: React.FC<Props> = ({ cuisineData }) => {
                         clickable
                         color={selected ? (cuisineSelectionMode === 'exclude' ? 'warning' : 'primaryBlack') : 'default'}
                         variant={selected ? 'filled' : 'outlined'}
-                        onClick={() => toggleCuisine(option)}
+                        onClick={() => addCuisine(option)}
                     />
                 );
             })}

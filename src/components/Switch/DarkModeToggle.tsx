@@ -1,10 +1,10 @@
 import type { FC } from 'react';
-
+import { useState } from 'react';
 import MaterialUISwitch from './MaterialUISwitch';
-import { useAppUI } from '../../context/AppUIContext';
 
 const DarkModeToggle: FC = () => {
-  const { colorMode, setColorMode } = useAppUI();
+  
+  const [ colorMode, setColorMode ] = useState('dark');
 
   return (
     <div className="restaurant-theme-toggle">

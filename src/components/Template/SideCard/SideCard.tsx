@@ -1,5 +1,4 @@
 import React from 'react'; 
-import { useAppUI } from '../../../context/AppUIContext'; 
 import useResizeWidth from './useResizeWidth'; 
 
 import Skeleton from '@mui/material/Skeleton'; 
@@ -9,7 +8,7 @@ import './SideCard.css';
 
 const SideCard: React.FC = () => {
     
-    const { isSideCardVisible: isOpen } = useAppUI(); 
+    const isOpen = true;
     const isLoading = false; // Placeholder for loading state, can be connected to context or local state
     const { cardWidth, isResizing, onResizeStart } = useResizeWidth(); 
     
