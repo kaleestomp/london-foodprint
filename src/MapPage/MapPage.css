@@ -1,14 +1,7 @@
 .map-page-container {
   position: relative;
-  height: 100dvh;
-  min-height: 100vh;
+  height: 100%;
   overflow: hidden;
-}
-
-@supports not (height: 100dvh) {
-  .map-page-container {
-    height: 100vh;
-  }
 }
 
 .map-card-viewport {
