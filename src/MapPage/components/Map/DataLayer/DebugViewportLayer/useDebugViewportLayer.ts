@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import getRectFeature from './getRectFeature';
-import { useTileQuery } from '../../../../../context/TileQueryContext';
+import { useViewportQuery } from '../../../../../context/ViewportQueryContext';
 
 const SOURCE_ID = 'debug-viewport-rect-source';
 const FILL_LAYER_ID = 'debug-viewport-rect-fill';
@@ -14,7 +14,7 @@ const useDebugViewportRect = (
     enabled: boolean = true,
 ): void => {
 
-    const { viewportParams } = useTileQuery();
+    const { viewportParams } = useViewportQuery();
     
     useEffect(() => {
         const map = mapRef.current;

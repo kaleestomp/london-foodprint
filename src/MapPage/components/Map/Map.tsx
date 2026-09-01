@@ -4,7 +4,7 @@ import type maplibregl from 'maplibre-gl';
 import BaseLayer from './BaseLayer/BaseLayer';
 import DataLayer from './DataLayer/DataLayer';
 import onUserRoam from './InputHooks/onUserRoam';
-import { useTileQuery } from '../../../context/TileQueryContext';
+import { useViewportQuery } from '../../../context/ViewportQueryContext';
 
 type Props = {
   mapRef?: React.RefObject<maplibregl.Map | null>;
@@ -12,7 +12,7 @@ type Props = {
 const Map: React.FC<Props> = ({ mapRef: externalMapRef }) => {
   const { mapContainerRef, mapRef } = BaseLayer(externalMapRef);
   const viewportParams = onUserRoam(mapRef);
-  const { setViewportParams } = useTileQuery();
+  const { setViewportParams } = useViewportQuery();
 
   useEffect(() => {
     setViewportParams(viewportParams);

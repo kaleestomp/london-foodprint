@@ -2,7 +2,7 @@ import { type FC, useRef } from 'react'; //, { useRef }
 import type maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../context/AppUIContext';
-import { TileQueryProvider } from '../context/TileQueryContext';
+import { ViewportQueryProvider } from '../context/ViewportQueryContext.tsx';
 import { PlaceSelectionProvider } from '../context/PlaceSelectionContext';
 
 import Map from './components/Map/Map';
@@ -29,7 +29,7 @@ const MapPage: FC = () => {
     <div className="map-page-container">
       <Loading loading={isLoading} />
       <div className='map-card-viewport'>
-        <TileQueryProvider>
+        <ViewportQueryProvider>
           <PlaceSelectionProvider>
             <Map mapRef={mapRef} />
             <DrawerStateProvider>
@@ -42,7 +42,7 @@ const MapPage: FC = () => {
               </BubbleAvatarStateProvider> */}
             </DrawerStateProvider>
           </PlaceSelectionProvider>
-        </TileQueryProvider>
+        </ViewportQueryProvider>
       </div>
     </div>
   );

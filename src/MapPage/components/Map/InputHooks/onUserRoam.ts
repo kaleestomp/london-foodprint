@@ -3,7 +3,7 @@ import type maplibregl from 'maplibre-gl';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import readViewportParams from './readViewportParams/readViewportParams';
-import { type TilesParams } from '../../../request/useRequestTiles/useRequestTiles';
+import { type ViewportBounds } from './readViewportParams/getBucketedViewportBounds/snapViewportLatLng';
 
 const THROTTLE_MS = 250;
 
@@ -20,11 +20,11 @@ const THROTTLE_MS = 250;
 const onUserRoam = (
   mapRef: React.RefObject<maplibregl.Map | null>,
   throttleMs: number = THROTTLE_MS,
-): TilesParams | null => {
+): ViewportBounds | null => {
 
   const isMobile = useIsMobileCtx();
 
-  const [viewportParams, setViewportParams] = useState<TilesParams | null>(null);
+  const [viewportParams, setViewportParams] = useState<ViewportBounds | null>(null);
   const lastSignatureRef = useRef('');
 
   useEffect(() => {

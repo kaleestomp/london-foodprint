@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { useSearchFilters } from '../../../../../../../context/SearchFiltersContext';
-import { useTileQuery } from '../../../../../../../context/TileQueryContext';
+import { useViewportQuery } from '../../../../../../../context/ViewportQueryContext';
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../request/useRequestTopPlaces/useRequestTopPlaces';
 import resolveConstraint from './resolveConstraint';
@@ -15,7 +15,7 @@ const useViewportFetch = (
 } => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, searchMask } = useSearchFilters();
-  const { viewportParams } = useTileQuery();
+  const { viewportParams } = useViewportQuery();
   const geoParams = resolveConstraint(viewportParams, searchMask);
   const topPlacesParams = useMemo<TopPlacesParams | null>(() => {
     if (!enabled || !geoParams) return null;

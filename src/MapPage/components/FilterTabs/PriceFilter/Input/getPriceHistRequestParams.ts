@@ -3,13 +3,13 @@ import { useMemo } from 'react';
 import {
   useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
-import { useTileQuery } from '../../../../../context/TileQueryContext';
+import { useViewportQuery } from '../../../../../context/ViewportQueryContext';
 
 
 const getPriceHistRequestParams = () => {
   
   const { effectiveCuisines, venueType, scoreTier, scoreBasis, searchMask } = useSearchFilters();
-  const { viewportParams } = useTileQuery();
+  const { viewportParams } = useViewportQuery();
 
   const requestParams = useMemo(() => {
     if (searchMask) {

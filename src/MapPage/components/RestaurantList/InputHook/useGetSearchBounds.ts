@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react';
-import { useTileQuery } from '../../../../context/TileQueryContext';
+import { useViewportQuery } from '../../../../context/ViewportQueryContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import getLatLngboxFromCircle from '../../Map/DataLayer/utils/getLatLngboxFromCircle';
 
@@ -27,7 +27,7 @@ const useGetSearchBounds = () : {
 
     // VIEWPORT SEARCH BOUNDS - ACTIVE VIEW BASED
     // Bounding box from the last tile query viewport (only used when no bubble is active)
-    const { viewportParams } = useTileQuery();
+    const { viewportParams } = useViewportQuery();
     const viewportBoundingBox = useMemo(() => {
         if (searchMask || !viewportParams) return null;
         return {
