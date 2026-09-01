@@ -10,8 +10,6 @@ const DataLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
   enabled = true,
 ): void => {
-
-  // const [_, setActiveTopPlaceIds] = useState<Set<string> | undefined>(undefined);
   
   useTopPlacesLayer( mapRef, enabled );
   useClusterLayer(mapRef);

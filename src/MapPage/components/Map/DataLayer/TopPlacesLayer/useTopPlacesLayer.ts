@@ -11,7 +11,6 @@ import './syncMarkers/markers/TopPlacePin.css';
 
 const useTopPlacesLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
-  // setActiveTopPlaceIds: (ids: Set<string> | undefined) => void,
   enabled?: boolean,
 ): void => {
 
