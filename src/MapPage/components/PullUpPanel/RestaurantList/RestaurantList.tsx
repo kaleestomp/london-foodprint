@@ -17,12 +17,16 @@ const RestaurantList: FC<{
   pageSize?: number;
 }> = ({ pageSize = 10 }) => {
 
+  // PARENT PULL-UP PANEL STATES
+  const { snap } = useDrawerState();
+  const panelUp = snap && snap > 100;
+
   // REFRESH STATE
   const [shouldAutoRefresh, setShouldAutoRefresh] = useState(true);
 
   // NETWORK CALL
   const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale, filterKey
-  } = usePullUpPanelListQuery(shouldAutoRefresh, pageSize);
+  } = usePullUpPanelListQuery(shouldAutoRefresh, panelUp ? 20 : pageSize);
 
   // SELECTION STATE
   const items = res?.data ?? [];
@@ -91,12 +95,9 @@ const RestaurantList: FC<{
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollResetEpoch]);
 
-
-  // PARENT PULL-UP PANEL STATES
-  const { snap } = useDrawerState();
   return (
     <div ref={scrollRef} className="list-scroll-content"
-      style={{ overflowY: snap && snap > 100 ? 'auto' : 'hidden' }}
+      style={{ overflowY: panelUp ? 'auto' : 'hidden' }}
       onScroll={onScroll}
     >
       <RefreshButton onListRefresh={onListRefresh} isVisible={refreshAvaliable || isRefreshPending} isLoading={isRefreshPending} />
