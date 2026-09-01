@@ -4,7 +4,7 @@ import type maplibregl from 'maplibre-gl';
 import { HOME_SNAP_RADIUS, type Point } from '../../config';
 import { useBubbleAvatarState } from '../../BubbleAvatarStateContext';
 import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
-import { usePullUpPanelMetrics } from '../../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
+import { useDrawerState } from '../../../SlideUpDrawer/DrawerStateContext';
 import checkIsDropBlocked from './checkIsDropBlocked';
 
 /**
@@ -21,7 +21,7 @@ const useResolveDrop = (
   
   const { handleDropXY, handleDropCancel } = useBubbleAvatarState();
   const isMobile = useIsMobileCtx();
-  const { translateY, panelHeight } = usePullUpPanelMetrics();
+  const { snapPX } = useDrawerState();
   
   const resolveDrop = useCallback((point: Point) => {
 
@@ -40,7 +40,7 @@ const useResolveDrop = (
     }
 
     // CANCEL IF DROP NOT ON MAP
-    const isDropBlocked = checkIsDropBlocked(point, isMobile, panelHeight, translateY);
+    const isDropBlocked = checkIsDropBlocked(point, isMobile, snapPX ?? 0);
     if (isDropBlocked) {
       handleDropCancel();
       return;
@@ -60,7 +60,7 @@ const useResolveDrop = (
     //   handleDropCancel();
     // }
 
-  }, [mapRef, handleDropXY, handleDropCancel, homeCenter, isMobile, panelHeight, translateY]);
+  }, [mapRef, handleDropXY, handleDropCancel, homeCenter, isMobile, snapPX]);
 
   return resolveDrop;
 };

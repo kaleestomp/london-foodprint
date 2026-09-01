@@ -1,8 +1,9 @@
 import type maplibregl from 'maplibre-gl';
 
 import getBucketedViewportBounds from '../../../../../InputHooks/readViewportParams/getBucketedViewportBounds/getBucketedViewportBounds';
-import { MOBILE_PEEK_PX } from '../../../../../../PullUpPanel/SnapHooks/config';
 import { type ViewportBounds } from '../../../../../InputHooks/readViewportParams/getBucketedViewportBounds/snapViewportLatLng';
+import { SNAP_HEIGHTS } from '../../../../../../SlideUpDrawer/SlideUpDrawer';
+import snapToPX from '../../../../../../SlideUpDrawer/util/snapToPX';
 
 const DESKTOP_LEFT_OFFSET_PX = 360;
 
@@ -16,7 +17,7 @@ const readViewportParams = (
 
     const canvas = map.getCanvas();
     const desktopLeftOffset = !isMobile ? DESKTOP_LEFT_OFFSET_PX : 0;
-    const mobileBottomOffset = isMobile ? MOBILE_PEEK_PX + 56 : 0;
+    const mobileBottomOffset = isMobile ? (snapToPX(SNAP_HEIGHTS[0]) ?? 0) + 56 : 0;
     const leftOffset = Math.max(0, Math.min(desktopLeftOffset, canvas.clientWidth - 1));
     const bottomOffset = Math.max(0, Math.min(mobileBottomOffset, canvas.clientHeight - 1));
 

@@ -4,18 +4,14 @@ import type maplibregl from 'maplibre-gl';
 import { useAppUI } from '../context/AppUIContext';
 import { TileQueryProvider } from '../context/TileQueryContext';
 import { PlaceSelectionProvider } from '../context/PlaceSelectionContext';
-// import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
-import { PullUpPanelSnapProvider } from './components/PullUpPanel/SnapHooks/PullUpPanelSnapContext.tsx';
 
 import Map from './components/Map/Map';
 import Loading from '../components/Loading/Loading';
 // import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 // import IPLocationHandler from './components/Map/IPLocationHandler/IPLocationHandler';
-import PullDownPanel from './components/PullDownPanel/PullDownPanel';
 // import BaseToolbar from './components/BaseToolbar/BaseToolbar';
 import MapToolbar from './components/MapToolbar/MapToolbar';
 import PullUpPanelMapViewportSync from './components/MapViewportSync/PullUpPanelMapViewportSync';
-// import PullUpPanel from './components/PullUpPanel/PullUpPanel';
 
 import VaulDrawer from './components/SlideUpDrawer/SlideUpDrawer.tsx';
 import { DrawerStateProvider } from './components/SlideUpDrawer/DrawerStateContext';
@@ -36,19 +32,15 @@ const MapPage: FC = () => {
         <TileQueryProvider>
           <PlaceSelectionProvider>
             <Map mapRef={mapRef} />
-            <PullUpPanelSnapProvider>
-              <DrawerStateProvider>
-                <PullDownPanel mapRef={mapRef} />
-                <MapToolbar mapRef={mapRef} />
-                <PullUpPanelMapViewportSync mapRef={mapRef} />
-                <VaulDrawer mapRef={mapRef} />
-                {/* <PullUpPanel mapRef={mapRef} /> */}
-                {/* <BaseToolbar /> */}
-                {/* <BubbleAvatarStateProvider>
-                  <BubbleAvatar mapRef={mapRef} />
-                </BubbleAvatarStateProvider> */}
-              </DrawerStateProvider>
-            </PullUpPanelSnapProvider>
+            <DrawerStateProvider>
+              <MapToolbar mapRef={mapRef} />
+              <PullUpPanelMapViewportSync mapRef={mapRef} />
+              <VaulDrawer mapRef={mapRef} />
+              {/* <BaseToolbar /> */}
+              {/* <BubbleAvatarStateProvider>
+                <BubbleAvatar mapRef={mapRef} />
+              </BubbleAvatarStateProvider> */}
+            </DrawerStateProvider>
           </PlaceSelectionProvider>
         </TileQueryProvider>
       </div>

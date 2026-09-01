@@ -1,22 +1,18 @@
-import { type Point } from '../../config';
-
 const checkIsDropBlocked = (
-    point: Point,
+    point: {x: number, y: number},
     isMobile: boolean,
-    panelHeight: number,
-    translateY: number,
+    drawerSnapPX: number,
 ) => {
-    if (!isMobile) return false;
+    if (!isMobile || !drawerSnapPX) return false;
 
-    const safePanelHeight = Math.max(0, panelHeight);
-    const panelTop = Math.max(0, window.innerHeight - safePanelHeight + Math.max(0, translateY));
-    const panelBottom = panelTop + safePanelHeight;
+    const panelTopY = Math.max(0, window.innerHeight - drawerSnapPX);
+    const panelBottomY = panelTopY + drawerSnapPX;
 
     return (
         point.x >= 0 &&
         point.x <= window.innerWidth &&
-        point.y >= panelTop &&
-        point.y <= panelBottom
+        point.y >= panelTopY &&
+        point.y <= panelBottomY
     );
 };
 
