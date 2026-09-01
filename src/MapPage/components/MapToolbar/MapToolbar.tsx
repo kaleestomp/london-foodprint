@@ -2,7 +2,9 @@ import { memo, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../context/AppUIContext';
-import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
+import { useIsMobileCtx } from '../../../context/IsMobileContext';
+import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
+// import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import GeoSearchbar from '../GeoSearchbar/GeoSearchbar';
 import LayersButton from './LayersButton/LayersButton';
 import NorthResetButton from './NorthResetButton/NorthResetButton';
@@ -17,10 +19,13 @@ type Props = {
 const MapToolbar: React.FC<Props> = ({
   mapRef,
 }) => {
+
+  const isMobile = useIsMobileCtx();
+  const { isClosed } = useDrawerState();
   const { activeToolbarTab } = useAppUI();
-  const { isMobile, snapState } = usePullUpPanelSnapState();
+  // const { snapState } = usePullUpPanelSnapState();
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
-  const shouldHideMapToolbar = isMobile && snapState === 'open';
+  const shouldHideMapToolbar = isMobile && !isClosed;
   const hidden = shouldHideMapToolbar;
   const isHidden = Boolean(activeToolbarTab) || hidden;
 

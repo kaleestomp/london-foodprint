@@ -3,7 +3,8 @@ import RamenDiningIcon from '@mui/icons-material/RamenDining';
 import CurrencyPoundIcon from '@mui/icons-material/CurrencyPound';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { useAppUI } from '../../../context/AppUIContext';
-import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
+// import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
+import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
 import PositioningWrapper from './PositioningWrapper/PositioningWrapper';
 import PillButton from './PillButton/PillButton';
 import getCuisineCountLabel from './getCuisineCountLabel';
@@ -15,14 +16,15 @@ import './BaseToolbar.css';
 const BaseToolbar: FC = () => {
   
   const { activeToolbarTab, setActiveToolbarTab } = useAppUI();
-  const { openPanel } = usePullUpPanelSnapState();
+  // const { openPanel } = usePullUpPanelSnapState();
+  const { openDrawer } = useDrawerState();
   const openFilterTab = (tab: 'rating' | 'cuisine' | 'price') => {
     if (activeToolbarTab === tab) {
       setActiveToolbarTab(null);
       return;
     }
     setActiveToolbarTab(tab);
-    openPanel();
+    openDrawer();
   };
     
   // Request Price Info

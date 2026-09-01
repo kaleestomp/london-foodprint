@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
-import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
+// import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import useBottomPadding from './useBottomPadding/useBottomPadding';
 
 type Props = {
@@ -18,7 +18,7 @@ const PANEL_PADDING_ANIMATION_MS = 240;
 
 const PullUpPanelMapViewportSync: React.FC<Props> = ({ mapRef }) => {
   
-  const { isDragging } = usePullUpPanelSnapState();
+  // const { isDragging } = usePullUpPanelSnapState();
   const { selectedPlaceId } = usePlaceSelection();
 
   const bottomPadding = useBottomPadding(mapRef);
@@ -45,7 +45,7 @@ const PullUpPanelMapViewportSync: React.FC<Props> = ({ mapRef }) => {
     const hasRelevantChange =
       prev.bottomPadding !== bottomPadding;
 
-    if (!map || !hasRelevantChange || isDragging) {
+    if (!map || !hasRelevantChange) {// || isDragging
       prevRef.current = nextSnapshot;
       return;
     }
@@ -62,7 +62,7 @@ const PullUpPanelMapViewportSync: React.FC<Props> = ({ mapRef }) => {
     });
 
     prevRef.current = nextSnapshot;
-  }, [bottomPadding, isDragging, mapRef, selectedPlaceId]);
+  }, [bottomPadding, mapRef, selectedPlaceId]);
 
   return null;
 };

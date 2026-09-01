@@ -1,5 +1,5 @@
 'use client';
-import { type FC, useState, useEffect } from 'react';
+import { type FC } from 'react';
 import type maplibregl from 'maplibre-gl';
 import { Drawer } from 'vaul';
 
@@ -11,25 +11,23 @@ import { useDrawerState } from './DrawerStateContext';
 
 import './SlideUpDrawer.css';
 
-const SNAP_HEIGHTS = ['94px', 0.5, `${window.innerHeight - 64}px`];//64
+export const SNAP_HEIGHTS = ['94px', 0.5, `${window.innerHeight - 64}px`];//64
 
 const SlideUpDrawer: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
 }> = ({ mapRef }) => {
 
-  const { isAtFullHeight, reportIsAtFullHeight, reportSnap } = useDrawerState();
-  const [snap, setSnap] = useState<number | string | null>(SNAP_HEIGHTS[0]);
-  useEffect(() => {
-    reportSnap(snap); // used to track avatar home position
-    reportIsAtFullHeight(snap === SNAP_HEIGHTS[2]);
-    // isFullHeight is used to conditionally fade out avatar
-  }, [snap]);
+  const { snap, updateSnap, isAtFullHeight, isClosed } = useDrawerState();
+  // const [snap, setSnap] = useState<number | string | null>(SNAP_HEIGHTS[0]);
+  // useEffect(() => {
+  //   reportSnap(snap); // used to track avatar home position
+  // }, [snap]);
 
   return (
     <Drawer.Root
       defaultOpen={true} dismissible={false} modal={false}
       snapPoints={SNAP_HEIGHTS} activeSnapPoint={snap}
-      setActiveSnapPoint={setSnap} snapToSequentialPoint={true}
+      setActiveSnapPoint={updateSnap} snapToSequentialPoint={true}
       fadeFromIndex={2} handleOnly={true} 
       //onDragPositionChange={(visibleHeight) => void}
     >
@@ -43,7 +41,7 @@ const SlideUpDrawer: FC<{
             <div className="vaul-handle-visual" aria-hidden="true" />
             <Header />
             {/* <SampleContent snap={snap} /> */}
-            <Content />
+            <Content panelUp={!isClosed} />
           </div>
         </Drawer.Content>
       </Drawer.Portal>

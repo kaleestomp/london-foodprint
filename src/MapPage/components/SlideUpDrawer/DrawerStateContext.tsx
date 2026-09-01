@@ -1,33 +1,39 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { SNAP_HEIGHTS } from './SlideUpDrawer';
+import snapToPX from './util/snapToPX';
+
 interface DrawerState {
+    snap: number | string | null;
+    updateSnap: (newSnap: number | string | null) => void;
+    openDrawer: () => void;
+    snapPX: number | null;
     isAtFullHeight: boolean;
-    reportIsAtFullHeight: (isAtFullHeight: boolean) => void;
-    snap: number | null;
-    reportSnap: (snap: number | string | null) => void;
+    isClosed: boolean;
 }
 
 const DrawerStateContext = createContext<DrawerState | null>(null);
 
 export const DrawerStateProvider = ({ children }: { children: ReactNode }) => {
 
-    const [isAtFullHeight, setIsAtFullHeight] = useState<boolean>(false);
-    const reportIsAtFullHeight = (isAtFullHeight: boolean) => setIsAtFullHeight(isAtFullHeight);
-    const [snapPX, setSnapPX] = useState<number | null>(null);
-    const reportSnap = (snap: number | string | null) => {
-        if (typeof snap === 'number') {
-            setSnapPX(window.innerHeight * snap);
-        } else if (typeof snap === 'string' && snap.endsWith('px')) {
-            setSnapPX(parseFloat(snap));
-        } else setSnapPX(null);
+    const [snap, setSnap] = useState<number | string | null>(SNAP_HEIGHTS[0]);
+    const updateSnap = (newSnap: number | string | null) => {
+        setSnap(newSnap);
+        setIsAtFullHeight(newSnap === SNAP_HEIGHTS[2]);
+        setIsClosed(newSnap === SNAP_HEIGHTS[0]);
+        setSnapPX(snapToPX(newSnap));
     };
+    const openDrawer = () => updateSnap(SNAP_HEIGHTS[1]);
+    const [isAtFullHeight, setIsAtFullHeight] = useState<boolean>(false);
+    const [isClosed, setIsClosed] = useState<boolean>(true);
+    const [snapPX, setSnapPX] = useState<number | null>(null); 
     // const [drawerHeight, setDrawerHeight] = useState(0);
     // const reportDrawerHeight = (height: number) => setDrawerHeight(height);
     const exposed = useMemo<DrawerState>(() => ({
-        isAtFullHeight, reportIsAtFullHeight, 
-        snap: snapPX, reportSnap
-    }), [isAtFullHeight, snapPX]);
+        snap, updateSnap, openDrawer,
+        snapPX, isAtFullHeight, isClosed
+    }), [isAtFullHeight, isClosed, snapPX, snap]);
 
     return (
         <DrawerStateContext.Provider value={exposed}>

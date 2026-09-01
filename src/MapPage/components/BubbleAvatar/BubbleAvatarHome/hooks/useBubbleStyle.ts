@@ -9,7 +9,7 @@ const useBubbleStyle = (
   pickupPos?: { x: number; y: number } | null,
 ): CSSProperties | undefined => {
   
-  const { isAtFullHeight: isDrawerAtFullHeight, snap: drawerHeight } = useDrawerState();
+  const { isAtFullHeight: isDrawerAtFullHeight, snapPX } = useDrawerState();
 
   return useMemo(() => {
     if (style === 'mobile-home') { // && homeCenter
@@ -24,7 +24,7 @@ const useBubbleStyle = (
 
     if (style === 'pickup' && pickupPos) {
       const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
-      const drawerTop = vh - (drawerHeight ?? 64);
+      const drawerTop = vh - (snapPX ?? 64);
       const relativeTop = pickupPos.y - drawerTop;
       return {
         bottom: 'auto',
@@ -35,7 +35,7 @@ const useBubbleStyle = (
     }
 
     return undefined;
-  }, [style, pickupPos, isDrawerAtFullHeight, drawerHeight]); // homeCenter
+  }, [style, pickupPos, isDrawerAtFullHeight, snapPX]); // homeCenter
 };
 
 export default useBubbleStyle;
