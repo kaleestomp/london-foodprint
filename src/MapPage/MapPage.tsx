@@ -4,6 +4,8 @@ import type maplibregl from 'maplibre-gl';
 import { useAppUI } from '../context/AppUIContext';
 import { ViewportQueryProvider } from '../context/ViewportQueryContext.tsx';
 import { PlaceSelectionProvider } from '../context/PlaceSelectionContext';
+import { TopPlacesProvider } from '../context/TopPlacesContext';
+import { DrawerStateProvider } from './components/SlideUpDrawer/DrawerStateContext';
 
 import Map from './components/Map/Map';
 import Loading from '../components/Loading/Loading';
@@ -14,7 +16,7 @@ import MapToolbar from './components/MapToolbar/MapToolbar';
 import PullUpPanelMapViewportSync from './components/MapViewportSync/PullUpPanelMapViewportSync';
 
 import VaulDrawer from './components/SlideUpDrawer/SlideUpDrawer.tsx';
-import { DrawerStateProvider } from './components/SlideUpDrawer/DrawerStateContext';
+
 
 
 import './MapPage.css';
@@ -31,8 +33,9 @@ const MapPage: FC = () => {
       <div className='map-card-viewport'>
         <ViewportQueryProvider>
           <PlaceSelectionProvider>
-            <Map mapRef={mapRef} />
-            <DrawerStateProvider>
+            <TopPlacesProvider>
+              <Map mapRef={mapRef} />
+              <DrawerStateProvider>
               <MapToolbar mapRef={mapRef} />
               <PullUpPanelMapViewportSync mapRef={mapRef} />
               <VaulDrawer mapRef={mapRef} />
@@ -40,7 +43,8 @@ const MapPage: FC = () => {
               {/* <BubbleAvatarStateProvider>
                 <BubbleAvatar mapRef={mapRef} />
               </BubbleAvatarStateProvider> */}
-            </DrawerStateProvider>
+              </DrawerStateProvider>
+            </TopPlacesProvider>
           </PlaceSelectionProvider>
         </ViewportQueryProvider>
       </div>

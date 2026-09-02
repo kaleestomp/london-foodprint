@@ -13,12 +13,17 @@ type Props = {
     topPlaces: TopPlaceItem[];
     cache: MarkerLifecycleCache;
     onPlaceClick?: (placeId: string) => void;
+    suppressedPlaceId?: string | null;
     now: number;
 }
 
-const addMarkers = ({ activeMarkers, map, topPlaces, cache, onPlaceClick, now }: Props): Map<string, maplibregl.Marker> => {
+const addMarkers = ({ activeMarkers, map, topPlaces, cache, onPlaceClick, suppressedPlaceId, now }: Props): Map<string, maplibregl.Marker> => {
 
     topPlaces.forEach((place) => {
+        if (suppressedPlaceId && place.id === suppressedPlaceId) {
+            return;
+        }
+
         // CREATE / REUSE MARKER 
         const cached = cache.get(place.id);
         const marker = cached?.marker ?? new maplibregl.Marker({

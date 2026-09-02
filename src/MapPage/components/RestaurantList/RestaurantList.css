@@ -30,7 +30,6 @@
 .list-virtualizer {
   position: relative;
   width: 100%;
-  contain: strict;
   will-change: contents;
 }
 

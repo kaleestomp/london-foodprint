@@ -1,13 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../../../context/AppUIContext';
-import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchHeatmap from '../HeatmapLayer/InputHooks/useFetchHeatmap';
 import { clusterCountLayer, unclusteredPointHighlightLayer, unclusteredPointHitLayer, unclusteredPointLayer, unclusteredPointShadowLayer } from './clusterLayers';
 import sortLayerOrder from './sortLayerOrder';
 import updateTextSize from './updateTextSize';
-import showPlaceMarker from './showPlaceMarker';
+import useHandleSelectedMarker from './useHandleSelectedMarker/useHandleSelectedMarker';
 
 import '../TopPlacesLayer/syncMarkers/markers/TopPlacePin.css';
 
@@ -21,23 +20,12 @@ const COUNT_LAYER_ID = 'cluster-count';
 const useClusterLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
   enabled: boolean = true,
-): React.RefObject<Set<string>> => {
+) => {
 
   const { mapMode } = useAppUI();
-  const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
   const { geojson } = useFetchHeatmap(enabled);
-  const singletonIdsRef = useRef<Set<string>>(new Set());
-  const selectedSingletonMarkerRef = useRef<maplibregl.Marker | null>(null);
-  const selectedSingletonIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const selectedSingletonId = selectedSingletonIdRef.current;
-    if (!selectedSingletonId || selectedSingletonId === selectedPlaceId) return;
-
-    selectedSingletonMarkerRef.current?.remove();
-    selectedSingletonMarkerRef.current = null;
-    selectedSingletonIdRef.current = null;
-  }, [selectedPlaceId]);
+  useHandleSelectedMarker(mapRef, PLACES_HIT_LAYER_ID);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -57,30 +45,7 @@ const useClusterLayer = (
     const handleStateChange = () => {
       updateTextSize(map, COUNT_LAYER_ID);
       sortLayerOrder(map, [COUNT_LAYER_ID, PLACES_SHADOW_LAYER_ID, PLACES_LAYER_ID, PLACES_HIGHLIGHT_LAYER_ID, PLACES_HIT_LAYER_ID]);
-      // singletonIdsRef.current = getSingletonIds(map, PLACES_LAYER_ID);
     }
-    
-    const handleSingletonClick = (event: maplibregl.MapLayerMouseEvent) => {
-
-      const feature = event.features?.[0];
-      const placeId = feature?.properties?.id ?? feature?.id;
-      if (placeId == null) return;
-      if (feature?.geometry.type !== 'Point') return;
-
-      event.originalEvent.stopPropagation();
-      showPlaceMarker(map, feature, selectedSingletonMarkerRef);
-
-      selectedSingletonIdRef.current = String(placeId);
-      setSelectedPlaceId(String(placeId));
-    };
-
-    const handleSingletonMouseEnter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-
-    const handleSingletonMouseLeave = () => {
-      map.getCanvas().style.cursor = '';
-    };
 
     const refreshLayer = () => {
 
@@ -120,10 +85,6 @@ const useClusterLayer = (
     // Maplibre internal race bug: 
     // Heatmap layer need to load first for both to show
     // hence on 'idle' event instead of 'load' event
-    
-    map.on('click', PLACES_HIT_LAYER_ID, handleSingletonClick);
-    map.on('mouseenter', PLACES_HIT_LAYER_ID, handleSingletonMouseEnter);
-    map.on('mouseleave', PLACES_HIT_LAYER_ID, handleSingletonMouseLeave);
 
     return () => {
       map.off('load', refreshLayer);
@@ -131,19 +92,10 @@ const useClusterLayer = (
       map.off('pitch', refreshLayer);
       map.off('idle', handleStateChange);
 
-      map.off('click', PLACES_HIT_LAYER_ID, handleSingletonClick);
-      map.off('mouseenter', PLACES_HIT_LAYER_ID, handleSingletonMouseEnter);
-      map.off('mouseleave', PLACES_HIT_LAYER_ID, handleSingletonMouseLeave);
-      selectedSingletonMarkerRef.current?.remove();
-      selectedSingletonMarkerRef.current = null;
-      selectedSingletonIdRef.current = null;
       removeLayer();
-      singletonIdsRef.current = new Set();
-      map.getCanvas().style.cursor = '';
     };
-  }, [geojson, enabled, setSelectedPlaceId, mapMode]);
+  }, [geojson, enabled, mapMode]);
 
-  return singletonIdsRef;
 };
 
 export default useClusterLayer;

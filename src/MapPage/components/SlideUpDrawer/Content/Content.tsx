@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import type maplibregl from 'maplibre-gl';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import RestaurantList from '../../RestaurantList/RestaurantList';
@@ -8,7 +9,8 @@ import './Content.css';
 
 const Content: FC<{
     panelUp: boolean;
-}> = ({ panelUp }) => {
+    mapRef: React.RefObject<maplibregl.Map | null>;
+}> = ({ panelUp, mapRef }) => {
 
     const isMobile = useIsMobileCtx();
     const pageSize = isMobile && !panelUp ? 10 : 20;
@@ -16,7 +18,7 @@ const Content: FC<{
     return (
         <div className={`drawer-content${panelUp ? ' open' : ''}`}>
             <OverviewSection />
-            <RestaurantList pageSize={pageSize} autoUpdate={!panelUp} />
+            <RestaurantList mapRef={mapRef} pageSize={pageSize} autoUpdate={!panelUp} />
         </div>
     );
 };

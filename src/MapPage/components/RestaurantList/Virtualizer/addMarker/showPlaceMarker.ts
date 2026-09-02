@@ -1,25 +1,21 @@
 import React from 'react';
 import maplibregl from 'maplibre-gl';
-import TopPlacePin from '../TopPlacesLayer/syncMarkers/markers/TopPlacePin';
+import { type PlacesListItem } from '../../../../request/useRequestPlacesList/request';
+import TopPlacePin from '../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/TopPlacePin';
 
 const showPlaceMarker = (
     map: maplibregl.Map,
-    feature: maplibregl.MapGeoJSONFeature | undefined, 
+    item: PlacesListItem,
     selectedMarkerRef: React.RefObject<maplibregl.Marker | null>,
 ) => {
 
-    if (feature?.geometry.type !== 'Point') return;
+    if (!item.id || !item.lon || !item.lat) return;
     selectedMarkerRef.current?.remove();
 
-    const [lng, lat] = feature.geometry.coordinates;
-    const cuisineType = typeof feature.properties?.cuisine_type === 'string'
-        ? feature.properties.cuisine_type
-        : undefined;
-    const placeId = feature.properties?.id ?? undefined;
     const marker = new maplibregl.Marker({
-        element: TopPlacePin(placeId, cuisineType),
+        element: TopPlacePin(item.id, item.cuisine_type ?? undefined),
         anchor: 'center',
-    }).setLngLat([lng, lat]).addTo(map);
+    }).setLngLat([item.lon, item.lat]).addTo(map);
     const motion = marker.getElement().querySelector<HTMLElement>('.top-place-pin-motion');
     const shell = marker.getElement().querySelector<HTMLElement>('.top-place-pin-shell');
     motion?.classList.add('is-selected');

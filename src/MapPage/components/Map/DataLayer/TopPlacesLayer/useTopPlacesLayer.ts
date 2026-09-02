@@ -4,7 +4,7 @@ import type maplibregl from 'maplibre-gl';
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchTopPlaces from './InputHooks/useFetchTopPlaces';
 import syncMarkers from './syncMarkers/syncMarkers';
-// import useReportTopPlacesIDs from './reportHooks/useReportTopPlacesIDs';
+import useReportTopPlacesIDs from './reportHooks/useReportTopPlacesIDs';
 import type { MarkerLifecycleCache } from './syncMarkers/markerLifecycle/markerLifecycle';
 
 import './syncMarkers/markers/TopPlacePin.css';
@@ -15,9 +15,9 @@ const useTopPlacesLayer = (
 ): void => {
 
   const topPlaces = useFetchTopPlaces({ enabled });
-  // useReportTopPlacesIDs( topPlaces, setActiveTopPlaceIds, enabled );
+  useReportTopPlacesIDs( topPlaces, enabled );
 
-  const { selectedPlaceId, setSelectedPlaceId } = usePlaceSelection();
+  const { selectedPlaceId, selectedLayer, reportSelectedPlaceId } = usePlaceSelection();
   const topPlaceCacheRef = useRef<MarkerLifecycleCache>(new Map());
   const topPlaceMarkersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
   
@@ -43,10 +43,13 @@ const useTopPlacesLayer = (
       map,
       topPlaces,
       cache: topPlaceCacheRef.current,
-      onPlaceClick: (placeId) => setSelectedPlaceId(placeId),
+      onPlaceClick: (placeId) => {
+        reportSelectedPlaceId(placeId, 'topPlaces');
+      },
       selectedPlaceId,
+      selectedLayer,
     });
-  }, [ topPlaces, selectedPlaceId, setSelectedPlaceId, enabled ]);
+  }, [ topPlaces, selectedPlaceId, selectedLayer, reportSelectedPlaceId, enabled ]);
 
   // Update Selected Pin CSS State
   useEffect(() => {
@@ -88,14 +91,14 @@ const useTopPlacesLayer = (
     if (!map) return;
 
     const handleMapClick = () => {
-      setSelectedPlaceId(null);
+      reportSelectedPlaceId(null, null);
     };
 
     map.on('click', handleMapClick);
     return () => {
       map.off('click', handleMapClick);
     };
-  }, [mapRef, setSelectedPlaceId, enabled]);
+  }, [mapRef, reportSelectedPlaceId, enabled]);
 };
 
 export default useTopPlacesLayer;

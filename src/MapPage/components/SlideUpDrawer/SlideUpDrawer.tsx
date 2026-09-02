@@ -1,7 +1,6 @@
-'use client';
 import { type FC } from 'react';
-import type maplibregl from 'maplibre-gl';
 import { Drawer } from 'vaul';
+import type maplibregl from 'maplibre-gl';
 
 // import SampleContent from './SampleContent/SampleContent';
 import Header from './Header/Header';
@@ -41,7 +40,7 @@ const SlideUpDrawer: FC<{
             <div className="vaul-handle-visual" aria-hidden="true" />
             <Header />
             {/* <SampleContent snap={snap} /> */}
-            <Content panelUp={!isClosed} />
+            <Content panelUp={!isClosed} mapRef={mapRef}/>
           </div>
         </Drawer.Content>
       </Drawer.Portal>

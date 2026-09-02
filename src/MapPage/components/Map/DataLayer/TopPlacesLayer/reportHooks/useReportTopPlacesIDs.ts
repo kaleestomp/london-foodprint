@@ -1,15 +1,16 @@
 import { useEffect, useRef } from 'react';
 import type { TopPlaceItem } from '../../../../../request/useRequestTopPlaces/request';
+import { useTopPlaces } from '../../../../../../context/TopPlacesContext';
 
 // MADE FOR DEDUPLICATION OF TOP PLACE MARKER 
 // FROM PLACES MARKERS + SINGLETON MARKERS FROM DYNAMIC PLACES LAYER
 const useReportTopPlacesIDs = (
   topPlaces: TopPlaceItem[],
-  setActiveTopPlaceIds: (ids: Set<string> | undefined) => void,
   enabled?: boolean
 ): void => {
 
   const keyRef = useRef('');
+  const { reportTopPlaceIdSet } = useTopPlaces();
 
   useEffect(() => {
     if (!enabled) return;
@@ -21,17 +22,17 @@ const useReportTopPlacesIDs = (
     if (key !== keyRef.current) {
       keyRef.current = key;
       const activeTopPlaceIdSet = topPlaces.length ? 
-        new Set(topPlaces.map((place) => place.id)) : undefined
-      setActiveTopPlaceIds(activeTopPlaceIdSet);
+        new Set<string>(topPlaces.map((place) => place.id)) : new Set<string>();
+      reportTopPlaceIdSet(activeTopPlaceIdSet);
     }
-  }, [topPlaces, setActiveTopPlaceIds, enabled]);
+  }, [topPlaces, reportTopPlaceIdSet, enabled]);
 
   useEffect(() => {
     if (!enabled) {
       keyRef.current = '';
-      setActiveTopPlaceIds(undefined);
+      reportTopPlaceIdSet(new Set<string>());
     }
-  }, [enabled, setActiveTopPlaceIds]);
+  }, [enabled, reportTopPlaceIdSet]);
 
 };
 
