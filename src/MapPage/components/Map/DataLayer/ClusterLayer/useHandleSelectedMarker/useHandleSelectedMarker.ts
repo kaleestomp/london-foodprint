@@ -8,18 +8,37 @@ const useHandleSelectedMarker = (
     layerId: string,
 ) => {
 
-    const { selectedPlaceId, reportSelectedPlaceId } = usePlaceSelection();
+    const { selectedPlaceId, selectedLayer, reportSelectedPlaceId } = usePlaceSelection();
     const selectedSingletonMarkerRef = useRef<maplibregl.Marker | null>(null);
     const selectedSingletonIdRef = useRef<string | null>(null);
+    // Keep the latest ownership snapshot without re-binding map listeners.
+    const selectedLayerRef = useRef(selectedLayer);
+    // Shared teardown path to keep marker/id refs in sync whenever selection changes.
+    const clearSelectedSingletonMarker = () => {
+        selectedSingletonMarkerRef.current?.remove();
+        selectedSingletonMarkerRef.current = null;
+        selectedSingletonIdRef.current = null;
+    };
+
+    useEffect(() => {
+        selectedLayerRef.current = selectedLayer;
+    }, [selectedLayer]);
 
     useEffect(() => {
         const selectedSingletonId = selectedSingletonIdRef.current;
         if (!selectedSingletonId || selectedSingletonId === selectedPlaceId) return;
 
-        selectedSingletonMarkerRef.current?.remove();
-        selectedSingletonMarkerRef.current = null;
-        selectedSingletonIdRef.current = null;
+        clearSelectedSingletonMarker();
     }, [selectedPlaceId]);
+
+    // Selection ownership moved away from cluster (e.g. list/temp marker took over).
+    // Remove any previously rendered cluster singleton marker to prevent doubled pins.
+    useEffect(() => {
+        if (selectedLayer === 'cluster') return;
+        if (!selectedSingletonMarkerRef.current) return;
+
+        clearSelectedSingletonMarker();
+    }, [selectedLayer]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -32,11 +51,19 @@ const useHandleSelectedMarker = (
             if (placeId == null) return;
             if (feature?.geometry.type !== 'Point') return;
 
+            const nextPlaceId = String(placeId);
+            // Ignore re-clicks on the already-selected singleton to avoid re-creating
+            // the same marker and replaying enter animation.
+            if (selectedLayerRef.current === 'cluster' && selectedSingletonIdRef.current === nextPlaceId) {
+                event.originalEvent.stopPropagation();
+                return;
+            }
+
             event.originalEvent.stopPropagation();
             showPlaceMarker(map, feature, selectedSingletonMarkerRef);
 
-            selectedSingletonIdRef.current = String(placeId);
-            reportSelectedPlaceId(String(placeId), 'cluster', 'map');
+            selectedSingletonIdRef.current = nextPlaceId;
+            reportSelectedPlaceId(nextPlaceId, 'cluster', 'map');
         };
         const handleSingletonMouseEnter = () => {
             map.getCanvas().style.cursor = 'pointer';
@@ -54,9 +81,7 @@ const useHandleSelectedMarker = (
             map.off('click', layerId, handleSingletonClick);
             map.off('mouseenter', layerId, handleSingletonMouseEnter);
             map.off('mouseleave', layerId, handleSingletonMouseLeave);
-            selectedSingletonMarkerRef.current?.remove();
-            selectedSingletonMarkerRef.current = null;
-            selectedSingletonIdRef.current = null;
+            clearSelectedSingletonMarker();
             map.getCanvas().style.cursor = '';
         };
 

@@ -24,7 +24,7 @@ const Virtualizer: FC<{
         count: items.length,
         getScrollElement: () => scrollRef.current,
         estimateSize: () => 86, // estimated height of each list item
-        getItemKey: (index) => getListItemKey(items[index].id, index),
+        getItemKey: (index) => getListItemKey(items[index].id),
         overscan: 5,
     });
     // SYNC VIRTUALIZER OFFSET AFTER A REFRESHED LIST HAS SETTLED
@@ -37,7 +37,7 @@ const Virtualizer: FC<{
     useLayoutEffect(() => {
         if (!selectedItemKey) return;
 
-        const index = items.findIndex((row, rowIndex) => getListItemKey(row.id, rowIndex) === selectedItemKey);
+        const index = items.findIndex((row) => getListItemKey(row.id) === selectedItemKey);
         if (index < 0) return;
 
         rowVirtualizer.scrollToIndex(index, {
@@ -50,7 +50,7 @@ const Virtualizer: FC<{
         <div className="list-virtualizer" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const row = items[virtualRow.index];
-                const itemKey = getListItemKey(row.id, virtualRow.index);
+                const itemKey = getListItemKey(row.id);
 
                 return (
                     <div key={itemKey} ref={rowVirtualizer.measureElement} data-index={virtualRow.index}

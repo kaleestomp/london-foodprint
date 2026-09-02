@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import { type PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
 import TopPlacePin from '../../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/TopPlacePin';
 
-const addMarker = (
+const addTempMarker = (
     map: maplibregl.Map,
     item: PlacesListItem,
     selectedMarkerRef: React.RefObject<{ id: string | null, marker: maplibregl.Marker | null }>,
@@ -25,4 +25,4 @@ const addMarker = (
     selectedMarkerRef.current.id = String(item.id);
 };
 
-export default addMarker;
+export default addTempMarker;

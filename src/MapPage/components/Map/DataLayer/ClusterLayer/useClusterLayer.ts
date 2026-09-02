@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../../../context/AppUIContext';
+import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useFetchHeatmap from '../HeatmapLayer/InputHooks/useFetchHeatmap';
 import { clusterCountLayer, unclusteredPointHighlightLayer, unclusteredPointHitLayer, unclusteredPointLayer, unclusteredPointShadowLayer } from './clusterLayers';
 import sortLayerOrder from './sortLayerOrder';
@@ -17,6 +18,18 @@ const PLACES_HIGHLIGHT_LAYER_ID = 'unclustered-point-highlight';
 const PLACES_HIT_LAYER_ID = 'unclustered-point-hit-area';
 const COUNT_LAYER_ID = 'cluster-count';
 
+const getSingletonFilter = (suppressedPlaceId: string | null): maplibregl.FilterSpecification => {
+  if (!suppressedPlaceId) {
+    return ['!', ['has', 'point_count']];
+  }
+
+  return [
+    'all',
+    ['!', ['has', 'point_count']],
+    ['!=', ['to-string', ['get', 'id']], suppressedPlaceId],
+  ];
+};
+
 const useClusterLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
   enabled: boolean = true,
@@ -24,6 +37,10 @@ const useClusterLayer = (
 
   const { mapMode } = useAppUI();
   const { geojson } = useFetchHeatmap(enabled);
+  const { selectedPlaceId, selectedLayer } = usePlaceSelection();
+  const suppressedSingletonId = (selectedLayer === 'list')
+    ? selectedPlaceId
+    : null;
 
   useHandleSelectedMarker(mapRef, PLACES_HIT_LAYER_ID);
 
@@ -74,6 +91,13 @@ const useClusterLayer = (
         map.addLayer(unclusteredPointHighlightLayer(PLACES_HIGHLIGHT_LAYER_ID, SOURCE_ID));
       if (!map.getLayer(PLACES_HIT_LAYER_ID))
         map.addLayer(unclusteredPointHitLayer(PLACES_HIT_LAYER_ID, SOURCE_ID));
+
+      const singletonFilter = getSingletonFilter(suppressedSingletonId);
+      map.setFilter(PLACES_SHADOW_LAYER_ID, singletonFilter);
+      map.setFilter(PLACES_LAYER_ID, singletonFilter);
+      map.setFilter(PLACES_HIGHLIGHT_LAYER_ID, singletonFilter);
+      map.setFilter(PLACES_HIT_LAYER_ID, singletonFilter);
+
       handleStateChange()
     };
     
@@ -95,6 +119,19 @@ const useClusterLayer = (
       removeLayer();
     };
   }, [geojson, enabled, mapMode]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    // Selection changes should only update singleton visibility filters;
+    // do not recreate cluster layers/source on every selection transition.
+    const singletonFilter = getSingletonFilter(suppressedSingletonId);
+    if (map.getLayer(PLACES_SHADOW_LAYER_ID)) map.setFilter(PLACES_SHADOW_LAYER_ID, singletonFilter);
+    if (map.getLayer(PLACES_LAYER_ID)) map.setFilter(PLACES_LAYER_ID, singletonFilter);
+    if (map.getLayer(PLACES_HIGHLIGHT_LAYER_ID)) map.setFilter(PLACES_HIGHLIGHT_LAYER_ID, singletonFilter);
+    if (map.getLayer(PLACES_HIT_LAYER_ID)) map.setFilter(PLACES_HIT_LAYER_ID, singletonFilter);
+  }, [mapRef, suppressedSingletonId]);
 
 };
 

@@ -55,7 +55,7 @@ const useSyncMarkers = (
         // KEEP SELECTED MARKER VISIBLE
         // Keep the selected marker visible even when it is temporarily outside
         // the latest merged payload; it should only exit once unselected.
-        if (selectedPlaceId !== null) {
+        if (selectedPlaceId !== null && selectedLayer === 'topPlaces') {
             keepSelectedMarkerVisisble({ activeMarkers, selectedPlaceId, map, cache, now });
         }
 
@@ -64,7 +64,7 @@ const useSyncMarkers = (
 
         markersRef.current = activeMarkers;
 
-    }, [topPlaces, selectedPlaceId, suppressSelected, reportSelectedPlaceId]);
+    }, [topPlaces, selectedPlaceId, selectedLayer, suppressSelected, reportSelectedPlaceId]);
 
     return markersRef;
 };

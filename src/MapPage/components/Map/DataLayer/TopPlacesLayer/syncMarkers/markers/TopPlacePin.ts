@@ -50,7 +50,20 @@ const withShell = (marker: maplibregl.Marker, fn: (shell: HTMLElement) => void):
   fn(shell);
 };
 
+export const clearTopPlacePinSelectedState = (marker: maplibregl.Marker): void => {
+  const motion = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-motion');
+  const shell = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-shell');
+  const rankBadge = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-rank-badge');
+  const rankBadgeLabel = marker.getElement()?.querySelector<HTMLElement>('.top-place-pin-rank-badge-label');
+
+  motion?.classList.remove('is-selected');
+  shell?.classList.remove('is-selected');
+  rankBadge?.classList.remove('has-rank');
+  if (rankBadgeLabel) rankBadgeLabel.textContent = '';
+};
+
 export const animateTopPlacePinExit = (marker: maplibregl.Marker): void => {
+  clearTopPlacePinSelectedState(marker);
   withShell(marker, (shell) => {
     shell.classList.remove(ENTER_CLASS);
     shell.getAnimations().forEach((a) => a.cancel());

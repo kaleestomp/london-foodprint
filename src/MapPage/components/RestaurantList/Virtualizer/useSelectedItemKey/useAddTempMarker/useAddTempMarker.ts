@@ -2,44 +2,68 @@ import { useRef, useEffect } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import { usePlaceSelection } from '../../../../../../context/PlaceSelectionContext';
-import addMarker from './addMarker';
+import addTempMarker from './addTempMarker';
 import { type PlacesListItem } from '../../../../../request/useRequestPlacesList/request'
 
-const useAddNewMarker = (
+const useAddTempMarker = (
     mapRef: React.RefObject<maplibregl.Map | null>,
     place: PlacesListItem | null,
     enable: boolean
 ) => {
 
-    const { selectedPlaceId } = usePlaceSelection();
+    const { selectedPlaceId, selectedLayer, selectionSource } = usePlaceSelection();
     const selectedMarkerRef = useRef<{ id: string | null, marker: maplibregl.Marker | null }>({ id: null, marker: null });
     const clearSelected = () => {
         selectedMarkerRef.current.marker?.remove();
         selectedMarkerRef.current.marker = null;
         selectedMarkerRef.current.id = null;
     };
+
     // CLEAR MARKER IF NO LONGER SELECTED
     useEffect(() => {
-        // if (!selectedMarkerRef.current.id || selectedMarkerRef.current.id === selectedPlaceId) 
-        //     return; // Do not remove the marker if it is still the selected place
         if ( selectedPlaceId === null || selectedPlaceId !== selectedMarkerRef.current.id )
             clearSelected();
     }, [selectedPlaceId]);
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !enable || !place) {
+        if (!map) {
             clearSelected();
             return;
         }
 
-        addMarker(map, place, selectedMarkerRef);
-
-        return () => {
+        const isListOwnedSelection = selectedLayer === 'list' && selectionSource === 'list';
+        if (!isListOwnedSelection) {
             clearSelected();
-        };
+            return;
+        }
 
-    }, [mapRef, place, enable]);
+        if (!place) {
+            const shouldKeepCurrent =
+                selectedPlaceId !== null &&
+                selectedMarkerRef.current.id === selectedPlaceId;
+            if (!shouldKeepCurrent) {
+                clearSelected();
+            }
+            return;
+        }
+
+        if (!enable) {
+            return;
+        }
+
+        if (selectedPlaceId !== place.id) {
+            clearSelected();
+            return;
+        }
+
+        addTempMarker(map, place, selectedMarkerRef);
+
+    }, [mapRef, place, enable, selectedPlaceId, selectedLayer, selectionSource]);
+
+    useEffect(() => () => {
+        clearSelected();
+    }, []);
 };
 
-export default useAddNewMarker;
+export default useAddTempMarker;

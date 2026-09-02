@@ -27,7 +27,28 @@ const useReportSelectedPlace = (
             return;
         }
 
+        // Map-origin selection should be mirrored by the list, not re-reported by it.
+        // This keeps marker ownership stable while users select cluster/top-place markers.
+        if (selectionSource === 'map' && selectedPlaceId === selectedPlace.id) {
+            lastListSelectionRef.current = selectedPlace.id;
+            return;
+        }
+
         const targetLayer: SelectedLayer = isTopPlace ? 'topPlaces' : 'list';
+
+        // Keep ownership on the list layer for an already-selected row.
+        // This prevents a fetch-driven layer flip that would replace the temporary
+        // selected marker with a top-place marker mid-selection.
+        if (
+            selectionSource === 'list' &&
+            selectedPlaceId === selectedPlace.id &&
+            selectedLayer === 'list' &&
+            targetLayer === 'topPlaces'
+        ) {
+            lastListSelectionRef.current = selectedPlace.id;
+            return;
+        }
+
         const isSameSelection = selectedPlaceId === selectedPlace.id && selectedLayer === targetLayer;
         if (isSameSelection) {
             lastListSelectionRef.current = selectedPlace.id;
