@@ -1,16 +1,17 @@
 import React from 'react';
 import maplibregl from 'maplibre-gl';
-import { type PlacesListItem } from '../../../../request/useRequestPlacesList/request';
-import TopPlacePin from '../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/TopPlacePin';
+import { type PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
+import TopPlacePin from '../../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/TopPlacePin';
 
-const showPlaceMarker = (
+const addMarker = (
     map: maplibregl.Map,
     item: PlacesListItem,
-    selectedMarkerRef: React.RefObject<maplibregl.Marker | null>,
+    selectedMarkerRef: React.RefObject<{ id: string | null, marker: maplibregl.Marker | null }>,
 ) => {
 
     if (!item.id || !item.lon || !item.lat) return;
-    selectedMarkerRef.current?.remove();
+    // REMOVE OLD MARKER IF EXISTS
+    selectedMarkerRef.current.marker?.remove();
 
     const marker = new maplibregl.Marker({
         element: TopPlacePin(item.id, item.cuisine_type ?? undefined),
@@ -20,7 +21,8 @@ const showPlaceMarker = (
     const shell = marker.getElement().querySelector<HTMLElement>('.top-place-pin-shell');
     motion?.classList.add('is-selected');
     shell?.classList.add('is-selected');
-    selectedMarkerRef.current = marker;
+    selectedMarkerRef.current.marker = marker;
+    selectedMarkerRef.current.id = String(item.id);
 };
 
-export default showPlaceMarker;
+export default addMarker;

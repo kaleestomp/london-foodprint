@@ -14,7 +14,7 @@ type PanelSnapshot = {
   bottomPadding: number;
 };
 
-const PANEL_PADDING_ANIMATION_MS = 240;
+const PANEL_PADDING_ANIMATION_MS = 900;
 
 const PullUpPanelMapViewportSync: React.FC<Props> = ({ mapRef }) => {
   

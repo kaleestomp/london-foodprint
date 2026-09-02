@@ -6,7 +6,7 @@ import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
 import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 // import { usePullUpPanelSnapState } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
-import getRecenterOffset from './isMarkerWouldbeBlocked';
+import getRecenterOffset from './getRecenterOffset';
 
 const useBottomPadding = (
   mapRef: React.RefObject<maplibregl.Map | null>
@@ -57,8 +57,9 @@ const useBottomPadding = (
 
     const recenterY = getRecenterOffset( mapRef.current, selectedPlaceId, snapPX );
     if (isPanelUp && Boolean(selectedPlaceId) && recenterY > 0) {
-      paddingRef.current = recenterY*2;
-      return recenterY*2;
+      paddingRef.current = recenterY;
+
+      return recenterY;
     }
 
     paddingRef.current = 0;
@@ -67,7 +68,7 @@ const useBottomPadding = (
   }, [isPanelUp, searchMask, selectedPlaceId, snapPX]);
 
   
-  return bottomPadding;
+  return bottomPadding*1.5;
 };
 
 export default useBottomPadding;

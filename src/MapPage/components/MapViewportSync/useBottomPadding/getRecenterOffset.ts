@@ -15,6 +15,7 @@ const getRecenterOffset = (
   if (!selectedMarkerShell) return 0;
 
   const markerRect = selectedMarkerShell.getBoundingClientRect();
+  console.log(markerRect);
   const markerYPosition = window.innerHeight - markerRect.y;
   const yPositionThreshold = panelHeight + PANEL_MARKER_SAFE_GAP_PX;
   const isMarkerWouldbeBlocked = markerYPosition < yPositionThreshold;

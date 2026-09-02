@@ -5,14 +5,13 @@ export type MarkerState = Record<string, never>;
 export type MarkerLifecycleEntry = { marker: maplibregl.Marker; state: MarkerState; lastSeenAt: number; removalTimer: MarkerRemovalTimer | null };
 export type MarkerLifecycleCache = Map<string, MarkerLifecycleEntry>;
 
-type Props = {
-  marker: maplibregl.Marker;
+
+export const refreshMarkerLifecycle = ({ cache, marker, key, now }: {
   cache: MarkerLifecycleCache;
+  marker: maplibregl.Marker;
   key: string;
   now: number;
-};
-
-export const refreshMarkerLifecycle = ({ marker, cache, key, now }: Props): MarkerLifecycleEntry => {
+}): MarkerLifecycleEntry => {
   const existing = cache.get(key);
   if (existing) {
     existing.state = {};

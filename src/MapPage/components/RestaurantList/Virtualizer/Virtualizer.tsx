@@ -3,7 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import type maplibregl from 'maplibre-gl';
 
 import ListItem from '../ListItem/ListItem';
-import useSelectedItemKey, { getListItemKey } from './useSelectedItemKey';
+import useSelectedItemKey, { getListItemKey } from './useSelectedItemKey/useSelectedItemKey';
 import { type PlacesListItem } from '../../../request/useRequestPlacesList/request';
 
 import '../RestaurantList.css';
@@ -17,7 +17,7 @@ const Virtualizer: FC<{
 }> = ({ mapRef, items, scrollRef, scrollResetEpoch, onSelect }) => {
 
     // SELECTION STATE
-    const [selectedItemKey, reportSelectedItem] = useSelectedItemKey(items, mapRef);
+    const [selectedItemKey, setSelectedItemKey] = useSelectedItemKey(items, mapRef);
 
     // VIRTUALIZER
     const rowVirtualizer = useVirtualizer({
@@ -33,6 +33,19 @@ const Virtualizer: FC<{
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scrollResetEpoch]);
 
+    // KEEP THE SELECTED ROW IN VIEW WHEN THE SELECTION COMES FROM THE MAP.
+    useLayoutEffect(() => {
+        if (!selectedItemKey) return;
+
+        const index = items.findIndex((row, rowIndex) => getListItemKey(row.id, rowIndex) === selectedItemKey);
+        if (index < 0) return;
+
+        rowVirtualizer.scrollToIndex(index, {
+            align: 'start',
+            behavior: 'smooth',
+        });
+    }, [items, rowVirtualizer, selectedItemKey]);
+
     return (
         <div className="list-virtualizer" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -45,8 +58,8 @@ const Virtualizer: FC<{
                     >
                         <ListItem item={row}
                             isSelected={selectedItemKey === itemKey}
-                            onSelect={() => { reportSelectedItem(itemKey); onSelect(); }}
-                            onClose={() => { reportSelectedItem(selectedItemKey === itemKey ? null : selectedItemKey); }}
+                            onSelect={() => { setSelectedItemKey(itemKey); onSelect(); }}
+                            onClose={() => { setSelectedItemKey(selectedItemKey === itemKey ? null : selectedItemKey); }}
                         />
                     </div>
                 );

@@ -36,7 +36,7 @@ const useHandleSelectedMarker = (
             showPlaceMarker(map, feature, selectedSingletonMarkerRef);
 
             selectedSingletonIdRef.current = String(placeId);
-            reportSelectedPlaceId(String(placeId), 'cluster');
+            reportSelectedPlaceId(String(placeId), 'cluster', 'map');
         };
         const handleSingletonMouseEnter = () => {
             map.getCanvas().style.cursor = 'pointer';
