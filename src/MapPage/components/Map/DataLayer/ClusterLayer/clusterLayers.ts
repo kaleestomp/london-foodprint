@@ -6,7 +6,7 @@ const singletonOpacity: ExpressionSpecification = [
   ['linear'],
   ['zoom'],
   16, 0,
-  17, 1,
+  16.5, 1,
 ];
 
 export const clusterCountLayer = (

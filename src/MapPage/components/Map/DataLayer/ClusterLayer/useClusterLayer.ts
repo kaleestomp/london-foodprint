@@ -18,6 +18,8 @@ const PLACES_HIGHLIGHT_LAYER_ID = 'unclustered-point-highlight';
 const PLACES_HIT_LAYER_ID = 'unclustered-point-hit-area';
 const COUNT_LAYER_ID = 'cluster-count';
 
+// Hide only the currently list-owned place from singleton cluster circles.
+// We match by properties.id because place ids are expected to be stable there.
 const getSingletonFilter = (suppressedPlaceId: string | null): maplibregl.FilterSpecification => {
   if (!suppressedPlaceId) {
     return ['!', ['has', 'point_count']];

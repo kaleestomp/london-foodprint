@@ -15,7 +15,7 @@ const showPlaceMarker = (
     const cuisineType = typeof feature.properties?.cuisine_type === 'string'
         ? feature.properties.cuisine_type
         : undefined;
-    const placeId = feature.properties?.id ?? undefined;
+    const placeId = feature.properties?.id ?? feature.id ?? undefined;
     const marker = new maplibregl.Marker({
         element: TopPlacePin(placeId, cuisineType),
         anchor: 'center',

@@ -28,7 +28,7 @@ const heatmapLayer = (
             ['linear'],
             ['zoom'],
             16, 0.45,
-            17, 0,
+            16.5, 0,
         ],
         'heatmap-color': [
             'interpolate', ['linear'], ['heatmap-density'],
