@@ -10,7 +10,7 @@ import { useDrawerState } from './DrawerStateContext';
 
 import './SlideUpDrawer.css';
 
-export const SNAP_HEIGHTS = ['94px', '165px', 0.5, `${window.innerHeight - 104}px`];//64
+export const SNAP_HEIGHTS = ['94px', 0.5, `${window.innerHeight - 104}px`];//64
 
 const SlideUpDrawer: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
