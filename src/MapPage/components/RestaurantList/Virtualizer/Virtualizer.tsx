@@ -1,4 +1,6 @@
 import { useLayoutEffect, type FC } from 'react';
+
+import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type maplibregl from 'maplibre-gl';
 
@@ -17,6 +19,7 @@ const Virtualizer: FC<{
 }> = ({ mapRef, items, scrollRef, scrollResetEpoch, onSelect }) => {
 
     // SELECTION STATE
+    const { selectionSource } = usePlaceSelection();
     const [selectedItemKey, setSelectedItemKey] = useSelectedItemKey(items, mapRef);
 
     // VIRTUALIZER
@@ -26,6 +29,7 @@ const Virtualizer: FC<{
         estimateSize: () => 86, // estimated height of each list item
         getItemKey: (index) => getListItemKey(items[index].id),
         overscan: 5,
+        scrollPaddingStart: -10,
     });
     // SYNC VIRTUALIZER OFFSET AFTER A REFRESHED LIST HAS SETTLED
     useLayoutEffect(() => {
@@ -36,6 +40,7 @@ const Virtualizer: FC<{
     // KEEP THE SELECTED ROW IN VIEW WHEN THE SELECTION COMES FROM THE MAP.
     useLayoutEffect(() => {
         if (!selectedItemKey) return;
+        if (selectionSource !== 'map') return;
 
         const index = items.findIndex((row) => getListItemKey(row.id) === selectedItemKey);
         if (index < 0) return;
@@ -44,7 +49,7 @@ const Virtualizer: FC<{
             align: 'start',
             behavior: 'smooth',
         });
-    }, [items, rowVirtualizer, selectedItemKey]);
+    }, [items, rowVirtualizer, selectedItemKey, selectionSource]);
 
     return (
         <div className="list-virtualizer" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>

@@ -10,9 +10,7 @@ import useMaskFilter from './useMaskFilter';
 const useViewportFetch = (
   limit: number = 10,
   enabled: boolean = true,
-): {
-  viewportTopPlaces: TopPlaceItem[];
-} => {
+): TopPlaceItem[] => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, searchMask } = useSearchFilters();
   const { viewportParams } = useViewportQuery();
@@ -40,7 +38,7 @@ const useViewportFetch = (
   const viewportTopPlaces = enabled && res ? res.data : [];
   const masked = useMaskFilter(viewportTopPlaces, searchMask); 
 
-  return { viewportTopPlaces: masked };
+  return masked;
 }
 
 export default useViewportFetch;

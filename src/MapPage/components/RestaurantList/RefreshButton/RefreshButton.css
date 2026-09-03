@@ -14,7 +14,7 @@
 
 .list-refresh-wrap-visible {
   opacity: 1;
-  pointer-events: auto;
+  pointer-events: none;
   transform: translateY(0);
 }
 
@@ -29,6 +29,7 @@
   border: none !important;
   background-color: var(--app-primary-black) !important;
   color: #fff !important;
+  pointer-events: auto; /*disabled at wrapper and enabled here*/
   transition: opacity 180ms ease-in-out, background-color 180ms ease-in-out, box-shadow 180ms ease-in-out !important;
 }
 

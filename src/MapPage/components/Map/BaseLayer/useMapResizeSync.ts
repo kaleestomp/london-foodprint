@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
 import { syncMinZoomToWorldExtent } from '../MapTemplate';
+import { useCityContext } from '../../../../context/CityContext';
 
 type ResizeCompatibleMap = {
   on: (event: string, handler: () => void) => void;
@@ -13,6 +14,8 @@ type ResizeCompatibleMap = {
 type CleanupFn = () => void;
 
 const useMapResizeSync = () => {
+  const { cityParams } = useCityContext();
+
   return useCallback((map: ResizeCompatibleMap, mapContainer: HTMLElement): CleanupFn => {
     let rafId: number | null = null;
 
@@ -22,11 +25,11 @@ const useMapResizeSync = () => {
         if (map.resize) {
           map.resize();
         }
-        syncMinZoomToWorldExtent(map as never);
+        syncMinZoomToWorldExtent(map as never, cityParams);
       });
     };
 
-    const handleResize = () => syncMinZoomToWorldExtent(map as never);
+    const handleResize = () => syncMinZoomToWorldExtent(map as never, cityParams);
     map.on('resize', handleResize);
 
     const resizeObserver = new ResizeObserver(() => {

@@ -1,12 +1,10 @@
 import { useMemo } from 'react';
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 
-type Props = {
-    viewportPlaces: TopPlaceItem[] | null;
-    nearbyPlaces: TopPlaceItem[] | null;
-};
-
-const useMergePlaces = ({ viewportPlaces, nearbyPlaces }: Props): TopPlaceItem[] => {
+const useMergePlaces = (
+    viewportPlaces: TopPlaceItem[] | null,
+    nearbyPlaces: TopPlaceItem[] | null,    
+): TopPlaceItem[] => {
     const dedupedViewportPlaces = useMemo(() => {
         if (!viewportPlaces) return [];
         if (!nearbyPlaces?.length) return viewportPlaces;

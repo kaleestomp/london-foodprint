@@ -4,15 +4,10 @@ import { useSearchFilters } from '../../../../../../../context/SearchFiltersCont
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../request/useRequestTopPlaces/useRequestTopPlaces';
 
-type Props = {
-  limit: number;
-  enabled?: boolean;
-}
-type Out = {
-  nearbyTopPlaces: TopPlaceItem[];
-}
-
-const useNearbyFetch = ( { limit, enabled = true }: Props ): Out => {
+const useNearbyFetch = (
+  limit: number,
+  enabled?: boolean,
+): TopPlaceItem[] => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, searchMask } = useSearchFilters();
   const radiusTopPlacesParams = useMemo<TopPlacesParams | null>(() => {
@@ -45,7 +40,7 @@ const useNearbyFetch = ( { limit, enabled = true }: Props ): Out => {
     setNearbyTopPlaces(res.data);
   }, [res, queryKey, responseKey, searchMask, enabled]);
 
-  return { nearbyTopPlaces };
+  return nearbyTopPlaces;
 }
 
 

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { AppUIProvider, useAppUI } from './context/AppUIContext';
 import { IsMobileProvider } from './context/IsMobileContext';
 import { SearchFiltersProvider } from './context/SearchFiltersContext';
+import { CityProvider } from './context/CityContext';
 import assignBrowserThemeColor from './utils/browser/assignBrowserThemeColor';
 import MapPage from './MapPage/MapPage';
 import './App.css';
@@ -28,11 +29,13 @@ const App = () => {
   return (
     <Router basename={import.meta.env.BASE_URL}>
       <IsMobileProvider>
-      <AppUIProvider>
-        <SearchFiltersProvider>
-          <AppRoutes />
-        </SearchFiltersProvider>
-      </AppUIProvider>
+        <AppUIProvider>
+          <CityProvider>
+            <SearchFiltersProvider>
+              <AppRoutes />
+            </SearchFiltersProvider>
+          </CityProvider>
+        </AppUIProvider>
       </IsMobileProvider>
     </Router>
   );

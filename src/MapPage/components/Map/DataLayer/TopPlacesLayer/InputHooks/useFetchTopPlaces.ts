@@ -2,15 +2,15 @@ import type { TopPlaceItem } from '../../../../../request/useRequestTopPlaces/re
 import  useViewportFetch from './useViewportFetch/useViewportFetch';
 import useNearbyFetch from './useNearbyFetch/useNearbyFetch';
 import useMergePlaces from './useMergePlaces/useMergePlaces';
-const FETCH_LIMIT = 20;
+import getFetchLimit from './getFetchLimit';
 
 const useFetchTopPlaces = ({ enabled }: {
   enabled?: boolean;
 }): TopPlaceItem[] => {
 
-  const { viewportTopPlaces } = useViewportFetch( FETCH_LIMIT, enabled );
-  const { nearbyTopPlaces } = useNearbyFetch( { limit: FETCH_LIMIT, enabled } );
-  const topPlaces = useMergePlaces({ viewportPlaces: viewportTopPlaces, nearbyPlaces: nearbyTopPlaces });
+  const viewportTopPlaces = useViewportFetch( getFetchLimit(), enabled );
+  const nearbyTopPlaces = useNearbyFetch( 20, enabled );
+  const topPlaces = useMergePlaces(viewportTopPlaces, nearbyTopPlaces);
 
   return topPlaces;
 };

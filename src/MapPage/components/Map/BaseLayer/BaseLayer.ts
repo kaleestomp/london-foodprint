@@ -5,32 +5,30 @@ import useToggleMapMode from './useToggleMapMode';
 import useAdjustMinZoom from './useAdjustMaxZoom';
 import syncMaxPitch from './syncMaxPitch';
 import apply3DFogVisibility from './applyFog';
+import useInvertedMaskLayer from './useInvertedMaskLayer';
+import { useCityContext } from '../../../../context/CityContext';
 
-import {
-  LONDON_CENTER, LONDON_INITIAL_ZOOM, LONDON_MIN_ZOOM,
-  LONDON_MAX_ZOOM, LONDON_BOUNDS
-} from '../MapTemplate';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
   mapContainerRef: React.RefObject<HTMLDivElement | null>;
   mapRef: React.RefObject<maplibregl.Map | null>;
 } => {
-  
+  const { cityParams } = useCityContext();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const internalMapRef = useRef<maplibregl.Map | null>(null);
   const mapRef = externalMapRef ?? internalMapRef;
 
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
+    if (!mapContainerRef.current || mapRef.current || !cityParams) return;
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      center: LONDON_CENTER,
-      zoom: LONDON_INITIAL_ZOOM,
-      minZoom: LONDON_MIN_ZOOM,
-      maxZoom: LONDON_MAX_ZOOM,
-      maxBounds: LONDON_BOUNDS,
+      center: cityParams.center,
+      zoom: cityParams.initZoom,
+      minZoom: cityParams.minZoom,
+      maxZoom: cityParams.maxZoom,
+      maxBounds: cityParams.maxBounds,
       maxPitch: 0,
       dragRotate: true,
       pitchWithRotate: true,
@@ -39,13 +37,26 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
       doubleClickZoom: false,
     });
 
+    // map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+
     const handleZoom = () => syncMaxPitch(map);
     const handlePitch = () => apply3DFogVisibility(map);
     const handleStyleData = () => apply3DFogVisibility(map);
+    const handleStyleImageMissing = (e: { id: string }) => {
+      if (!map.hasImage(e.id)) {
+        // Add a 1x1 transparent image to satisfy missing sprite/icon references in basemap tiles
+        map.addImage(e.id, {
+          width: 1,
+          height: 1,
+          data: new Uint8Array([0, 0, 0, 0]),
+        });
+      }
+    };
 
     map.on('zoom', handleZoom);
     map.on('pitch', handlePitch);
     map.on('styledata', handleStyleData);
+    map.on('styleimagemissing', handleStyleImageMissing);
 
     mapRef.current = map;
 
@@ -53,13 +64,15 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
       map.off('zoom', handleZoom);
       map.off('pitch', handlePitch);
       map.off('styledata', handleStyleData);
+      map.off('styleimagemissing', handleStyleImageMissing);
       mapRef.current = null;
       map.remove();
     };
-  }, []);
+  }, [cityParams]);
 
   useToggleMapMode(mapRef);
   useAdjustMinZoom(mapRef);
+  useInvertedMaskLayer(mapRef);
 
   return { mapContainerRef, mapRef };
 };

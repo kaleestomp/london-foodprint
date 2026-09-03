@@ -19,7 +19,7 @@ const readViewportParams = (
     const bottomOffset = Math.max(0, Math.min(mobileBottomOffset, canvas.clientHeight - 1));
 
     const params = getBucketedViewportBounds({
-        map, zoomInterval: 0.5, snapFactor: 0.5,
+        map, zoomInterval: 0.5, snapFactor: 0.5, mode: 'inset',
         padding: { left: leftOffset, bottom: bottomOffset }
     }) as ViewportBounds;
     const signature: string = Object.values(params).join('|');

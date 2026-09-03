@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import useIPLocation from '../../../../request/useIPLocation/useIPLocation';
-import { LONDON_BOUNDS, LONDON_INITIAL_ZOOM } from '../MapTemplate';
+import { useCityContext } from '../../../../context/CityContext';
+import { isWithinCityBounds } from '../MapTemplate';
 
 const IP_LOCATION_CHECK_DURATION = 2000;
 
 const IPLocationHandler: React.FC<{ mapRef: React.RefObject<maplibregl.Map | null> }> = ({ mapRef }) => {
+  const { cityParams } = useCityContext();
   const [mapReady, setMapReady] = useState(false);
   const [ipLookupOpen, setIpLookupOpen] = useState(true);
   const [hasAppliedIpCenter, setHasAppliedIpCenter] = useState(false);
@@ -37,27 +39,23 @@ const IPLocationHandler: React.FC<{ mapRef: React.RefObject<maplibregl.Map | nul
     return () => clearTimeout(timer);
   }, []);
 
-  // Startup behaviour: If the IP location is available within 2s and within London bounds, 
+  // Startup behaviour: If the IP location is available within 2s and within city bounds, 
   // fly to that location on the map.
   useEffect(() => {
-    if (!ipLookupOpen || hasAppliedIpCenter || !mapReady || !ipLocation || !ipLocation.lat || !ipLocation.lon) return;
+    if (!ipLookupOpen || hasAppliedIpCenter || !mapReady || !ipLocation || !ipLocation.lat || !ipLocation.lon || !cityParams) return;
 
     const point = { lng: ipLocation.lon, lat: ipLocation.lat };
-    const withinLondon =
-      point.lng >= LONDON_BOUNDS[0][0] &&
-      point.lng <= LONDON_BOUNDS[1][0] &&
-      point.lat >= LONDON_BOUNDS[0][1] &&
-      point.lat <= LONDON_BOUNDS[1][1];
+    const withinCity = isWithinCityBounds(point.lat, point.lng, cityParams.maxBounds);
 
-    if (!withinLondon) {
+    if (!withinCity) {
       setIpLookupOpen(false);
       return;
     }
 
-    mapRef.current?.flyTo({ center: [point.lng, point.lat], zoom: LONDON_INITIAL_ZOOM, essential: true });
+    mapRef.current?.flyTo({ center: [point.lng, point.lat], zoom: cityParams.initZoom, essential: true });
     setHasAppliedIpCenter(true);
     setIpLookupOpen(false);
-  }, [hasAppliedIpCenter, ipLocation, ipLookupOpen, mapReady, mapRef]);
+  }, [hasAppliedIpCenter, ipLocation, ipLookupOpen, mapReady, mapRef, cityParams]);
 };
 
 export default IPLocationHandler;

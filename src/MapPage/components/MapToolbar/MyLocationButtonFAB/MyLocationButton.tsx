@@ -3,7 +3,8 @@ import IconButton from '@mui/material/IconButton';
 import Snackbar from '@mui/material/Snackbar';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
 import useMyLocation from '../../../../request/useMyLocation/useMyLocation';
-import { isWithinLondonBounds } from '../../Map/MapTemplate';
+import { isWithinCityBounds } from '../../Map/MapTemplate';
+import { useCityContext } from '../../../../context/CityContext';
 import AnimatedLoadingDots from '../../../../components/LoadingDots/AnimatedLoadingDots';
 import '../MapToolbar.css';
 
@@ -13,13 +14,15 @@ type Props = {
   onLiveLocationDrop: (lat: number, lng: number) => void;
 };
 const MyLocation: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
+  const { cityParams } = useCityContext();
   const { state, locate } = useMyLocation();
   const [message, setMessage] = useState<string | null>(null);
   const [showLoading, setShowLoading] = useState(false);
 
-  const handleOutsideLondon = useCallback(() => {
-    setMessage('oops you are not in london');
-  }, []);
+  const handleOutsideCity = useCallback(() => {
+    const cityName = cityParams?.city ?? 'london';
+    setMessage(`oops you are not in ${cityName}`);
+  }, [cityParams?.city]);
 
   const handleLiveLocationDrop = useCallback((lat: number, lon: number) => {
     onLiveLocationDrop(lat, lon);
@@ -44,17 +47,17 @@ const MyLocation: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
       return;
     }
 
-    if (state.status !== 'success') {
+    if (state.status !== 'success' || !cityParams) {
       return;
     }
 
-    if (!isWithinLondonBounds(state.lat, state.lon)) {
-      handleOutsideLondon();
+    if (!isWithinCityBounds(state.lat, state.lon, cityParams.maxBounds)) {
+      handleOutsideCity();
       return;
     }
 
     handleLiveLocationDrop(state.lat, state.lon);
-  }, [handleLiveLocationDrop, handleOutsideLondon, state]);
+  }, [handleLiveLocationDrop, handleOutsideCity, state, cityParams]);
 
   return (
     <>

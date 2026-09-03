@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { isWithinLondonBounds } from '../../Map/MapTemplate';
+import { isWithinCityBounds } from '../../Map/MapTemplate';
+import { useCityContext } from '../../../../context/CityContext';
 
 export type LocationResult = {
   place_id: number;
@@ -15,16 +16,17 @@ const GEOCODE_URL = `${API_BASE}/api/geocode`;
 const MIN_QUERY_LENGTH = 3;
 const DEBOUNCE_MS = 400;
 
-const isResultWithinLondonBounds = (result: LocationResult): boolean => {
+const isResultWithinCityBounds = (result: LocationResult, bounds: [[number, number], [number, number]]): boolean => {
   const lat = Number.parseFloat(result.lat);
   const lon = Number.parseFloat(result.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     return false;
   }
-  return isWithinLondonBounds(lat, lon);
+  return isWithinCityBounds(lat, lon, bounds);
 };
 
 const useGeoSearch = (query: string) => {
+  const { cityParams } = useCityContext();
   const [suggestions, setSuggestions] = useState<LocationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [filteredOutAll, setFilteredOutAll] = useState(false);
@@ -47,9 +49,11 @@ const useGeoSearch = (query: string) => {
         });
         if (!res.ok) { throw new Error(`Geocode error: ${res.status}`); }
         const data: LocationResult[] = await res.json();
-        const londonOnly = data.filter(isResultWithinLondonBounds);
-        setFilteredOutAll(data.length > 0 && londonOnly.length === 0);
-        setSuggestions(londonOnly);
+        const cityOnly = cityParams
+          ? data.filter((item) => isResultWithinCityBounds(item, cityParams.maxBounds))
+          : data;
+        setFilteredOutAll(data.length > 0 && cityOnly.length === 0);
+        setSuggestions(cityOnly);
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') { return; }
         setFilteredOutAll(false);
@@ -63,7 +67,7 @@ const useGeoSearch = (query: string) => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query]);
+  }, [query, cityParams]);
 
   return { suggestions, isLoading, filteredOutAll };
 };
