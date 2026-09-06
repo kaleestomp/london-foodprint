@@ -8,12 +8,12 @@ SQL_PLACES_LIST = """
             cuisine_type,
             cost AS price,
             CASE
-                WHEN $8::BOOLEAN THEN (
+                WHEN $9::BOOLEAN THEN (
                     6371000 * 2 * ASIN(
                         SQRT(
-                            POWER(SIN(RADIANS((lat - $9) / 2)), 2)
-                            + COS(RADIANS($9)) * COS(RADIANS(lat))
-                            * POWER(SIN(RADIANS((lon - $10) / 2)), 2)
+                            POWER(SIN(RADIANS((lat - $10) / 2)), 2)
+                            + COS(RADIANS($10)) * COS(RADIANS(lat))
+                            * POWER(SIN(RADIANS((lon - $11) / 2)), 2)
                         )
                     )
                 )
@@ -24,41 +24,42 @@ SQL_PLACES_LIST = """
             google_maps_uri,
             website_uri
         FROM places
-        WHERE lat BETWEEN $1 AND $2
-          AND lon BETWEEN $3 AND $4
+        WHERE city_slug = $1
+          AND lat BETWEEN $2 AND $3
+          AND lon BETWEEN $4 AND $5
           AND (
-                CARDINALITY($5::TEXT[]) = 0  -- no filter, show all cuisines
-                OR (CARDINALITY($5::TEXT[]) > 0 AND (
-                      cuisine_type = ANY(ARRAY_REMOVE($5::TEXT[], '__null__'))
-                      OR ('__null__' = ANY($5::TEXT[]) AND cuisine_type IS NULL)
+                CARDINALITY($6::TEXT[]) = 0  -- no filter, show all cuisines
+                OR (CARDINALITY($6::TEXT[]) > 0 AND (
+                      cuisine_type = ANY(ARRAY_REMOVE($6::TEXT[], '__null__'))
+                      OR ('__null__' = ANY($6::TEXT[]) AND cuisine_type IS NULL)
                     ))
               )
           AND (
-                $6 = '__all__'  -- no filter, all venues
-                OR ($6 = '__null__' AND venue_type IS NULL)
-                OR ($6 != '__all__' AND $6 != '__null__' AND venue_type = $6)
+                $7 = '__all__'  -- no filter, all venues
+                OR ($7 = '__null__' AND venue_type IS NULL)
+                OR ($7 != '__all__' AND $7 != '__null__' AND venue_type = $7)
               )
           AND (
-                CARDINALITY($7::TEXT[]) = 0  -- no filter, show all costs
-                OR (CARDINALITY($7::TEXT[]) > 0 AND (
-                      cost = ANY(ARRAY_REMOVE($7::TEXT[], '__null__'))
-                      OR ('__null__' = ANY($7::TEXT[]) AND cost IS NULL)
+                CARDINALITY($8::TEXT[]) = 0  -- no filter, show all costs
+                OR (CARDINALITY($8::TEXT[]) > 0 AND (
+                      cost = ANY(ARRAY_REMOVE($8::TEXT[], '__null__'))
+                      OR ('__null__' = ANY($8::TEXT[]) AND cost IS NULL)
                     ))
               )
           AND (
-                NOT $8::BOOLEAN
+                NOT $9::BOOLEAN
                 OR (
                     6371000 * 2 * ASIN(
                         SQRT(
-                            POWER(SIN(RADIANS((lat - $9) / 2)), 2)
-                            + COS(RADIANS($9)) * COS(RADIANS(lat))
-                            * POWER(SIN(RADIANS((lon - $10) / 2)), 2)
+                            POWER(SIN(RADIANS((lat - $10) / 2)), 2)
+                            + COS(RADIANS($10)) * COS(RADIANS(lat))
+                            * POWER(SIN(RADIANS((lon - $11) / 2)), 2)
                         )
-                    ) <= $11
+                    ) <= $12
                 )
               )
                     {tier_filter}
         ORDER BY {sort_column} DESC, id ASC 
         LIMIT {page_size}
-        OFFSET $13
+        OFFSET $14
     """

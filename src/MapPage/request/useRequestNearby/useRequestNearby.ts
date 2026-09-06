@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useCityContext } from '../../../context/CityContext';
 import { type NearbyResponse, request } from './request';
 
 type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
 export interface NearbyParams {
+  city?: string;
   lat: number;
   lng: number;
   radius_m?: number;
@@ -18,6 +20,7 @@ export interface NearbyParams {
 
 const buildQueryKey = (params: NearbyParams): string => {
   const qs = new URLSearchParams({
+    city: params.city ?? 'london',
     lat: String(params.lat),
     lng: String(params.lng),
     radius_m: String(params.radius_m ?? 1000),
@@ -46,7 +49,8 @@ const useRequestNearby = (params: NearbyParams | null): {
   isPlaceholderData: boolean;
   isFetching: boolean;
 } => {
-  const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
+  const { citySlug: city } = useCityContext();
+  const queryKey = useMemo(() => (params ? buildQueryKey({ ...params, city }) : ''), [params, city]);
 
   const query = useQuery({
     queryKey: ['nearby', queryKey],

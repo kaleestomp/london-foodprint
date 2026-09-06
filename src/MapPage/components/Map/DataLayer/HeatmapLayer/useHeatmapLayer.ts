@@ -23,8 +23,12 @@ const useHeatmapLayer = (
     const removeLayer = () => {
       const currentMap = mapRef.current;
       if (!currentMap) return;
-      if (currentMap.getLayer(LAYER_ID)) currentMap.removeLayer(LAYER_ID);
-      if (currentMap.getSource(SOURCE_ID)) currentMap.removeSource(SOURCE_ID);
+      try {
+        if (currentMap.getLayer(LAYER_ID)) currentMap.removeLayer(LAYER_ID);
+        if (currentMap.getSource(SOURCE_ID)) currentMap.removeSource(SOURCE_ID);
+      } catch {
+        // Style already torn down (e.g. city switch) — nothing to remove
+      }
     };
 
     const refreshLayer = () => {

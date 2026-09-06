@@ -1,5 +1,4 @@
 from pathlib import Path
-import os
 from dotenv import load_dotenv
 
 def load_key():

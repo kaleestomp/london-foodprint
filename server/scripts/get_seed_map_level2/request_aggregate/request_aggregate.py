@@ -4,7 +4,10 @@ import json
 from server.scripts.load_key.load_key import load_key
 
 PLACES_AGGREGATE_ENDPOINT = "https://areainsights.googleapis.com/v1:computeInsights"
-SEARCH_TYPES = ["restaurant"]
+# INCLUDED_TYPES = ["restaurant"]
+# EXCLUDED_PRIMARY_TYPES = ["grocery_store"]
+INCLUDED_TYPES = ["restaurant"]
+EXCLUDED_PRIMARY_TYPES = ["restaurant", "grocery_store"]
 RESPONSE_CACHE = r"./cache"
 DEBUG = False
 
@@ -37,7 +40,9 @@ async def request_aggregate(
                         }
                     },
                     "typeFilter": {
-                        "includedPrimaryTypes": SEARCH_TYPES,
+                        # "includedPrimaryTypes": INCLUDED_TYPES,
+                        "includedTypes": INCLUDED_TYPES,
+                        "excludedPrimaryTypes": EXCLUDED_PRIMARY_TYPES,
                     },
                 },
             },

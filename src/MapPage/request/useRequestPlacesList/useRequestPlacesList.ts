@@ -1,12 +1,14 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { type PlacesListResponse, request } from './request';
+import { useCityContext } from '../../../context/CityContext';
 import type { PlacesListParams } from '../useRequestPlacesList/useRequestInfinitePlacesList';
 import { DEFAULT_PAGE_SIZE } from '../useRequestPlacesList/useRequestInfinitePlacesList';
 type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
 export const buildQueryKey = (params: PlacesListParams): string => {
   const qs = new URLSearchParams({
+    city: params.city ?? 'london',
     sw_lat: String(params.sw_lat),
     sw_lng: String(params.sw_lng),
     ne_lat: String(params.ne_lat),
@@ -42,10 +44,11 @@ const useRequestPlacesList = (params: PlacesListParams | null): {
   error: Error | null;
   res: PlacesListResponse | null;
 } => {
+  const { citySlug: city } = useCityContext();
   const queryKey = useMemo(() => {
     if (!params || params.enabled === false) return '';
-    return buildQueryKey(params);
-  }, [params]);
+    return buildQueryKey({ ...params, city });
+  }, [params, city]);
 
   const query = useQuery({
     queryKey: ['places-list', queryKey],

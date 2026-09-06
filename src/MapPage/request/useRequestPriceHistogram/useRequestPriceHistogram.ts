@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useCityContext } from '../../../context/CityContext';
 import { type PriceHistogramParams, type PriceHistogramResponse, buildQueryKey, request } from './request';
 
 export type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
@@ -10,7 +11,8 @@ const useRequestPriceHistogram = (params: PriceHistogramParams | null): {
   res: PriceHistogramResponse | null;
   isFetching: boolean;
 } => {
-  const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
+  const { citySlug: city } = useCityContext();
+  const queryKey = useMemo(() => (params ? buildQueryKey({ ...params, city }) : ''), [params, city]);
 
   const query = useQuery({
     queryKey: ['price-histogram', queryKey],

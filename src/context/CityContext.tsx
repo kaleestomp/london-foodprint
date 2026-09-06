@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import type geojson from 'geojson';
-import { london, londonBoundary } from '../assets/cityParams/default';
+import londonJson from '../assets/cityParams/london.json';
 
+export type cityOptions = 'london' | 'newcastle';
 export type CityParams = {
-    city: string,
+    display_name: string,  // human-readable display name (e.g. "London", "Newcastle upon Tyne")
     center: [number, number],
     initZoom: number,
     minZoom: number,
@@ -11,48 +12,59 @@ export type CityParams = {
     maxBounds: [[number, number], [number, number]];
 };
 type CityContextType = {
+  citySlug: cityOptions;
   cityParams: CityParams;
   cityBoundary: geojson.FeatureCollection | geojson.Feature | geojson.Geometry | null;
-  reportCity: (city: string) => void;
+  reportCity: (city: cityOptions) => void;
 };
 
-const isGeoJSON = (obj: unknown): obj is geojson.FeatureCollection | geojson.Feature | geojson.Geometry => {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'type' in obj &&
-    typeof (obj as { type: unknown }).type === 'string'
-  );
+// Raw GeoJSON properties shape for a city (from cityParams/*.json)
+type CityGeoProps = {
+  display_name?: string;
+  center?: [number, number];
+  initZoom?: number;
+  minZoom?: number;
+  maxZoom?: number;
+  maxBounds?: [[number, number], [number, number]];
+};
+
+const toCityParams = (fc: geojson.FeatureCollection, slug: string): CityParams => {
+  const props: CityGeoProps = fc.features?.[0]?.properties ?? {};
+  return {
+    display_name: props.display_name ?? slug,
+    center: props.center ?? [0, 0],
+    initZoom: props.initZoom ?? 12,
+    minZoom: props.minZoom ?? 10,
+    maxZoom: props.maxZoom ?? 20,
+    maxBounds: props.maxBounds ?? [[-180, -90], [180, 90]],
+  };
 };
 
 const CityContext = createContext<CityContextType | null>(null);
 
-// Registry of available city param modules using Vite import.meta.glob
-const cityLoaders = import.meta.glob<Record<string, unknown>>('../assets/cityParams/*.ts');
+// Registry of available city boundary JSON via Vite import.meta.glob
+const cityLoaders = import.meta.glob<{ default: geojson.FeatureCollection }>('../assets/cityParams/*.json');
+
+// Default city feature collection for London
+const londonFc = londonJson as geojson.FeatureCollection;
 
 export const CityProvider = ({ children }: { children: ReactNode }) => {
-  const [cityParams, setCityParams] = useState<CityParams>(london);
-  const [cityBoundary, setCityBoundary] = useState<geojson.FeatureCollection | geojson.Feature | geojson.Geometry | null>(londonBoundary);
+  const [citySlug, setCitySlug] = useState<cityOptions>('london');
+  const [cityParams, setCityParams] = useState<CityParams>(() => toCityParams(londonFc, 'london'));
+  const [cityBoundary, setCityBoundary] = useState<geojson.FeatureCollection | null>(londonFc);
 
-  const reportCity = useCallback((city: string) => {
+  const reportCity = useCallback((city: cityOptions) => {
     const cityName = city.toLowerCase();
-    const loader = cityLoaders[`../assets/cityParams/${cityName}.ts`];
+    const loader = cityLoaders[`../assets/cityParams/${cityName}.json`];
     if (!loader) {
       console.warn(`City params for "${city}" not found.`);
       return;
     }
 
-    loader().then((module) => {
-      const mod = module as Record<string, unknown>;
-      const params = (mod[cityName] ?? mod.default) as CityParams | undefined;
-      const rawBoundary = mod[`${cityName}Boundary`] ?? mod.boundary ?? mod.default;
-
-      if (params) {
-        setCityParams(params);
-      }
-      if (isGeoJSON(rawBoundary)) {
-        setCityBoundary(rawBoundary);
-      }
+    loader().then(({ default: fc }) => {
+      setCityParams(toCityParams(fc, cityName));
+      setCityBoundary(fc);
+      setCitySlug(cityName as cityOptions);
     })
     .catch((err) => {
       console.error(`Failed to load city params for "${city}":`, err);
@@ -61,10 +73,8 @@ export const CityProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const value = useMemo<CityContextType>(() => ({
-    cityParams,
-    cityBoundary,
-    reportCity
-  }), [cityParams, cityBoundary, reportCity]);
+    citySlug, cityParams, cityBoundary, reportCity
+  }), [citySlug, cityParams, cityBoundary, reportCity]);
 
   return <CityContext.Provider value={value}>{children}</CityContext.Provider>;
 };

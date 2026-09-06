@@ -23,6 +23,7 @@ _cache_lock = asyncio.Lock()
 @router.get("/api/cuisine_histogram")
 async def get_cuisine_histogram(
     request: Request,
+    city: str = Query(default="london"),
     scope: str = Query(default="citywide"),
     lat: float | None = Query(default=None),
     lng: float | None = Query(default=None),
@@ -47,6 +48,7 @@ async def get_cuisine_histogram(
     cost_values = normalize_dimension_list(cost)
     venue_value = normalize_dimension(venue_type)
     tier_column = get_score_basis_column(score_basis)
+    city_slug = city.lower().strip()
 
     cache_key: str | None = None
     if scope == "citywide":
@@ -54,6 +56,7 @@ async def get_cuisine_histogram(
             endpoint="citywide",
             scope="citywide",
             parts=[
+                city_slug,
                 ",".join(sorted(cost_values)),
                 venue_value,
                 str(score_basis),
@@ -73,6 +76,7 @@ async def get_cuisine_histogram(
         if scope == "citywide":
             rows = await conn.fetch(
                 SQL_CITYWIDE_CUISINE.format(rank_column=tier_column),
+                city_slug,
                 venue_value,
                 cost_values,
                 score_tier,
@@ -80,6 +84,7 @@ async def get_cuisine_histogram(
         elif scope == "nearby":
             rows = await conn.fetch(
                 SQL_NEARBY_CUISINE.format(rank_column=tier_column),
+                city_slug,
                 lng, lat, radius_m,
                 venue_value, 
                 cost_values,
@@ -88,6 +93,7 @@ async def get_cuisine_histogram(
         else:
             rows = await conn.fetch(
                 SQL_VIEW_CUISINE.format(rank_column=tier_column),
+                city_slug,
                 sw_lat,
                 ne_lat,
                 sw_lng,

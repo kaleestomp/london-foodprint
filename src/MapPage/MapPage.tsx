@@ -17,6 +17,7 @@ import PullUpPanelMapViewportSync from './components/MapViewportSync/PullUpPanel
 
 import VaulDrawer from './components/SlideUpDrawer/SlideUpDrawer.tsx';
 
+// import { useCityContext } from '../context/CityContext';
 
 
 import './MapPage.css';
@@ -26,6 +27,10 @@ const MapPage: FC = () => {
   const mapRef = useRef<maplibregl.Map | null>(null);
 
   // IPLocationHandler({ mapRef });
+  // const { reportCity } = useCityContext();
+  // useEffect(() => {
+  //   reportCity('newcastle');
+  // }, [reportCity]);
 
   return (
     <div className="map-page-container">

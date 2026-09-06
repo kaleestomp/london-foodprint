@@ -4,26 +4,29 @@ import { CUISINE_DISPLAY } from '../utils/format/formatCuisines';
 
 export const CUISINE_FILTER_OPTIONS = Object.keys(CUISINE_DISPLAY);
 export const PRICE_RANGE_FILTER_OPTIONS = ['<10', '10+', '20+', '40+', '60+', '100+'] as const;
-const VENUE_TYPE_FILTER_OPTIONS = ['Dine-In', 'Takeaway'] as const;
-const SCORE_TIER_FILTER_OPTIONS = [1, 2, 3, 4] as const;
 type CuisineSelectionMode = 'include' | 'exclude';
-type VenueTypeFilterOption = (typeof VENUE_TYPE_FILTER_OPTIONS)[number];
+type VenueTypeFilterOption = 'Dine-In' | 'Takeaway';
 type PriceRangeFilterOption = (typeof PRICE_RANGE_FILTER_OPTIONS)[number];
 type PriceRangeInterval = [number, number];
-type ScoreTierFilterOption = 0 | (typeof SCORE_TIER_FILTER_OPTIONS)[number];
-type ScoreBasis = 0 | 1 | 2;
+type WilsonBasis = 0 | 1 | 2; // 0: pro-rating, 1: balanced, 2: pro-traffic
+type TierOptions = 0 | 1 | 2 | 3 | 4; // 100% 50% 25% 10% 5%
+type TierBasis = 0 | 1 | 2; // 0: standard, 1: diversity cap, 2: diversity + no major chain
 export type SearchMask = { center: { lat: number; lng: number }, radiusM: number };
 
 type SearchFiltersContextType = {
   cuisines: string[]; effectiveCuisines: string[]; 
   addCuisine: (value: string) => void; clearCuisines: () => void;
   cuisineSelectionMode: CuisineSelectionMode; setCuisineSelectionMode: (value: CuisineSelectionMode) => void;
-  scoreBasis: ScoreBasis; setScoreBasis: (value: ScoreBasis) => void;
   venueType: VenueTypeFilterOption | null; setVenueType: (value: VenueTypeFilterOption | null) => void;
   priceRangeInterval: PriceRangeInterval | null; setPriceRangeInterval: (value: PriceRangeInterval | null) => void;
   effectivePriceRanges: PriceRangeFilterOption[];
-  scoreTier: ScoreTierFilterOption; setScoreTier: (value: ScoreTierFilterOption) => void;
   searchMask: SearchMask | null; setSearchMask: Dispatch<SetStateAction<SearchMask | null>>;
+
+  scoreBasis: TierBasis; reportScoreBasis: (value: TierBasis) => void;
+  scoreTier: TierOptions; setScoreTier: (value: TierOptions) => void;
+  wilsonBasis: WilsonBasis; setWilsonBasis: (value: WilsonBasis) => void;
+  allowBlockChain: boolean; setAllowBlockChain: (value: boolean) => void;
+  allowChain: boolean; setAllowChain: (value: boolean) => void;
   resetFilters: () => void;
 };
 
@@ -54,37 +57,57 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   }, [priceRangeInterval]);
 
   const [venueType, setVenueType] = useState<VenueTypeFilterOption | null>(null);
-  const [scoreBasis, setScoreBasis] = useState<ScoreBasis>(2);
-  const [scoreTier, setScoreTier] = useState<ScoreTierFilterOption>(2);
   const [searchMask, setSearchMask] = useState<SearchMask | null>(null);
+
+  const [scoreBasis, setScoreBasis] = useState<TierBasis>(2); // 0: Tier 1: Diversity, 2: No Block Chain
+  const [scoreTier, setScoreTier] = useState<TierOptions>(2);
+  const [wilsonBasis, setWilsonBasis] = useState<WilsonBasis>(2);
+  const [allowChain, setAllowChain] = useState<boolean>(true);
+  const [allowBlockChain, setAllowBlockChain] = useState<boolean>(false);
+  const reportScoreBasis = (value: TierBasis) => {
+    setScoreBasis(value);
+    if (value === 2) setAllowBlockChain(false);
+  };
 
   const resetFilters = () => {
     setCuisines([]);
     setCuisineSelectionMode('include');
-    setScoreBasis(2);
     setVenueType(null);
     setPriceRangeInterval(null);
-    setScoreTier(2);
     setSearchMask(null);
+
+    setScoreBasis(2);
+    setScoreTier(2);
+    setWilsonBasis(1);
+    setAllowChain(true);
+    setAllowBlockChain(false);
   };
 
   const exposed = useMemo<SearchFiltersContextType>(() => ({
     cuisines, effectiveCuisines, addCuisine, clearCuisines,
     cuisineSelectionMode, setCuisineSelectionMode, 
     effectivePriceRanges, priceRangeInterval, setPriceRangeInterval, 
-    scoreBasis, setScoreBasis,
     venueType, setVenueType,
-    scoreTier, setScoreTier,
     searchMask, setSearchMask,
+
+    scoreBasis, reportScoreBasis,
+    scoreTier, setScoreTier,
+    wilsonBasis, setWilsonBasis,
+    allowChain, setAllowChain,
+    allowBlockChain, setAllowBlockChain,
     resetFilters,
   }), [
     cuisines, effectiveCuisines, addCuisine, clearCuisines,
-    cuisineSelectionMode, setCuisineSelectionMode,
-    effectivePriceRanges, priceRangeInterval, setPriceRangeInterval,
-    scoreBasis, setScoreBasis,
+    cuisineSelectionMode, setCuisineSelectionMode, 
+    effectivePriceRanges, priceRangeInterval, setPriceRangeInterval, 
     venueType, setVenueType,
-    scoreTier, setScoreTier,
     searchMask, setSearchMask,
+
+    scoreBasis, reportScoreBasis,
+    scoreTier, setScoreTier,
+    wilsonBasis, setWilsonBasis,
+    allowChain, setAllowChain,
+    allowBlockChain, setAllowBlockChain,
     resetFilters,
   ]);
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { useCityContext } from '../../../../context/CityContext';
 import useGetSearchBounds from './useGetSearchBounds';
 import useGetFilterParams from './useGetFilterParams';
 import useActiveParams from './useActiveParams';
@@ -24,16 +25,17 @@ const useFetchInfinitePlacesList = (
 
   const { geoBounds, geoKey } = useGetSearchBounds();
   const { filterParams, filterKey } = useGetFilterParams();
+  const { citySlug: city } = useCityContext();
   const liveParams = useMemo<PlacesListParams | null>(() => (
-    geoBounds ? { ...geoBounds, ...filterParams, page_size: pageSize } : null
-  ), [geoBounds, filterParams, pageSize]);
-  const liveParamKey = `${geoKey}||${filterKey}||${pageSize}`;
+    geoBounds ? { ...geoBounds, ...filterParams, city, page_size: pageSize } : null
+  ), [geoBounds, filterParams, city, pageSize]);
+  const liveParamKey = `${city}||${geoKey}||${filterKey}||${pageSize}`;
   const activeParams = useActiveParams(liveParams, liveParamKey, shouldReset);
-  
+
   const [isListStale, setIsListStale] = useState(false);
   useEffect(() => {
     setIsListStale(true);
-  }, [geoKey, filterKey]);
+  }, [city, geoKey, filterKey]);
 
   const { status, res, isReady, // isFetching,
     hasNextPage, isFetchingNextPage, fetchNextPage

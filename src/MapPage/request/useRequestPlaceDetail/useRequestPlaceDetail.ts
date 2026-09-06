@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useCityContext } from '../../../context/CityContext';
 import { type PlaceDetailResponse, request } from './request';
 
 type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
@@ -9,11 +10,12 @@ const useRequestPlaceDetail = (placeId: string | null): {
   error: Error | null;
   res: PlaceDetailResponse | null;
 } => {
+  const { citySlug: city } = useCityContext();
   const normalizedPlaceId = useMemo(() => placeId?.trim() ?? '', [placeId]);
 
   const query = useQuery({
-    queryKey: ['place-detail', normalizedPlaceId],
-    queryFn: ({ signal }) => request(normalizedPlaceId, { signal }),
+    queryKey: ['place-detail', city, normalizedPlaceId],
+    queryFn: ({ signal }) => request(normalizedPlaceId, { signal, city }),
     enabled: Boolean(normalizedPlaceId),
   });
 

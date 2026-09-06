@@ -10,6 +10,7 @@ export const buildQueryKey = (
 
   // NON-PAGED
   const qs = new URLSearchParams({
+    city: params.city ?? 'london',
     sw_lat: String(params.sw_lat),
     sw_lng: String(params.sw_lng),
     ne_lat: String(params.ne_lat),

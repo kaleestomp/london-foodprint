@@ -53,12 +53,16 @@ const useClusterLayer = (
     const removeLayer = () => {
       const currentMap = mapRef.current;
       if (!currentMap) return;
-      if (currentMap.getLayer(COUNT_LAYER_ID)) currentMap.removeLayer(COUNT_LAYER_ID);
-      if (currentMap.getLayer(PLACES_HIT_LAYER_ID)) currentMap.removeLayer(PLACES_HIT_LAYER_ID);
-      if (currentMap.getLayer(PLACES_HIGHLIGHT_LAYER_ID)) currentMap.removeLayer(PLACES_HIGHLIGHT_LAYER_ID);
-      if (currentMap.getLayer(PLACES_LAYER_ID)) currentMap.removeLayer(PLACES_LAYER_ID);
-      if (currentMap.getLayer(PLACES_SHADOW_LAYER_ID)) currentMap.removeLayer(PLACES_SHADOW_LAYER_ID);
-      if (currentMap.getSource(SOURCE_ID)) currentMap.removeSource(SOURCE_ID);
+      try {
+        if (currentMap.getLayer(COUNT_LAYER_ID)) currentMap.removeLayer(COUNT_LAYER_ID);
+        if (currentMap.getLayer(PLACES_HIT_LAYER_ID)) currentMap.removeLayer(PLACES_HIT_LAYER_ID);
+        if (currentMap.getLayer(PLACES_HIGHLIGHT_LAYER_ID)) currentMap.removeLayer(PLACES_HIGHLIGHT_LAYER_ID);
+        if (currentMap.getLayer(PLACES_LAYER_ID)) currentMap.removeLayer(PLACES_LAYER_ID);
+        if (currentMap.getLayer(PLACES_SHADOW_LAYER_ID)) currentMap.removeLayer(PLACES_SHADOW_LAYER_ID);
+        if (currentMap.getSource(SOURCE_ID)) currentMap.removeSource(SOURCE_ID);
+      } catch {
+        // Style already torn down (e.g. city switch) — nothing to remove
+      }
     };
     
     const handleStateChange = () => {

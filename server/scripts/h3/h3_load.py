@@ -2,16 +2,16 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 from shapely import wkt
-from server.scripts.h3.config import BOUNDARY_JSON_PATH, SOURCE_CRS
+from server.scripts.h3.config import SOURCE_CRS
 
 # --- Load JSON ----
-def load_boundary_from_json(json_path: Path=BOUNDARY_JSON_PATH):
+def load_boundary_from_json(json_path: Path='boundary.json'):
     """
     Load preformatted Inner London boundary from GeoJSON.
     Expects a FeatureCollection with one boundary feature.
     """
     gdf = gpd.read_file(json_path)
-    if gdf.empty: raise ValueError("inner_london_boundary.json has no features.")
+    if gdf.empty: raise ValueError(f"{json_path} has no features.")
 
     # Ensure WGS84 for H3 operations.
     if gdf.crs is None:
@@ -20,7 +20,8 @@ def load_boundary_from_json(json_path: Path=BOUNDARY_JSON_PATH):
         gdf = gdf.to_crs(SOURCE_CRS)
     # gdf currently not used
 
-    inner_union = gdf.unary_union
+    inner_union = gdf.union_all()
+    
     return inner_union
 
 def load_geodf_from_csv(csv_path: Path) -> gpd.GeoDataFrame:

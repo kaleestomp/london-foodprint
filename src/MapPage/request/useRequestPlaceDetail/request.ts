@@ -15,10 +15,11 @@ export interface PlaceDetailResponse {
 
 export const request = async (
   placeId: string,
-  { signal }: { signal?: AbortSignal } = {}
+  { signal, city }: { signal?: AbortSignal; city?: string } = {}
 ): Promise<PlaceDetailResponse> => {
   const API_BASE = await apiBasePromise;
-  const res: Response = await fetch(`${API_BASE}/api/place/${encodeURIComponent(placeId)}`, { signal });
+  const qs = city ? `?city=${encodeURIComponent(city)}` : '';
+  const res: Response = await fetch(`${API_BASE}/api/place/${encodeURIComponent(placeId)}${qs}`, { signal });
   if (!res.ok) {
     throw new Error(`Failed to fetch /api/place/${placeId}: ${res.status} ${res.statusText}`);
   }

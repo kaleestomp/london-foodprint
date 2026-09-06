@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
+import { useCityContext } from '../../../context/CityContext';
 import buildQueryKey from './buildQueryKey';
 import { type HeatmapResponse, request } from './request';
 
 export type HeatmapParams = {
+  city?: string;
   sw_lat?: number;
   sw_lng?: number;
   ne_lat?: number;
@@ -28,7 +30,8 @@ type UseRequestHeatmapResult = {
 };
 
 const useRequestHeatmap = (params: HeatmapParams | null): UseRequestHeatmapResult => {
-  const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
+  const { citySlug: city } = useCityContext();
+  const queryKey = useMemo(() => (params ? buildQueryKey({ ...params, city }) : ''), [params, city]);
   const query = useQuery({
     queryKey: ['heatmap', queryKey],
     queryFn: ({ signal }) => request(queryKey, { signal }),

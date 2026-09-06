@@ -14,6 +14,7 @@ router = APIRouter()
 @router.get("/api/heatmap")
 async def get_heatmap_coordinates(
     request: Request,
+    city: str = Query(default="london"),
     sw_lat: float | None = Query(default=None),
     sw_lng: float | None = Query(default=None),
     ne_lat: float | None = Query(default=None),
@@ -29,6 +30,7 @@ async def get_heatmap_coordinates(
     cost_values = normalize_dimension_list(cost)
     venue_value = normalize_dimension(venue_type)
     rank_column = get_score_basis_column(score_basis)
+    city_slug = city.lower().strip()
 
     bbox_values = (sw_lat, sw_lng, ne_lat, ne_lng)
     has_bbox = all(value is not None for value in bbox_values)
@@ -41,12 +43,12 @@ async def get_heatmap_coordinates(
     bbox_sql = ""
     bbox_params: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
     if has_bbox:
-        bbox_sql = "AND lat BETWEEN $1 AND $2 AND lon BETWEEN $3 AND $4"
+        bbox_sql = "AND lat BETWEEN $2 AND $3 AND lon BETWEEN $4 AND $5"
         assert sw_lat is not None and sw_lng is not None
         assert ne_lat is not None and ne_lng is not None
         bbox_params = (sw_lat, ne_lat, sw_lng, ne_lng)
 
-    offset = 4 if has_bbox else 0
+    offset = 5 if has_bbox else 1
     cuisine_param = offset + 1
     venue_param = offset + 2
     cost_param = offset + 3
@@ -55,7 +57,7 @@ async def get_heatmap_coordinates(
     sql = f"""
         SELECT id, lat, lon, cuisine_type
         FROM places
-        WHERE TRUE
+        WHERE city_slug = $1
           {bbox_sql}
           AND (
                 CARDINALITY(${cuisine_param}::TEXT[]) = 0
@@ -80,7 +82,8 @@ async def get_heatmap_coordinates(
     """
 
     params: tuple[Any, ...] = (
-        *bbox_params[:offset],
+        city_slug,
+        *(bbox_params[:offset - 1] if has_bbox else ()),
         cuisine_values,
         venue_value,
         cost_values,

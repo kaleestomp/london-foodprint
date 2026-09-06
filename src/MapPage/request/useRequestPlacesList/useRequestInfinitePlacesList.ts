@@ -1,12 +1,14 @@
 import { useMemo } from 'react';
 import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 
+import { useCityContext } from '../../../context/CityContext';
 import buildQueryKey from './buildQueryKey';
 import { type PlacesListResponse, request } from './request';
 export const DEFAULT_PAGE_SIZE = 10;
 
 type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 export interface PlacesListParams {
+    city?: string;
     sw_lat: number;
     sw_lng: number;
     ne_lat: number;
@@ -37,7 +39,8 @@ const useRequestInfinitePlacesList = (
     fetchNextPage: () => void;
 } => {
 
-    const queryKey = useMemo(() => buildQueryKey(params), [params]);
+    const { citySlug: city } = useCityContext();
+    const queryKey = useMemo(() => buildQueryKey(params ? { ...params, city } : params), [params, city]);
 
     const query = useInfiniteQuery<
         PlacesListResponse, Error,

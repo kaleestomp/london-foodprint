@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useCityContext } from '../../../context/CityContext';
 import { type CuisineHistogramParams, type CuisineHistogramResponse, buildQueryKey, request } from './request';
 
 export type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
@@ -9,7 +10,8 @@ const useRequestCuisineHistogram = (params: CuisineHistogramParams | null): {
   error: Error | null;
   res: CuisineHistogramResponse | null;
 } => {
-  const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
+  const { citySlug: city } = useCityContext();
+  const queryKey = useMemo(() => (params ? buildQueryKey({ ...params, city }) : ''), [params, city]);
 
   const query = useQuery({
     queryKey: ['cuisine-histogram', queryKey],

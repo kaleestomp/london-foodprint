@@ -22,9 +22,9 @@ const GeoSearchbarMyLocationButton: React.FC<Props> = ({ mapRef, onLiveLocationD
   const [showLoading, setShowLoading] = useState(false);
 
   const handleOutsideCity = useCallback(() => {
-    const cityName = cityParams?.city ?? 'london';
+    const cityName = cityParams?.display_name ?? 'london';
     setMessage(`oops you are not in ${cityName}`);
-  }, [cityParams?.city]);
+  }, [cityParams?.display_name]);
 
   const handleLiveLocationDrop = useCallback((lat: number, lon: number) => {
     void onLiveLocationDrop(lat, lon);

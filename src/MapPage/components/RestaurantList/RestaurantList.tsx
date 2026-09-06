@@ -2,6 +2,7 @@ import { useEffect, useState, type FC } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import useFetchInfinitePlacesList from './InputHook/useFetchInfinitePlacesList';
+import { useCityContext } from '../../../context/CityContext';
 import ListLoading from './AltState/ListLoading';
 import NoResults from './AltState/NoResult';
 import RefreshButton from './RefreshButton/RefreshButton';
@@ -19,6 +20,7 @@ const RestaurantList: FC<{
   
   // REFRESH STATE
   const [shouldAutoRefresh, setShouldAutoRefresh] = useState(true);
+  const { citySlug } = useCityContext();
 
   // NETWORK CALL
   const resetSignal = autoUpdate ? autoUpdate : shouldAutoRefresh;
@@ -26,11 +28,11 @@ const RestaurantList: FC<{
   } = useFetchInfinitePlacesList(resetSignal, pageSize);
   const items = res?.data ?? [];
 
-  // FILTER CHANGE → AUTO-REFRESH (bypass refresh button)
+  // FILTER OR CITY CHANGE → AUTO-REFRESH (bypass refresh button)
   useEffect(() => {
     setShouldAutoRefresh(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterKey]);
+  }, [filterKey, citySlug]);
 
   // SCROLL HANDLER
   const readToFetchNext = hasNextPage && !isFetchingNextPage;

@@ -6,9 +6,9 @@ import './Switch.css';
 
 const RatingSwitch: React.FC = () => {
   
-  const { scoreBasis, setScoreBasis } = useSearchFilters();
+  const { scoreBasis, reportScoreBasis } = useSearchFilters();
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setScoreBasis(event.target.checked ? 2 : 0);
+    reportScoreBasis(event.target.checked ? 2 : 0);
   };
 
   return (

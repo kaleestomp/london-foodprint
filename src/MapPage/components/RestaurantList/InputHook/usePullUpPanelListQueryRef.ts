@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 
+import { useCityContext } from '../../../../context/CityContext';
 import useGetSearchBounds from './useGetSearchBounds';
 import useGetFilterParams from './useGetFilterParams';
 import { buildQueryKey } from '../../../request/useRequestPlacesList/useRequestPlacesList';
@@ -25,20 +26,21 @@ const usePullUpPanelListQuery = (
 ): ListQueryResult => {
   const { geoBounds, geoKey } = useGetSearchBounds();
   const { filterParams, filterKey } = useGetFilterParams();
+  const { citySlug: city } = useCityContext();
   const [page, setPage] = useState(1);
   const [isListStale, setIsListStale] = useState(false);
 
   useEffect(() => {
     setIsListStale(true);
-  }, [geoKey, filterKey]);
+  }, [city, geoKey, filterKey]);
 
   const query = useInfiniteQuery<
     PlacesListResponse, Error,
     InfiniteData<PlacesListResponse>,
-    readonly [string, string, string, boolean], // query key type
+    readonly [string, string, string, string, boolean], // query key type
     number
   >({
-    queryKey: ['places-list', geoKey, filterKey, enabled],
+    queryKey: ['places-list', city, geoKey, filterKey, enabled],
     enabled: Boolean(geoBounds) && enabled,
     placeholderData: (previousData) => previousData,
     initialPageParam: 1,
@@ -55,6 +57,7 @@ const usePullUpPanelListQuery = (
       const params = {
         ...geoBounds,
         ...filterParams,
+        city,
         page: Number(pageParam),
         enabled: true,
       };

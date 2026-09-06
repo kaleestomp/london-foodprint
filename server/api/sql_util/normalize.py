@@ -28,10 +28,11 @@ def normalize_dimension_list(values: list[str] | None) -> list[str]:
 
     return normalized_values
 
-def get_score_basis_column(score_basis: int) -> str:
+def get_score_basis_column(score_basis: int, model_version: int = 1) -> str:
+    m = model_version if model_version in (0, 1, 2) else 1
     if score_basis == 0:
-        return "tier"
+        return f"tier_{m}"
     if score_basis == 1:
-        return "tier_d"
-    return "tier_independent"
+        return f"tier_d{m}"
+    return f"tier_i{m}"
 

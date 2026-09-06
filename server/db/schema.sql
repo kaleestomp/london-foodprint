@@ -1,134 +1,145 @@
-﻿-- London Explorer — Cloud DB Schema
--- Run once against your Neon database.
--- PostGIS is natively supported on Neon; H3 math runs in Python (no h3-pg needed).
---
--- Design notes:
---   • h3_r10  = H3 res-10 cell — the finest tile grain, used for nearby k-ring lookups.
---   • places.csv now carries the latest field names directly (primaryTypeDisplayName,
---     shortFormattedAddress, predictedType, tier*, wilson_1, normal_1).
---   • The API computes its list ranks from normal_1 / wilson_1 at query time.
---   • Detail-card fields (address, website, etc.) are only fetched on pin tap.
+﻿-- London Explorer — Production Cloud DB Schema
+-- Supports multi-city declarative list partitioning (PARTITION BY LIST (city_slug)).
+-- Run once against your PostgreSQL / Neon database.
 
 -- ─── EXTENSION ───────────────────────────────────────────────────────────────
 CREATE EXTENSION IF NOT EXISTS postgis;
 
 
--- ─── TABLE 1: places ─────────────────────────────────────────────────────────
-DROP TABLE IF EXISTS h3_density;
+-- ─── CLEANUP ──────────────────────────────────────────────────────────────────
+DROP TABLE IF EXISTS h3_density CASCADE;
+DROP TABLE IF EXISTS place_open_windows CASCADE;
 DROP TABLE IF EXISTS places CASCADE;
 
+
+-- ─── TABLE 1: places (Parent Partitioned Table) ──────────────────────────────
+-- Source: refreshed places dataset (places.csv / places-sample.csv)
 CREATE TABLE places (
-    -- identity
-    id                  TEXT             PRIMARY KEY,
-    display_name        TEXT             NOT NULL,
+    -- Partition key & identity
+    city_slug                 TEXT             NOT NULL DEFAULT 'london',
+    id                        TEXT             NOT NULL,
+    display_name              TEXT             NOT NULL,
     primary_type_display_name TEXT,
-    rating              REAL,
-    user_rating_count   INTEGER,
-    short_formatted_address TEXT,
-    google_maps_uri     TEXT,
-    website_uri         TEXT,
-    types               TEXT,
-    primary_type        TEXT,
-    is_chain            BOOLEAN,
-    predicted_type      TEXT,
-    cuisine_type        TEXT,           -- e.g. 'Chinese', 'Southeast Asian'
-    venue_type          TEXT,           -- 'Dine-In' | 'Takeaway'
-    lat                 DOUBLE PRECISION NOT NULL,
-    lon                 DOUBLE PRECISION NOT NULL,
-    geom                GEOMETRY(Point, 4326) GENERATED ALWAYS AS (
-                            ST_SetSRID(ST_MakePoint(lon, lat), 4326)
-                        ) STORED,
-    h3_r10              TEXT             NOT NULL,  -- H3 res-10 cell ID
-    h3_r11              TEXT             NOT NULL,  -- H3 res-11 cell ID for precise singleton lookups
-    pcd                 TEXT,
-    areacode            TEXT,
-    wheelchair_access   BOOLEAN,
-    operational         BOOLEAN,        -- FALSE = temporarily closed; frontend may grey out pin
-    cost                TEXT,           -- '<10' | '10+' | '20+' | '40+' | '60+' | '100+'
+    rating                    REAL,
+    user_rating_count         INTEGER,
+    short_formatted_address   TEXT,
+    google_maps_uri           TEXT,
+    website_uri               TEXT,
+    types                     TEXT,
+    primary_type              TEXT,
 
-    -- latest pipeline metrics
-    wilson_1            REAL,
-    normal_1            REAL,
-    tier                SMALLINT,
-    tier_d              SMALLINT,
-    tier_independent    SMALLINT
-);
+    -- Chain & classification attributes
+    chain_name                TEXT,
+    is_major_chain            BOOLEAN,
+    is_chain                  BOOLEAN,
+    predicted_type            TEXT,
+    chain_count               INTEGER,
+    cuisine_type              TEXT             DEFAULT NULL,  -- NULL = unspecified
+    venue_type                TEXT             DEFAULT NULL,  -- NULL = unspecified
 
--- h3_r10 index: drives the nearby-search k-ring pre-filter
-CREATE INDEX idx_places_h3_r10     ON places(h3_r10);
-CREATE INDEX idx_places_h3_r11     ON places(h3_r11);
--- GIST index: drives ST_DWithin exact distance check
-CREATE INDEX idx_places_geom       ON places USING GIST(geom);
+    -- Spatial location
+    lat                       DOUBLE PRECISION NOT NULL,
+    lon                       DOUBLE PRECISION NOT NULL,
+    geom                      GEOMETRY(Point, 4326) GENERATED ALWAYS AS (
+                                  ST_SetSRID(ST_MakePoint(lon, lat), 4326)
+                              ) STORED,
 
--- Hot endpoint: bbox first, then stable rank ordering. The id tie-breaker prevents
--- page drift when two places have identical rankings.
-CREATE INDEX idx_places_lat_lon_normal_1 ON places(lat, lon, normal_1 DESC, id ASC);
+    -- Administrative & boundary geography
+    pcd                       TEXT,
+    areacode                  TEXT,
+    wheelchair_access         BOOLEAN,
+    operational               BOOLEAN          DEFAULT TRUE,  -- FALSE = temporarily closed
+    cost                      TEXT             DEFAULT NULL,  -- NULL = unspecified ('<10', '10+', '20+', '40+', '60+', '100+')
 
--- NOTE ON DB COST / INDEX CHOICES
--- 1. This is the only bbox+rank index retained for the hot list endpoint.
--- 2. It matches the main query shape: filter by viewport lat/lon, then order by rank.
--- 3. The extra cuisine-based indexes were removed to keep write cost and cloud resource use low.
--- 4. score_tier is a display-only field; filtering should continue to use the real float
---    thresholds rather than extra derived sort columns unless queries show a clear gain.
+    -- Spatial H3 cell indices
+    h3_r9                     TEXT             NOT NULL,
+    h3_r10                    TEXT             NOT NULL,
+    local_tile                TEXT,
 
+    -- Local representation metrics
+    local_rep_ratio           REAL,
+    local_rep_count           INTEGER,
+    local_total               INTEGER,
+    rep_delta                 REAL,
 
--- ─── TABLE 2: h3_density ─────────────────────────────────────────────────────
--- Pre-aggregated counts per H3 tile, eliminating GROUP BY on every pan/zoom.
--- Three row types per tile (by dimension values):
---   1. Concrete values ('Chinese', '20+', 'Dine-In'): counts places with that exact value
---   2. '__null__' sentinel: counts places with unspecified/NULL value (for "Unspecified" filter)
---   3. '__all__' wildcard: counts ALL places (for no-filter mode, where user selects nothing)
--- This design avoids double-counting while supporting all query patterns.
---
--- QUERY INVARIANT:
---   For each dimension (cuisine/cost/venue), queries pick exactly one semantic set:
---   - no filter  => dimension = '__all__'        (wildcard row: all places)
---   - "Unspecified" filter => dimension = '__null__'  (sentinel row: unspecified only)
---   - concrete filter => dimension = concrete value   (specific places only)
---
--- score_tier uses CUMULATIVE thresholds (used as a pre-filter, not a display band):
---   0 = all  |  1 = above avg  |  2 = strong  |  3 = top 10%  |  4 = top 5%
---
--- score_basis:  0 = base  |  1 = diversity-aware  |  2 = independent
--- Resolutions: 7=city, 8=neighbourhood, 9=street, 10=finest (heatmap off at 10).
+    -- Ranking metrics (raw Wilson & normalized scores across model iterations 0, 1, 2)
+    wilson_0                  REAL,
+    normal_0                  REAL,
+    wilson_1                  REAL,
+    normal_1                  REAL,
+    wilson_2                  REAL,
+    normal_2                  REAL,
 
-CREATE TABLE h3_density (
-    tile            TEXT     NOT NULL,
-    resolution      SMALLINT NOT NULL,  -- 7 | 8 | 9 | 10
-    cuisine_type    TEXT     NOT NULL DEFAULT '__null__',  -- '__null__' = unspecified; otherwise 'Chinese', 'Japanese', etc.
-    cost            TEXT     NOT NULL DEFAULT '__null__',  -- '__null__' = unspecified; otherwise '<10', '20+', etc.
-    venue_type      TEXT     NOT NULL DEFAULT '__null__',  -- '__null__' = unspecified; otherwise 'Dine-In', 'Takeaway', etc.
-    score_basis     SMALLINT NOT NULL DEFAULT 0,           -- 0=base | 1=diversity-aware | 2=independent
-    score_tier      SMALLINT NOT NULL DEFAULT 0,           -- cumulative: 0=all, 1=above avg, 2=strong, 3=top 10%, 4=top 5%
-    count           INTEGER  NOT NULL,
-    agg_lat         DOUBLE PRECISION,
-    agg_lon         DOUBLE PRECISION,
-    PRIMARY KEY (tile, resolution, cuisine_type, cost, venue_type, score_basis, score_tier)
-);
+    -- Tier classifications across models (base, diversity-aware, independent)
+    tier_0                    SMALLINT,
+    tier_d0                   SMALLINT,
+    tier_1                    SMALLINT,
+    tier_d1                   SMALLINT,
+    tier_2                    SMALLINT,
+    tier_d2                   SMALLINT,
+    tier_i0                   SMALLINT,
+    tier_i1                   SMALLINT,
+    tier_i2                   SMALLINT,
 
--- Covers the tile endpoint query: WHERE resolution=? AND tile=ANY(?)
-CREATE INDEX idx_h3_density_lookup ON h3_density(resolution, tile);
+    PRIMARY KEY (city_slug, id)
+) PARTITION BY LIST (city_slug);
 
 
--- ─── TABLE 3: place_open_windows ─────────────────────────────────────────────
--- One row per open-close interval per place, sourced from regularOpeningHours.
--- Not all places have rows here; missing = no hours data available.
--- Day encoding matches Google Places API: 0=Sun, 1=Mon, …, 6=Sat.
--- cross-day periods (e.g. open Thu 23:00, close Fri 01:00) are stored by
--- keeping the original open_day/close_day from the source data.
+-- ─── CITY PARTITIONS: places ──────────────────────────────────────────────────
+CREATE TABLE places_london    PARTITION OF places FOR VALUES IN ('london');
+CREATE TABLE places_newcastle PARTITION OF places FOR VALUES IN ('newcastle');
 
-DROP TABLE IF EXISTS place_open_windows;
 
+-- ─── INDEXES: places ─────────────────────────────────────────────────────────
+
+-- 1. HOT VIEWPORT BBOX + SORT INDEXES
+-- Composite (city_slug, lat, lon, normal_* DESC, id ASC) optimizes hot viewport queries with partition pruning.
+-- Note: Dedicated indexes are maintained for normal_0, normal_1, normal_2.
+CREATE INDEX idx_places_city_lat_lon_normal_1 ON places (city_slug, lat, lon, normal_1 DESC, id ASC);
+CREATE INDEX idx_places_city_lat_lon_normal_0 ON places (city_slug, lat, lon, normal_0 DESC, id ASC);
+CREATE INDEX idx_places_city_lat_lon_normal_2 ON places (city_slug, lat, lon, normal_2 DESC, id ASC);
+
+-- 2. VIEWPORT AGGREGATION / HISTOGRAM COVERING INDEXES
+-- Accelerates GROUP BY cost and GROUP BY cuisine_type on hot viewport queries.
+CREATE INDEX idx_places_city_lat_lon_cost     ON places (city_slug, lat, lon, cost);
+CREATE INDEX idx_places_city_lat_lon_cuisine  ON places (city_slug, lat, lon, cuisine_type);
+
+-- 3. FILTER ATTRIBUTE INDEXES
+CREATE INDEX idx_places_city_cuisine_type     ON places (city_slug, cuisine_type) WHERE cuisine_type IS NOT NULL;
+CREATE INDEX idx_places_city_cost             ON places (city_slug, cost)         WHERE cost IS NOT NULL;
+CREATE INDEX idx_places_city_operational      ON places (city_slug, operational)  WHERE operational = FALSE;
+
+-- 4. SPATIAL & H3 LOOKUP INDEXES
+-- Drives PostGIS ST_DWithin distance checks (nearby API & radius histograms)
+CREATE INDEX idx_places_geom                  ON places USING GIST (geom);
+-- Drives H3 cell lookups (nearby API k-ring filtering)
+CREATE INDEX idx_places_city_h3_r10           ON places (city_slug, h3_r10);
+CREATE INDEX idx_places_city_h3_r9            ON places (city_slug, h3_r9);
+
+
+-- ─── TABLE 2: place_open_windows (Parent Partitioned Table) ───────────────────
+-- One row per open-close interval per place, sourced from opening hours.
+-- Day encoding: 0=Sun, 1=Mon, ..., 6=Sat.
+-- Minute encoding: 0..1439 (minute of day).
 CREATE TABLE place_open_windows (
-    place_id     TEXT     NOT NULL REFERENCES places(id) ON DELETE CASCADE,
-    open_day     SMALLINT NOT NULL CHECK (open_day  BETWEEN 0 AND 6),
-    open_minute  SMALLINT NOT NULL CHECK (open_minute  BETWEEN 0 AND 1439),
+    city_slug    TEXT     NOT NULL DEFAULT 'london',
+    place_id     TEXT     NOT NULL,
+    open_day     SMALLINT NOT NULL CHECK (open_day BETWEEN 0 AND 6),
+    open_minute  SMALLINT NOT NULL CHECK (open_minute BETWEEN 0 AND 1439),
     close_day    SMALLINT NOT NULL CHECK (close_day BETWEEN 0 AND 6),
     close_minute SMALLINT NOT NULL CHECK (close_minute BETWEEN 0 AND 1439),
-    PRIMARY KEY (place_id, open_day, open_minute, close_day, close_minute)
-);
+    PRIMARY KEY (city_slug, place_id, open_day, open_minute, close_day, close_minute),
+    FOREIGN KEY (city_slug, place_id) REFERENCES places (city_slug, id) ON DELETE CASCADE
+) PARTITION BY LIST (city_slug);
 
--- Fast lookup for all windows belonging to a place (used by future open-now join)
-CREATE INDEX idx_pow_place_id  ON place_open_windows(place_id);
--- Allows efficient open-now range scan across all places for a given day/minute
-CREATE INDEX idx_pow_open_slot ON place_open_windows(open_day, open_minute);
+
+-- ─── CITY PARTITIONS: place_open_windows ──────────────────────────────────────
+CREATE TABLE place_open_windows_london    PARTITION OF place_open_windows FOR VALUES IN ('london');
+CREATE TABLE place_open_windows_newcastle PARTITION OF place_open_windows FOR VALUES IN ('newcastle');
+
+
+-- ─── INDEXES: place_open_windows ─────────────────────────────────────────────
+-- Fast lookup for all windows of a place within a city
+CREATE INDEX idx_pow_place_id ON place_open_windows (city_slug, place_id);
+-- Fast schedule range scan across all places for future timetable / open-now queries
+CREATE INDEX idx_pow_schedule ON place_open_windows (city_slug, open_day, open_minute, close_day, close_minute);

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useCityContext } from '../../../context/CityContext';
 import buildQueryKey from './buildQueryKey';
 import { type TopPlacesResponse, request } from './request';
 
 type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
 export interface TopPlacesParams {
+  city?: string;
   sw_lat?: number;
   sw_lng?: number;
   ne_lat?: number;
@@ -32,12 +34,15 @@ const useRequestTopPlaces = (
   responseKey: string; // A bookkeeping singnal to indicate the queryKey that produced the current response. 
   // This is useful for detecting when a new request has been made and the previous response is no longer valid.
 } => {
+
   const debounceMs = Math.max(0, options.debounceMs ?? 150);
+
+  const { citySlug: city } = useCityContext();
 
   const [responseKey, setResponseKey] = useState('');
   const [debouncedQueryKey, setDebouncedQueryKey] = useState('');
 
-  const queryKey = useMemo(() => (params ? buildQueryKey(params) : ''), [params]);
+  const queryKey = useMemo(() => (params ? buildQueryKey({ ...params, city }) : ''), [params, city]);
 
   useEffect(() => {
     if (!queryKey) {

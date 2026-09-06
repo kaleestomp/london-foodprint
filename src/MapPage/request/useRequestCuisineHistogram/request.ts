@@ -9,6 +9,7 @@ export interface CuisineHistogramEntry {
 
 export interface CuisineHistogramParams {
   scope: CuisineHistogramScope;
+  city?: string;
   lat?: number;
   lng?: number;
   radius_m?: number;
@@ -28,6 +29,7 @@ export interface CuisineHistogramResponse {
 
 export const buildQueryKey = (params: CuisineHistogramParams): string => {
   const qs = new URLSearchParams();
+  qs.set('city', params.city ?? 'london');
   qs.set('scope', params.scope);
   qs.set('venue_type', params.venue_type ?? '');
   qs.set('score_basis', String(params.score_basis ?? 0));

@@ -37,21 +37,21 @@ def _parse_windows(raw: str) -> list[tuple[int, int, int, int]]:
     return windows
 
 
-def insert_open_windows(cur, timetable_csv: Path | None = None) -> None:
+def insert_open_windows(cur, timetable_csv: Path | None = None, city_slug: str = "london") -> None:
     """
     Load place_open_windows from df_level2_timetable.csv.
 
     Strategy:
-      - Delete all existing rows for places that appear in the CSV, then bulk
-        insert the freshly parsed windows.  This makes reruns idempotent.
+      - Delete all existing rows for places that appear in the CSV for the city, then bulk
+        insert the freshly parsed windows. This makes reruns idempotent.
       - Places with no parseable windows get no rows (fine — missing = unknown).
       - place_id values not present in places are silently skipped to respect FK.
     """
     csv_path = timetable_csv or TIMETABLE_CSV
     df = pd.read_csv(csv_path)
 
-    # Build flat records: (place_id, open_day, open_minute, close_day, close_minute)
-    records: list[tuple[str, int, int, int, int]] = []
+    # Build flat records: (city_slug, place_id, open_day, open_minute, close_day, close_minute)
+    records: list[tuple[str, str, int, int, int, int]] = []
     skipped_parse = 0
     for row in df.itertuples(index=False):
         place_id = str(row.id)
@@ -63,7 +63,7 @@ def insert_open_windows(cur, timetable_csv: Path | None = None) -> None:
             skipped_parse += 1
             continue
         for open_day, open_minute, close_day, close_minute in windows:
-            records.append((place_id, open_day, open_minute, close_day, close_minute))
+            records.append((city_slug, place_id, open_day, open_minute, close_day, close_minute))
 
     if skipped_parse:
         print(f"  [open_windows] {skipped_parse} rows skipped (unparseable hours)")
@@ -73,12 +73,12 @@ def insert_open_windows(cur, timetable_csv: Path | None = None) -> None:
         return
 
     # Collect unique place_ids from this CSV to scope the delete
-    place_ids_in_csv = list({r[0] for r in records})
+    place_ids_in_csv = list({r[1] for r in records})
 
-    # Remove stale rows only for places being reloaded
+    # Remove stale rows only for places being reloaded in this city
     cur.execute(
-        "DELETE FROM place_open_windows WHERE place_id = ANY(%s)",
-        (place_ids_in_csv,),
+        "DELETE FROM place_open_windows WHERE city_slug = %s AND place_id = ANY(%s)",
+        (city_slug, place_ids_in_csv),
     )
 
     # Bulk insert; ON CONFLICT DO NOTHING guards against duplicate rows if
@@ -87,7 +87,7 @@ def insert_open_windows(cur, timetable_csv: Path | None = None) -> None:
         cur,
         """
         INSERT INTO place_open_windows
-            (place_id, open_day, open_minute, close_day, close_minute)
+            (city_slug, place_id, open_day, open_minute, close_day, close_minute)
         VALUES %s
         ON CONFLICT DO NOTHING
         """,
@@ -95,4 +95,4 @@ def insert_open_windows(cur, timetable_csv: Path | None = None) -> None:
         page_size=1000,
     )
     print(f"  [open_windows] {len(records):,} window rows inserted "
-          f"({len(place_ids_in_csv):,} places)")
+          f"({len(place_ids_in_csv):,} places in city '{city_slug}')")

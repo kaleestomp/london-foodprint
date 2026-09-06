@@ -1,7 +1,10 @@
 import os
 import httpx
 from server.scripts.load_key.load_key import load_key
-
+# INCLUDED_TYPES = ["restaurant"]
+# EXCLUDED_PRIMARY_TYPES = ["grocery_store"]
+INCLUDED_TYPES = ["restaurant"]
+EXCLUDED_PRIMARY_TYPES = ["restaurant", "grocery_store"]
 FIELD_MASK = ",".join([
     "places.id",
     "places.displayName",
@@ -54,8 +57,9 @@ async def nearby_search(
         resp = await client.post(
             "https://places.googleapis.com/v1/places:searchNearby", 
             json = {
-                "includedPrimaryTypes": ["restaurant"],
-                # "excludedPrimaryTypes": ["meal_takeaway"], # 286, 255, 204, 174
+                # "includedPrimaryTypes": ["restaurant"],
+                "includedTypes": INCLUDED_TYPES,
+                "excludedPrimaryTypes": EXCLUDED_PRIMARY_TYPES, # 286, 255, 204, 174
                 "rankPreference": "POPULARITY",
                 "maxResultCount": 20,
                 "locationRestriction": {

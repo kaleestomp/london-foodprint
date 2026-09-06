@@ -13,6 +13,7 @@ router = APIRouter()
 @router.get("/api/nearby")
 async def get_nearby(
     request: Request,
+    city: str = Query(default="london"),
     lat: float = Query(...),
     lng: float = Query(...),
     radius_m: float = Query(default=1000, gt=0, le=10000),
@@ -28,6 +29,7 @@ async def get_nearby(
     cost_values = normalize_dimension_list(cost)
     venue_value = normalize_dimension(venue_type)
     tier_column = get_score_basis_column(score_basis)
+    city_slug = city.lower().strip()
     center_r10 = h3.latlng_to_cell(lat, lng, 10)
     k = math.ceil(radius_m / 114.2) + 1
     ring_cells = [str(cell) for cell in h3.grid_disk(center_r10, k)]
@@ -36,6 +38,7 @@ async def get_nearby(
     async with request.app.state.pool.acquire() as conn:
         rows = await conn.fetch(
             SQL_NEARBY.format(rank_column=tier_column, page_size=PAGE_SIZE_ON_REQUEST),
+            city_slug,
             ring_cells,
             lng,
             lat,

@@ -23,6 +23,7 @@ _cache_lock = asyncio.Lock()
 @router.get("/api/cost_histogram")
 async def get_cost_histogram(
     request: Request,
+    city: str = Query(default="london"),
     scope: str = Query(default="citywide"),
     lat: float | None = Query(default=None),
     lng: float | None = Query(default=None),
@@ -50,6 +51,7 @@ async def get_cost_histogram(
     cuisine_values = normalize_dimension_list(cuisine)
     venue_value = normalize_dimension(venue_type)
     tier_column = get_score_basis_column(score_basis)
+    city_slug = city.lower().strip()
 
     # TRY CITYWIDE CACHE FIRST
     # Citywide cache key is viewport-independent — stays valid across pans.
@@ -59,6 +61,7 @@ async def get_cost_histogram(
             endpoint="citywide",
             scope="citywide",
             parts=[
+                city_slug,
                 ",".join(sorted(cuisine_values)),
                 venue_value,
                 str(score_basis),
@@ -79,12 +82,12 @@ async def get_cost_histogram(
         if scope == "citywide":
             rows = await conn.fetch(
                 SQL_CITYWIDE_PRICE.format(rank_column=tier_column),
-                cuisine_values, venue_value, score_tier,
+                city_slug, cuisine_values, venue_value, score_tier,
             )
         elif scope == "nearby":
             rows = await conn.fetch(
                 SQL_NEARBY_PRICE.format(rank_column=tier_column),
-                lng, lat, radius_m,
+                city_slug, lng, lat, radius_m,
                 cuisine_values,
                 venue_value,
                 score_tier,
@@ -92,7 +95,7 @@ async def get_cost_histogram(
         else:
             rows = await conn.fetch(
                 SQL_VIEW_PRICE.format(rank_column=tier_column),
-                sw_lat, ne_lat, sw_lng, ne_lng,
+                city_slug, sw_lat, ne_lat, sw_lng, ne_lng,
                 cuisine_values, venue_value, score_tier,
             )
 

@@ -3,6 +3,7 @@ import type { TopPlacesParams } from './useRequestTopPlaces';
 const buildQueryKey = (params: TopPlacesParams): string => {
   const qs = new URLSearchParams();
 
+  qs.set('city', params.city ?? 'london');
   if (params.sw_lat != null) qs.set('sw_lat', String(params.sw_lat));
   if (params.sw_lng != null) qs.set('sw_lng', String(params.sw_lng));
   if (params.ne_lat != null) qs.set('ne_lat', String(params.ne_lat));

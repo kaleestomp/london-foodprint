@@ -68,7 +68,19 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
       mapRef.current = null;
       map.remove();
     };
-  }, [cityParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Recenter + re-bound the existing map when the city changes (city switch).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !cityParams) return;
+    map.setMaxBounds(null as unknown as maplibregl.LngLatBoundsLike);
+    map.jumpTo({ center: cityParams.center, zoom: cityParams.initZoom });
+    map.setMaxBounds(cityParams.maxBounds);
+    map.setMinZoom(cityParams.minZoom);
+    map.setMaxZoom(cityParams.maxZoom);
+  }, [cityParams, mapRef]);
 
   useToggleMapMode(mapRef);
   useAdjustMinZoom(mapRef);
