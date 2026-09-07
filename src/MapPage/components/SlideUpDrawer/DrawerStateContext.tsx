@@ -30,11 +30,15 @@ export const DrawerStateProvider = ({ children }: { children: ReactNode }) => {
     const [isClosed, setIsClosed] = useState<boolean>(true);
     const [snapPX, setSnapPX] = useState<number | null>(null); 
 
-    const { selectedPlaceId } = usePlaceSelection();
+    const { selectedPlaceId, selectionSource, reportSelectedPlaceId } = usePlaceSelection();
     useEffect(() => {
         if (selectedPlaceId) //&& selectionSource === 'map'
             updateSnap(SNAP_HEIGHTS[1]);
     }, [selectedPlaceId]);
+    useEffect(() => {
+        if(isClosed && selectedPlaceId && selectionSource === 'list')
+            reportSelectedPlaceId(null, null);
+    }, [isClosed]);
 
     // const [drawerHeight, setDrawerHeight] = useState(0);
     // const reportDrawerHeight = (height: number) => setDrawerHeight(height);

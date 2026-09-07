@@ -29,6 +29,13 @@ const useBottomPadding = (
     if (!isMobile || !snapPX)
       return 0;
 
+    // Once the open drawer has caused padding to be applied, keep that
+    // padding stable while the user changes the selected map marker. The
+    // closed-drawer pass below resets paddingRef, allowing recalculation on
+    // the next drawer opening.
+    if (isPanelUp && paddingRef.current > 0)
+      return paddingRef.current;
+
     // Preserve the current padding while the avatar marker is being removed.
     const avatarOnMap = Boolean(searchMask);
     const isAvatarExiting = !avatarOnMap && avatarOnMapRef.current;

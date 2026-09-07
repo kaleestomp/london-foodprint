@@ -29,10 +29,7 @@ const GeoSearchbar: React.FC = () => {
   }, [clearSearch]);
 
   return (
-    <div
-      className="drawer-geo-search"
-      data-vaul-no-drag
-    >
+    <div className="drawer-geo-search" data-vaul-no-drag>
       <div className="drawer-geo-search-shell">
         <span className="drawer-geo-search-lead" aria-hidden="true">
           <SearchOutlinedIcon fontSize="medium" />

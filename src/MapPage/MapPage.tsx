@@ -43,13 +43,13 @@ const MapPage: FC = () => {
               <GeoSearchProvider>
               <Map mapRef={mapRef} />
               <DrawerStateProvider>
-              <MapToolbar mapRef={mapRef} />
-              <PullUpPanelMapViewportSync mapRef={mapRef} />
-              <VaulDrawer mapRef={mapRef} />
-              {/* <BaseToolbar /> */}
-              {/* <BubbleAvatarStateProvider>
-                <BubbleAvatar mapRef={mapRef} />
-              </BubbleAvatarStateProvider> */}
+                <MapToolbar mapRef={mapRef} />
+                <PullUpPanelMapViewportSync mapRef={mapRef} />
+                <VaulDrawer mapRef={mapRef} />
+                {/* <BaseToolbar /> */}
+                {/* <BubbleAvatarStateProvider>
+                  <BubbleAvatar mapRef={mapRef} />
+                </BubbleAvatarStateProvider> */}
               </DrawerStateProvider>
               </GeoSearchProvider>
             </TopPlacesProvider>
