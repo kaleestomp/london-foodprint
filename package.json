@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "postinstall": "patch-package",
     "server:dev": "server/.venv/Scripts/python -m server.server",
-    "predeploy": "npm run build",
+    "predeploy": "patch-package --reverse vaul && npm run build && patch-package vaul",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
