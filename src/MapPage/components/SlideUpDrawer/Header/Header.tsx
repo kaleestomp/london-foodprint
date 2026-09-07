@@ -13,13 +13,12 @@ const HeaderMobile: FC = () => {
     <div className="drawer-header">
       <div className={`drawer-title-row${isExpanded ? ' search-expanded' : ''}`}>
         <div className="drawer-title-block" aria-hidden={isExpanded}>
-          <GeoSearchbar />
           <div className="drawer-title">{headline}</div>
           {/* <div className="drawer-subtitle">
             Ranked Top 25% of Metroplitan Area
           </div> */}
         </div>
-        
+        <GeoSearchbar />
       </div>
     </div>
   );
