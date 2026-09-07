@@ -10,7 +10,7 @@
   overscroll-behavior: contain; 
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  margin-top: 0; /*30px;*/
+  margin-top: 30px; 
   transition: margin-top 200ms ease;
 }
 .drawer-content.open {

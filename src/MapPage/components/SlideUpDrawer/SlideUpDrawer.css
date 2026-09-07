@@ -1,19 +1,22 @@
 .vaul-container {
   position: fixed;
-  inset: 0 12px 16px;
+  inset: 0 16px 16px;
   overflow: hidden;
   pointer-events: none;
-  border-radius: 20px;
+  border-radius: var(--closed-radius);
   transition: all 800ms cubic-bezier(0.32, 0.72, 0, 1);
   z-index: 50;
+
+  --closed-radius: 34px;
+  --open-radius: var(--app-card-border-radius);
 }
 .vaul-container.is-open {
-  inset: 0 4px 8px;
-  border-radius: var(--app-card-border-radius);
+  inset: 0 8px 8px;
+  border-radius: var(--open-radius);
 }
 .vaul-container.is-full-height {
   inset: 0;
-  border-radius: var(--app-card-border-radius);
+  border-radius: var(--open-radius);
 }
 
 .vaul-content {
@@ -21,8 +24,8 @@
   right: 0;
   bottom: 0;
   left: 0;
-  margin-right: -1px;
-  margin-left: -1px;
+  /* margin-right: -1px;
+  margin-left: -1px; */
   display: flex;
   height: 100%;
   /* max-height: 97%; */
@@ -41,11 +44,13 @@
   flex: 1;
   flex-direction: column;
   overflow: hidden;
-
   background: var(--app-paper-color);
-  border-radius: 20px;
-  margin: 0 4px 0;
-  box-shadow: var(--app-card-box-shadow);
+  border-radius: var(--closed-radius);
+  box-shadow: 
+    0 2px 2px rgba(0, 0, 0, 0.25),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8);
+  /* container inset clips shadow - unresolved issue */
+  /* box-shadow: var(--app-card-box-shadow); */
 
   /* background: var(--app-glass-bg);
   backdrop-filter: var(--app-backdrop-filter);
@@ -56,10 +61,11 @@
   transition: background 500ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 .vaul-drawer-body.is-open {
-  border-radius: var(--app-card-border-radius);
+  border-radius: var(--open-radius);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.25),
 }
 .vaul-drawer-body.is-full-height {
-  margin: 0;
+  border-radius: var(--open-radius);
   background: #e0e0e0;
 }
 /* .vaul-drawer-body::before {
@@ -68,7 +74,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 1px;
+  height: 2px;
   background: linear-gradient(
     90deg,
     transparent,

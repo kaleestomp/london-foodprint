@@ -14,21 +14,21 @@
   --bubble-avatar-pin-scale: 0.625; /* .625 */
 
   --bubble-avatar-shadow:
-    /* 0 2px 32px rgba(0, 0, 0, 0.5),
-    0 2px 8px  rgba(18, 14, 14, 0.25); */
-    0 15px 25px -4px rgba(0, 0, 0, 0.5), 
-    inset 0 -3px 4px -1px rgba(0, 0, 0, 0.2), 
-    /* -2px -2px 45px 0px rgba(255, 255, 255, 0.6),  */
+    0 10px 15px -2px rgba(0, 0, 0, 0.3), 
+    inset 0 -2px 2px -1px rgba(0, 0, 0, 0.2), 
     inset 0 3px 4px -1px rgba(255, 255, 255, 0.2), 
     inset 0 0 5px 1px rgba(255, 255, 255, 0.8), 
     inset 0 20px 30px 0 rgba(255, 255, 255, 0.2);
+    /* 0 15px 25px -4px rgba(0, 0, 0, 0.5), 
+    inset 0 -3px 4px -1px rgba(0, 0, 0, 0.2), 
+    inset 0 3px 4px -1px rgba(255, 255, 255, 0.2), 
+    inset 0 0 5px 1px rgba(255, 255, 255, 0.8), 
+    inset 0 20px 30px 0 rgba(255, 255, 255, 0.2); */
   --bubble-avatar-edege-shadow:
     0 5px 24px rgba(0, 0, 0, 0.32),
     0 2px 8px  rgba(0, 0, 0, 0.16);
     
   --bubble-avatar-pin-shadow:
-    /* 0 2px 16px rgba(0, 0, 0, 0.28),
-    0 2px 8px  rgba(0, 0, 0, 0.16); */
     0 15px 25px -4px rgba(0, 0, 0, 0.5), 
     inset 0 -3px 4px -1px rgba(0, 0, 0, 0.2), 
     inset 0 3px 4px -1px rgba(255, 255, 255, 0.2), 
