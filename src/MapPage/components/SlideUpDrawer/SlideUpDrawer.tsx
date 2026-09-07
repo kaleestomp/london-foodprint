@@ -1,4 +1,4 @@
-import { type FC, useState } from 'react';
+import { type FC } from 'react';
 import { Drawer } from 'vaul';
 import type maplibregl from 'maplibre-gl';
 
@@ -17,11 +17,6 @@ const SlideUpDrawer: FC<{
 }> = ({ mapRef }) => {
 
   const { snap, updateSnap, isAtFullHeight, isClosed } = useDrawerState();
-  const [drawerContainer, setDrawerContainer] = useState<HTMLDivElement | null>(null);
-  // const [snap, setSnap] = useState<number | string | null>(SNAP_HEIGHTS[0]);
-  // useEffect(() => {
-  //   reportSnap(snap); // used to track avatar home position
-  // }, [snap]);
 
   return (
     <Drawer.Root
@@ -29,27 +24,22 @@ const SlideUpDrawer: FC<{
       snapPoints={SNAP_HEIGHTS} activeSnapPoint={snap}
       setActiveSnapPoint={updateSnap} snapToSequentialPoint={false}
       fadeFromIndex={2} handleOnly={true} repositionInputs={false}
-      container={drawerContainer}
-      //onDragPositionChange={(visibleHeight) => void}
     >
-      <div ref={setDrawerContainer} className={`vaul-container${ isAtFullHeight ? ' is-full-height' : isClosed ? '' : ' is-open'}`}>
 
-        {drawerContainer && <Drawer.Portal container={drawerContainer}>
-          {/* <Drawer.Overlay className="vaul-overlay" /> */}
-          <div className={`vaul-overlay${isAtFullHeight ? ' is-visible' : ''}`} />
-          <Drawer.Content data-testid="content" className="vaul-content">
-            <AboveDrawer mapRef={mapRef} />
-            <div className={`vaul-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}>
-              <Drawer.Handle className="vaul-handle" />
-              <div className="vaul-handle-visual" aria-hidden="true" />
-              <Header />
-              {/* <SampleContent snap={snap} /> */}
-              <Content panelUp={!isClosed} mapRef={mapRef}/>
-            </div>
-          </Drawer.Content>
-        </Drawer.Portal>}
+      <Drawer.Portal>
+        <div className={`vaul-overlay${isAtFullHeight ? ' is-visible' : ''}`} />
+        <Drawer.Content data-testid="content" className="vaul-content">
+          <AboveDrawer mapRef={mapRef} />
+          <div className={`vaul-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}>
+            <Drawer.Handle className="vaul-handle" />
+            <div className="vaul-handle-visual" aria-hidden="true" />
+            <Header />
+            {/* <SampleContent snap={snap} /> */}
+            <Content panelUp={!isClosed} mapRef={mapRef} />
+          </div>
+        </Drawer.Content>
+      </Drawer.Portal>
 
-      </div>
     </Drawer.Root>
   );
 };
