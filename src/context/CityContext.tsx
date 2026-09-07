@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import type geojson from 'geojson';
 import londonJson from '../assets/cityParams/london.json';
 
@@ -45,10 +46,21 @@ const CityContext = createContext<CityContextType | null>(null);
 // Registry of available city boundary JSON via Vite import.meta.glob
 const cityLoaders = import.meta.glob<{ default: geojson.FeatureCollection }>('../assets/cityParams/*.json');
 
+const cityPathSlugs: Record<string, cityOptions> = {
+  '/london-foodprint': 'london',
+  '/newcastle-foodprint': 'newcastle',
+};
+
+const citySlugFromPath = (pathname: string): cityOptions => {
+  const normalizedPath = pathname.replace(/\/$/, '').toLowerCase() || '/';
+  return cityPathSlugs[normalizedPath] ?? 'london';
+};
+
 // Default city feature collection for London
 const londonFc = londonJson as geojson.FeatureCollection;
 
 export const CityProvider = ({ children }: { children: ReactNode }) => {
+  const { pathname } = useLocation();
   const [citySlug, setCitySlug] = useState<cityOptions>('london');
   const [cityParams, setCityParams] = useState<CityParams>(() => toCityParams(londonFc, 'london'));
   const [cityBoundary, setCityBoundary] = useState<geojson.FeatureCollection | null>(londonFc);
@@ -71,6 +83,13 @@ export const CityProvider = ({ children }: { children: ReactNode }) => {
     });
 
   }, []);
+
+  useEffect(() => {
+    const requestedCity = citySlugFromPath(pathname);
+    if (requestedCity !== citySlug) {
+      reportCity(requestedCity);
+    }
+  }, [citySlug, pathname, reportCity]);
 
   const value = useMemo<CityContextType>(() => ({
     citySlug, cityParams, cityBoundary, reportCity

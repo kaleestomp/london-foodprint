@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import CompassIcon from './CompassIcon/CompassIcon';
-import { normalizeBearing, directionLabelFromBearing } from './normalizeBearing';
+import { normalizeBearing } from './normalizeBearing';
 
 const NorthResetButton: React.FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
@@ -40,7 +40,7 @@ const NorthResetButton: React.FC<{
         });
       }}
     >
-      <CompassIcon bearingDeg={bearingDeg} directionLabel={directionLabelFromBearing(bearingDeg)} />
+      <CompassIcon bearingDeg={bearingDeg} directionLabel={'N'} />
     </button>
   );
 };

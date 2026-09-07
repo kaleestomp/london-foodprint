@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
   optimizeDeps: {
     // Vite 8 (rolldown) has issues pre-bundling CJS packages.
@@ -41,5 +41,5 @@ export default defineConfig({
       },
     },
   },
-  base: '/london-foodprint/',
-})
+  base: command === 'serve' ? '/' : '/london-foodprint/',
+}))

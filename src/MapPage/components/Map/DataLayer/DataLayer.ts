@@ -4,6 +4,8 @@ import useTopPlacesLayer from './TopPlacesLayer/useTopPlacesLayer';
 import useHeatmapLayer from './HeatmapLayer/useHeatmapLayer';
 import useClusterLayer from './ClusterLayer/useClusterLayer';
 import DebugViewportLayer from './DebugViewportLayer/useDebugViewportLayer';
+import useBoundaryLayer from './BoundaryLayer/useBoundaryLayer';
+import useStreetLayer from './StreetLayer/useStreetLayer';
 
 
 const DataLayer = (
@@ -14,6 +16,8 @@ const DataLayer = (
   useTopPlacesLayer( mapRef, enabled );
   useClusterLayer(mapRef);
   useHeatmapLayer(mapRef);
+  useBoundaryLayer(mapRef);
+  useStreetLayer(mapRef);
   DebugViewportLayer(mapRef, false);
   
 };

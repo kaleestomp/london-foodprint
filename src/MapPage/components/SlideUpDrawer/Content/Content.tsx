@@ -4,6 +4,8 @@ import type maplibregl from 'maplibre-gl';
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import RestaurantList from '../../RestaurantList/RestaurantList';
 import OverviewSection from '../../FilterTabs/FilterSection';
+import SuggestionList from '../../GeoSearch/SuggestionList';
+import { useGeoSearch } from '../../GeoSearch/GeoSearchContext';
 
 import './Content.css';
 
@@ -13,12 +15,19 @@ const Content: FC<{
 }> = ({ panelUp, mapRef }) => {
 
     const isMobile = useIsMobileCtx();
+    const { suggestionsVisible } = useGeoSearch();
     const pageSize = isMobile && !panelUp ? 10 : 20;
     
     return (
-        <div className={`drawer-content${panelUp ? ' open' : ''}`}>
-            <OverviewSection />
-            <RestaurantList mapRef={mapRef} pageSize={pageSize} autoUpdate={!panelUp} />
+        <div className={`drawer-content${panelUp ? ' open' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
+            {suggestionsVisible ? (
+                <SuggestionList />
+            ) : (
+                <>
+                    <OverviewSection />
+                    <RestaurantList mapRef={mapRef} pageSize={pageSize} autoUpdate={!panelUp} />
+                </>
+            )}
         </div>
     );
 };

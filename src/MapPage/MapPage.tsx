@@ -6,6 +6,7 @@ import { ViewportQueryProvider } from '../context/ViewportQueryContext.tsx';
 import { PlaceSelectionProvider } from '../context/PlaceSelectionContext';
 import { TopPlacesProvider } from '../context/TopPlacesContext';
 import { DrawerStateProvider } from './components/SlideUpDrawer/DrawerStateContext';
+import { GeoSearchProvider } from './components/GeoSearch/GeoSearchContext';
 
 import Map from './components/Map/Map';
 import Loading from '../components/Loading/Loading';
@@ -39,6 +40,7 @@ const MapPage: FC = () => {
         <ViewportQueryProvider>
           <PlaceSelectionProvider>
             <TopPlacesProvider>
+              <GeoSearchProvider>
               <Map mapRef={mapRef} />
               <DrawerStateProvider>
               <MapToolbar mapRef={mapRef} />
@@ -49,6 +51,7 @@ const MapPage: FC = () => {
                 <BubbleAvatar mapRef={mapRef} />
               </BubbleAvatarStateProvider> */}
               </DrawerStateProvider>
+              </GeoSearchProvider>
             </TopPlacesProvider>
           </PlaceSelectionProvider>
         </ViewportQueryProvider>

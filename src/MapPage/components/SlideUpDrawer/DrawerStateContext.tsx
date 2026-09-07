@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 
+// import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
 import { SNAP_HEIGHTS } from './SlideUpDrawer';
 import snapToPX from './util/snapToPX';
 
@@ -17,6 +18,7 @@ const DrawerStateContext = createContext<DrawerState | null>(null);
 
 export const DrawerStateProvider = ({ children }: { children: ReactNode }) => {
 
+    // const { selectedPlaceId, selectionSource } = usePlaceSelection();
     const [snap, setSnap] = useState<number | string | null>(SNAP_HEIGHTS[0]);
     const updateSnap = (newSnap: number | string | null) => {
         setSnap(newSnap);
@@ -28,10 +30,17 @@ export const DrawerStateProvider = ({ children }: { children: ReactNode }) => {
     const [isAtFullHeight, setIsAtFullHeight] = useState<boolean>(false);
     const [isClosed, setIsClosed] = useState<boolean>(true);
     const [snapPX, setSnapPX] = useState<number | null>(null); 
+
+    // useEffect(() => {
+    //     if (selectedPlaceId && selectionSource === 'map') {
+    //         updateSnap(SNAP_HEIGHTS[1]);
+    //     }
+    // }, [selectedPlaceId, selectionSource]);
+
     // const [drawerHeight, setDrawerHeight] = useState(0);
     // const reportDrawerHeight = (height: number) => setDrawerHeight(height);
     const exposed = useMemo<DrawerState>(() => ({
-        snap, updateSnap, openDrawer,
+        snap, updateSnap, openDrawer, 
         snapPX, isAtFullHeight, isClosed
     }), [isAtFullHeight, isClosed, snapPX, snap]);
 

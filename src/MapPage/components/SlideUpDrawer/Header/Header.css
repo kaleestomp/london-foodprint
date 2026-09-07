@@ -8,16 +8,15 @@
 
 .drawer-title-row {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  height: 100%;
-  /* padding-inline: var(--app-layout-gap); */
-  padding: var(--app-layout-gap) var(--app-layout-gap) 0px;  
+  gap: 8px;
+  width: 100%;
+  padding: var(--app-layout-gap) var(--app-layout-gap) 8px;
 }
 
 .drawer-title-block {
-  min-width: 0;
-  flex: 1 1 auto;
+  width: 100%;
 }
 
 .drawer-title {
