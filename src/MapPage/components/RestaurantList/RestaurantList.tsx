@@ -1,8 +1,10 @@
 import { useEffect, useState, type FC } from 'react';
 import type maplibregl from 'maplibre-gl';
 
-import useFetchInfinitePlacesList from './InputHook/useFetchInfinitePlacesList';
 import { useCityContext } from '../../../context/CityContext';
+import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
+import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
+import useFetchInfinitePlacesList from './InputHook/useFetchInfinitePlacesList';
 import ListLoading from './AltState/ListLoading';
 import NoResults from './AltState/NoResult';
 import RefreshButton from './RefreshButton/RefreshButton';
@@ -20,15 +22,21 @@ const RestaurantList: FC<{
   
   // REFRESH STATE
   const [shouldAutoRefresh, setShouldAutoRefresh] = useState(true);
-  const { citySlug } = useCityContext();
+  
+  // DO NOT RESET OVERRIDE 
+  // When the drawer is closed and a place is selected
+  const { isClosed } = useDrawerState();
+  // const { selectedPlaceId } = usePlaceSelection();
+  // const doNotReset = isClosed && selectedPlaceId !== null;
 
   // NETWORK CALL
-  const resetSignal = autoUpdate ? autoUpdate : shouldAutoRefresh;
+  const resetSignal = (autoUpdate) ? autoUpdate : shouldAutoRefresh;
   const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale, filterKey
   } = useFetchInfinitePlacesList(resetSignal, pageSize);
   const items = res?.data ?? [];
 
   // FILTER OR CITY CHANGE → AUTO-REFRESH (bypass refresh button)
+  const { citySlug } = useCityContext();
   useEffect(() => {
     setShouldAutoRefresh(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -46,7 +54,7 @@ const RestaurantList: FC<{
   // button may disappear mid pan due to matching geo params to last fetch
   // this triggers 'isReady' to true; meaning list is no longer stale
   const refreshAvaliable = isListStale && !shouldAutoRefresh;
-  const showRefreshButton = refreshAvaliable || isRefreshPending;
+  const showRefreshButton = !isClosed && (refreshAvaliable || isRefreshPending);
   
   return (
     <div ref={scrollRef} className="list-scroll-content" onScroll={onScroll}>

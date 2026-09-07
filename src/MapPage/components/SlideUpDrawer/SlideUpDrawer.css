@@ -1,5 +1,23 @@
-.vaul-content {
+.vaul-container {
   position: fixed;
+  inset: 0 20px 20px;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 20px;
+  transition: all 800ms cubic-bezier(0.32, 0.72, 0, 1);
+  z-index: 50;
+}
+.vaul-container.is-open {
+  inset: 0 8px 8px;
+  border-radius: var(--app-card-border-radius);
+}
+.vaul-container.is-full-height {
+  inset: 0;
+  border-radius: var(--app-card-border-radius);
+}
+
+.vaul-content {
+  position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
@@ -12,7 +30,8 @@
   border-bottom: none;
   outline: none;
   touch-action: pan-y;
-
+  pointer-events: auto;
+  
   --drawer-header-height: 100px; /* 64 94 */
 }
 
@@ -23,35 +42,38 @@
   flex-direction: column;
   overflow: hidden;
 
-  background: var(--app-paper-color);
+  /* background: var(--app-paper-color);
   border-radius: var(--app-card-border-radius) var(--app-card-border-radius) 0 0;
-  box-shadow: var(--app-card-box-shadow);
+  box-shadow: var(--app-card-box-shadow); */
 
-  /* background: var(--app-glass-bg);
+  background: var(--app-glass-bg);
   backdrop-filter: var(--app-backdrop-filter);
   -webkit-backdrop-filter: var(--app-backdrop-filter);
-  border-radius: var(--app-card-border-radius) var(--app-card-border-radius) 0 0;
+  border-radius: 20px;
   border: var(--app-glass-border);
-  box-shadow: var(--app-glass-shadow); */
-  /* transition: background 500ms cubic-bezier(0.32, 0.72, 0, 1);
+  /* box-shadow: var(--app-glass-shadow); */
+  transition: background 500ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.vaul-drawer-body.is-open {
+  border-radius: var(--app-card-border-radius);
 }
 .vaul-drawer-body.is-full-height {
-  background: #e0e0e0; */
+  background: #e0e0e0;
 }
-/* .vaul-drawer-body::before {
+.vaul-drawer-body::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 1px;
   background: linear-gradient(
     90deg,
     transparent,
     rgba(255, 255, 255, 0.8),
     transparent
   );
-} */
+}
 
 .vaul-handle {
   position: relative;
