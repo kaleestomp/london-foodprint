@@ -10,7 +10,7 @@ import { useDrawerState } from './DrawerStateContext';
 
 import './SlideUpDrawer.css';
 
-export const SNAP_HEIGHTS = ['200px', 0.4, `${window.innerHeight - 28}px`];//94px 320px 104px
+export const SNAP_HEIGHTS = ['94px', 0.4, `${window.innerHeight - 28}px`];//200px 94px 320px 104px
 
 const SlideUpDrawer: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
@@ -28,7 +28,7 @@ const SlideUpDrawer: FC<{
       defaultOpen={true} dismissible={false} modal={false}
       snapPoints={SNAP_HEIGHTS} activeSnapPoint={snap}
       setActiveSnapPoint={updateSnap} snapToSequentialPoint={false}
-      fadeFromIndex={2} handleOnly={false} repositionInputs={false}
+      fadeFromIndex={2} handleOnly={true} repositionInputs={true}
       container={drawerContainer}
       //onDragPositionChange={(visibleHeight) => void}
     >
