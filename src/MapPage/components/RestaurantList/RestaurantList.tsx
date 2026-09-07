@@ -3,7 +3,7 @@ import type maplibregl from 'maplibre-gl';
 
 import { useCityContext } from '../../../context/CityContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
-import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
+// import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
 import useFetchInfinitePlacesList from './InputHook/useFetchInfinitePlacesList';
 import ListLoading from './AltState/ListLoading';
 import NoResults from './AltState/NoResult';
