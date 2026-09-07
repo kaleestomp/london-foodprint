@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../../../context/AppUIContext';
@@ -37,18 +37,39 @@ const useClusterLayer = (
   enabled: boolean = true,
 ) => {
 
-  const { mapMode } = useAppUI();
+  const { mapMode } = useAppUI(); //markInitialLoadItemComplete
   const { geojson } = useFetchHeatmap(enabled);
+  const latestGeojsonRef = useRef(geojson);
   const { selectedPlaceId, selectedLayer } = usePlaceSelection();
   const suppressedSingletonId = (selectedLayer === 'list')
     ? selectedPlaceId
     : null;
+
+  useEffect(() => {
+    latestGeojsonRef.current = geojson;
+  }, [geojson]);
 
   useHandleSelectedMarker(mapRef, PLACES_HIT_LAYER_ID);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+
+    const hasStyle = (): boolean => {
+      try {
+        return Boolean(map.getStyle());
+      } catch {
+        return false;
+      }
+    };
+
+    const isStyleReady = (): boolean => {
+      try {
+        return hasStyle() && map.isStyleLoaded() === true;
+      } catch {
+        return false;
+      }
+    };
 
     const removeLayer = () => {
       const currentMap = mapRef.current;
@@ -70,28 +91,40 @@ const useClusterLayer = (
       sortLayerOrder(map, [COUNT_LAYER_ID, PLACES_SHADOW_LAYER_ID, PLACES_LAYER_ID, PLACES_HIGHLIGHT_LAYER_ID, PLACES_HIT_LAYER_ID]);
     }
 
-    const refreshLayer = () => {
+    // const maybeMarkInitialLoadComplete = () => {
+    //   if (!enabled || !isStyleReady()) return;
 
-      if (!enabled) return;
-      if (!map.isStyleLoaded()) return;
+    //   const source = map.getSource(SOURCE_ID);
+    //   const hasRequiredLayers = Boolean(
+    //     map.getLayer(COUNT_LAYER_ID) &&
+    //     map.getLayer(PLACES_SHADOW_LAYER_ID) &&
+    //     map.getLayer(PLACES_LAYER_ID) &&
+    //     map.getLayer(PLACES_HIGHLIGHT_LAYER_ID) &&
+    //     map.getLayer(PLACES_HIT_LAYER_ID)
+    //   );
 
-      const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
-      if (source) {
-        source.setData(geojson);
-      } else {
+    //   if (!source || !hasRequiredLayers || !map.isSourceLoaded(SOURCE_ID)) return;
+
+    //   markInitialLoadItemComplete('clusterLayer');
+    // };
+
+    const ensureLayer = () => {
+      if (!enabled || !isStyleReady()) return;
+
+      if (!map.getSource(SOURCE_ID)) {
         map.addSource(SOURCE_ID, {
           type: 'geojson',
-          data: geojson,
+          data: latestGeojsonRef.current,
           cluster: true,
           clusterMaxZoom: 15,
           clusterRadius: 40,
         });
       }
-      if (!map.getLayer(COUNT_LAYER_ID)) 
+      if (!map.getLayer(COUNT_LAYER_ID))
         map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID, mapMode === 'dark'));
       if (!map.getLayer(PLACES_SHADOW_LAYER_ID))
         map.addLayer(unclusteredPointShadowLayer(PLACES_SHADOW_LAYER_ID, SOURCE_ID));
-      if (!map.getLayer(PLACES_LAYER_ID)) 
+      if (!map.getLayer(PLACES_LAYER_ID))
         map.addLayer(unclusteredPointLayer(PLACES_LAYER_ID, SOURCE_ID));
       if (!map.getLayer(PLACES_HIGHLIGHT_LAYER_ID))
         map.addLayer(unclusteredPointHighlightLayer(PLACES_HIGHLIGHT_LAYER_ID, SOURCE_ID));
@@ -104,31 +137,63 @@ const useClusterLayer = (
       map.setFilter(PLACES_HIGHLIGHT_LAYER_ID, singletonFilter);
       map.setFilter(PLACES_HIT_LAYER_ID, singletonFilter);
 
-      handleStateChange()
+      handleStateChange();
+      // maybeMarkInitialLoadComplete();
     };
     
     if (!enabled) removeLayer();
-    map.on('load', refreshLayer); 
-    map.on('styledata', refreshLayer);
-    map.on('pitch', refreshLayer);
-    map.on('idle', handleStateChange);
+    map.on('load', ensureLayer);
+    map.on('styledata', ensureLayer);
+    map.on('idle', ensureLayer);
+    // map.on('sourcedata', maybeMarkInitialLoadComplete);
     // Maplibre internal race bug: 
     // Heatmap layer need to load first for both to show
     // hence on 'idle' event instead of 'load' event
 
+    ensureLayer();
+    // maybeMarkInitialLoadComplete();
+
     return () => {
-      map.off('load', refreshLayer);
-      map.off('styledata', refreshLayer);
-      map.off('pitch', refreshLayer);
-      map.off('idle', handleStateChange);
+      map.off('load', ensureLayer);
+      map.off('styledata', ensureLayer);
+      map.off('idle', ensureLayer);
+      // map.off('sourcedata', maybeMarkInitialLoadComplete);
 
       removeLayer();
     };
-  }, [geojson, enabled, mapMode]);
+  }, [enabled, mapMode, mapRef]); //markInitialLoadItemComplete
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !enabled) return;
+
+    try {
+      if (!map.getStyle() || !map.isStyleLoaded()) return;
+    } catch {
+      return;
+    }
+
+    const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    if (!source) return;
+
+    source.setData(geojson);
+    maybeUpdateStyleOrder(map);
+  }, [geojson, enabled, mapRef]);
+
+  const maybeUpdateStyleOrder = (map: maplibregl.Map) => {
+    updateTextSize(map, COUNT_LAYER_ID);
+    sortLayerOrder(map, [COUNT_LAYER_ID, PLACES_SHADOW_LAYER_ID, PLACES_LAYER_ID, PLACES_HIGHLIGHT_LAYER_ID, PLACES_HIT_LAYER_ID]);
+  };
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+
+    try {
+      if (!map.getStyle()) return;
+    } catch {
+      return;
+    }
 
     // Selection changes should only update singleton visibility filters;
     // do not recreate cluster layers/source on every selection transition.

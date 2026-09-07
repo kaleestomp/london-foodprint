@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 
+// import { useAppUI } from '../../../../context/AppUIContext';
 import useToggleMapMode from './useMapStyle/useToggleMapMode';
 import useAdjustMinZoom from './useCamera/useAdjustMaxZoom';
 import syncMaxPitch from './useCamera/syncMaxPitch';
@@ -14,6 +15,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
   mapContainerRef: React.RefObject<HTMLDivElement | null>;
   mapRef: React.RefObject<maplibregl.Map | null>;
 } => {
+  // const { markInitialLoadItemComplete } = useAppUI();
   const { cityParams } = useCityContext();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const internalMapRef = useRef<maplibregl.Map | null>(null);
@@ -39,6 +41,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
     // map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
     const handleZoom = () => syncMaxPitch(map);
+    // const handleInitialLoadComplete = () => markInitialLoadItemComplete('baseTiles');
     const handleStyleImageMissing = (e: { id: string }) => {
       if (!map.hasImage(e.id)) {
         // Add a 1x1 transparent image to satisfy missing sprite/icon references in basemap tiles
@@ -52,12 +55,18 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
 
     map.on('zoom', handleZoom);
     map.on('styleimagemissing', handleStyleImageMissing);
+    // map.on('load', handleInitialLoadComplete);
+
+    // if (map.loaded()) {
+    //   handleInitialLoadComplete();
+    // }
 
     mapRef.current = map;
 
     return () => {
       map.off('zoom', handleZoom);
       map.off('styleimagemissing', handleStyleImageMissing);
+      // map.off('load', handleInitialLoadComplete);
       mapRef.current = null;
       map.remove();
     };

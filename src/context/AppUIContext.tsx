@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 export type ToolbarFilterTab = 'rating' | 'price' | 'cuisine' | 'search';
 export type ColorMode = 'light' | 'dark';
+export type InitialLoadItem = 'baseTiles' | 'clusterLayer' | 'heatmapLayer';
 
 export type LiveLocation = {
   lat: number;
@@ -11,18 +12,13 @@ export type LiveLocation = {
 };
 
 interface AppUIContextType { 
-  isLoading: boolean;
-  activeToolbarTab: ToolbarFilterTab | null;
-  liveLocation: LiveLocation | null;
-  colorMode: ColorMode;
-  heatmapEnabled: boolean;
-  mapMode: ColorMode;
-  toggleLoading: (loading: boolean) => void;
-  setActiveToolbarTab: (tab: ToolbarFilterTab | null) => void;
-  queueLiveLocationDrop: (lat: number, lng: number) => void;
-  toggleColorMode: () => void;
-  toggleHeatmapEnabled: () => void;
-  toggleMapMode: () => void;
+  isLoading: boolean; toggleLoading: (loading: boolean) => void;
+  activeToolbarTab: ToolbarFilterTab | null; setActiveToolbarTab: (tab: ToolbarFilterTab | null) => void;
+  liveLocation: LiveLocation | null; queueLiveLocationDrop: (lat: number, lng: number) => void;
+  colorMode: ColorMode; toggleColorMode: () => void;
+  heatmapEnabled: boolean; toggleHeatmapEnabled: () => void;
+  mapMode: ColorMode; toggleMapMode: () => void;
+  // initialLoadComplete: boolean; markInitialLoadItemComplete: (item: InitialLoadItem) => void;
 }
 
 const AppUIContext = createContext<AppUIContextType | null>(null);
@@ -38,15 +34,34 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
   // };
 
   const [isLoading, setIsLoading] = useState(false);
+  // const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [activeToolbarTab, setActiveToolbarTab] = useState<ToolbarFilterTab | null>(null);
   const [liveLocation, setLiveLocation] = useState<LiveLocation | null>(null);
   const [colorMode, setColorMode] = useState<ColorMode>('light'); //getInitialColorMode
   const [heatmapEnabled, setHeatmapEnabled] = useState(true);
   const [mapMode, setMapMode] = useState<ColorMode>('light');
+  // const [, setInitialLoadItems] = useState<Record<InitialLoadItem, boolean>>({
+  //   baseTiles: false,
+  //   clusterLayer: false,
+  //   heatmapLayer: false,
+  // });
 
   const toggleLoading = useCallback((loading: boolean) => {
     setIsLoading((prev) => (prev === loading ? prev : loading));
   }, []);
+
+  // const markInitialLoadItemComplete = useCallback((item: InitialLoadItem) => {
+  //   setInitialLoadItems((prev) => {
+  //     if (prev[item]) return prev;
+
+  //     const next = { ...prev, [item]: true };
+  //     if (!initialLoadComplete && Object.values(next).every(Boolean)) {
+  //       setInitialLoadComplete(true);
+  //     }
+
+  //     return next;
+  //   });
+  // }, [initialLoadComplete]);
 
   const queueLiveLocationDrop = useCallback((lat: number, lng: number) => {
     setLiveLocation({ lat, lng, token: Date.now() });
@@ -66,18 +81,20 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
 
   const exposed = useMemo<AppUIContextType>(() => ({ 
     isLoading, toggleLoading,
+    // initialLoadComplete, markInitialLoadItemComplete,
     activeToolbarTab, setActiveToolbarTab,
     liveLocation, queueLiveLocationDrop,
     colorMode, toggleColorMode,
     heatmapEnabled, toggleHeatmapEnabled,
-    mapMode, toggleMapMode
+    mapMode, toggleMapMode,
   }), [
     isLoading, toggleLoading,
+    // initialLoadComplete, markInitialLoadItemComplete,
     activeToolbarTab, setActiveToolbarTab,
     liveLocation, queueLiveLocationDrop,
     colorMode, toggleColorMode,
     heatmapEnabled, toggleHeatmapEnabled,
-    mapMode, toggleMapMode
+    mapMode, toggleMapMode,
   ]);
 
   return (

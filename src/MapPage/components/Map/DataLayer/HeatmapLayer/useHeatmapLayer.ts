@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../../../context/AppUIContext';
@@ -13,8 +13,14 @@ const useHeatmapLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
 ): void => {
 
-  const { heatmapEnabled: enabled } = useAppUI();
+  const { heatmapEnabled: enabled } = useAppUI(); //markInitialLoadItemComplete
   const { geojson } = useFetchHeatmap(enabled);
+  const latestGeojsonRef = useRef(geojson);
+  const appliedGeojsonRef = useRef<typeof geojson | null>(null);
+
+  useEffect(() => {
+    latestGeojsonRef.current = geojson;
+  }, [geojson]);
   
   useEffect(() => {
     const map = mapRef.current;
@@ -31,37 +37,68 @@ const useHeatmapLayer = (
       }
     };
 
-    const refreshLayer = () => {
-      
-      if (!enabled || !map.isStyleLoaded()) return;
+    // const maybeMarkInitialLoadComplete = () => {
+    //   const source = map.getSource(SOURCE_ID);
+    //   if (!source || !map.getLayer(LAYER_ID) || !map.isSourceLoaded(SOURCE_ID)) return;
+    //   markInitialLoadItemComplete('heatmapLayer');
+    // };
 
-      const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
-      if (source) {
-        source.setData(geojson);
-      } else {
-        map.addSource(SOURCE_ID, { 
-          type: 'geojson', 
-          data: geojson 
-        });
+    const ensureLayer = () => {
+      if (!map.isStyleLoaded()) return;
+      if (!enabled) {
+        removeLayer();
+        return;
       }
 
-      if (!map.getLayer(LAYER_ID)) 
+      let source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+      if (!source) {
+        map.addSource(SOURCE_ID, {
+          type: 'geojson',
+          data: latestGeojsonRef.current,
+        });
+        source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+        appliedGeojsonRef.current = null;
+      }
+
+      if (!map.getLayer(LAYER_ID)) {
         map.addLayer(heatmapLayer(LAYER_ID, SOURCE_ID));
+      }
+      if (source && appliedGeojsonRef.current !== latestGeojsonRef.current) {
+        source.setData(latestGeojsonRef.current);
+        appliedGeojsonRef.current = latestGeojsonRef.current;
+      }
       sortLayerOrder(map, LAYER_ID);
     };
 
     if (!enabled) removeLayer();
-    map.on('idle', refreshLayer);
-    map.on('styledata', refreshLayer);
-    map.on('pitch', refreshLayer);
+    map.on('load', ensureLayer);
+    map.on('styledata', ensureLayer);
+    map.on('idle', ensureLayer);
+    // map.on('sourcedata', maybeMarkInitialLoadComplete);
+
+    ensureLayer();
+    // maybeMarkInitialLoadComplete();
 
     return () => {
-      map.off('idle', refreshLayer);
-      map.off('styledata', refreshLayer);
-      map.off('pitch', refreshLayer);
+      map.off('load', ensureLayer);
+      map.off('styledata', ensureLayer);
+      map.off('idle', ensureLayer);
+      // map.off('sourcedata', maybeMarkInitialLoadComplete);
       removeLayer();
+      appliedGeojsonRef.current = null;
     };
-  }, [enabled, mapRef, geojson]);
+  }, [enabled, mapRef ]); //markInitialLoadItemComplete
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !enabled || !map.isStyleLoaded()) return;
+
+    const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    if (!source) return;
+
+    source.setData(geojson);
+    appliedGeojsonRef.current = geojson;
+  }, [geojson, enabled, mapRef]); //markInitialLoadItemComplete
 
 };
 

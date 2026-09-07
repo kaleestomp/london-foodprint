@@ -36,6 +36,7 @@ const useRequestHeatmap = (params: HeatmapParams | null): UseRequestHeatmapResul
     queryKey: ['heatmap', queryKey],
     queryFn: ({ signal }) => request(queryKey, { signal }),
     enabled: Boolean(queryKey),
+    staleTime: Infinity,
     placeholderData: (previousData) => previousData,
   });
 
