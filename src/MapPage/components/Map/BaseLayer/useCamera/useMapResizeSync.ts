@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
-import { syncMinZoomToWorldExtent } from '../MapTemplate';
-import { useCityContext } from '../../../../context/CityContext';
+import { syncMinZoomToWorldExtent } from '../../MapTemplate';
+import { useCityContext } from '../../../../../context/CityContext';
 
 type ResizeCompatibleMap = {
   on: (event: string, handler: () => void) => void;

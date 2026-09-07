@@ -9,11 +9,10 @@ import AnimatedLoadingDots from '../../../../components/LoadingDots/AnimatedLoad
 import '../MapToolbar.css';
 
 
-type Props = {
-  mapRef: React.RefObject<L.Map | null>;
-  onLiveLocationDrop: (lat: number, lng: number) => void;
-};
-const MyLocation: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
+const MyLocationButton: React.FC<{
+  onLiveLocationDrop: (lat: number, lng: number) => void | Promise<void>;
+}> = ({ onLiveLocationDrop }) => {
+  
   const { cityParams } = useCityContext();
   const { state, locate } = useMyLocation();
   const [message, setMessage] = useState<string | null>(null);
@@ -25,7 +24,7 @@ const MyLocation: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
   }, [cityParams?.display_name]);
 
   const handleLiveLocationDrop = useCallback((lat: number, lon: number) => {
-    onLiveLocationDrop(lat, lon);
+    void onLiveLocationDrop(lat, lon);
   }, [onLiveLocationDrop]);
 
   // Delay loading animation by 100ms to avoid flashing for fast requests
@@ -65,7 +64,7 @@ const MyLocation: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
         className="map-toolbar-fab"
         aria-label="My location"
         onClick={locate}
-        disabled={state.status === 'loading' || !mapRef.current}
+        disabled={state.status === 'loading'}
       >
         {showLoading ? (
           <AnimatedLoadingDots size="small" />
@@ -84,4 +83,4 @@ const MyLocation: React.FC<Props> = ({ mapRef, onLiveLocationDrop }) => {
   );
 };
 
-export default MyLocation;
+export default MyLocationButton;

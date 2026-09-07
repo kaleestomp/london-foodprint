@@ -34,6 +34,7 @@ const BubbleHome: React.FC<{
 
   const isMobile = useIsMobileCtx();  
   const { pickupPos, isDragging, isNearHome } = useBubbleAvatarState();
+  const bubbleRef = useRef<HTMLDivElement>(null);
   // FIND HOME CENTER
   const homeCenter = useHomeCenter();
 
@@ -44,6 +45,7 @@ const BubbleHome: React.FC<{
     flyInFrom, flyOutTo,
     onFlyOutComplete,
     homeCenter,
+    bubbleRef,
   });
 
   // MASTER DROP EVENTS HANDLER
@@ -56,7 +58,6 @@ const BubbleHome: React.FC<{
   // Detect when drag enters/leaves the home snap zone and UPDATE CONTEXT.
   useHomeProximity( onDrag.dragMotion.pointer, homeCenter );
 
-  const bubbleRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
   const isPickupPending = !!pickupPos && !isDragging;
 

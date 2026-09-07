@@ -18,8 +18,8 @@ const useHomeCenter = (): Point => {
 
     const homeCenter = useMemo(() => {
         const x = isMobile ? viewportWidth - 70 : viewportWidth / 2;
-        // if (isMobile && mobilePanel) {
-        //     const bubbleBottomOffset = Math.max(16, mobilePanel.panelHeight - mobilePanel.translateY + 10);
+        // if (isMobile) {
+        //     const bubbleBottomOffset = Math.max(16, snapPX ?? 0 + 10);
         //     const y = viewportHeight - bubbleBottomOffset - 40;
         //     return { x, y };
         // }
@@ -30,7 +30,7 @@ const useHomeCenter = (): Point => {
             // due to pickup positioned being measured relative to container rect xy
             return { x, y };
         }
-        const y = viewportHeight - 70;
+        const y = viewportHeight - 70; 
 
         return { x, y };
 

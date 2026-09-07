@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 
 import { type Point } from '../../config';
 
@@ -9,6 +9,7 @@ const useBubbleFlightAnimation = ({
   onFlyInComplete,
   onFlyOutComplete,
   homeCenter,
+  bubbleRef,
 }: {
   pickupFrom?: Point;
   flyInFrom?: Point;
@@ -16,17 +17,27 @@ const useBubbleFlightAnimation = ({
   onFlyInComplete?: () => void;
   onFlyOutComplete?: () => void;
   homeCenter: Point;
+  bubbleRef: RefObject<HTMLDivElement | null>;
 }) => {
   const flyInCompletedRef = useRef(false);
   const flyOutCompletedRef = useRef(false);
   const shouldFlyIn = !pickupFrom && !!flyInFrom;
   // Seeded synchronously so the very first render already knows a flight is starting.
   const [isFlying, setIsFlying] = useState(() => !pickupFrom && !!(flyInFrom || flyOutTo));
+  const renderedHomeCenter = bubbleRef.current
+    ? (() => {
+        const rect = bubbleRef.current.getBoundingClientRect();
+        return {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+        };
+      })()
+    : homeCenter;
   const flyInOffset = shouldFlyIn && flyInFrom
-    ? { x: flyInFrom.x - homeCenter.x, y: flyInFrom.y - homeCenter.y }
+    ? { x: flyInFrom.x - renderedHomeCenter.x, y: flyInFrom.y - renderedHomeCenter.y }
     : null;
   const flyOutOffset = !pickupFrom && flyOutTo
-    ? { x: flyOutTo.x - homeCenter.x, y: flyOutTo.y - homeCenter.y }
+    ? { x: flyOutTo.x - renderedHomeCenter.x, y: flyOutTo.y - renderedHomeCenter.y }
     : null;
 
   useEffect(() => {
@@ -35,11 +46,11 @@ const useBubbleFlightAnimation = ({
 
   useEffect(() => {
     flyInCompletedRef.current = false;
-  }, [flyInFrom, homeCenter]);
+  }, [flyInFrom, renderedHomeCenter]);
 
   useEffect(() => {
     flyOutCompletedRef.current = false;
-  }, [flyOutTo, homeCenter]);
+  }, [flyOutTo, renderedHomeCenter]);
 
   return {
     initial: flyInOffset ? { x: flyInOffset.x, y: flyInOffset.y, opacity: 0 } : false,

@@ -1,16 +1,22 @@
 const checkIsDropBlocked = (
     point: {x: number, y: number},
     isMobile: boolean,
-    drawerSnapPX: number,
+    drawerSnapPX: number | null,
 ) => {
-    if (!isMobile || !drawerSnapPX) return false;
+    if (!isMobile) return false;
 
-    const panelTopY = Math.max(0, window.innerHeight - drawerSnapPX);
-    const panelBottomY = panelTopY + drawerSnapPX;
+    const drawer = document.querySelector<HTMLElement>('.vaul-drawer-body');
+    const drawerRect = drawer?.getBoundingClientRect();
+    const panelTopY = drawerRect?.top ?? (
+        drawerSnapPX ? Math.max(0, window.innerHeight - drawerSnapPX) : window.innerHeight
+    );
+    const panelBottomY = drawerRect?.bottom ?? window.innerHeight;
+    const panelLeftX = drawerRect?.left ?? 0;
+    const panelRightX = drawerRect?.right ?? window.innerWidth;
 
     return (
-        point.x >= 0 &&
-        point.x <= window.innerWidth &&
+        point.x >= panelLeftX &&
+        point.x <= panelRightX &&
         point.y >= panelTopY &&
         point.y <= panelBottomY
     );

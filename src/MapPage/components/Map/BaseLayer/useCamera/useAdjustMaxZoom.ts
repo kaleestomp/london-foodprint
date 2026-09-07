@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import { useCityContext } from '../../../../context/CityContext';
+import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import { useCityContext } from '../../../../../context/CityContext';
 const MIN_ZOOM_ADJUSTED = 12.5;
 
 const useAdjustMinZoom = (

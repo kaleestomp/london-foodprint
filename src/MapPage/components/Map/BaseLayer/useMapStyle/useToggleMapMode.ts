@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
-import { useAppUI } from '../../../../context/AppUIContext';
-import { STYLE_DARK, STYLE_BASE } from './MapStyles';
+import { useAppUI } from '../../../../../context/AppUIContext';
+import { STYLE_DARK, STYLE_LIGHT } from './MapStyles';
 
 const useToggleMapMode = (
     mapRef: React.RefObject<maplibregl.Map | null>,
@@ -12,7 +12,7 @@ const useToggleMapMode = (
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapMode) return;
-        map.setStyle(mapMode === 'dark' ? STYLE_DARK : STYLE_BASE);
+        map.setStyle(mapMode === 'dark' ? STYLE_DARK : STYLE_LIGHT);
     }, [mapMode]);
     
 };

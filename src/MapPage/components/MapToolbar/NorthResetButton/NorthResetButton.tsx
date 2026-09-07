@@ -1,31 +1,20 @@
 import { useEffect, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
-import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded';
 
-import './NorthResetButton.css';
+import CompassIcon from './CompassIcon/CompassIcon';
+import { normalizeBearing, directionLabelFromBearing } from './normalizeBearing';
 
-type Props = {
+const NorthResetButton: React.FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
-};
+}> = ({ mapRef }) => {
 
-const NORTH_EPSILON_DEG = 0.1;
-
-const normalizeBearing = (bearing: number): number => {
-  if (!Number.isFinite(bearing)) return 0;
-  const normalized = 360 - ((bearing % 360) + 360) % 360;
-  return normalized > 180 ? normalized - 360 : normalized;
-};
-
-const NorthResetButton: React.FC<Props> = ({ mapRef }) => {
   const [bearingDeg, setBearingDeg] = useState(0);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    const syncBearing = () => {
-      setBearingDeg(normalizeBearing(map.getBearing()));
-    };
+    const syncBearing = () => setBearingDeg(normalizeBearing(map.getBearing()));
 
     syncBearing();
     map.on('rotate', syncBearing);
@@ -37,12 +26,8 @@ const NorthResetButton: React.FC<Props> = ({ mapRef }) => {
     };
   }, [mapRef]);
 
-  const isNorth = Math.abs(bearingDeg) < NORTH_EPSILON_DEG;
-
   return (
-    <button
-      type="button"
-      className={`map-toolbar-layers-btn map-toolbar-compass-btn ${isNorth ? '' : 'map-toolbar-layers-btn-active'}`}
+    <button className="map-toolbar-btn"
       aria-label="Reset map orientation to north"
       title="Reset orientation"
       onClick={() => {
@@ -55,11 +40,7 @@ const NorthResetButton: React.FC<Props> = ({ mapRef }) => {
         });
       }}
     >
-      <NavigationRoundedIcon
-        fontSize="small"
-        className="map-toolbar-compass-icon"
-        style={{ transform: `rotate(${-bearingDeg}deg)` }}
-      />
+      <CompassIcon bearingDeg={bearingDeg} directionLabel={directionLabelFromBearing(bearingDeg)} />
     </button>
   );
 };

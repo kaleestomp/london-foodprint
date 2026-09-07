@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 import type maplibregl from 'maplibre-gl';
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 
@@ -7,6 +7,7 @@ import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 // import { usePullUpPanelSnapState } from '../../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import getRecenterOffset from './getRecenterOffset';
+import getAvatarRecenterOffset from '../getAvatarRecenterOffset';
 
 const useBottomPadding = (
   mapRef: React.RefObject<maplibregl.Map | null>
@@ -22,53 +23,38 @@ const useBottomPadding = (
   const isPanelUp = !isClosed;
   // const panelTopPositionPX = panelHeight - translateY;
   const avatarOnMapRef = useRef<boolean>(Boolean(searchMask));
-  const isPanelUpRef = useRef<boolean>(isPanelUp);
   const paddingRef = useRef<number>(0);
 
-  const bottomPadding = useMemo(() => {
-    if (!isMobile || !snapPX) 
+  const calculateBottomPadding = (): number => {
+    if (!isMobile || !snapPX)
       return 0;
-    
-    // Default to previous if Avatar is exiting
-    // to avoid trigger viewport shift
+
+    // Preserve the current padding while the avatar marker is being removed.
     const avatarOnMap = Boolean(searchMask);
     const isAvatarExiting = !avatarOnMap && avatarOnMapRef.current;
-    const avatarNotChanged = avatarOnMap === avatarOnMapRef.current;
     avatarOnMapRef.current = avatarOnMap;
-    if (isPanelUp && isAvatarExiting) 
+    if (isPanelUp && isAvatarExiting)
       return paddingRef.current;
+
+    const avatarOffset = getAvatarRecenterOffset(mapRef.current, snapPX);
+    const avatarWouldBeBlocked = isPanelUp && avatarOnMap && avatarOffset;
+    const paddingAvatar = avatarWouldBeBlocked ? Math.max(0, Math.round(avatarOffset)) : 0;
     
-    // Default to previous if Avatar or Panel have not changed
-    // Avoid map shift when padding is reset to 0 from non-zero
-    // EG. selected a Place that triggers Padding; 
-    // followed by selection of another place that should not trigger padding;
-    const panelNotChanged = isPanelUp === isPanelUpRef.current;
-    isPanelUpRef.current = isPanelUp;
-    avatarOnMapRef.current = avatarOnMap;
-    if (avatarNotChanged && panelNotChanged) 
-      return paddingRef.current;
+    const markerOffset = getRecenterOffset(mapRef.current, selectedPlaceId, snapPX);
+    const markerWouldBeBlocked = isPanelUp && Boolean(selectedPlaceId) && markerOffset > 0;
+    const paddingMarker = markerWouldBeBlocked ? Math.max(0, Math.round(markerOffset)) : 0;
 
-    const isBubbleAvatarWouldbeBlocked = avatarOnMap;
-    if (isPanelUp && isBubbleAvatarWouldbeBlocked) {
-        const padding = Math.max(0, Math.round(snapPX));
-        paddingRef.current = padding;
-        return padding;
-      }
+    const padding = (avatarWouldBeBlocked || markerWouldBeBlocked) 
+      ? Math.max(paddingAvatar, paddingMarker) : 0;
+    paddingRef.current = padding;
 
-    const recenterY = getRecenterOffset( mapRef.current, selectedPlaceId, snapPX );
-    if (isPanelUp && Boolean(selectedPlaceId) && recenterY > 0) {
-      paddingRef.current = recenterY;
+    return padding;
+  };
 
-      return recenterY;
-    }
-
-    paddingRef.current = 0;
-    return 0;
-
-  }, [isPanelUp, searchMask, selectedPlaceId, snapPX]);
+  const bottomPadding = calculateBottomPadding();
 
   
-  return bottomPadding*1.5;
+  return bottomPadding * 1.4;
 };
 
 export default useBottomPadding;

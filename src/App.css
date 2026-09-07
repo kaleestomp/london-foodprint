@@ -25,7 +25,7 @@
   --app-handle-color: #c5cad3;
   
 
-  --app-paper-color-fixed: #e0e0e0;
+  --app-paper-color-fixed: #f4f4f4; /* #e0e0e0 */;
   --app-paper-color: var(--app-paper-color-fixed);
   --app-background: linear-gradient(
     165deg,

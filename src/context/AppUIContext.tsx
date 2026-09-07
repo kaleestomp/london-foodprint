@@ -42,7 +42,7 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
   const [liveLocation, setLiveLocation] = useState<LiveLocation | null>(null);
   const [colorMode, setColorMode] = useState<ColorMode>('light'); //getInitialColorMode
   const [heatmapEnabled, setHeatmapEnabled] = useState(true);
-  const [mapMode, setMapMode] = useState<ColorMode>('dark');
+  const [mapMode, setMapMode] = useState<ColorMode>('light');
 
   const toggleLoading = useCallback((loading: boolean) => {
     setIsLoading((prev) => (prev === loading ? prev : loading));

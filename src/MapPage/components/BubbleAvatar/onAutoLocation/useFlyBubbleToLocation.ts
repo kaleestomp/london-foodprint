@@ -5,8 +5,6 @@ import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import getCurrentScreenXY from '../Searchmask/getCurrentScreenXY';
 import { type LatLng, type Point } from '../config';
-import useBottomPadding from '../../MapViewportSync/useBottomPadding/useBottomPadding';
-import getPaddedViewportCenterScreenPoint from '../MapNavigation/getPaddedViewportCenterScreenPoint';
 
 type props = {
     mapRef: React.RefObject<maplibregl.Map | null>;
@@ -20,8 +18,6 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
     const { lat, lng } = searchMask?.center ?? { lat: undefined, lng: undefined };
     const isDropped = lat !== undefined && lng !== undefined;
     // const currentScrPos = useGetCurrentScreenXY(mapRef, searchMask?.center);
-    const bottomPadding = useBottomPadding(mapRef);
-
     // Handel Fly Bubble to User Location Logic (LIVE / GEOSEARCH)
     // ==========================================================
     const [flyOutTo, setFlyOutTo] = useState<Point | null>(null);
@@ -37,13 +33,13 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
         resetBubbleToHome( screenXY ); // Swap with undefined to disable fly-in animation
 
         const latLng = { lat: targetLatLng.lat, lng: targetLatLng.lng };
-        const paddedCenter = getPaddedViewportCenterScreenPoint(map, bottomPadding);
+        const projectedTarget = map.project([latLng.lng, latLng.lat]);
         pendingTargetLatLngRef.current = { lat: latLng.lat, lng: latLng.lng };
         setFlyOutTo({
-            x: paddedCenter.x,
-            y: paddedCenter.y,
+            x: rect.left + projectedTarget.x,
+            y: rect.top + projectedTarget.y,
         });
-    }, [mapRef, targetLatLng, lat, lng, resetBubbleToHome, bottomPadding]);
+    }, [mapRef, targetLatLng, lat, lng, resetBubbleToHome]);
     
     // Handle the drop pin logic when the flight animation completes
     const dropOnEndFlight = useCallback(() => {

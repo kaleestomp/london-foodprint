@@ -14,9 +14,10 @@
   --toolbar-icon-size: 25px;
   --toolbar-shadow: none;
   --toolbar-shadow-active: var(--app-glass-card-box-shadow);
-  --toolbar-background: var(--app-paper-color);
-  --toolbar-background-hover: var(--app-paper-color);
-  --toolbar-background-active: var(--app-paper-color);
+  --toolbar-theme-color: var(--app-paper-color); 
+  --toolbar-background: var(--toolbar-theme-color);
+  --toolbar-background-hover: var(--toolbar-theme-color);
+  --toolbar-background-active: var(--toolbar-theme-color);
   /* linear-gradient(
     165deg,
     rgba(226, 236, 255, 0.52) 0%,
@@ -146,3 +147,22 @@
   color: var(--app-primary-blue);
 }
 
+
+.map-toolbar-btn {
+  position: relative;
+  width: var(--toolbar-height);
+  height: var(--toolbar-height);
+  min-width: var(--toolbar-height);
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: var(--toolbar-background);
+  backdrop-filter: var(--toolbar-backdrop-filter);
+  color: var(--toolbar-icon-color);
+  box-sizing: border-box;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}

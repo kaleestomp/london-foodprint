@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 
-import useToggleMapMode from './useToggleMapMode';
-import useAdjustMinZoom from './useAdjustMaxZoom';
-import syncMaxPitch from './syncMaxPitch';
-import apply3DFogVisibility from './applyFog';
-import useInvertedMaskLayer from './useInvertedMaskLayer';
+import useToggleMapMode from './useMapStyle/useToggleMapMode';
+import useAdjustMinZoom from './useCamera/useAdjustMaxZoom';
+import syncMaxPitch from './useCamera/syncMaxPitch';
+import useInvertedMaskLayer from './useMaskLayer/useInvertedMaskLayer';
+import useToggleBuilding3DLayer from './useBuilding3DLayer/useToggleBuilding3DLayer';
 import { useCityContext } from '../../../../context/CityContext';
 
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -36,12 +36,9 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
       attributionControl: false,
       doubleClickZoom: false,
     });
-
     // map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
     const handleZoom = () => syncMaxPitch(map);
-    const handlePitch = () => apply3DFogVisibility(map);
-    const handleStyleData = () => apply3DFogVisibility(map);
     const handleStyleImageMissing = (e: { id: string }) => {
       if (!map.hasImage(e.id)) {
         // Add a 1x1 transparent image to satisfy missing sprite/icon references in basemap tiles
@@ -54,16 +51,12 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
     };
 
     map.on('zoom', handleZoom);
-    map.on('pitch', handlePitch);
-    map.on('styledata', handleStyleData);
     map.on('styleimagemissing', handleStyleImageMissing);
 
     mapRef.current = map;
 
     return () => {
       map.off('zoom', handleZoom);
-      map.off('pitch', handlePitch);
-      map.off('styledata', handleStyleData);
       map.off('styleimagemissing', handleStyleImageMissing);
       mapRef.current = null;
       map.remove();
@@ -85,6 +78,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
   useToggleMapMode(mapRef);
   useAdjustMinZoom(mapRef);
   useInvertedMaskLayer(mapRef);
+  useToggleBuilding3DLayer(mapRef);
 
   return { mapContainerRef, mapRef };
 };
