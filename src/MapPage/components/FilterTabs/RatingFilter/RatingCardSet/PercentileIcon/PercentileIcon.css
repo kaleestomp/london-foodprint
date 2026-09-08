@@ -1,0 +1,13 @@
+.percentile-icon {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 1.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.percentile-sign {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.1;
+}

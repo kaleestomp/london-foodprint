@@ -66,7 +66,6 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   const [allowBlockChain, setAllowBlockChain] = useState<boolean>(false);
   const reportScoreBasis = (value: TierBasis) => {
     setScoreBasis(value);
-    if (value === 2) setAllowBlockChain(false);
   };
 
   const resetFilters = () => {

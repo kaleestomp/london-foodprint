@@ -1,0 +1,89 @@
+.rating-card {
+    position: relative;
+    min-height: 56px;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    border: none;
+    border-radius: var(--app-card-border-radius, 16px);
+    background: white;
+    color: var(--app-toolbar-icon-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
+
+    --rating-description-text-color: var(--app-text-caption-color, rgba(0, 0, 0, 0.8));
+
+}
+.rating-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+    background: white;
+}
+.rating-card:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+.rating-card.is-active {
+    border-color: var(--app-toolbar-icon-color);
+    background: var(--app-toolbar-icon-color);
+    color: var(--app-paper-color);
+    box-shadow: inset 0 2px 0 var(--app-glass-card-highlight), 0 5px 14px rgba(0, 0, 0, 0.16);
+    transform: translateY(-2px);
+}
+
+.rating-card-icon {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: inline-flex;
+    color: currentColor;
+}
+.rating-card-icon svg {
+    width: 24px;
+    height: 24px;
+    color: currentColor;
+}
+.rating-card-icon .MuiSvgIcon-root {
+    width: 22px;
+    height: 22px;
+}
+/* .rating-card-icon svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+} */
+
+
+.rating-card-percentile {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 1.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.rating-card-top,
+.rating-card-sign {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.1;
+}
+.rating-card-label {
+    color: var(--rating-description-text-color);
+}
+
+@media (max-width: 420px) {
+    .rating-card {
+        padding: 14px 12px;
+    }
+    .rating-card-label {
+        font-size: 0.72rem;
+    }
+}

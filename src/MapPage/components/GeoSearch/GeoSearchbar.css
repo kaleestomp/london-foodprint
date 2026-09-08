@@ -26,7 +26,7 @@
   box-sizing: border-box;
   overflow: hidden;
 
-  background: #ffffff84;
+  background: var(--app-paper-color-brighter);
   /*border: 1px solid var(--app-faint-outline-color) */
   border-radius: calc(var(--drawer-geo-search-size) / 2);
   color: var(--drawer-geo-search-icon-color);

@@ -27,6 +27,7 @@
 
   --app-paper-color-fixed: #f4f4f4; /* #e0e0e0 */;
   --app-paper-color: var(--app-paper-color-fixed);
+  --app-paper-color-brighter: #ffffff84;
   --app-background: linear-gradient(
     165deg,
     rgba(255, 255, 255, 0.8) 0%, /* 0.5 */
@@ -37,7 +38,7 @@
   );
   --app-backdrop-filter: blur(50px) saturate(1.8);
   --app-card-border: 1px solid rgba(255, 255, 255, 0.5);
-  --app-card-box-shadow: 0 -8px 16px rgba(0, 0, 0, 0.16);
+  --app-card-box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.08);
   --app-glass-bg: rgba(255, 255, 255, 0.25);
   --app-glass-border: 1px solid rgba(255, 255, 255, 0.3);
   --app-glass-shadow: 0 -8px 32px rgba(0, 0, 0, 0.16),

@@ -1,0 +1,23 @@
+.rating-filter-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-inline: var(--app-layout-gap);
+    gap: 12px;
+    width: calc(100% - (2 * var(--app-layout-gap)));
+}
+
+.wilson-basis-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2rem;
+    color: currentColor;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.wilson-basis-icon {
+  width: 24px;
+  height: 24px;
+  color: currentColor;
+}

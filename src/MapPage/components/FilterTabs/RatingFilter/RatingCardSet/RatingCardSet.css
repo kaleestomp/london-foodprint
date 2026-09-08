@@ -1,0 +1,7 @@
+.rating-filter-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0 var(--app-layout-gap) 14px;
+    gap: 12px;
+    width: calc(100% - (2 * var(--app-layout-gap)));
+}

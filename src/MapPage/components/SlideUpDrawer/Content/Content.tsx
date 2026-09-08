@@ -16,7 +16,7 @@ const Content: FC<{
 
     const isMobile = useIsMobileCtx();
     const { suggestionsVisible } = useGeoSearch();
-    const pageSize = isMobile && !panelUp ? 10 : 20;
+    const pageSize = isMobile && !panelUp ? 5 : 20;
     
     return (
         <div className={`drawer-content${panelUp ? ' open' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}

@@ -5,6 +5,7 @@ import {
     useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
 import { type CuisineHistogramEntry } from '../../../../request/useRequestCuisineHistogram/request';
+import getCuisineIconSrc from '../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/getCuisineIconSrc';
 
 
 import './Chips.css';
@@ -82,6 +83,14 @@ const CuisineFilterChips: React.FC<Props> = ({ cuisineData }) => {
                     <Chip
                         key={option}
                         label={`${option} | ${density}`}
+                        icon={
+                            <img
+                                src={getCuisineIconSrc(option)}
+                                alt=""
+                                className="cuisine-filter-chip-icon"
+                                draggable={false}
+                            />
+                        }
                         clickable
                         color={selected ? (cuisineSelectionMode === 'exclude' ? 'warning' : 'primaryBlack') : 'default'}
                         variant={selected ? 'filled' : 'outlined'}

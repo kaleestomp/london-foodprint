@@ -24,6 +24,12 @@
   border-radius: 50%;
 }
 
+.cuisine-filter-chip-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
 .cuisine-filter-chips-panel .chip .MuiChip-label {
   padding: 0;
   width: 100%;

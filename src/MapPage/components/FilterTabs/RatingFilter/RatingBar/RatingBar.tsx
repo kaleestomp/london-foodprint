@@ -1,9 +1,10 @@
 // import { useId } from 'react';
 
-import IconButton from '@mui/material/IconButton';
+import { Fragment } from 'react';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
-import { ratingOptions, RANK_BADGE } from '../RatingIcons';
+import RatingPillButton from './RatingPillButton';
+import { ratingOptions } from '../RatingIcons';
 import './RatingBar.css';
 
 
@@ -12,21 +13,21 @@ const RatingBar: React.FC = () => {
   // const halfDiamondClipId = useId().replace(/:/g, '-');
   return (
     <div className="rating-filter-panel__options">
-      {ratingOptions.map((option) => {
+      {ratingOptions.map((option, index) => {
         const selected = scoreTier === option.tier;
+        const percentile = option.tier === 1 ? 50 : option.tier === 2 ? 25 : option.tier === 3 ? 10 : 5;
 
         return (
-          <IconButton
-            key={option.tier}
-            className={`rating-filter-button tier-${option.tier} ${selected ? 'rating-filter-button-active' : ''}`}
-            aria-pressed={selected}
-            aria-label={`Tier ${option.tier} ${option.label}`}
-            onClick={() => setScoreTier(selected ? 0 : option.tier)}
-          >
-            <span className={`rating-filter-button-icon tier-${option.tier}`} aria-hidden="true">
-              <RANK_BADGE tier={option.tier} filled={selected} />
-            </span>
-          </IconButton>
+          <Fragment key={option.tier}>
+            {index > 0 && <span className="rating-filter-pill-separator" aria-hidden="true" />}
+            <RatingPillButton
+              percentile={percentile}
+              text="%"
+              ariaLabel={`Tier ${option.tier} ${option.label}`}
+              isActive={selected}
+              onClick={() => setScoreTier(selected ? 0 : option.tier)}
+            />
+          </Fragment>
         );
       })}
     </div>
