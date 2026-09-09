@@ -4,6 +4,9 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
   plugins: [react()],
+  server: {
+    host: true,
+  },
   optimizeDeps: {
     // Vite 8 (rolldown) has issues pre-bundling CJS packages.
     // Excluding them forces ESM-only resolution which works correctly.
