@@ -2,10 +2,14 @@ import { apiBasePromise } from '../../../utils/apiBase';
 
 export interface PlaceDetailResponse {
   id: string;
+  lat: number;
+  lon: number;
   ranking: number | null;
   display_name: string;
   cuisine_type: string | null;
+  price: string | null;
   is_chain: boolean | null;
+  is_major_chain: boolean | null;
   venue_type: string | null;
   google_maps_uri: string | null;
   website_uri: string | null;

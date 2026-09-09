@@ -20,6 +20,7 @@ SQL_PLACES_LIST = """
                 ELSE NULL
             END AS distance_m,
             is_chain,
+            is_major_chain,
             venue_type,
             google_maps_uri,
             website_uri

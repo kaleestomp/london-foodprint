@@ -10,6 +10,7 @@ export interface PlacesListItem {
   price: string | null;
   distance_m: number | null;
   is_chain: boolean | null;
+  is_major_chain: boolean | null;
   venue_type: string | null;
   google_maps_uri: string | null;
   website_uri: string | null;
