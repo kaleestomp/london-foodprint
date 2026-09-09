@@ -20,10 +20,10 @@ const SlideUpDrawer: FC<{
 
   return (
     <Drawer.Root
-      defaultOpen={true} dismissible={false} modal={true}
+      defaultOpen={true} dismissible={false} modal={false}
       snapPoints={SNAP_HEIGHTS} activeSnapPoint={snap}
       setActiveSnapPoint={updateSnap} snapToSequentialPoint={false}
-      fadeFromIndex={2} handleOnly={true} repositionInputs={true}
+      fadeFromIndex={2} handleOnly={true} repositionInputs={false}
     >
 
       <Drawer.Portal>
