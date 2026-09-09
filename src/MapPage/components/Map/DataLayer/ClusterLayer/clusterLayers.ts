@@ -45,6 +45,7 @@ export const unclusteredPointLayer = (
     'circle-radius': 3.8,
     'circle-stroke-width': 0.45,
     'circle-stroke-color': '#101010',
+    'circle-stroke-opacity': singletonOpacity,
     'circle-opacity': singletonOpacity,
   }
 })

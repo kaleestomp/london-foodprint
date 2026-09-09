@@ -1,6 +1,6 @@
 .drawer-geo-search {
   --drawer-geo-search-size: 36px;
-  --drawer-geo-search-active-size: 45px;
+  --drawer-geo-search-active-size: 36px;
   --drawer-geo-search-icon-color: var(--app-toolbar-icon-color);
 
   position: relative;

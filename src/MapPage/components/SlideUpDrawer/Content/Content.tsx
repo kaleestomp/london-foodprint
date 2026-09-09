@@ -20,6 +20,9 @@ const Content: FC<{
     
     return (
         <div className={`drawer-content${panelUp ? ' open' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
+            {/* <OverviewSection />
+            <RestaurantList mapRef={mapRef} pageSize={pageSize} autoUpdate={!panelUp} /> */}
+
             {suggestionsVisible ? (
                 <SuggestionList />
             ) : (
