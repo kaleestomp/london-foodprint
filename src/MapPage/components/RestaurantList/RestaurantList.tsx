@@ -6,8 +6,8 @@ import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
 // import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
 import useFetchInfinitePlacesList from './InputHook/useFetchInfinitePlacesList';
 import useReportUnmatchedSelection from './PlaceholderListItem/useReportUnmatchedSelection';
-import ListLoading from './AltState/ListLoading';
-import NoResults from './AltState/NoResult';
+import ListLoading from './SkeletonCard/ListLoading';
+import NoResults from './SkeletonCard/NoResult';
 import RefreshButton from './RefreshButton/RefreshButton';
 import useScrollState from './Virtualizer/useScrollState';
 import useRefreshState from './RefreshButton/useRefreshState';
@@ -40,6 +40,10 @@ const RestaurantList: FC<{
   // UNMATCHED SELECTED PLACE ID
   // Selected cluster singleton marker with no matching row in the loaded list.
   const unmatchedPlaceId = useReportUnmatchedSelection(items, status);
+  const [fixScroll, setFixScroll] = useState(0);
+  useEffect(() => {
+    if (unmatchedPlaceId) setFixScroll((epoch) => epoch + 1);
+  }, [unmatchedPlaceId]);
 
   // FILTER OR CITY CHANGE → AUTO-REFRESH (bypass refresh button)
   const { citySlug } = useCityContext();
@@ -64,13 +68,17 @@ const RestaurantList: FC<{
 
   return (
     <>
-      {unmatchedPlaceId && <PlaceholderListItem placeId={unmatchedPlaceId} />}
+      {unmatchedPlaceId && (
+        <div className="placeholder-list-item">
+          <PlaceholderListItem placeId={unmatchedPlaceId} />
+        </div>
+      )}
       <div ref={scrollRef} className="list-scroll-content" onScroll={onScroll}>
         <RefreshButton onListRefresh={onListRefresh} isVisible={showRefreshButton} isLoading={isRefreshPending} />
         <div className={`list-section${shouldFade ? ' list-fade-in' : ''}`} onAnimationEnd={shouldFade ? onRefreshAnimationEnd : undefined} >
           <ListLoading enabled={status === 'loading' && items.length === 0} />
           <NoResults enabled={status !== 'loading' && items.length === 0} />
-          <Virtualizer mapRef={mapRef} items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} onSelect={() => setShouldAutoRefresh(false)} />
+          <Virtualizer mapRef={mapRef} items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} fixScroll={fixScroll} onSelect={() => setShouldAutoRefresh(false)} />
           <ListLoading enabled={isFetchingNextPage} rowCount={3} />
         </div>
       </div>

@@ -16,7 +16,8 @@ const Virtualizer: FC<{
     scrollRef: React.RefObject<HTMLElement | null>;
     scrollResetEpoch: number;
     onSelect: () => void;
-}> = ({ mapRef, items, scrollRef, scrollResetEpoch, onSelect }) => {
+    fixScroll?: number;
+}> = ({ mapRef, items, scrollRef, scrollResetEpoch, fixScroll, onSelect }) => {
 
     // SELECTION STATE
     const { selectionSource } = usePlaceSelection();
@@ -36,6 +37,17 @@ const Virtualizer: FC<{
         rowVirtualizer.scrollToOffset(0, { behavior: 'auto' });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scrollResetEpoch]);
+
+    // ALIGN THE NEAREST ROW ON COMMAND.
+    useLayoutEffect(() => {
+        const nearestIndex = rowVirtualizer.range?.startIndex;
+        if (nearestIndex === undefined) return;
+        rowVirtualizer.scrollToIndex(nearestIndex, {
+            align: 'auto',
+            behavior: 'auto',
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fixScroll]);
 
     // KEEP THE SELECTED ROW IN VIEW WHEN THE SELECTION COMES FROM THE MAP.
     useLayoutEffect(() => {

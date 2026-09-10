@@ -1,12 +1,12 @@
 import type { FC } from 'react';
 
-import getCuisineIconSrc from '../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/getCuisineIconSrc';
-import { type PlacesListItem } from '../../../../request/useRequestPlacesList/request';
-import brightenColor from '../brightenColor';
+import getCuisineIconSrc from '../../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/getCuisineIconSrc';
+import { type PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
+import brightenColor from '../../formatHelpers/brightenColor';
 
-import './itemIcon.css';
+import './ItemIcon.css';
 
-const itemIcon: FC<{
+const ItemIcon: FC<{
     item: PlacesListItem;
     accentColor?: string;
 }> = ({ item, accentColor }) => {
@@ -31,4 +31,4 @@ const itemIcon: FC<{
     );
 };
 
-export default itemIcon;
+export default ItemIcon;

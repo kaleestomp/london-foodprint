@@ -5,7 +5,6 @@ import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import useRequestPlaceDetail from '../../../request/useRequestPlaceDetail/useRequestPlaceDetail';
 import ListItem from '../ListItem/ListItem';
 import toPlacesListItem from './parseToPlaceListItem';
-import ListLoading from '../AltState/ListLoading';
 
 import '../RestaurantList.css';
 
@@ -17,20 +16,18 @@ const PlaceholderListItem: FC<{ placeId: string }> = ({ placeId }) => {
     const { searchMask } = useSearchFilters();
     const { reportSelectedPlaceId } = usePlaceSelection();
 
-
     const { status, res } = useRequestPlaceDetail(placeId);
     if (status === 'error') return null;
-    if (status !== 'success' || !res) {
-        return <ListLoading enabled rowCount={1} />;
-    }
-    
-    const item = toPlacesListItem(res, searchMask?.center);
+    const showSkeleton = status !== 'success' || !res;
+
+    const item = showSkeleton ? null : toPlacesListItem(res, searchMask?.center);
     return (
         <ListItem
             item={item}
             isSelected
             onSelect={() => { }}
             onClose={() => reportSelectedPlaceId(null, null)}
+            closeButton={true}
         />
     );
 };

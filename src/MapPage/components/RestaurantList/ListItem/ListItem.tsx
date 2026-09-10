@@ -1,58 +1,39 @@
 import type { FC } from 'react';
-import Typography from '@mui/material/Typography';
 
 import { getCuisineColor } from '../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/backdropColors/getCuisineColor';
 import { type PlacesListItem } from '../../../request/useRequestPlacesList/request';
-import ItemIcon from './itemIcon/itemIcon';
-import brightenColor from './brightenColor';
-import RankBadge from './RankBadgeSimple/RankBadge';
-import ExtendedContent from './ExtendedContent/ExtendedContent';
-import { formatDistance, formatPrice } from './formatMetrics';
+import brightenColor from './formatHelpers/brightenColor';
+import ItemContent from './ItemContent/ItemContent';
+import ItemSkeleton from './ItemSkeleton/ItemSkeleton';
+import CloseButton from './CloseButton/CloseButton';
 
 import './ListItem.css';
 
 const ListItem: FC<{
-    item: PlacesListItem;
+    item: PlacesListItem | null;
     isSelected: boolean;
     onSelect: () => void;
     onClose: () => void;
-}> = ({ item, isSelected, onSelect, onClose }) => {
+    closeButton?: boolean;
+}> = ({ item, isSelected, onSelect, onClose, closeButton }) => {
 
-  const cuisineColor = getCuisineColor(item.cuisine_type);
+  const cuisineColor = item ? getCuisineColor(item.cuisine_type) : '#ffffff';
   return (
-    <div
-      className={`list-item-row ${isSelected ? 'is-selected' : ''}`}
+    <div className={`list-item-row ${isSelected ? 'is-selected' : ''}`}
       style={{ background: brightenColor(cuisineColor, isSelected ? 1.00 : 0.94) }}
-      role="button"
-      tabIndex={0}
-      aria-expanded={isSelected}
-      onClick={() => isSelected ? onClose() : onSelect()}
-      // onKeyDown={(event) => {
-      //   if (event.key !== 'Enter' && event.key !== ' ') return;
-      //   event.preventDefault();
-      //   if (isSelected) return;
-      //   onSelect();
-      // }}
+      onClick={ !item ? undefined : () => (
+        closeButton ? (isSelected ? undefined : onSelect())
+        : (isSelected ? onClose() : onSelect())
+      )}
     >
-      <ItemIcon item={item} accentColor={cuisineColor} />
-      <RankBadge item={item} accentColor={brightenColor(cuisineColor, -0.8)} />{/* -2.4 */}
-
-      <div className="list-item-content">
-        <Typography variant="h6" className="list-item-row-title" sx={{fontWeight: 500}}>
-          {item.display_name}
-        </Typography>
-        <Typography variant="subtitle1" className="list-item-row-subtitle" >
-          
-          {!isSelected ? [
-            item.cuisine_type ?? '',
-            formatDistance(item.distance_m), 
-            formatPrice(item.price?.trim() ?? ''),
-          ].filter(Boolean).join(' · ') 
-          : item.cuisine_type ?? ''}
-        </Typography>
-
-        <ExtendedContent item={item} />
-      </div>
+      {!item ? (
+        <ItemSkeleton selected={isSelected} />
+      ) : (
+        <>
+          {closeButton && isSelected && <CloseButton onClose={onClose} />}
+          <ItemContent item={item} isSelected={isSelected} color={cuisineColor} />
+        </>
+      )}
     </div>
   );
 };
