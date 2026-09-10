@@ -16,14 +16,14 @@ const FilterButtons: FC = () => {
 
   const { activeToolbarTab, setActiveToolbarTab } = useAppUI();
   // const { openPanel } = usePullUpPanelSnapState();
-  const { openDrawer } = useDrawerState();
+  const { openDrawer, isClosed } = useDrawerState();
   const openFilterTab = (tab: 'rating' | 'cuisine' | 'price') => {
     if (activeToolbarTab === tab) {
       setActiveToolbarTab(null);
       return;
     }
     setActiveToolbarTab(tab);
-    openDrawer();
+    if (isClosed) openDrawer();
   };
 
   // Request Price Info

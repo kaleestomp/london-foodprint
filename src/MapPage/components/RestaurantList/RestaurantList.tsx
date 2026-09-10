@@ -27,7 +27,7 @@ const RestaurantList: FC<{
 
   // DO NOT RESET OVERRIDE 
   // When the drawer is closed and a place is selected
-  const { isClosed } = useDrawerState();
+  const { isClosed, isAtFullHeight } = useDrawerState();
   // const { selectedPlaceId } = usePlaceSelection();
   // const doNotReset = isClosed && selectedPlaceId !== null;
 
@@ -64,7 +64,7 @@ const RestaurantList: FC<{
   // button may disappear mid pan due to matching geo params to last fetch
   // this triggers 'isReady' to true; meaning list is no longer stale
   const refreshAvaliable = isListStale && !shouldAutoRefresh;
-  const showRefreshButton = !isClosed && (refreshAvaliable || isRefreshPending);
+  const showRefreshButton = !isClosed && !isAtFullHeight && (refreshAvaliable || isRefreshPending);
 
   return (
     <>

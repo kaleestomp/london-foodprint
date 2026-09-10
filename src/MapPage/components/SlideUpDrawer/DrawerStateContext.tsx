@@ -32,7 +32,7 @@ export const DrawerStateProvider = ({ children }: { children: ReactNode }) => {
 
     const { selectedPlaceId, selectionSource, reportSelectedPlaceId } = usePlaceSelection();
     useEffect(() => {
-        if (selectedPlaceId) //&& selectionSource === 'map'
+        if (selectedPlaceId && snap === SNAP_HEIGHTS[0]) //&& selectionSource === 'map'
             updateSnap(SNAP_HEIGHTS[1]);
     }, [selectedPlaceId]);
     useEffect(() => {
