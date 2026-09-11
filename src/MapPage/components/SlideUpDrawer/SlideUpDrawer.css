@@ -10,8 +10,10 @@
   --default-transition: all 500ms ease; /*cubic-bezier(0.32, 0.72, 0, 1)*/
   
   /* ADD FLOATING GAP */
-  --edge-offset-default: 14px;
-  --edge-offset-is-open: 6px;
+  --edge-offset-default: 20px;
+  --edge-offset-is-open: 8px;
+  --border-radius-default: 48px; /* var(--app-card-border-radius); */
+  --border-radius-is-open: calc(var(--border-radius-default) - (var(--edge-offset-default) - var(--edge-offset-is-open))*0.5);
   --true-drawer-base-height: calc(var(--drawer-snap-point-offset) + var(--drawer-swipe-movement-y));
   --padding-bottom: max(0px, calc(var(--true-drawer-base-height) + var(--edge-offset-default)));
   --padding-bottom-is-open: max(0px, calc(var(--true-drawer-base-height) + var(--edge-offset-is-open)));
@@ -52,7 +54,7 @@
   /* to accommodate a FLOATING GAP */
   flex: 1 1 auto;
   min-height: 0;
-  border-radius: 45px; /* var(--app-card-border-radius); */
+  border-radius: var(--border-radius-default); /* var(--app-card-border-radius); */
 
   flex-direction: column;
   overflow: hidden;
@@ -69,12 +71,15 @@
   box-shadow: var(--app-glass-shadow); */
 }
 .base-ui-drawer-body.is-open {
-  border-radius: var(--app-card-border-radius);
+  border-radius: 
+    var(--app-card-border-radius) var(--app-card-border-radius) 
+    var(--border-radius-is-open) var(--border-radius-is-open);
 }
 .base-ui-drawer-body.is-full-height {
   border-radius: var(--app-card-border-radius);
   background: #e0e0e0;
 }
+
 .base-ui-drawer-content {
   display: flex;
   min-height: 0;
