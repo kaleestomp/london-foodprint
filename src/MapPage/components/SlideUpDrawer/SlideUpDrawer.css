@@ -75,6 +75,12 @@
   border-radius: var(--app-card-border-radius);
   background: #e0e0e0;
 }
+.base-ui-drawer-content {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
 /* .base-ui-drawer-body::before {
   content: '';
   position: absolute;

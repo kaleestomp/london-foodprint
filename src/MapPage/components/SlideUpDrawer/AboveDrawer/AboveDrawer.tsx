@@ -10,7 +10,7 @@ const AboveDrawer: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
 }> = ({ mapRef }) => {
     return (
-        <div className="above-drawer">
+        <div className="above-drawer" data-base-ui-swipe-ignore>
             <FilterButtons />
             <BubbleAvatarStateProvider>
                 <BubbleAvatar mapRef={mapRef} />
