@@ -6,6 +6,8 @@ import DataLayer from './DataLayer/DataLayer';
 import onUserRoam from './InputHooks/onUserRoam';
 import { useViewportQuery } from '../../../context/ViewportQueryContext';
 
+import './Map.css';
+
 type Props = {
   mapRef?: React.RefObject<maplibregl.Map | null>;
 };
@@ -20,7 +22,7 @@ const Map: React.FC<Props> = ({ mapRef: externalMapRef }) => {
 
   DataLayer(mapRef, true);
 
-  return <div className="leaflet-map-canvas" ref={mapContainerRef} />;
+  return <div className="map-canvas" ref={mapContainerRef} />;
 };
 
 export default Map;

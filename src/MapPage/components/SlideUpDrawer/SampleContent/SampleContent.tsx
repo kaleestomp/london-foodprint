@@ -1,6 +1,6 @@
 import { type FC } from 'react';
 import { clsx } from 'clsx';
-import { Drawer } from 'vaul';
+import { Drawer } from '@base-ui/react/drawer';
 
 import './SampleContent.css';
 

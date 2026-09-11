@@ -1,5 +1,5 @@
 import { type FC, useState, type ReactNode } from 'react';
-import { Drawer } from 'vaul';
+import { Drawer } from '@base-ui/react/drawer';
 import { useDrawerState } from '../DrawerStateContext';
 
 import './InsetPortal.css';
@@ -14,16 +14,20 @@ const InsetPortal: FC<{
   
   return (
     <Drawer.Root
-      defaultOpen={true} dismissible={false} modal={false}
-      snapPoints={SNAP_HEIGHTS} activeSnapPoint={snap}
-      setActiveSnapPoint={updateSnap} snapToSequentialPoint={false}
-      fadeFromIndex={2} handleOnly={true} repositionInputs={false}
-      container={drawerContainer}
-    //onDragPositionChange={(visibleHeight) => void}
+      open={true}
+      onOpenChange={() => undefined}
+      disablePointerDismissal
+      modal={false}
+      snapPoints={SNAP_HEIGHTS}
+      snapPoint={snap}
+      onSnapPointChange={updateSnap}
+      snapToSequentialPoints
     >
-      <div ref={setDrawerContainer} className={`vaul-container${isAtFullHeight ? ' is-full-height' : isClosed ? '' : ' is-open'}`}>
+      <div ref={setDrawerContainer} className={`base-ui-container${isAtFullHeight ? ' is-full-height' : isClosed ? '' : ' is-open'}`}>
         {drawerContainer && <Drawer.Portal container={drawerContainer}>
-          {children}
+          <Drawer.Viewport>
+            <Drawer.Popup>{children}</Drawer.Popup>
+          </Drawer.Viewport>
         </Drawer.Portal>}
       </div>
 

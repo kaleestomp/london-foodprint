@@ -5,8 +5,8 @@ import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useAppUI } from '../../../../context/AppUIContext';
 import RestaurantList from '../../RestaurantList/RestaurantList';
 import FilterSection from '../../FilterTabs/FilterSection';
-import SuggestionList from '../../GeoSearch/SuggestionList';
-import { useGeoSearch } from '../../GeoSearch/GeoSearchContext';
+// import SuggestionList from '../../GeoSearch/SuggestionList';
+// import { useGeoSearch } from '../../GeoSearch/GeoSearchContext';
 
 import './Content.css';
 
@@ -16,7 +16,7 @@ const Content: FC<{
 }> = ({ panelUp, mapRef }) => {
 
     const isMobile = useIsMobileCtx();
-    const { suggestionsVisible } = useGeoSearch();
+    // const { suggestionsVisible } = useGeoSearch();
     const pageSize = isMobile && !panelUp ? 5 : 20;
     
     const { activeToolbarTab } = useAppUI();
@@ -24,10 +24,12 @@ const Content: FC<{
     
     return (
         <div className={`drawer-content${panelUp ? ' open' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
-            {/* <OverviewSection />
-            <RestaurantList mapRef={mapRef} pageSize={pageSize} autoUpdate={!panelUp} /> */}
+            <FilterSection />
+            {activeToolbarTab === null && 
+                <RestaurantList mapRef={mapRef} pageSize={pageSize} autoUpdate={!panelUp} />
+            }
 
-            {suggestionsVisible ? (
+            {/* {suggestionsVisible ? (
                 <SuggestionList />
             ) : (
                 <>  
@@ -37,7 +39,7 @@ const Content: FC<{
                     }
                     
                 </>
-            )}
+            )} */}
         </div>
     );
 };

@@ -4,7 +4,7 @@ import type maplibregl from 'maplibre-gl';
 import { useAppUI } from '../../../context/AppUIContext';
 import { useIsMobileCtx } from '../../../context/IsMobileContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
-// import GeoSearchbar from '../GeoSearchbarMaptiler/GeoSearchbar';
+import GeoSearchbar from '../GeoSearchbarMaptiler/GeoSearchbar';
 import MyLocationButton from './MyLocationButtonFAB/MyLocationButton';
 // import LayersButton from './LayersButton/LayersButton';
 import NorthResetButton from './NorthResetButton/NorthResetButton';
@@ -22,12 +22,12 @@ const MapToolbar: React.FC<Props> = ({
   const isMobile = useIsMobileCtx();
   const { isAtFullHeight } = useDrawerState();
   const { queueLiveLocationDrop } = useAppUI();
-  const [isSearchDropdownOpen, _] = useState(false);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
   const isHidden = isMobile && isAtFullHeight;
 
   return (
     <div className={`map-toolbar ${isHidden ? 'map-toolbar-hidden' : ''}${isSearchDropdownOpen ? ' map-toolbar-search-open' : ''}`}>
-      {/* <GeoSearchbar onDropdownOpenChange={setIsSearchDropdownOpen}/> */}
+      <GeoSearchbar onDropdownOpenChange={setIsSearchDropdownOpen}/>
       <div className="map-toolbar-side-action" aria-hidden={isSearchDropdownOpen}>
         <MyLocationButton onLiveLocationDrop={queueLiveLocationDrop}/>
         <NorthResetButton mapRef={mapRef} />

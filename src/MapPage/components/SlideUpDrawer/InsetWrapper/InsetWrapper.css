@@ -1,4 +1,4 @@
-.vaul-container {
+.base-ui-container {
   position: fixed;
   inset: 0 16px 16px;
   overflow: hidden;
@@ -11,11 +11,11 @@
   --open-radius: 34px; /* var(--app-card-border-radius); */
   --full-height-radius: 10px;
 }
-.vaul-container.is-open {
+.base-ui-container.is-open {
   inset: 0 8px 8px;
   border-radius: var(--open-radius);
 }
-.vaul-container.is-full-height {
+.base-ui-container.is-full-height {
   inset: 0;
   border-radius: var(--full-height-radius);
 }
