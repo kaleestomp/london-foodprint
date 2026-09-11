@@ -1,4 +1,4 @@
-.vaul-body {
+.base-ui-body {
   display: flex;
   width: 100%;
   max-width: 448px;
@@ -7,11 +7,11 @@
   padding: 20px 16px 16px;
 }
 
-.vaul-body-scroll {
+.base-ui-body-scroll {
   overflow-y: auto;
 }
 
-.vaul-body-clip {
+.base-ui-body-clip {
   overflow: hidden;
 }
 

@@ -1,0 +1,107 @@
+.geo-searchbar-dropdown {
+  --max-height: calc(100vh - 80px);
+
+  list-style: none;
+  margin: 0;
+  padding: 4px 0 8px;
+  width: 100%;
+  background: transparent;
+  color: var(--app-toolbar-icon-color);
+  max-height: var(--max-height);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-divider-color) transparent;
+}
+
+.geo-searchbar-dropdown::-webkit-scrollbar {
+  width: 10px;
+}
+
+.geo-searchbar-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.geo-searchbar-dropdown::-webkit-scrollbar-thumb {
+  background: var(--app-divider-color);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.geo-searchbar-dropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--app-divider-color);
+  background-clip: content-box;
+}
+
+.geo-searchbar-dropdown-wrap {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 220ms ease, opacity 160ms ease;
+}
+
+.geo-searchbar-dropdown-wrap.is-open {
+  max-height: var(--max-height);
+  opacity: 1;
+}
+
+.geo-searchbar-divider {
+  height: 1px;
+  margin: 0 10px;
+  background: var(--app-divider-color);
+}
+
+.geo-searchbar-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.geo-searchbar-option:hover {
+  background: var(--app-divider-color);
+}
+
+.geo-searchbar-option-pin {
+  color: var(--app-text-caption-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.geo-searchbar-option-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.geo-searchbar-option-primary,
+.geo-searchbar-option-secondary {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.geo-searchbar-option-primary {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--app-text-color);
+}
+
+.geo-searchbar-option-secondary {
+  font-size: 0.76rem;
+  color: var(--app-text-caption-color);
+}
+
+.geo-searchbar-status {
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  color: var(--app-text-caption-color);
+}
+

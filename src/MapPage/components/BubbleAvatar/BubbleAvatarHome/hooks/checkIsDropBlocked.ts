@@ -5,7 +5,7 @@ const checkIsDropBlocked = (
 ) => {
     if (!isMobile) return false;
 
-    const drawer = document.querySelector<HTMLElement>('.vaul-drawer-body');
+    const drawer = document.querySelector<HTMLElement>('.base-ui-drawer-body');
     const drawerRect = drawer?.getBoundingClientRect();
     const panelTopY = drawerRect?.top ?? (
         drawerSnapPX ? Math.max(0, window.innerHeight - drawerSnapPX) : window.innerHeight

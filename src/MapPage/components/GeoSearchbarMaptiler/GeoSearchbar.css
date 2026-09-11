@@ -1,0 +1,82 @@
+.geo-searchbar-root {
+    --geo-searchbar-height: var(--toolbar-height, 38px);
+    --geo-searchbar-active-height: calc(var(--toolbar-height, 38px) * 1.2);
+    --geo-searchbar-border: none; /*1px solid rgba(45, 45, 45, 0.5)*/
+    --geo-searchbar-bg: var(--toolbar-background); /*var(--app-glass-bg) var(--toolbar-background) */
+    --geo-searchbar-bg-hover: var(--toolbar-background-hover);
+    --geo-searchbar-bg-active: var(--toolbar-background-active);
+    --geo-searchbar-backdrop-filter: none; /*var(--app-backdrop-filter)*/;
+    --geo-searchbar-backdrop-filter-active: var(--toolbar-backdrop-filter-active);
+    --geo-searchbar-hover-transform: scale(1.01);
+    --geo-searchbar-icon-size: var(--toolbar-icon-size, 20px);
+
+    position: relative;
+    width: var(--geo-searchbar-height);
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    transition: width 220ms ease;
+    width: 100%;
+    
+}
+
+.geo-searchbar-and-dropdown {
+    position: relative;
+    isolation: isolate;
+
+    max-width: var(--geo-searchbar-height);
+    background: var(--geo-searchbar-bg);
+    border: var(--geo-searchbar-border);
+    backdrop-filter: var(--geo-searchbar-backdrop-filter);
+    color: var(--app-toolbar-icon-color);
+    border-radius: calc(var(--geo-searchbar-height) / 2);
+    overflow: hidden;
+    transition: all 400ms ease;
+}
+
+.geo-searchbar-and-dropdown:hover {
+    transform: var(--geo-searchbar-hover-transform);
+    background: var(--geo-searchbar-bg-hover);
+    border: none;
+    max-width: 400px;
+}
+
+.geo-searchbar-and-dropdown:focus-within {
+    outline: none;
+    background: var(--geo-searchbar-bg-active);
+    box-shadow: var(--toolbar-shadow-active); 
+    border: none;
+    max-width: 400px;
+}
+
+.geo-searchbar-and-dropdown>* {
+    position: relative;
+    z-index: 1;
+}
+
+@property --searchbar-ring-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+@keyframes searchbar-ring-spin {
+    to {
+        --searchbar-ring-angle: 360deg;
+    }
+}
+
+.geo-searchbar-icon {
+    width: var(--geo-searchbar-icon-size);
+    height: var(--geo-searchbar-icon-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.geo-searchbar-icon svg {
+    width: var(--geo-searchbar-icon-size);
+    height: var(--geo-searchbar-icon-size);
+    color: var(--app-toolbar-icon-color);
+}

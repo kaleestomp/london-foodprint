@@ -1,7 +1,6 @@
 import type { FC } from 'react';
 
 import useResultSummary from '../../HeaderContent/ResultSummary';
-import GeoSearchbar from '../../GeoSearch/GeoSearchbar';
 import { useGeoSearch } from '../../GeoSearch/GeoSearchContext';
 import './Header.css';
 
@@ -18,7 +17,6 @@ const HeaderMobile: FC = () => {
             Ranked Top 25% of Metroplitan Area
           </div> */}
         </div>
-        <GeoSearchbar />
       </div>
     </div>
   );

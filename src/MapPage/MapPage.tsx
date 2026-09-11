@@ -16,7 +16,7 @@ import Loading from '../components/Loading/Loading';
 import MapToolbar from './components/MapToolbar/MapToolbar';
 import DrawerMapViewportSync from './components/MapViewportSync/DrawerMapViewportSync';
 
-import VaulDrawer from './components/SlideUpDrawer/SlideUpDrawer.tsx';
+import SlideUpDrawer from './components/SlideUpDrawer/SlideUpDrawer.tsx';
 
 // import { useCityContext } from '../context/CityContext';
 
@@ -45,7 +45,7 @@ const MapPage: FC = () => {
               <DrawerStateProvider>
                 <MapToolbar mapRef={mapRef} />
                 <DrawerMapViewportSync mapRef={mapRef} />
-                <VaulDrawer mapRef={mapRef} />
+                <SlideUpDrawer mapRef={mapRef} />
               </DrawerStateProvider>
               </GeoSearchProvider>
             </TopPlacesProvider>
