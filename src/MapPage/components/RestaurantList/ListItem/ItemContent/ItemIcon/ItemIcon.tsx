@@ -2,7 +2,7 @@ import type { FC } from 'react';
 
 import getCuisineIconSrc from '../../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/getCuisineIconSrc';
 import { type PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
-import brightenColor from '../../formatHelpers/brightenColor';
+import brightenColor from '../../../../../../utils/format/brightenColor';
 
 import './ItemIcon.css';
 
@@ -16,10 +16,7 @@ const ItemIcon: FC<{
 
     return (
         <div className="list-item-icon-column" aria-hidden="true">
-            <div
-              className="list-item-icon-badge"
-              style={{ background: backgroundColor }}
-            >
+            <div className="list-item-icon-badge" style={{ background: backgroundColor }}>
                 <img
                     src={cuisineIconSrc}
                     alt={item.cuisine_type ?? 'Cuisine'}

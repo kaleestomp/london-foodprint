@@ -17,6 +17,7 @@ type SearchFiltersContextType = {
   cuisines: string[]; effectiveCuisines: string[]; 
   addCuisine: (value: string) => void; clearCuisines: () => void;
   cuisineSelectionMode: CuisineSelectionMode; setCuisineSelectionMode: (value: CuisineSelectionMode) => void;
+  isGlobal: boolean; setIsGlobal: (value: boolean) => void;
   venueType: VenueTypeFilterOption | null; setVenueType: (value: VenueTypeFilterOption | null) => void;
   priceRangeInterval: PriceRangeInterval | null; setPriceRangeInterval: (value: PriceRangeInterval | null) => void;
   effectivePriceRanges: PriceRangeFilterOption[];
@@ -36,6 +37,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   
   const [cuisines, setCuisines] = useState<string[]>([]);
   const [cuisineSelectionMode, setCuisineSelectionMode] = useState<CuisineSelectionMode>('include');
+  const [isGlobal, setIsGlobal] = useState<boolean>(false);
   const effectiveCuisines = useMemo<string[]>(() => ( cuisineSelectionMode === 'include' 
     ? cuisines : CUISINE_FILTER_OPTIONS.filter((option) => !cuisines.includes(option))
   ), [cuisineSelectionMode, cuisines]);
@@ -71,6 +73,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   const resetFilters = () => {
     setCuisines([]);
     setCuisineSelectionMode('include');
+    setIsGlobal(false);
     setVenueType(null);
     setPriceRangeInterval(null);
     setSearchMask(null);
@@ -85,6 +88,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   const exposed = useMemo<SearchFiltersContextType>(() => ({
     cuisines, effectiveCuisines, addCuisine, clearCuisines,
     cuisineSelectionMode, setCuisineSelectionMode, 
+    isGlobal, setIsGlobal,
     effectivePriceRanges, priceRangeInterval, setPriceRangeInterval, 
     venueType, setVenueType,
     searchMask, setSearchMask,
@@ -98,6 +102,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   }), [
     cuisines, effectiveCuisines, addCuisine, clearCuisines,
     cuisineSelectionMode, setCuisineSelectionMode, 
+    isGlobal, setIsGlobal,
     effectivePriceRanges, priceRangeInterval, setPriceRangeInterval, 
     venueType, setVenueType,
     searchMask, setSearchMask,

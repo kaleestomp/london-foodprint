@@ -7,7 +7,7 @@ import RatingFilterPanel from './RatingFilter/RatingFilterPanel';
 
 import './FilterSection.css';
 
-const OverviewSection: FC= () => {
+const FilterSection: FC= () => {
 
     const { activeToolbarTab } = useAppUI();
     const filterContent = activeToolbarTab === 'price'
@@ -28,4 +28,4 @@ const OverviewSection: FC= () => {
     );
 };
 
-export default OverviewSection;
+export default FilterSection;

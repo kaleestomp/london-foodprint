@@ -8,10 +8,10 @@
 }
 
 .overview-section.has-content {
-  flex: 1 0 100%;
+  flex: 1 1 auto;
   opacity: 1;
   pointer-events: auto;
-  overflow: hidden;
+  overflow: visible;
   min-height: 0;
 }
 

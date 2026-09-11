@@ -5,8 +5,8 @@ import { type PlacesListItem } from '../../../../request/useRequestPlacesList/re
 import ItemIcon from './ItemIcon/ItemIcon';
 import RankBadge from './RankBadgeSimple/RankBadge';
 import ExtendedContent from './ExtendedContent/ExtendedContent';
-import brightenColor from '../formatHelpers/brightenColor';
-import { formatDistance, formatPrice } from '../formatHelpers/formatMetrics';
+import brightenColor from '../../../../../utils/format/brightenColor';
+import { formatDistance, formatPrice } from '../../../../../utils/format/formatMetrics';
 
 import '../ListItem.css';
 

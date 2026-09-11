@@ -8,7 +8,7 @@ import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import CurrencyPoundIcon from '@mui/icons-material/CurrencyPound';
 
 import IconPair from './IconPair';
-import { formatWalkDistance, formatDistance } from '../../formatHelpers/formatMetrics';
+import { formatWalkDistance, formatDistance } from '../../../../../../utils/format/formatMetrics';
 import type { PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
 import './ExtendedContent.css';
 

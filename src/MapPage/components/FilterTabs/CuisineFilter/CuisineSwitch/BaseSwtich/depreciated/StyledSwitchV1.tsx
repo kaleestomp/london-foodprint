@@ -1,5 +1,6 @@
 import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
+import './StyledSwitch.css';
 
 const THUMB_SIZE = 38;
 const ICON_SIZE = 30; //28

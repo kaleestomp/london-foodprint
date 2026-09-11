@@ -1,10 +1,7 @@
 import { useMemo } from 'react';
 import { type CuisineHistogramEntry } from '../../../../request/useRequestCuisineHistogram/request';
 
-import {
-    CUISINE_FILTER_OPTIONS,
-    useSearchFilters,
-} from '../../../../../context/SearchFiltersContext';
+import { CUISINE_FILTER_OPTIONS, useSearchFilters } from '../../../../../context/SearchFiltersContext';
 
 const MAX_BARS = 8;
 const BLUE = 'rgb(31, 130, 192)';

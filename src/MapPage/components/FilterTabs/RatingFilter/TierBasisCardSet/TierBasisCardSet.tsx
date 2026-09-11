@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import StoreIcon from '@mui/icons-material/Store';
+// import StoreIcon from '@mui/icons-material/Store';
 
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
@@ -13,7 +13,7 @@ const TierBasisIcon: React.FC<{ icon: string }> = ({ icon }) => (
 const TierBasisCardSet: React.FC = () => {
     const { scoreBasis, reportScoreBasis,
         allowBlockChain, setAllowBlockChain,
-        allowChain, setAllowChain,
+        // allowChain, setAllowChain,
     } = useSearchFilters();
 
     const [isDiversityCaped, setIsDiversityCaped] = useState(scoreBasis === 2 || scoreBasis === 1);
@@ -36,12 +36,12 @@ const TierBasisCardSet: React.FC = () => {
                 selected={allowBlockChain}
                 onClick={() => setAllowBlockChain(!allowBlockChain)}
             />
-            <RatingCard
+            {/* <RatingCard
                 icon={<StoreIcon className="wilson-basis-icon" aria-hidden="true" />}
                 label="Minor Chains"
                 selected={allowChain}
                 onClick={() => setAllowChain(!allowChain)}
-            />
+            /> */}
         </div>
     );
 };

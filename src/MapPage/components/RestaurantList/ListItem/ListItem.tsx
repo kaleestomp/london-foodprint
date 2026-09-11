@@ -2,7 +2,7 @@ import type { FC } from 'react';
 
 import { getCuisineColor } from '../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/backdropColors/getCuisineColor';
 import { type PlacesListItem } from '../../../request/useRequestPlacesList/request';
-import brightenColor from './formatHelpers/brightenColor';
+import brightenColor from '../../../../utils/format/brightenColor';
 import ItemContent from './ItemContent/ItemContent';
 import ItemSkeleton from './ItemSkeleton/ItemSkeleton';
 import CloseButton from './CloseButton/CloseButton';
