@@ -5,13 +5,16 @@
 }
 
 .map-card-viewport {
+  --map-overscan-top: 0px;
+  --map-overscan-bottom: 0px;
+
   position: absolute; 
   width: 100%; 
   height: 100%; 
-  top: 0;
+  top: calc(-1 * var(--map-overscan-top));
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: calc(-1 * var(--map-overscan-bottom));
   z-index: auto; /*0 */
   background-color: rgb(248, 248, 248); 
   --left-panel-width: clamp(300px, 30vw, 420px);
