@@ -39,9 +39,11 @@ const SlideUpDrawer: FC<{
           <AboveDrawer mapRef={mapRef} />
           <div className={`base-ui-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}>
             <div className="base-ui-handle" aria-hidden="true" />
-            <Header />
-            {/* <SampleContent snap={snap} /> */}
-            <Content panelUp={!isClosed} mapRef={mapRef} />
+            <Drawer.Content className="base-ui-drawer-content">
+              <Header />
+              {/* <SampleContent snap={snap} /> */}
+              <Content panelUp={!isClosed} mapRef={mapRef} />
+            </Drawer.Content>
           </div>
           </Drawer.Popup>
         </Drawer.Viewport>
