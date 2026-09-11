@@ -10,7 +10,7 @@ import { useDrawerState } from './DrawerStateContext';
 
 import './SlideUpDrawer.css';
 
-export const SNAP_HEIGHTS = ['120px', '410px', `${window.innerHeight - 96}px`];//200px 94px 320px 104px ${window.innerHeight - 28}px
+export const SNAP_HEIGHTS = ['104px', '410px', `${window.innerHeight - 96}px`];//200px 94px 320px 104px ${window.innerHeight - 28}px
 
 const SlideUpDrawer: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
@@ -33,7 +33,9 @@ const SlideUpDrawer: FC<{
       <Drawer.Portal>
         <Drawer.Backdrop className={`base-ui-overlay${isAtFullHeight ? ' is-visible' : ''}`} />
         <Drawer.Viewport className="base-ui-viewport">
-          <Drawer.Popup data-testid="content" className="base-ui-content">
+          <Drawer.Popup data-testid="content" className={
+            `base-ui-content${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`
+            }>
           <AboveDrawer mapRef={mapRef} />
           <div className={`base-ui-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}>
             <div className="base-ui-handle" aria-hidden="true" />
