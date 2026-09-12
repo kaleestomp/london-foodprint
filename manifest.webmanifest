@@ -1,0 +1,17 @@
+{
+  "name": "London Foodprint",
+  "short_name": "Foodprint",
+  "description": "Explore top restaurants across London.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f8f8",
+  "theme_color": "#f8f8f8",
+  "icons": [
+    {
+      "src": "./icon-explorer.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    }
+  ]
+}
