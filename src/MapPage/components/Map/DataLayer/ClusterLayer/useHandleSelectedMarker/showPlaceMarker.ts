@@ -1,5 +1,5 @@
 import React from 'react';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import TopPlacePin from '../../TopPlacesLayer/syncMarkers/markers/TopPlacePin';
 
 const showPlaceMarker = (

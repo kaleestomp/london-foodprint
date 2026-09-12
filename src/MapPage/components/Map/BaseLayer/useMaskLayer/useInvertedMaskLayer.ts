@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import type { FeatureCollection, Polygon } from 'geojson';
 
 import { useCityContext } from '../../../../../context/CityContext';

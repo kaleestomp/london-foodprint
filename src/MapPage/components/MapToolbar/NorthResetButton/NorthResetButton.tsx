@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import CompassIcon from './CompassIcon/CompassIcon';
 import { normalizeBearing } from './normalizeBearing';

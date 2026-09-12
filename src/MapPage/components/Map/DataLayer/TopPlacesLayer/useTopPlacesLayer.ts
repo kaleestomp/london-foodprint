@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import useFetchTopPlaces from './InputHooks/useFetchTopPlaces';
 import useReportTopPlacesIDs from './reportHooks/useReportTopPlacesIDs';

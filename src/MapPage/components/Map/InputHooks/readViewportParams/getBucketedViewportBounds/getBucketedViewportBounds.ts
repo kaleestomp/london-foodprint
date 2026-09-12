@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import snapViewportLatLng, { type ViewportBounds } from './snapViewportLatLng';
 import unprojectWithoutPitch from '../../../DataLayer/utils/unprojectWithoutPitch';

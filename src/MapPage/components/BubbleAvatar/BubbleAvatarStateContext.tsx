@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import type { ReactNode, Dispatch, SetStateAction } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import { useSearchFilters } from '../../../context/SearchFiltersContext';
 import { SEARCH_RADIUS } from './config';
 
@@ -10,7 +10,7 @@ interface BubbleAvatarState {
   /** Screen-space coordinate where the bubble landed for UI styling/animation */
   screenXY: Point | null;
 
-  /** Screen coordinate where pickup was triggered — mounts BubbleButton there
+  /** Screen coordinate where pickup was triggered â€” mounts BubbleButton there
    *  instead of its home position and auto-starts the drag. */
   pickupPos: Point | null;
 

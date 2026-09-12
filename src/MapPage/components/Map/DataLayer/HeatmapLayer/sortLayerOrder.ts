@@ -1,6 +1,6 @@
 const BUILDING_LAYER_ID = '3d-buildings';
 const CLUSTER_LAYER_ID = 'cluster-count';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 const sortLayerOrder = (
     map: maplibregl.Map,

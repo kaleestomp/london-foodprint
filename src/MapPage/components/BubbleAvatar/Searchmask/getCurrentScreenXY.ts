@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import { checkIsInView, getEdgeState } from '../BubbleEdgeIndicator/getEdgeState';
 
 const getCurrentScreenXY = (

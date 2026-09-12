@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 type MarkerRemovalTimer = ReturnType<typeof setTimeout>;
 export type MarkerState = Record<string, never>;

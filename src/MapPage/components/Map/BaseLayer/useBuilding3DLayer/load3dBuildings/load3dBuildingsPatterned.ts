@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 const BUILDING_LAYER_ID = '3d-buildings';
 const BUILDING_SOURCE_ID = 'maptiler_planet';

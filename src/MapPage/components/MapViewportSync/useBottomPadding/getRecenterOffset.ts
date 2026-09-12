@@ -1,5 +1,5 @@
 const PANEL_MARKER_SAFE_GAP_PX = 24;
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 const getRecenterOffset = (
   map: maplibregl.Map | null,

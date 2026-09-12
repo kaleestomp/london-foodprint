@@ -1,5 +1,5 @@
 import React from 'react';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import { type PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
 import TopPlacePin from '../../../../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/TopPlacePin';
 

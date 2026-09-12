@@ -1,5 +1,5 @@
 import { type FC, useRef } from 'react'; //, { useRef }
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../context/AppUIContext';
 import { ViewportQueryProvider } from '../context/ViewportQueryContext.tsx';

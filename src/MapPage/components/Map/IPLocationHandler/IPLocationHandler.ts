@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import useIPLocation from '../../../../request/useIPLocation/useIPLocation';
 import { useCityContext } from '../../../../context/CityContext';

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import BaseLayer from './BaseLayer/BaseLayer';
 import DataLayer from './DataLayer/DataLayer';

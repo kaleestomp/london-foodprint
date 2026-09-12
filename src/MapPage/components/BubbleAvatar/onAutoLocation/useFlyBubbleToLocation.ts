@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'; 
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';

@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { type PanInfo } from 'framer-motion';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { type Point } from '../config';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
@@ -14,7 +14,7 @@ import useDragMotionValues from './useDragMotionValues';
  *  - on release anywhere else: calls onCancel (if provided), otherwise Framer Motion springs back
  *
  * Near-home check runs FIRST because the home button sits inside the map
- * container rect — without this, releasing near home would trigger a map drop.
+ * container rect â€” without this, releasing near home would trigger a map drop.
  */
 const onBubbleDrag = (
   mapRef: React.RefObject<maplibregl.Map | null>,
@@ -68,7 +68,7 @@ const onBubbleDrag = (
 
       resolveDrop({ x, y });
 
-      // // CANCEL IF NEAR HOME (highest priority) ──────────────────────────────
+      // // CANCEL IF NEAR HOME (highest priority) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       // // cancel pickup and return to home button.
       // // Must run before the map-bounds check because the home position sits
       // // inside the map container rect.
@@ -86,7 +86,7 @@ const onBubbleDrag = (
       //   return;
       // }
 
-      // // ── Map-drop check ──────────────────────────────────────────────────
+      // // â”€â”€ Map-drop check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       // const map = mapRef.current;
       // if (!map) return;
       // const mapRect = map.getContainer().getBoundingClientRect();

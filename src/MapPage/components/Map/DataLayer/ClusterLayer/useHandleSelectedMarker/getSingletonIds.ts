@@ -1,5 +1,5 @@
 // import { useRef } from 'react';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 
 const getSingletonIds = (
     map: maplibregl.Map,

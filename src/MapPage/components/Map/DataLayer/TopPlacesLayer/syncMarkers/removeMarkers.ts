@@ -1,3 +1,4 @@
+import type * as maplibregl from 'maplibre-gl';
 import { animateTopPlacePinExit } from './markers/TopPlacePin';
 import { scheduleExitRemoval, cancelScheduledRemoval } from './markerLifecycle/scheduleRemoval';
 import type { MarkerLifecycleCache } from './markerLifecycle/markerLifecycle';

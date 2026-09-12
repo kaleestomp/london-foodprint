@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { useGeoSearch } from '../../../GeoSearch/GeoSearchContext';
 import featureBbox from '../BoundaryLayer/featureBbox';
@@ -25,7 +25,7 @@ const useStreetLayer = (
         if (currentMap.getLayer(LAYER_ID)) { currentMap.removeLayer(LAYER_ID); }
         if (currentMap.getSource(SOURCE_ID)) { currentMap.removeSource(SOURCE_ID); }
       } catch {
-        // Style already torn down (e.g. city switch) — nothing to remove
+        // Style already torn down (e.g. city switch) â€” nothing to remove
       }
     };
 

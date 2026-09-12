@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import getBucketedViewportBounds from './getBucketedViewportBounds/getBucketedViewportBounds';
 import { type ViewportBounds } from './getBucketedViewportBounds/snapViewportLatLng';

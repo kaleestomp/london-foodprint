@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 
 import BubbleAvatarPin from '../../BubbleAvatarPin/BubbleAvatarPin';
 import getMarkerSizeFromCss from './getMarkerSizeFromCss';

@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import type * as maplibregl from 'maplibre-gl';
 import FilterButtons from '../../BaseToolbar/FilterButtons';
 
 import { BubbleAvatarStateProvider } from '../../BubbleAvatar/BubbleAvatarStateContext';

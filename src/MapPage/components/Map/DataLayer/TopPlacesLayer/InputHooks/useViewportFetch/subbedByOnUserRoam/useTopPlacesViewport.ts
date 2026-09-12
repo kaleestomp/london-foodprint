@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import readViewportParams from './readViewportParams';
 import { useIsMobileCtx } from '../../../../../../../../context/IsMobileContext';

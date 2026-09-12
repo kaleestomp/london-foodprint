@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import readViewportParams from './readViewportParams/readViewportParams';
@@ -10,7 +10,7 @@ const THROTTLE_MS = 250;
 /**
  * Tracks map viewport and emits TilesParams whenever the user pans or zooms.
  * `resolveRes` converts the current Leaflet zoom level to the H3 resolution
- * that should be requested — callers pass different tables per viz mode.
+ * that should be requested â€” callers pass different tables per viz mode.
  * 
  * BBox snap to outer bounds of zoom-responsive tiles to reduce cardinality of requests;
  * BBox scales with floor rounded zoom level only; zoom 12.5 and zoom 12.0 shares the same bbox size and h3 resolution;

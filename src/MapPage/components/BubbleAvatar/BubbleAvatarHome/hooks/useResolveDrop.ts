@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { HOME_SNAP_RADIUS, type Point } from '../../config';
 import { useBubbleAvatarState } from '../../BubbleAvatarStateContext';

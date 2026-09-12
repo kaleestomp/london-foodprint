@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import getCuisineIconSrc from './getCuisineIconSrc';

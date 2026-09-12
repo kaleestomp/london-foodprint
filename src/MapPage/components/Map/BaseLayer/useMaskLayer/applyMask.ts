@@ -1,5 +1,5 @@
 import React from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import type { FeatureCollection, Polygon } from 'geojson';
 import { MASK_LAYER_IDS, OPTIONS } from './config';
 

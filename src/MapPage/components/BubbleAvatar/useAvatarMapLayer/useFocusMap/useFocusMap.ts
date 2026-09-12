@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { ZOOM_LEVEL } from '../../config';
 import useMapViewportNavigation from '../../MapNavigation/useMapViewportNavigation';
@@ -8,7 +8,7 @@ import useBottomPadding from '../../../MapViewportSync/useBottomPadding/useBotto
 
 /**
  * Manages all Leaflet layers for the dropped bubble avatar.
- * Reactive: watches droppedPos state — React's effect cleanup handles
+ * Reactive: watches droppedPos state â€” React's effect cleanup handles
  * clearing layers whenever the position changes or becomes null.
  *
  * Long-press (150 ms) on the map avatar calls onPickup(x, y), which

@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import type * as maplibregl from 'maplibre-gl';
 
 import { usePlaceSelection } from '../../../../../../context/PlaceSelectionContext';
 import showPlaceMarker from './showPlaceMarker';

@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 const FILL_COLOR = '#1f82c0'; // --app-primary-blue
 const LINE_COLOR = '#1f82c0';

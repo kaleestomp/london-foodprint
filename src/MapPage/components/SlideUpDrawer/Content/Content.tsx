@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useAppUI } from '../../../../context/AppUIContext';

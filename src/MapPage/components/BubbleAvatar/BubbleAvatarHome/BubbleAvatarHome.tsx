@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom';
 import { memo, useMemo, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
@@ -98,7 +98,7 @@ const BubbleHome: React.FC<{
 
   return (
     <>
-      {/* ── Floating bubble ─────────────────────────────────────────────── */}
+      {/* â”€â”€ Floating bubble â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <motion.div
         ref={bubbleRef}
         className={`bubble-btn${isDragging ? ' is-dragging' : ''}`}
@@ -129,7 +129,7 @@ const BubbleHome: React.FC<{
         <BubbleEyes bubbleRef={bubbleRef} pickupPos={pickupPos} isDragging={isDragging} />
       </motion.div>
 
-      {/* ── Drop-ring overlay (follows pointer while dragging) ───────────── */}
+      {/* â”€â”€ Drop-ring overlay (follows pointer while dragging) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <DropRing pointer={onDrag.dragMotion.pointer} isActive={isDragging && !isNearHome} /> 
 
       {isPickupPending && pickupPos && typeof document !== 'undefined' &&createPortal(

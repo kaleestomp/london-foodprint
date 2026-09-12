@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import IconButton from '@mui/material/IconButton';
 import Snackbar from '@mui/material/Snackbar';

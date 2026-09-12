@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 
 const useClearSelectionOnMapClick = (

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import type * as maplibregl from 'maplibre-gl';
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
 import { useCityContext } from '../../../../../context/CityContext';
 const MIN_ZOOM_ADJUSTED = 12.5;

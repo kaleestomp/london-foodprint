@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import type { CityParams } from '../../../context/CityContext';
 
 export const isWithinCityBounds = (lat: number, lon: number, bounds: [[number, number], [number, number]]): boolean => {

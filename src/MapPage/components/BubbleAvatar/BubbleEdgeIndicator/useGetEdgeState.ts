@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { checkIsInView, getEdgeState } from '../BubbleEdgeIndicator/getEdgeState';
 import type { EdgeState } from '../BubbleEdgeIndicator/getEdgeState';
@@ -9,12 +9,12 @@ const useGetEdgeState = (
     latLng?: { lat: number; lng: number } | null
 ) => {
 
-    // Cached container rect — the container doesn't move during pan/zoom,
+    // Cached container rect â€” the container doesn't move during pan/zoom,
     // so we only re-read it on resize rather than on every map move event.
     const containerRectRef  = useRef<DOMRect | null>(null);
     const [edgeState, setEdgeState] = useState<EdgeState>(null);
 
-    // ── Cache container rect; refresh only on resize ───────────────────────
+    // â”€â”€ Cache container rect; refresh only on resize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     useEffect(() => {
         const map = mapRef.current;
         if (!map) return;
@@ -29,7 +29,7 @@ const useGetEdgeState = (
         };
     }, [mapRef])
 
-    // ── Track avatar screen position on every map move ─────────────────────
+    // â”€â”€ Track avatar screen position on every map move â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !latLng) {

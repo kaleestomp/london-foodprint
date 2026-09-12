@@ -2,7 +2,7 @@ import { useLayoutEffect, type FC } from 'react';
 
 import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import ListItem from '../ListItem/ListItem';
 import useSelectedItemKey, { getListItemKey } from './useSelectedItemKey/useSelectedItemKey';

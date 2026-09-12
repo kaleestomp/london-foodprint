@@ -1,6 +1,6 @@
 // TEMPORARY DEBUG LAYER: visualizes the bucketed viewport bbox used for top-places requests.
 import { useEffect } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import getRectFeature from './getRectFeature';
 import { useViewportQuery } from '../../../../../context/ViewportQueryContext';

@@ -1,5 +1,5 @@
 import React from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import useMapPanToLocation from './useMapPanToLocation';
 import useFlyBubbleToLocation from './useFlyBubbleToLocation';

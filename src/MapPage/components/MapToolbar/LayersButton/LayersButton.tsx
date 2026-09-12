@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import BubbleChartIcon from '@mui/icons-material/BubbleChart';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
 import { useAppUI } from '../../../../context/AppUIContext';
 import './LayersButton.css';
 
 const LayersButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { mapMode, heatmapEnabled, toggleHeatmapEnabled, toggleMapMode } = useAppUI();
+  const { heatmapEnabled, toggleHeatmapEnabled } = useAppUI();
   
   return (
     <div className={`map-toolbar-layers-stack ${isOpen ? 'map-toolbar-layers-stack-open' : ''}`}>
@@ -24,19 +22,6 @@ const LayersButton: React.FC = () => {
           }}
         >
           <BubbleChartIcon fontSize="small" />
-        </button>
-        <button
-          type="button"
-          className={`map-toolbar-layers-btn`} //${mapMode === 'dark' ? 'map-toolbar-layers-btn-active' : ''}
-          aria-label={mapMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          aria-pressed={mapMode === 'dark'}
-          title={mapMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          onClick={() => {
-            // toggleColorMode();
-            toggleMapMode();
-          }}
-        >
-          {mapMode === 'dark' ? <DarkModeIcon fontSize="small" /> : <LightModeIcon fontSize="small" />}
         </button>
       </div>
 

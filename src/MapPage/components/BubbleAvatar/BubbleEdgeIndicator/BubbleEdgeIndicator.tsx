@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
@@ -13,8 +13,8 @@ import './BubbleEdgeIndicator.css';
 /**
  * Renders a small speech-bubble at the nearest viewport edge when the map
  * avatar is off-screen.
- *  - Tap/click          → map.setView() back to avatar
- *  - Long press (LONGPRESS_MS ms) → pick up the avatar (same state as map long-press)
+ *  - Tap/click          â†’ map.setView() back to avatar
+ *  - Long press (LONGPRESS_MS ms) â†’ pick up the avatar (same state as map long-press)
  */
 const BubbleEdgeIndicator: React.FC<{ 
   mapRef: React.RefObject<maplibregl.Map | null> 
@@ -24,18 +24,18 @@ const BubbleEdgeIndicator: React.FC<{
   const { searchMask } = useSearchFilters();
   const edgeState = useGetEdgeState(mapRef, searchMask?.center);
 
-  // Stable refs — avoid re-registering map listeners when callbacks change
+  // Stable refs â€” avoid re-registering map listeners when callbacks change
   const handlePickupRef   = useRef(handlePickup);
   const edgeStateRef      = useRef(edgeState);
   const longPressTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wasLongPress      = useRef(false);
-  // Cached container rect — the container doesn't move during pan/zoom,
+  // Cached container rect â€” the container doesn't move during pan/zoom,
   // so we only re-read it on resize rather than on every map move event.
 
   useEffect(() => { handlePickupRef.current = handlePickup; }, [handlePickup]);
   useEffect(() => { edgeStateRef.current = edgeState;  }, [edgeState]);
 
-  // ── Long-press helpers ─────────────────────────────────────────────────
+  // â”€â”€ Long-press helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const cancelLongPress = useCallback(() => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FC } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { useCityContext } from '../../../context/CityContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
@@ -45,7 +45,7 @@ const RestaurantList: FC<{
     if (unmatchedPlaceId) setFixScroll((epoch) => epoch + 1);
   }, [unmatchedPlaceId]);
 
-  // FILTER OR CITY CHANGE → AUTO-REFRESH (bypass refresh button)
+  // FILTER OR CITY CHANGE â†’ AUTO-REFRESH (bypass refresh button)
   const { citySlug } = useCityContext();
   useEffect(() => {
     setShouldAutoRefresh(true);

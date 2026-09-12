@@ -1,6 +1,6 @@
 import { type FC } from 'react';
 import { Drawer } from '@base-ui/react/drawer';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 // import SampleContent from './SampleContent/SampleContent';
 import Header from './Header/Header';

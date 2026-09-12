@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import getCurrentScreenXY from './getCurrentScreenXY';
 
 type Point = { x: number; y: number };
@@ -9,7 +9,7 @@ const useGetCurrentScreenXY = (
     latLng?: { lat: number; lng: number } | null
 ) => {
 
-    // Cached container rect — the container doesn't move during pan/zoom,
+    // Cached container rect â€” the container doesn't move during pan/zoom,
     // so we only re-read it on resize rather than on every map move event.
     const containerRectRef  = useRef<DOMRect | undefined>(undefined);
     const [currentScrPos, setCurrentScrPos] = useState<Point | undefined>(undefined);
@@ -21,7 +21,7 @@ const useGetCurrentScreenXY = (
         return Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) < 0.5;
     };
 
-    // ── Cache container rect; refresh only on resize ───────────────────────
+    // â”€â”€ Cache container rect; refresh only on resize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     useEffect(() => {
         const map = mapRef.current;
         if (!map) return;

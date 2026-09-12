@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import useGeoSearch, { type LocationResult } from '../fetchHooks/useGeoSearch';
 import useReverseGeocode from '../fetchHooks/useReverseGeocode';

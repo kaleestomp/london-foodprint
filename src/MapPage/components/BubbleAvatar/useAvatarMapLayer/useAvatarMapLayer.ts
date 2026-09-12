@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { type Root } from 'react-dom/client';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import useFocusMap from './useFocusMap/useFocusMap';
 import addSearchRadiusMarker from './addSearchRadiusMarker/addSearchRadiusMarker';
@@ -12,7 +12,7 @@ import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 
 /**
  * Manages all Leaflet layers for the dropped bubble avatar.
- * Reactive: watches droppedPos state — React's effect cleanup handles
+ * Reactive: watches droppedPos state â€” React's effect cleanup handles
  * clearing layers whenever the position changes or becomes null.
  *
  * Long-press (150 ms) on the map avatar calls onPickup(x, y), which

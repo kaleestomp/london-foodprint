@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import getBucketedViewportBounds from '../getBucketedViewportBounds/getBucketedViewportBounds';
 import zoomToResolution from '../../../DataLayer/utils/zoomToResolution';
@@ -14,7 +14,7 @@ interface TilesParams {
   ne_lat: number;
   ne_lng: number;
   /**
-   * H3 resolution resolved on the frontend (7–10). Sent directly to the API.
+   * H3 resolution resolved on the frontend (7â€“10). Sent directly to the API.
    */
   res: number;
   /**

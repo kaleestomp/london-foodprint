@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../../../context/AppUIContext';
 import useFetchHeatmap from './InputHooks/useFetchHeatmap';
@@ -33,7 +33,7 @@ const useHeatmapLayer = (
         if (currentMap.getLayer(LAYER_ID)) currentMap.removeLayer(LAYER_ID);
         if (currentMap.getSource(SOURCE_ID)) currentMap.removeSource(SOURCE_ID);
       } catch {
-        // Style already torn down (e.g. city switch) — nothing to remove
+        // Style already torn down (e.g. city switch) â€” nothing to remove
       }
     };
 

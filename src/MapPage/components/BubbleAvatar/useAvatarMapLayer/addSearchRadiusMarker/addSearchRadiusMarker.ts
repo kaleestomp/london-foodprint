@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 import { WORLD_RING, buildCircleHole, PolygonMask } from './polygonMask';
 const CIRCLE_ENTRY_MS = 280;

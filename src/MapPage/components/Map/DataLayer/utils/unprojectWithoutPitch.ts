@@ -1,5 +1,5 @@
 import { MercatorCoordinate, type LngLat } from 'maplibre-gl';
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 const unprojectWithoutPitch = (
   map: maplibregl.Map,
