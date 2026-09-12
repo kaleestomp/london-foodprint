@@ -14,7 +14,9 @@ type PanelSnapshot = {
   bottomPadding: number;
 };
 
-const PANEL_PADDING_ANIMATION_MS = 450;
+const PANEL_PADDING_ANIMATION_MS = 800;
+const PANEL_PADDING_OPEN_DELAY_MS = 550;
+const PANEL_PADDING_CLOSE_DELAY_MS = 100;
 
 const DrawerMapViewportSync: React.FC<Props> = ({ mapRef }) => {
   
@@ -22,11 +24,11 @@ const DrawerMapViewportSync: React.FC<Props> = ({ mapRef }) => {
   const { selectionSource } = usePlaceSelection();
 
   const bottomPadding = useBottomPadding(mapRef);
-
   const prevRef = useRef<PanelSnapshot>({
     initialized: false,
     bottomPadding,
   });
+  
 
   useEffect(() => {
     const prev = prevRef.current;
@@ -57,19 +59,31 @@ const DrawerMapViewportSync: React.FC<Props> = ({ mapRef }) => {
       return;
     }
 
-    map.stop();
-    map.easeTo({
-      center: map.getCenter(),
-      padding: {
-        top: 0,
-        right: 0,
-        bottom: bottomPadding,
-        left: 0,
-      },
-      duration: PANEL_PADDING_ANIMATION_MS,
-    });
-
+    // APPLY THE DELAYED MAP PADDING UPDATE.
     prevRef.current = nextSnapshot;
+    const isClosing = bottomPadding < prev.bottomPadding;
+    const paddingDelay = isClosing
+      ? PANEL_PADDING_CLOSE_DELAY_MS
+      : PANEL_PADDING_OPEN_DELAY_MS;
+    const paddingTimer = window.setTimeout(() => {
+      const currentMap = mapRef.current;
+      if (!currentMap) return;
+
+      currentMap.stop();
+      currentMap.easeTo({
+        center: currentMap.getCenter(),
+        padding: {
+          top: 0,
+          right: 0,
+          bottom: bottomPadding,
+          left: 0,
+        },
+        duration: PANEL_PADDING_ANIMATION_MS,
+      });
+    }, paddingDelay);
+
+    return () => window.clearTimeout(paddingTimer);
+
   }, [bottomPadding, mapRef, selectionSource]);
 
   return null;

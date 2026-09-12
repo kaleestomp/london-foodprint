@@ -61,7 +61,7 @@ const useBottomPadding = (
   const bottomPadding = calculateBottomPadding();
 
   
-  return bottomPadding * 1.4;
+  return Math.max(bottomPadding, 0)* 1.4; 
 };
 
 export default useBottomPadding;
