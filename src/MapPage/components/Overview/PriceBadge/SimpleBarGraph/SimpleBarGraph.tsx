@@ -1,10 +1,10 @@
 import type { FC } from 'react';
 import ReactECharts from 'echarts-for-react';
 
-import { primaryGrey, secondaryGrey } from '../../../../../utils/styling/Colors';
+import { secondaryGrey } from '../../../../../utils/styling/Colors';
 
 const BAR_COLOR = secondaryGrey;
-const HIGHLIGHT_COLOR = primaryGrey;
+// const HIGHLIGHT_COLOR = primaryGrey;
 
 const SimpleBarGraph: FC<{ values: number[] }> = ({ values }) => {
     const barValues = values.map((value) => Math.max(0, value));
