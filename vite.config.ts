@@ -1,26 +1,9 @@
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-
-const maplibreWorkerFiles = ['maplibre-gl-worker.mjs', 'maplibre-gl-shared.mjs']
-
-const emitMaplibreWorkerFiles = (): Plugin => ({
-  name: 'emit-maplibre-worker-files',
-  generateBundle() {
-    for (const fileName of maplibreWorkerFiles) {
-      this.emitFile({
-        type: 'asset',
-        fileName: `assets/${fileName}`,
-        source: readFileSync(resolve('node_modules/maplibre-gl/dist', fileName)),
-      })
-    }
-  },
-})
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), emitMaplibreWorkerFiles()],
+export default defineConfig(({ command }) => ({
+  plugins: [react()],
   server: {
     host: true,
   },
@@ -61,5 +44,5 @@ export default defineConfig({
       },
     },
   },
-  base: '/london-foodprint/',
-})
+  base: command === 'serve' ? '/' : '/london-foodprint/',
+}))
