@@ -25,7 +25,10 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current || !cityParams) return;
 
-    maplibregl.setWorkerUrl(maplibreWorkerUrl);
+    const workerUrl = import.meta.env.PROD
+      ? `${import.meta.env.BASE_URL}assets/maplibre-gl-worker.mjs`
+      : maplibreWorkerUrl;
+    maplibregl.setWorkerUrl(workerUrl);
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: STYLE_LIGHT,
