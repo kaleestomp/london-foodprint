@@ -1,9 +1,9 @@
-import type { FC } from 'react';
+import { type FC, useEffect } from 'react';
 import RamenDiningIcon from '@mui/icons-material/RamenDining';
 import CurrencyPoundIcon from '@mui/icons-material/CurrencyPound';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+
 import { useAppUI } from '../../../context/AppUIContext';
-// import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
 import PillButton from './PillButton/PillButton';
 import getCuisineCountLabel from './getCuisineCountLabel';
@@ -15,8 +15,11 @@ import './FilterButtons.css';
 const FilterButtons: FC = () => {
 
   const { activeToolbarTab, setActiveToolbarTab } = useAppUI();
-  // const { openPanel } = usePullUpPanelSnapState();
   const { openDrawer, isClosed } = useDrawerState();
+  useEffect(() => {
+    if (isClosed) setActiveToolbarTab(null);
+  }, [isClosed]);
+
   const openFilterTab = (tab: 'rating' | 'cuisine' | 'price') => {
     if (activeToolbarTab === tab) {
       setActiveToolbarTab(null);

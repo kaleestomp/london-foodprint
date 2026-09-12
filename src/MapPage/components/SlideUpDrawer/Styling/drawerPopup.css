@@ -13,7 +13,7 @@
   
   transition: transform var(--default-transition);
   transform: translateY(calc(var(--drawer-snap-point-offset) + var(--drawer-swipe-movement-y)));
-  will-change: transform, padding-bottom;
+  will-change: transform;
   
   /* Drawer popup spans the entire viewport. It must not cover the external
     map toolbar when the drawer itself is not modal. */

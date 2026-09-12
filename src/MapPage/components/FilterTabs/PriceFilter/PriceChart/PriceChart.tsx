@@ -21,7 +21,11 @@ const PriceChart: React.FC<Props> = ({ priceData }) => {
   const chartData = formatChartData(priceData);
   
   const chartOption = useMemo(() => ({
-    animationDuration: 220,
+    animation: true,
+    animationDuration: 400,
+    animationDurationUpdate: 400,
+    animationEasingUpdate: 'ease',
+    
     grid: { 
       left: 0, right: 0, top: 12, bottom: 1, containLabel: false,
     },

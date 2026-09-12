@@ -23,7 +23,7 @@
   flex: 1 1 auto;
   min-height: 0;
   border-radius: var(--border-radius-is-closed) var(--border-radius-is-closed) 0 0;
-  transition: border-radius var(--delayed-transition), background-color var(--delayed-transition);
+  transition: border-radius var(--delayed-transition);
 }
 .base-ui-drawer-body.is-open {
   border-radius: 
@@ -32,7 +32,7 @@
 }
 .base-ui-drawer-body.is-full-height {
   border-radius: var(--border-radius-default);
-  background: var(--drawer-bg-is-full-height);
+  /* background: var(--drawer-bg-is-full-height); */
 }
 /* .base-ui-drawer-body::before {
   content: '';

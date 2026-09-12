@@ -1,6 +1,11 @@
 .base-ui-overlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: calc(-1 * var(--bottom-overscan));
+  z-index: 19;
+  
   background: #e0e0e0; /*rgba(0, 0, 0, 0.45)*/;
 
   opacity: 0;

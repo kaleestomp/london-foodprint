@@ -6,6 +6,7 @@ import type * as maplibregl from 'maplibre-gl';
 import DrawerHeader from './DrawerHeader/DrawerHeader';
 import Content from './Content/Content';
 import AboveDrawer from './AboveDrawer/AboveDrawer';
+import DrawerOverlay from './DrawerOverlay';
 import { useDrawerState } from './DrawerStateContext';
 
 import './Styling/drawerRoot.css';
@@ -30,9 +31,9 @@ const SlideUpDrawer: FC<{
       onSnapPointChange={updateSnap}
       snapToSequentialPoints
     >
+      <DrawerOverlay isVisible={isAtFullHeight} />
       <div ref={setDrawerContainer} className={`base-ui-container${isAtFullHeight ? ' is-full-height' : isClosed ? '' : ' is-open'}`}>
         {drawerContainer && <Drawer.Portal container={drawerContainer}>
-          <Drawer.Backdrop className={`base-ui-overlay${isAtFullHeight ? ' is-visible' : ''}`} />
           <Drawer.Viewport className="base-ui-viewport">
             <Drawer.Popup data-testid="content" className={
               `base-ui-popup${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`

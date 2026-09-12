@@ -20,7 +20,7 @@ const FilterSection: FC= () => {
     const hasContent = filterContent !== null;
     
     return (
-        <div className={`overview-section${hasContent ? ' has-content' : ''}`}>
+        <div className={`overview-section${hasContent ? ' has-content' : ''}${activeToolbarTab === 'price' ? ' is-price' : ''}`}>
             <div className="overview-section-inner">
                 {filterContent}
             </div>
