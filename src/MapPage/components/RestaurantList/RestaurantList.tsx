@@ -1,8 +1,9 @@
-import { useEffect, useState, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
 import { useCityContext } from '../../../context/CityContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
+import { useQueryClient } from '@tanstack/react-query';
 // import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
 import useFetchInfinitePlacesList from './InputHook/useFetchInfinitePlacesList';
 import useReportUnmatchedSelection from './PlaceholderListItem/useReportUnmatchedSelection';
@@ -29,22 +30,29 @@ const RestaurantList: FC<{
   // DO NOT RESET OVERRIDE 
   // When the drawer is closed and a place is selected
   const { isClosed, isAtFullHeight } = useDrawerState();
+  const queryClient = useQueryClient();
+  const wasClosedRef = useRef(isClosed);
+
+  useEffect(() => {
+    if (isClosed && !wasClosedRef.current) {
+      queryClient.removeQueries({ queryKey: ['places-list'] });
+      setShouldAutoRefresh(true);
+    }
+    wasClosedRef.current = isClosed;
+  }, [isClosed, queryClient]);
+
   // const { selectedPlaceId } = usePlaceSelection();
   // const doNotReset = isClosed && selectedPlaceId !== null;
 
   // NETWORK CALL
-  const resetSignal = (autoUpdate) ? autoUpdate : shouldAutoRefresh;
+  const resetSignal = autoUpdate || shouldAutoRefresh;
   const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale, filterKey
   } = useFetchInfinitePlacesList(resetSignal, pageSize, enabled);
-  const items = res?.data ?? [];
+  const items = isClosed ? [] : (res?.data ?? []);
 
   // UNMATCHED SELECTED PLACE ID
   // Selected cluster singleton marker with no matching row in the loaded list.
   const unmatchedPlaceId = useReportUnmatchedSelection(items, status);
-  const [fixScroll, setFixScroll] = useState(0);
-  useEffect(() => {
-    if (unmatchedPlaceId) setFixScroll((epoch) => epoch + 1);
-  }, [unmatchedPlaceId]);
 
   // FILTER OR CITY CHANGE â†’ AUTO-REFRESH (bypass refresh button)
   const { citySlug } = useCityContext();
@@ -89,7 +97,7 @@ const RestaurantList: FC<{
         <div className={`list-section${shouldFade ? ' list-fade-in' : ''}`} onAnimationEnd={shouldFade ? onRefreshAnimationEnd : undefined} >
           <ListLoading enabled={status === 'loading' && items.length === 0} />
           <NoResults enabled={status !== 'loading' && items.length === 0} />
-          <Virtualizer mapRef={mapRef} items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} fixScroll={fixScroll} onSelect={() => setShouldAutoRefresh(false)} />
+          <Virtualizer mapRef={mapRef} items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} unmatchedPlaceId={unmatchedPlaceId} onSelect={() => setShouldAutoRefresh(false)} />
           <ListLoading enabled={isFetchingNextPage} rowCount={3} />
         </div>
       </div>

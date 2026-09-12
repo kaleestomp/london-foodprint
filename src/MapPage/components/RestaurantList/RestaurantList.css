@@ -36,7 +36,6 @@
 .list-virtualizer {
   position: relative;
   width: 100%;
-  will-change: contents;
 }
 
 .list-virtual-row {

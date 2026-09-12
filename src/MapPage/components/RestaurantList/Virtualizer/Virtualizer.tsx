@@ -15,9 +15,9 @@ const Virtualizer: FC<{
     items: PlacesListItem[];
     scrollRef: React.RefObject<HTMLElement | null>;
     scrollResetEpoch: number;
+    unmatchedPlaceId: string | null;
     onSelect: () => void;
-    fixScroll?: number;
-}> = ({ mapRef, items, scrollRef, scrollResetEpoch, fixScroll, onSelect }) => {
+}> = ({ mapRef, items, scrollRef, scrollResetEpoch, unmatchedPlaceId, onSelect }) => {
 
     // SELECTION STATE
     const { selectionSource } = usePlaceSelection();
@@ -29,7 +29,7 @@ const Virtualizer: FC<{
         getScrollElement: () => scrollRef.current,
         estimateSize: () => 86, // estimated height of each list item
         getItemKey: (index) => getListItemKey(items[index].id),
-        overscan: 5,
+        overscan: 2,
         scrollPaddingStart: -10,
     });
     // SYNC VIRTUALIZER OFFSET AFTER A REFRESHED LIST HAS SETTLED
@@ -47,7 +47,7 @@ const Virtualizer: FC<{
             behavior: 'auto',
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fixScroll]);
+    }, [unmatchedPlaceId]);
 
     // KEEP THE SELECTED ROW IN VIEW WHEN THE SELECTION COMES FROM THE MAP.
     useLayoutEffect(() => {
