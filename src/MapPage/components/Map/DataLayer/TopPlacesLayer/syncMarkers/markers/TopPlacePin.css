@@ -1,27 +1,33 @@
 /* ICON SHELL CONTROLS ENTER + EXIT ANIMATION */
 .top-place-pin-shell {
+
+    --hover-scale: 1.6;
+    --bubble-size: 34px;
+    /* Only Visible on selected */
+    --bubble-color: #ffffff;
+    --selected-scale: 2.0;
+    --selected-translateY: -48px;
+    /* -42px */
+    --anchor-dot-size: 18px; /* 16px */
+    /* 8px */
+    --brightness-on-selected: 1.25;
+
     display: block;
     position: relative;
     overflow: visible;
     transform-origin: center;
-    transition: transform 180ms ease;
-    
-    --hover-scale: 1.6;
-    --bubble-size: 34px; /* Only Visible on selected */
-    --bubble-color: #ffffff;
-    --selected-scale: 2.0;
-    --selected-translateY: -48px; /* -42px */
-    --anchor-dot-size: 16px; /* 8px */
-    --brightness-on-selected: 1.25;
+    transition: transform 200ms ease;
 }
 
 /* Keep selected top-place marker above other markers in map z-order. */
 .maplibregl-marker:has(.top-place-pin-shell) {
     z-index: 1;
 }
+
 .maplibregl-marker:has(.top-place-pin-shell:hover) {
     z-index: 20;
 }
+
 .maplibregl-marker:has(.top-place-pin-shell.is-selected) {
     z-index: 30;
 }
@@ -39,24 +45,42 @@
         radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.5) 22%, transparent 40%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.02) 100%),
         var(--bubble-color);
-    filter: brightness(0.8) saturate(1.9);
+    /* filter: brightness(0.8) saturate(1.9); */
     pointer-events: none;
     box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.54);
-    transition: transform 200ms cubic-bezier(0.2, 0.9, 0.2, 1.15), opacity 150ms ease;
+    transition: transform 200ms ease, opacity 200ms ease;
     transform: scale(0);
     opacity: 0;
 }
+
 .top-place-pin-shell.is-selected::after {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
 }
 
+/* Keep the pin shadow stationary while the marker content floats. */
+/* .top-place-pin-shell::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 18px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.15);
+    transform: translate(-50%, calc(-50% + 14px)) scale(0.8);
+    z-index: 0;
+} */
+
 /* RANK BADGE SHELL*/
 .top-place-pin-rank-badge {
     position: absolute;
-    top: 16px; /* -8px */
+    top: 16px;
+    /* -8px */
     right: -10px;
-    width: 18px; /* 14px */
+    width: 18px;
+    /* 14px */
     height: 18px;
     padding: 0;
     display: block;
@@ -66,30 +90,33 @@
     transform: scale(0);
     transform-origin: center;
     pointer-events: none;
-    transition: opacity 150ms ease, transform 220ms cubic-bezier(0.2, 0.9, 0.2, 1.15);
+    transition: opacity 200ms ease, transform 200ms ease;
     opacity: 0;
     z-index: 5;
     isolation: isolate;
 }
+
 /* RANK BADGE SVG */
 .top-place-pin-rank-badge-backdrop {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    fill: var(--bubble-color); /* #BA160C */
-    filter: brightness(0.64) saturate(1.85) 
-        drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+    fill: var(--bubble-color);
+    /* #BA160C */
+    filter: brightness(0.64) saturate(1.85);
     transform: scale(1);
     transform-origin: center;
     z-index: 0;
 }
+
 .top-place-pin-rank-badge-backdrop path {
     stroke: #000000;
     stroke-width: 0.15;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
 }
+
 /* RANK BADGE LABEL */
 .top-place-pin-rank-badge-label {
     position: absolute;
@@ -97,19 +124,19 @@
     display: grid;
     place-items: center;
     z-index: 1;
-    
+
     background: transparent;
     text-align: center;
     white-space: nowrap;
     letter-spacing: -0.02em;
     /* font-variant-numeric: tabular-nums; */
     overflow: visible;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.22);
     color: rgba(255, 255, 255, 0.9);
     font-size: 9px;
     font-weight: 600;
     line-height: 0.9;
 }
+
 .top-place-pin-shell.is-selected .top-place-pin-rank-badge.has-rank {
     opacity: 1;
     transform: scale(1) rotate(4deg);
@@ -120,18 +147,39 @@
 .enter-animation {
     animation: top-place-pin-enter 380ms cubic-bezier(0.175, 0.885, 0.32, 1.0) both;
 }
+
 @keyframes top-place-pin-enter {
-    0% { opacity: 0; transform: scale(0) translateY(22%); }
-    68% { opacity: 1; transform: scale(1.1) translateY(-2%); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
+    0% {
+        opacity: 0;
+        transform: scale(0) translateY(22%);
+    }
+
+    68% {
+        opacity: 1;
+        transform: scale(1.1) translateY(-2%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
+
 .exit-animation {
     animation: top-place-pin-exit 360ms ease-in both;
     pointer-events: none;
 }
+
 @keyframes top-place-pin-exit {
-    0% { opacity: 1; transform: scale(1) translateY(0); }
-    100% { opacity: 0; transform: scale(0.62) translateY(20%); }
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.62) translateY(20%);
+    }
 }
 
 
@@ -139,11 +187,13 @@
 /* ICON HOVER WRAPPER CONTROLS HOVER SCALING INDEPENDENTLY */
 .top-place-pin-hover {
     transform-origin: center;
-    transition: transform 360ms cubic-bezier(0.2, 0.9, 0.2, 1.15);
+    transition: transform 200ms ease;
 }
+
 .top-place-pin-shell:hover .top-place-pin-hover {
     transform: scale(var(--hover-scale));
 }
+
 /* Keep selected pins at the same visual size on hover (no double scaling). */
 .top-place-pin-shell.is-selected .top-place-pin-hover,
 .top-place-pin-shell.is-selected:hover .top-place-pin-hover {
@@ -156,13 +206,12 @@
 .top-place-pin-motion {
     transform-origin: center;
     animation: top-place-pin-idle-float 1.6s ease-in-out infinite;
-    
+
     position: relative;
     display: grid;
     place-items: center;
-    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.24));
-    
 }
+
 .top-place-pin-motion::before {
     content: '';
     position: absolute;
@@ -171,29 +220,49 @@
     border-radius: 50%;
     background: var(--bubble-color);
     box-shadow: 0 10px 8px rgba(0, 0, 0, 0.24);
+    /* border: 1px solid white; */
     z-index: 0;
 
     transform: scale(0.8);
-    filter: brightness(1);
-    transition: transform 260ms cubic-bezier(0.2, 0.9, 0.2, 1.15), filter 200ms ease;
+    /* filter: brightness(1); */
+    transition: transform 200ms ease;
 }
 
 @keyframes top-place-pin-idle-float {
-    0% { transform: translateY(0); } 
-    50% { transform: translateY(-2px); }
-    100% { transform: translateY(0); }
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-2px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
 }
+
 .top-place-pin-motion.is-selected {
     animation: top-place-pin-selected-float 1.45s ease-in-out infinite;
 }
+
 .top-place-pin-motion.is-selected::before {
     transform: scale(1);
-    filter: brightness(var(--brightness-on-selected)) saturate(1.00);
+    /* filter: brightness(var(--brightness-on-selected)) saturate(1.00); */
 }
+
 @keyframes top-place-pin-selected-float {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-1px); }
-    100% { transform: translateY(0); }
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-1px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
 }
 
 
@@ -204,7 +273,6 @@
     image-rendering: smooth;
     pointer-events: none;
     user-select: none;
+    filter: none;
     z-index: 1;
-    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.48));
 }
-

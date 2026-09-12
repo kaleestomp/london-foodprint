@@ -5,7 +5,6 @@ import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext'
 import useFetchHeatmap from '../HeatmapLayer/InputHooks/useFetchHeatmap';
 import { clusterCountLayer, unclusteredPointHighlightLayer, unclusteredPointHitLayer, unclusteredPointLayer, unclusteredPointShadowLayer } from './clusterLayers';
 import sortLayerOrder from './sortLayerOrder';
-import updateTextSize from './updateTextSize';
 import useHandleSelectedMarker from './useHandleSelectedMarker/useHandleSelectedMarker';
 
 import '../TopPlacesLayer/syncMarkers/markers/TopPlacePin.css';
@@ -85,7 +84,6 @@ const useClusterLayer = (
     };
     
     const handleStateChange = () => {
-      updateTextSize(map, COUNT_LAYER_ID);
       sortLayerOrder(map, [COUNT_LAYER_ID, PLACES_SHADOW_LAYER_ID, PLACES_LAYER_ID, PLACES_HIGHLIGHT_LAYER_ID, PLACES_HIT_LAYER_ID]);
     }
 
@@ -179,7 +177,6 @@ const useClusterLayer = (
   }, [geojson, enabled, mapRef]);
 
   const maybeUpdateStyleOrder = (map: maplibregl.Map) => {
-    updateTextSize(map, COUNT_LAYER_ID);
     sortLayerOrder(map, [COUNT_LAYER_ID, PLACES_SHADOW_LAYER_ID, PLACES_LAYER_ID, PLACES_HIGHLIGHT_LAYER_ID, PLACES_HIT_LAYER_ID]);
   };
 

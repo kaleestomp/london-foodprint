@@ -41,7 +41,6 @@ const PlaceDetail: FC<Props> = ({
   const { selectedPlaceId } = usePlaceSelection();
   const { status: listStatus, res: listRes } = useFetchInfinitePlacesList();
   const { status: detailStatus, res: detailRes } = useRequestPlaceDetail(selectedPlaceId);
-  console.log(listRes);
   const showEmptyList = listStatus !== 'loading' && (!listRes || listRes.data.length === 0);
   // const canGoNextPage = Boolean(listRes && listRes.data.length >= 20);
 

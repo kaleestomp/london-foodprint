@@ -20,8 +20,10 @@ const useFocusCamera = (
         if (!map || !selectedItem) return;
         if (isClosed) return;
         if (selectionSource === 'map') return;
+        const zoom = Math.max(map.getZoom(), 11);
         map.easeTo({
             center: [selectedItem.lon, selectedItem.lat],
+            zoom,
             padding: { top: 0, right: 0, bottom: bottomPadding, left: 0 },
             duration: 800,
         });

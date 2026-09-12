@@ -1,9 +1,13 @@
 .base-ui-drawer-body {
+  /* ISOLATE FROM MAP PAINT */
+  contain: layout paint;
+  isolation: isolate;
+
   position: relative;
   display: flex;
-
   flex-direction: column;
   overflow: hidden;
+
   background: var(--drawer-bg);
   box-shadow: var(--drawer-shadow);
   pointer-events: auto;

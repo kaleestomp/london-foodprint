@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import maplibregl from 'maplibre-gl';
+import maplibregl, { setWorkerCount } from 'maplibre-gl';
 
 // import { useAppUI } from '../../../../context/AppUIContext';
 import { STYLE_LIGHT } from './useMapStyle/MapStyles';
@@ -24,6 +24,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current || !cityParams) return;
 
+    setWorkerCount(1);
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: STYLE_LIGHT,

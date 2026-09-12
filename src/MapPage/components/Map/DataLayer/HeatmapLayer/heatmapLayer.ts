@@ -21,15 +21,18 @@ const heatmapLayer = (
         'heatmap-radius': [
             'interpolate', ['linear'], ['zoom'],
             0, 0,
-            10, 12, //12
-            14, 24, //24
-            17, 32, //32
+            10, 6, //12
+            14, 14, //24
+            17, 24, //32
         ],
         'heatmap-opacity': [
             'interpolate',
             ['linear'],
             ['zoom'],
-            16, 0.45, 
+            0, 0,
+            10, 0,
+            12, 0.35,
+            16, 0.45,
             16.5, 0,
         ],
         'heatmap-color': DEFAULT_GRADIENT,

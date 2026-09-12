@@ -7,8 +7,13 @@ import useMarkerLifeCycle from '../useMarkerLifeCycle';
 import keepSelectedMarkerVisisble from './keepSelectedMarkerVisisble';
 import removeMarkers from './removeMarkers';
 
+import useTopPlacesMarkerVisibility, { TOP_PLACES_MIN_ZOOM } from '../useTopPlacesMarkerVisibility';
+import { scheduleExitRemoval } from './markerLifecycle/scheduleRemoval';
+import { animateTopPlacePinExit } from './markers/TopPlacePin';
+
 import processMarker from './processMarker';
 import { refreshMarkerLifecycle } from './markerLifecycle/markerLifecycle';
+
 
 
 const useSyncMarkers = (
@@ -18,6 +23,7 @@ const useSyncMarkers = (
 ): React.RefObject<Map<string, maplibregl.Marker>> => {
 
     const { cacheRef, markersRef } = useMarkerLifeCycle(mapRef, enabled);
+    const isVisibleAtZoom = useTopPlacesMarkerVisibility(mapRef, enabled);
 
     // Sync Markers with TopPlaces Data
     const { selectedPlaceId, selectedLayer, reportSelectedPlaceId } = usePlaceSelection();
@@ -32,6 +38,21 @@ const useSyncMarkers = (
             markersRef.current = new Map();
             return;
         };
+
+        // REMOVE MARKER BELOW ZOOM THRESHOLD
+        if (isVisibleAtZoom === false || map.getZoom() < TOP_PLACES_MIN_ZOOM) {
+            cache.forEach((entry) => {
+                if (entry.marker.getElement().isConnected) {
+                    scheduleExitRemoval({
+                        entry,
+                        delayMs: 360,
+                        onExit: animateTopPlacePinExit,
+                    });
+                }
+            });
+            markersRef.current = new Map();
+            return;
+        }
 
         // Used to track active marker registry 
         // Created, populated and returned for EACH SYNC PASS;
@@ -64,7 +85,7 @@ const useSyncMarkers = (
 
         markersRef.current = activeMarkers;
 
-    }, [topPlaces, selectedPlaceId, selectedLayer, suppressSelected, reportSelectedPlaceId]);
+    }, [topPlaces, selectedPlaceId, selectedLayer, suppressSelected, reportSelectedPlaceId, isVisibleAtZoom]);
 
     return markersRef;
 };
