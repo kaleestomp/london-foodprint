@@ -16,8 +16,12 @@
   width: calc(var(--panel-height) - var(--edge-inset) * 2);
   height: calc(var(--panel-height) - var(--edge-inset) * 2);
   background: transparent;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 50%;
+}
+
+.overview-side-panel--right {
+  justify-self: end;
 }
 
 .overview-center-element {

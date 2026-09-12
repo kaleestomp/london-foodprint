@@ -1,15 +1,23 @@
 import type { FC } from 'react';
 
-import useFormatPlaceCount from '../usePlacesCount/useFormatPlaceCount';
+import useFormatPlaceCount from '../usePlaceCount/useFormatPlaceCount';
 import './TitleBlock.css';
 
-const TitleBlock: FC = () => {
-  const { headline } = useFormatPlaceCount();
+const TitleBlock: FC<{ 
+  count: number | null
+}> = ({ count }) => {
+
+  const { subfix, subline } = useFormatPlaceCount(count);
   return (
     <div className="overview-title-block">
-        <div className="overview-title">{headline}</div>
-        <div className="overview-subtitle">
-            Ranked Top 25% of Metroplitan Area
+        {count !== null && <div className="overview-title">
+          {count}
+        </div>}
+        <div className="overview-subtitle-1">
+          {subfix}
+        </div>
+        <div className="overview-subtitle-2">
+            {subline}
         </div>
     </div>
   );

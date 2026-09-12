@@ -4,4 +4,11 @@
   user-select: none;
   min-height: var(--drawer-header-height);
   background: transparent;
+
+  padding: 0;
+  transition: padding 400ms ease;
+  will-change: padding;
+}
+.drawer-header.is-open {
+  padding: 8px 8px 0;
 }

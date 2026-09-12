@@ -44,6 +44,6 @@
 @media (max-width: 959px) {
   .bubble-avatar-root  {
     --bubble-avatar-home-position-right: var(--bubble-avatar-bottom-offset);
-    --bubble-avatar-home-position-margin-right: 0;
+    --bubble-avatar-home-position-margin-right: -10px;
   }
 }

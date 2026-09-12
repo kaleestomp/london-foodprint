@@ -1,18 +1,30 @@
 .overview-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   width: 100%;
   text-align: center;
+  line-height: 1.0;
 }
 
 .overview-title {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 800;
   color: var(--app-text-color);
   white-space: nowrap;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
 }
-
-.overview-subtitle {
+.overview-subtitle-1 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--app-text-color);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.overview-subtitle-2 {
   font-size: 14px;
   color: var(--app-text-caption-color);
+  white-space: normal;
+  overflow-wrap: anywhere;
 }

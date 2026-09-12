@@ -3,6 +3,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from api.sql_util.normalize import get_score_basis_column, normalize_dimension, normalize_dimension_list
+from api.places_count_api.sql import SQL_PLACE_COUNT
+
 
 router = APIRouter()
 
@@ -21,29 +23,8 @@ def _spatial_clause(scope: str) -> tuple[str, int]:
 def _build_sql(scope: str, rank_column: str) -> str:
     spatial_clause, _ = _spatial_clause(scope)
     tier_parameter = 9 if scope == "view" else 8 if scope == "nearby" else 5
-    return f"""
-        SELECT
-            COUNT(*)::INT AS total,
-            COUNT(*) FILTER (WHERE {rank_column} >= ${tier_parameter})::INT AS count
-        FROM places
-        WHERE city_slug = $1
-          AND (
-                CARDINALITY($2::TEXT[]) = 0
-                OR cuisine_type = ANY(ARRAY_REMOVE($2::TEXT[], '__null__'))
-                OR ('__null__' = ANY($2::TEXT[]) AND cuisine_type IS NULL)
-              )
-          AND (
-                $3 = '__all__'
-                OR ($3 = '__null__' AND venue_type IS NULL)
-                OR ($3 != '__all__' AND $3 != '__null__' AND venue_type = $3)
-              )
-          AND (
-                CARDINALITY($4::TEXT[]) = 0
-                OR cost = ANY(ARRAY_REMOVE($4::TEXT[], '__null__'))
-                OR ('__null__' = ANY($4::TEXT[]) AND cost IS NULL)
-              )
-          AND {spatial_clause}
-    """
+    sql_query = SQL_PLACE_COUNT.format(rank_column=rank_column, tier_parameter=tier_parameter, spatial_clause=spatial_clause)
+    return sql_query
 
 
 @router.get("/api/places/count")

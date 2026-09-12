@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import { useViewportQuery } from '../../../../context/ViewportQueryContext';
@@ -7,6 +7,7 @@ import useRequestPlacesCount from '../../../request/useRequestPlacesCount/useReq
 const useFetchPlaceCount = (): {
   count: number | null;
   tierRep: number | null;
+  hasLoadedOnce: boolean;
   isFetching: boolean;
 } => {
   const {
@@ -62,9 +63,17 @@ const useFetchPlaceCount = (): {
 
   const { res, isFetching } = useRequestPlacesCount(requestParams);
 
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(res?.count !== null);
+  useEffect(() => {
+    if (res?.count !== null) {
+      setHasLoadedOnce(true);
+    }
+  }, [res?.count]);
+
   return {
     count: res?.count ?? null,
     tierRep: res?.tierRep ?? null,
+    hasLoadedOnce,
     isFetching,
   };
 };
