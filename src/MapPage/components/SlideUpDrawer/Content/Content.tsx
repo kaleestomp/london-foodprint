@@ -5,7 +5,7 @@ import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useAppUI } from '../../../../context/AppUIContext';
 import RestaurantList from '../../RestaurantList/RestaurantList';
 import FilterSection from '../../FilterTabs/FilterSection';
-import SampleContent from '../SampleContent/SampleContent';
+// import SampleContent from '../SampleContent/SampleContent';
 // import SuggestionList from '../../GeoSearch/SuggestionList';
 // import { useGeoSearch } from '../../GeoSearch/GeoSearchContext';
 
