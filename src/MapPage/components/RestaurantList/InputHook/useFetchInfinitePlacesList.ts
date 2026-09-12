@@ -20,6 +20,7 @@ type ListQueryResult = {
 const useFetchInfinitePlacesList = (
   shouldReset: boolean = true,
   pageSize: number = 10,
+  enabled: boolean = true,
 ): ListQueryResult => {
 
 
@@ -39,7 +40,7 @@ const useFetchInfinitePlacesList = (
 
   const { status, res, isReady, // isFetching,
     hasNextPage, isFetchingNextPage, fetchNextPage
-  } = useRequestInfinitePlacesList(activeParams, shouldReset);
+  } = useRequestInfinitePlacesList(activeParams, enabled && shouldReset);
 
   useEffect(() => {
     if (isReady) setIsListStale(false);

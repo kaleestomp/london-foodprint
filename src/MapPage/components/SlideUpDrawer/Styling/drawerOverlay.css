@@ -1,0 +1,13 @@
+.base-ui-overlay {
+  position: absolute;
+  inset: 0;
+  background: #e0e0e0; /*rgba(0, 0, 0, 0.45)*/;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 500ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.base-ui-overlay.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}

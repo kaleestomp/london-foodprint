@@ -1,0 +1,30 @@
+.base-ui-container {
+  /* ADD FLOATING GAP */
+  --inset-is-closed: 20px;
+  --inset-is-open: 8px;
+  --border-radius-is-closed: 48px; /* var(--app-card-border-radius); */
+  --border-radius-is-open: calc(var(--border-radius-is-closed) - (var(--inset-is-closed) - var(--inset-is-open))*0.5);
+  --border-radius-default: 10px;
+  --default-transition: 450ms cubic-bezier(0.32, 0.72, 0, 1); 
+  --delayed-transition: 450ms ease 100ms;
+  --drawer-header-height: 90px; /* 64 94 100*/
+  
+  position: absolute;
+  inset: 0 var(--inset-is-closed) var(--inset-is-closed);
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 0 0 var(--border-radius-is-closed) var(--border-radius-is-closed);
+  transition: inset var(--delayed-transition), border-radius var(--delayed-transition);
+  will-change: inset, border-radius;
+  z-index: 20;
+
+  border-bottom: var(--drawer-outline);
+}
+.base-ui-container.is-open {
+  inset: 0 var(--inset-is-open) var(--inset-is-open);
+  border-radius: 0 0 var(--border-radius-is-open) var(--border-radius-is-open);
+}
+.base-ui-container.is-full-height {
+  inset: 0;
+  border-radius: 0 0 var(--border-radius-default) var(--border-radius-default);
+}

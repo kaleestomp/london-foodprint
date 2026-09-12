@@ -5,6 +5,7 @@ import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useAppUI } from '../../../../context/AppUIContext';
 import RestaurantList from '../../RestaurantList/RestaurantList';
 import FilterSection from '../../FilterTabs/FilterSection';
+import SampleContent from '../SampleContent/SampleContent';
 // import SuggestionList from '../../GeoSearch/SuggestionList';
 // import { useGeoSearch } from '../../GeoSearch/GeoSearchContext';
 
@@ -18,15 +19,15 @@ const Content: FC<{
     const isMobile = useIsMobileCtx();
     // const { suggestionsVisible } = useGeoSearch();
     const pageSize = isMobile && !panelUp ? 5 : 20;
-    
+    const enableList = (isMobile && panelUp) || !isMobile;
     const { activeToolbarTab } = useAppUI();
-
     
     return (
         <div className={`drawer-content${panelUp ? ' open' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
+            {/* <SampleContent /> */}
             <FilterSection />
             {activeToolbarTab === null && 
-                <RestaurantList mapRef={mapRef} pageSize={pageSize} autoUpdate={!panelUp} />
+                <RestaurantList mapRef={mapRef} pageSize={pageSize} autoUpdate={!panelUp} enabled={enableList} />
             }
 
             {/* {suggestionsVisible ? (

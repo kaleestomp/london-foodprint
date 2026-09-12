@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import { type FC, useState } from 'react';
 import { Drawer } from '@base-ui/react/drawer';
 import type * as maplibregl from 'maplibre-gl';
 
@@ -8,7 +8,7 @@ import Content from './Content/Content';
 import AboveDrawer from './AboveDrawer/AboveDrawer';
 import { useDrawerState } from './DrawerStateContext';
 
-import './SlideUpDrawer.css';
+import './Styling/drawerRoot.css';
 
 export const SNAP_HEIGHTS = ['104px', '410px', `${window.innerHeight - 96}px`];//200px 94px 320px 104px ${window.innerHeight - 28}px
 
@@ -16,6 +16,7 @@ const SlideUpDrawer: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
 }> = ({ mapRef }) => {
 
+  const [drawerContainer, setDrawerContainer] = useState<HTMLDivElement | null>(null);
   const { snap, updateSnap, isAtFullHeight, isClosed } = useDrawerState();
 
   return (
@@ -29,26 +30,26 @@ const SlideUpDrawer: FC<{
       onSnapPointChange={updateSnap}
       snapToSequentialPoints
     >
-
-      <Drawer.Portal>
-        <Drawer.Backdrop className={`base-ui-overlay${isAtFullHeight ? ' is-visible' : ''}`} />
-        <Drawer.Viewport className="base-ui-viewport">
-          <Drawer.Popup data-testid="content" className={
-            `base-ui-content${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`
-            }>
-          <AboveDrawer mapRef={mapRef} />
-          <div className={`base-ui-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}>
-            <div className="base-ui-handle" aria-hidden="true" />
-            <Drawer.Content className="base-ui-drawer-content">
-              <Header />
-              {/* <SampleContent snap={snap} /> */}
-              <Content panelUp={!isClosed} mapRef={mapRef} />
-            </Drawer.Content>
-          </div>
-          </Drawer.Popup>
-        </Drawer.Viewport>
-      </Drawer.Portal>
-
+      <div ref={setDrawerContainer} className={`base-ui-container${isAtFullHeight ? ' is-full-height' : isClosed ? '' : ' is-open'}`}>
+        {drawerContainer && <Drawer.Portal container={drawerContainer}>
+          <Drawer.Backdrop className={`base-ui-overlay${isAtFullHeight ? ' is-visible' : ''}`} />
+          <Drawer.Viewport className="base-ui-viewport">
+            <Drawer.Popup data-testid="content" className={
+              `base-ui-popup${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`
+              }>
+            <AboveDrawer mapRef={mapRef} />
+            <div className={`base-ui-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}>
+              <div className="base-ui-handle" aria-hidden="true" />
+              <Drawer.Content className="base-ui-drawer-content">
+                <Header />
+                {/* <SampleContent snap={snap} /> */}
+                <Content panelUp={!isClosed} mapRef={mapRef} />
+              </Drawer.Content>
+            </div>
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>}
+      </div>
     </Drawer.Root>
   );
 };

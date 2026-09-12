@@ -1,0 +1,6 @@
+.base-ui-drawer-content {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}

@@ -1,0 +1,46 @@
+.base-ui-drawer-body {
+  position: relative;
+  display: flex;
+
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--drawer-bg);
+  box-shadow: var(--drawer-shadow);
+  pointer-events: auto;
+  border-top: var(--drawer-outline);
+  /* background: var(--app-glass-bg);
+  backdrop-filter: var(--app-backdrop-filter);
+  -webkit-backdrop-filter: var(--app-backdrop-filter);
+  border: var(--app-glass-border);
+  box-shadow: var(--app-glass-shadow); */
+
+  /* to accommodate a FLOATING GAP */
+  /* flex: 0; */
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: var(--border-radius-is-closed) var(--border-radius-is-closed) 0 0;
+  transition: border-radius var(--delayed-transition), background-color var(--delayed-transition);
+}
+.base-ui-drawer-body.is-open {
+  border-radius: 
+    var(--border-radius-default) var(--border-radius-default) 
+    var(--border-radius-is-open) var(--border-radius-is-open);
+}
+.base-ui-drawer-body.is-full-height {
+  border-radius: var(--border-radius-default);
+  background: var(--drawer-bg-is-full-height);
+}
+/* .base-ui-drawer-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
+} */

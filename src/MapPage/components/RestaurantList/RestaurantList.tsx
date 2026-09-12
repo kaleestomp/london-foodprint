@@ -20,7 +20,8 @@ const RestaurantList: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
   pageSize?: number;
   autoUpdate?: boolean;
-}> = ({ mapRef, pageSize = 10, autoUpdate = false }) => {
+  enabled?: boolean;
+}> = ({ mapRef, pageSize = 10, autoUpdate = false, enabled = true }) => {
 
   // REFRESH STATE
   const [shouldAutoRefresh, setShouldAutoRefresh] = useState(true);
@@ -34,7 +35,7 @@ const RestaurantList: FC<{
   // NETWORK CALL
   const resetSignal = (autoUpdate) ? autoUpdate : shouldAutoRefresh;
   const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale, filterKey
-  } = useFetchInfinitePlacesList(resetSignal, pageSize);
+  } = useFetchInfinitePlacesList(resetSignal, pageSize, enabled);
   const items = res?.data ?? [];
 
   // UNMATCHED SELECTED PLACE ID
@@ -65,6 +66,16 @@ const RestaurantList: FC<{
   // this triggers 'isReady' to true; meaning list is no longer stale
   const refreshAvaliable = isListStale && !shouldAutoRefresh;
   const showRefreshButton = !isClosed && !isAtFullHeight && (refreshAvaliable || isRefreshPending);
+
+  if (!enabled) {
+    return (
+      <div className="list-scroll-content">
+        <div className="list-section">
+          <ListLoading enabled />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

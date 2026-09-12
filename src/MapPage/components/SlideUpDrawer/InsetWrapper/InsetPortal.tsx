@@ -2,7 +2,7 @@ import { type FC, useState, type ReactNode } from 'react';
 import { Drawer } from '@base-ui/react/drawer';
 import { useDrawerState } from '../DrawerStateContext';
 
-import './InsetPortal.css';
+import './InsetWrapper.css';
 
 export const SNAP_HEIGHTS = ['94px', 0.4, `${window.innerHeight - 28}px`];//200px 94px 320px 104px
 const InsetPortal: FC<{

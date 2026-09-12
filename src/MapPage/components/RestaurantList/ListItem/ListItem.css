@@ -1,6 +1,7 @@
 .list-item-row {
   position: relative;
   display: flex;
+  flex-shrink: 0;
   max-height: 78px;
   align-items: flex-start;
   gap: 12px;
