@@ -9,9 +9,9 @@ import './PriceChart.css';
 
 const formatChartData = (priceData: Array<{ cost: string; count: number }>) => {
 
-  const { colorMode } = useAppUI();
-  const primaryColor = colorMode === 'dark' ? '#fff' : primaryBlack;
-  const secondaryColor = colorMode === 'dark' ? '#aaa' : secondaryGrey;
+  const { darkMode } = useAppUI();
+  const primaryColor = darkMode ? '#fff' : primaryBlack;
+  const secondaryColor = darkMode ? '#aaa' : secondaryGrey;
 
   const countsByCategory = useMemo(() => {
     const empty = Object.fromEntries(PRICE_RANGE_FILTER_OPTIONS.map((label) => [label, 0])) as Record<string, number>;

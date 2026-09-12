@@ -1,22 +1,13 @@
-:root {
-  --app-height: 100vh;
-}
-
-@supports (height: 100dvh) {
-  :root {
-    --app-height: 100dvh;
-  }
-}
-
 html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: var(--app-height);
+  height: 100dvh;
   overflow: visible;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f4f4;
 }
 
 body {

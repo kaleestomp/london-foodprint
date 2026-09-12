@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useSearchFilters } from '../../../context/SearchFiltersContext';
-import useRestaurantCount from './useRestaurantCount';
+import { useSearchFilters } from '../../../../context/SearchFiltersContext';
+import useFetchPlaceCount from './useFetchPlaceCount';
 
 const TIMEOUT_MS = 1000;
 
-const useResultSummary = (): { headline: string; subline: string } => {
+const useFormatPlaceCount = (): { headline: string; subline: string } => {
   const { searchMask } = useSearchFilters();
-  const { count, isFetching } = useRestaurantCount();
+  const { count, isFetching } = useFetchPlaceCount();
 
   const [displayCount, setDisplayCount] = useState<number | null>(count);
   const [showLoading, setShowLoading] = useState(false);
@@ -44,4 +44,4 @@ const useResultSummary = (): { headline: string; subline: string } => {
   return { headline, subline };
 
 };
-export default useResultSummary;
+export default useFormatPlaceCount;

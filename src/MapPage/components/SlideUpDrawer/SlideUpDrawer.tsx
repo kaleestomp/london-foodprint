@@ -3,7 +3,7 @@ import { Drawer } from '@base-ui/react/drawer';
 import type * as maplibregl from 'maplibre-gl';
 
 // import SampleContent from './SampleContent/SampleContent';
-import Header from './Header/Header';
+import DrawerHeader from './DrawerHeader/DrawerHeader';
 import Content from './Content/Content';
 import AboveDrawer from './AboveDrawer/AboveDrawer';
 import { useDrawerState } from './DrawerStateContext';
@@ -41,7 +41,7 @@ const SlideUpDrawer: FC<{
             <div className={`base-ui-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}>
               <div className="base-ui-handle" aria-hidden="true" />
               <Drawer.Content className="base-ui-drawer-content">
-                <Header />
+                <DrawerHeader />
                 {/* <SampleContent snap={snap} /> */}
                 <Content panelUp={!isClosed} mapRef={mapRef} />
               </Drawer.Content>

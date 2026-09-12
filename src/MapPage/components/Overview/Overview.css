@@ -1,0 +1,29 @@
+.overview {
+  --panel-height: var(--drawer-home-height);
+  --edge-inset: 8px;
+
+  display: grid;
+  grid-template-columns: var(--panel-height) minmax(0, 1fr) var(--panel-height);
+  align-items: center;
+  width: 100%;
+  min-height: var(--panel-height);
+  padding: var(--edge-inset);
+}
+
+.overview-side-panel {
+  display: grid;
+  place-items: center;
+  width: calc(var(--panel-height) - var(--edge-inset) * 2);
+  height: calc(var(--panel-height) - var(--edge-inset) * 2);
+  background: transparent;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.overview-center-element {
+  display: flex;
+  min-width: 0;
+  justify-content: center;
+  text-align: center;
+}
+

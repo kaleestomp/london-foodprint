@@ -7,15 +7,19 @@
 @import './drawerContent.css';
 
 :root {
-    /* ADD FLOATING GAP */
-  --inset-is-closed: 20px;
+  
+  /* ADD FLOATING GAP */
+  --drawer-home-height: 104px;
+  --inset-is-closed: 25px;
   --inset-is-open: 8px;
-  --border-radius-is-closed: 48px; /* var(--app-card-border-radius); */
-  --border-radius-is-open: calc(var(--border-radius-is-closed) - (var(--inset-is-closed) - var(--inset-is-open))*0.5);
+  --screen-notch-radius: 60px;
+  --border-radius-is-closed: calc(var(--drawer-home-height)*0.5); /* var(--app-card-border-radius); */
+  --border-radius-is-open: calc(var(--screen-notch-radius) - var(--inset-is-open));
   --border-radius-default: 10px;
   --default-transition: 450ms cubic-bezier(0.32, 0.72, 0, 1); 
   --delayed-transition: 450ms ease 100ms;
-  --drawer-header-height: 90px; /* 64 94 100*/
+
+  --drawer-header-height: var(--drawer-home-height); /* 64 94 100*/
   --drawer-bg: var(--app-paper-color);
   --drawer-bg-is-full-height: #e0e0e0;
   --drawer-shadow: none; /* 0 -2px 4px rgba(0, 0, 0, 0.08) var(--app-card-box-shadow); */

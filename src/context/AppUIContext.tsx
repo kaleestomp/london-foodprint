@@ -2,9 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from 'react
 import type { ReactNode } from 'react'; 
 
 export type ToolbarFilterTab = 'rating' | 'price' | 'cuisine' | 'search';
-export type ColorMode = 'light' | 'dark';
 export type InitialLoadItem = 'baseTiles' | 'clusterLayer' | 'heatmapLayer';
-
 export type LiveLocation = {
   lat: number;
   lng: number;
@@ -15,9 +13,8 @@ interface AppUIContextType {
   isLoading: boolean; toggleLoading: (loading: boolean) => void;
   activeToolbarTab: ToolbarFilterTab | null; setActiveToolbarTab: (tab: ToolbarFilterTab | null) => void;
   liveLocation: LiveLocation | null; queueLiveLocationDrop: (lat: number, lng: number) => void;
-  colorMode: ColorMode; toggleColorMode: () => void;
+  darkMode: boolean; toggleDarkMode: () => void;
   heatmapEnabled: boolean; toggleHeatmapEnabled: () => void;
-  mapMode: ColorMode; toggleMapMode: () => void;
   // initialLoadComplete: boolean; markInitialLoadItemComplete: (item: InitialLoadItem) => void;
 }
 
@@ -37,9 +34,8 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
   // const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [activeToolbarTab, setActiveToolbarTab] = useState<ToolbarFilterTab | null>(null);
   const [liveLocation, setLiveLocation] = useState<LiveLocation | null>(null);
-  const [colorMode, setColorMode] = useState<ColorMode>('light'); //getInitialColorMode
   const [heatmapEnabled, setHeatmapEnabled] = useState(true);
-  const [mapMode, setMapMode] = useState<ColorMode>('light');
+  const [darkMode, setDarkMode] = useState(false);
   // const [, setInitialLoadItems] = useState<Record<InitialLoadItem, boolean>>({
   //   baseTiles: false,
   //   clusterLayer: false,
@@ -67,34 +63,29 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
     setLiveLocation({ lat, lng, token: Date.now() });
   }, []);
 
-  const toggleColorMode = useCallback(() => {
-    setColorMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode((prev) => !prev);
   }, []);
 
   const toggleHeatmapEnabled = useCallback(() => {
     setHeatmapEnabled((prev) => !prev);
   }, []);
 
-  const toggleMapMode = useCallback(() => {
-    setMapMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  }, []);
 
   const exposed = useMemo<AppUIContextType>(() => ({ 
     isLoading, toggleLoading,
     // initialLoadComplete, markInitialLoadItemComplete,
     activeToolbarTab, setActiveToolbarTab,
     liveLocation, queueLiveLocationDrop,
-    colorMode, toggleColorMode,
+    darkMode, toggleDarkMode,
     heatmapEnabled, toggleHeatmapEnabled,
-    mapMode, toggleMapMode,
   }), [
     isLoading, toggleLoading,
     // initialLoadComplete, markInitialLoadItemComplete,
     activeToolbarTab, setActiveToolbarTab,
     liveLocation, queueLiveLocationDrop,
-    colorMode, toggleColorMode,
+    darkMode, toggleDarkMode,
     heatmapEnabled, toggleHeatmapEnabled,
-    mapMode, toggleMapMode,
   ]);
 
   return (

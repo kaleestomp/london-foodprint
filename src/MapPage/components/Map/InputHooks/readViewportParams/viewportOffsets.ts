@@ -1,0 +1,2 @@
+export const VIEWPORT_OVERSCAN_BOTTOM_PX = 100;
+export const DESKTOP_LEFT_OFFSET_PX = 360;

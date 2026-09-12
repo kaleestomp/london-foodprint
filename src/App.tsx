@@ -10,13 +10,13 @@ import MapPage from './MapPage/MapPage';
 import './App.css';
 
 const AppRoutes = () => {
-  const { colorMode } = useAppUI();
+  const { darkMode } = useAppUI();
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', colorMode);
-    window.localStorage.setItem('app-color-mode', colorMode);
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    window.localStorage.setItem('app-color-mode', darkMode ? 'dark' : 'light');
     assignBrowserThemeColor();
-  }, [colorMode]);
+  }, [darkMode]);
 
   return (
     <Routes>

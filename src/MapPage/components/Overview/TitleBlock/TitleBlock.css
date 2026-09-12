@@ -1,0 +1,18 @@
+.overview-title-block {
+  width: 100%;
+  text-align: center;
+}
+
+.overview-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--app-text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overview-subtitle {
+  font-size: 14px;
+  color: var(--app-text-caption-color);
+}

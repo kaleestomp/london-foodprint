@@ -1,30 +1,19 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 :root {
+  /* LAYOUT */
   --app-layout-gap: 20px;
   --app-layout-margin: 20px;
   --app-layout-margin-top: var(--app-layout-margin);
-  --app-toolbar-height: 56px;
-  --app-toolbar-button-gap: 12px;
-  --app-floating-card-bg: #dee7f7;
-  --app-card-border-radius: 10px; /* 20px */
-  --app-floating-card-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    0 16px 38px rgba(70, 48, 48, 0.16);
-  --app-floating-card-shadow-inset: inset 2px 5px 10px rgba(5, 5, 5, 0.145);
+  --left-panel-width: clamp(300px, 30vw, 420px);
 
-  --app-text-color: #202124;
-  --app-text-caption-color: #6c727c;
-  --app-divider-color: #afafaf7a; /* #6c727c7a; */
-  --app-floating-card-backdrop-filter: blur(14px);
+  /* CARD */
+  --app-card-border: 1px solid rgba(255, 255, 255, 0.5);
+  --app-card-border-radius: 10px; /* 20px */
+  --app-card-box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.08);
   --app-faint-outline-color: rgba(0, 0, 0, 0.15);
   --app-handle-color: #c5cad3;
+  --app-toolbar-icon-color: var(--app-primary-black);
   
-
+  /* PAPER */
   --app-paper-color-fixed: #f4f4f4; /* #e0e0e0 */;
   --app-paper-color: var(--app-paper-color-fixed);
   --app-paper-color-brighter: #ffffff84;
@@ -32,13 +21,15 @@
     165deg,
     rgba(255, 255, 255, 0.8) 0%, /* 0.5 */
     rgba(255, 255, 255, 0.6) 100% /* 0.8 */
-    /* 165deg,
-    rgba(226, 236, 255, 0.52) 0%,
-    rgba(255, 255, 255, 0.16) 100% */
   );
+
+  /* TEXT */
+  --app-text-color: #202124;
+  --app-text-caption-color: #6c727c;
+  --app-divider-color: #afafaf7a; /* #6c727c7a; */
+
+  /* GLASS EFFECT */
   --app-backdrop-filter: blur(50px) saturate(1.8);
-  --app-card-border: 1px solid rgba(255, 255, 255, 0.5);
-  --app-card-box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.08);
   --app-glass-bg: rgba(244, 244, 244, 0.25);
   --app-glass-border: 1px solid rgba(255, 255, 255, 0.3);
   --app-glass-shadow: 0 -8px 32px rgba(0, 0, 0, 0.16),
@@ -46,8 +37,8 @@
     inset 0 -1px 0 rgba(255, 255, 255, 0.1),
     inset 0 0 20px 10px rgba(255, 255, 255, 0.25);
 
+  /* PRIMARY COLORS */
   --app-primary-black: rgb(45, 45, 45);
-  --app-toolbar-icon-color: var(--app-primary-black);
   --app-primary-blue: rgb(31, 130, 192);
   --app-secondary-blue: rgb(21, 36, 50);
   --app-primary-grey: rgb(120, 120, 120);
@@ -57,9 +48,19 @@
 }
 
 html[data-theme='dark'] {
-  --app-paper-color: #1e1e1e;
-  --app-floating-card-bg: linear-gradient(45deg, #4a4a4a, #3e3e3e);
 
+  /* PAPER */
+  --app-paper-color: #1e1e1e;
+  /* CARD */
+  --app-faint-outline-color: rgba(255, 255, 255, 0.2);
+  --app-handle-color: #d1d5db;
+  --app-toolbar-icon-color: var(--app-text-color);
+  /* TEXT */
+  --app-text-color: rgba(255, 255, 255, 0.85);
+  --app-text-caption-color: rgba(255, 255, 255, 0.55);
+  --app-divider-color: rgba(255, 255, 255, 0.1);
+
+  /* GLASS EFFECT */
   --app-glass-card-bg: linear-gradient(
       165deg,
       rgba(34, 40, 52, 0.5) 0%,
@@ -72,15 +73,6 @@ html[data-theme='dark'] {
     inset 0 1px 0 var(--app-glass-card-highlight),
     0 0 0 1px rgba(255, 255, 255, 0.06);
   --app-glass-card-glow: rgba(84, 142, 248, 0.24);
-  --app-glass-card-blob-opacity: 0.45;
-  
-  --app-text-color: rgba(255, 255, 255, 0.85);
-  --app-text-caption-color: rgba(255, 255, 255, 0.55);
-  --app-divider-color: rgba(255, 255, 255, 0.1);
-  --app-faint-outline-color: rgba(255, 255, 255, 0.2);
-  --app-floating-card-backdrop-filter: blur(18px) saturate(1.15);
-  --app-handle-color: #d1d5db;
-  --app-toolbar-icon-color: var(--app-text-color);
 }
 
 @media (max-width: 959px) {

@@ -10,7 +10,7 @@
   /* padding: 10px calc(var(--app-layout-margin) - 4px) 24px;
   background: var(--app-glass-card-bg-2);
   margin-inline: 4px;
-  box-shadow: var(--app-floating-card-shadow-inset);
+  box-shadow: var(--app-card-box-shadow);
   border-radius: var(--app-card-border-radius) var(--app-card-border-radius) 0 0; */
 }
 

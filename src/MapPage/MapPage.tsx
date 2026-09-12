@@ -36,16 +36,18 @@ const MapPage: FC = () => {
   return (
     <div className="map-page-container">
       <Loading loading={isLoading} />
-      <div className='map-card-viewport'>
+      <div className='map-viewport'>
         <ViewportQueryProvider>
           <PlaceSelectionProvider>
             <TopPlacesProvider>
               <GeoSearchProvider>
               <Map mapRef={mapRef} />
               <DrawerStateProvider>
-                <MapToolbar mapRef={mapRef} />
-                <DrawerMapViewportSync mapRef={mapRef} />
-                <SlideUpDrawer mapRef={mapRef} />
+                <div className="map-safe-area">
+                  <MapToolbar mapRef={mapRef} />
+                  <DrawerMapViewportSync mapRef={mapRef} />
+                  <SlideUpDrawer mapRef={mapRef} />
+                </div>
               </DrawerStateProvider>
               </GeoSearchProvider>
             </TopPlacesProvider>

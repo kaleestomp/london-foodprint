@@ -1,0 +1,7 @@
+.drawer-header {
+  margin-top: calc(-1 * var(--drawer-header-height)); /*-64 -17 or -20px size of handle block */
+  flex: 0 0 auto;
+  user-select: none;
+  min-height: var(--drawer-header-height);
+  background: transparent;
+}

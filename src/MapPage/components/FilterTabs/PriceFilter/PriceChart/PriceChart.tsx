@@ -13,9 +13,9 @@ const PAD_CATEGORY_RIGHT = '__pad_right__';
 type Props = { priceData: Array<{ cost: string; count: number }> };
 
 const PriceChart: React.FC<Props> = ({ priceData }) => {
-  const { colorMode } = useAppUI();
-  const primaryColor = colorMode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
-  const secondaryColor = colorMode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+  const { darkMode } = useAppUI();
+  const primaryColor = darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+  const secondaryColor = darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
 
   const chartCategories = [PAD_CATEGORY_LEFT, ...PRICE_RANGE_FILTER_OPTIONS, PAD_CATEGORY_RIGHT];
   const chartData = formatChartData(priceData);

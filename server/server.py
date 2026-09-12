@@ -17,6 +17,7 @@ from api.geocode.geocode_api import router as geocode_router
 from api.histogram_api.cuisine_histogram_api import router as cuisine_histogram_router
 from api.histogram_api.price_histogram_api import router as price_histogram_router
 from api.heatmap_api.heatmap_api import router as heatmap_router
+from api.places_count_api.places_count_api import router as places_count_router
 
 load_dotenv()
 
@@ -71,6 +72,7 @@ app.include_router(geocode_router)
 app.include_router(cuisine_histogram_router)
 app.include_router(price_histogram_router)
 app.include_router(heatmap_router)
+app.include_router(places_count_router)
 
 
 @app.get("/health")
