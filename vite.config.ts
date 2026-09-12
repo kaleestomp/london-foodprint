@@ -19,7 +19,7 @@ const emitMaplibreWorkerFiles = (): Plugin => ({
 })
 
 // https://vite.dev/config/
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   plugins: [react(), emitMaplibreWorkerFiles()],
   server: {
     host: true,
@@ -61,5 +61,5 @@ export default defineConfig(({ command }) => ({
       },
     },
   },
-  base: command === 'serve' ? '/' : '/london-foodprint/',
-}))
+  base: '/london-foodprint/',
+})
