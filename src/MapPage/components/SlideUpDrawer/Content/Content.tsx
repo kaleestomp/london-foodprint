@@ -18,7 +18,7 @@ const Content: FC<{
 
     const isMobile = useIsMobileCtx();
     // const { suggestionsVisible } = useGeoSearch();
-    const pageSize = isMobile && !panelUp ? 5 : 20;
+    const pageSize = isMobile ? 5 : 20;
     const enableList = (isMobile && panelUp) || !isMobile;
     const { activeToolbarTab } = useAppUI();
     

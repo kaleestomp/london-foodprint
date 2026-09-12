@@ -18,6 +18,7 @@ const useFocusCamera = (
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !selectedItem) return;
+        if (isClosed) return;
         if (selectionSource === 'map') return;
         map.easeTo({
             center: [selectedItem.lon, selectedItem.lat],

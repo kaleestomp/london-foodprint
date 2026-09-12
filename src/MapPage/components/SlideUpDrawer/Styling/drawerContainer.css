@@ -1,21 +1,29 @@
 .base-ui-container {
   /* ADD FLOATING GAP */
   position: absolute;
-  inset: 0 var(--inset-is-closed) var(--inset-is-closed);
+  top: 0;
+  right: var(--inset-is-closed);
+  bottom: var(--inset-is-closed);
+  left: var(--inset-is-closed);
   overflow: hidden;
   pointer-events: none;
   border-radius: 0 0 var(--border-radius-is-closed) var(--border-radius-is-closed);
-  transition: inset var(--delayed-transition), border-radius var(--delayed-transition);
-  will-change: inset, border-radius;
+  transition: right var(--delayed-transition), left var(--delayed-transition), 
+    bottom var(--default-transition), border-radius var(--delayed-transition);
+  will-change: border-radius;
   z-index: 20;
 
   border-bottom: var(--drawer-outline);
 }
 .base-ui-container.is-open {
-  inset: 0 var(--inset-is-open) var(--inset-is-open);
+  right: var(--inset-is-open);
+  left: var(--inset-is-open);
+  bottom: calc(var(--inset-is-open) + var(--bottom-overscan) * -1);
   border-radius: 0 0 var(--border-radius-is-open) var(--border-radius-is-open);
 }
 .base-ui-container.is-full-height {
-  inset: 0;
+  right: 0;
+  left: 0;
+  bottom: calc(var(--inset-is-open) + var(--bottom-overscan) * -1);
   border-radius: 0 0 var(--border-radius-default) var(--border-radius-default);
 }

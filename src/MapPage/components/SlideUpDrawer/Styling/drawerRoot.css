@@ -11,10 +11,10 @@
   /* ADD FLOATING GAP */
   --drawer-home-height: 104px;
   --inset-is-closed: 25px;
-  --inset-is-open: 8px;
+  --inset-is-open: 0px; /* previously 8px */
   --screen-notch-radius: 60px;
   --border-radius-is-closed: calc(var(--drawer-home-height)*0.5); /* var(--app-card-border-radius); */
-  --border-radius-is-open: calc(var(--screen-notch-radius) - var(--inset-is-open));
+  --border-radius-is-open: 10px; /*calc(var(--screen-notch-radius) - var(--inset-is-open));*/
   --border-radius-default: 10px;
   --default-transition: 450ms cubic-bezier(0.32, 0.72, 0, 1); 
   --delayed-transition: 450ms ease 100ms;

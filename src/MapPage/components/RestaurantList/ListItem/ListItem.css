@@ -15,14 +15,11 @@
   cursor: pointer;
   overflow: hidden;
   transition: 
-    max-height 400ms ease, transform 400ms ease, 
+    max-height 400ms ease, transform 400ms ease,
     padding 400ms ease,
     margin 200ms ease 400ms;
   margin: 0;
-}
-.list-item-row:hover {
-  transform: translateY(-2px) scale(1.02);
-  /* box-shadow: 0 4px 8px rgba(15, 23, 42, 0.12); */
+  contain: layout paint;
 }
 .list-item-row.is-selected {
   padding-bottom: 18px;
@@ -31,8 +28,20 @@
   margin: 8px 0 8px;
 }
 
-.list-item-row.is-selected:hover {
-  transform: translateY(-1px) scale(1.01);
+@media (hover: hover) and (pointer: fine) {
+  .list-item-row:hover {
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  .list-item-row.is-selected:hover {
+    transform: translateY(-1px) scale(1.01);
+  }
+}
+
+@media (hover: none) {
+  .list-item-row {
+    transition: max-height 400ms ease, padding 400ms ease, margin 200ms ease 400ms;
+  }
 }
 
 .list-item-content {

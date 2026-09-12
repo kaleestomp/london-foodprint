@@ -14,12 +14,12 @@ type PanelSnapshot = {
   bottomPadding: number;
 };
 
-const PANEL_PADDING_ANIMATION_MS = 900;
+const PANEL_PADDING_ANIMATION_MS = 450;
 
 const DrawerMapViewportSync: React.FC<Props> = ({ mapRef }) => {
   
   // const { isDragging } = usePullUpPanelSnapState();
-  const { selectedPlaceId } = usePlaceSelection();
+  const { selectionSource } = usePlaceSelection();
 
   const bottomPadding = useBottomPadding(mapRef);
 
@@ -50,6 +50,14 @@ const DrawerMapViewportSync: React.FC<Props> = ({ mapRef }) => {
       return;
     }
 
+    // List selection owns the camera focus and padding. Avoid competing with
+    // that animation, especially when the drawer is closing.
+    if (selectionSource === 'list') {
+      prevRef.current = nextSnapshot;
+      return;
+    }
+
+    map.stop();
     map.easeTo({
       center: map.getCenter(),
       padding: {
@@ -62,7 +70,7 @@ const DrawerMapViewportSync: React.FC<Props> = ({ mapRef }) => {
     });
 
     prevRef.current = nextSnapshot;
-  }, [bottomPadding, mapRef, selectedPlaceId]);
+  }, [bottomPadding, mapRef, selectionSource]);
 
   return null;
 };

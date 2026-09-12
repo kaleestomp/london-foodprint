@@ -22,6 +22,7 @@ const ItemIcon: FC<{
                     alt={item.cuisine_type ?? 'Cuisine'}
                     className="list-item-icon"
                     draggable={false}
+                    decoding="async"
                 />
             </div>
         </div>
