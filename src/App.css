@@ -77,7 +77,7 @@ html[data-theme='dark'] {
 
 @media (max-width: 959px) {
   :root  {
-    --app-layout-margin-top: var(--app-toolbar-button-gap);
+    --app-layout-margin-top: var(--app-layout-margin);
     --app-toolbar-height: 56px;
   }
 }
