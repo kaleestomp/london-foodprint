@@ -1,0 +1,80 @@
+.desktop-panel {
+    position: fixed;
+    top: var(--app-layout-margin);
+    bottom: var(--app-layout-margin);
+    left: var(--app-layout-margin);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    width: var(--left-panel-width);
+    overflow: hidden;
+    border-radius: var(--app-card-border-radius);
+    background: var(--drawer-bg);
+    border: var(--drawer-outline);
+    box-shadow: var(--drawer-shadow-is-full-height);
+
+    /* background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: var(--app-backdrop-filter);
+    -webkit-backdrop-filter: var(--app-backdrop-filter);
+    border: var(--app-glass-border);
+    box-shadow: var(--app-glass-shadow); */
+}
+
+.desktop-panel-header {
+    flex: 0 0 auto;
+}
+
+.desktop-panel-search {
+    --toolbar-height: 45px;
+    --toolbar-icon-size: 25px;
+    --toolbar-background: var(--app-glass-bg);
+    --toolbar-background-hover: var(--app-paper-color-brighter);
+    --toolbar-background-active: var(--app-paper-color-brighter);
+    --toolbar-shadow-active: var(--app-card-box-shadow);
+    --toolbar-icon-color: var(--app-toolbar-icon-color);
+
+    margin: 8px 20px 8px;
+    transition: margin 400ms ease;
+}
+
+.desktop-panel-search:focus-within {
+    margin: 25px 20px 45px;
+}
+
+.desktop-panel-search .geo-searchbar-root,
+.desktop-panel-search .geo-searchbar-and-dropdown {
+    width: 100%;
+    max-width: none;
+}
+
+.desktop-panel-header .drawer-header {
+    margin: 24px 20px 14px 20px;
+}
+
+.desktop-panel-body {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.desktop-panel-body .drawer-content {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--app-divider-color) transparent;
+}
+
+.desktop-panel-body .drawer-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.desktop-panel-body .drawer-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.desktop-panel-body .drawer-content::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--app-divider-color);
+}

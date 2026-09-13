@@ -3,8 +3,9 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import getCuisineIconSrc from './getCuisineIconSrc';
 import { getCuisineColor } from './backdropColors/getCuisineColor';
+import { MOBILE_BREAKPOINT } from '../../../../../../../utils/browser/config';
+import { DESKTOP_TOP_PLACE_PIN, MOBILE_TOP_PLACE_PIN } from '../../topPlaceLayerConfig';
 
-const ICON_SIZE = 26; // All pins same size 22
 const ENTER_CLASS = 'enter-animation';
 const EXIT_CLASS = 'exit-animation';
 
@@ -12,6 +13,9 @@ const TopPlacePin = (placeId?: string, cuisineType?: string): HTMLDivElement => 
 
   const iconSrc = getCuisineIconSrc(cuisineType);
   const element = document.createElement('div');
+  const isDesktop = window.innerWidth > MOBILE_BREAKPOINT;
+  const topPlacePinConfig = isDesktop ? DESKTOP_TOP_PLACE_PIN : MOBILE_TOP_PLACE_PIN;
+  const iconSize = topPlacePinConfig.iconSize;
 
   element.innerHTML = `<div class="top-place-pin-shell ${ENTER_CLASS}">
       <div class="top-place-pin-hover">
@@ -26,7 +30,7 @@ const TopPlacePin = (placeId?: string, cuisineType?: string): HTMLDivElement => 
             src: iconSrc,
             alt: cuisineType ?? '',
             className: 'top-place-pin-image',
-            style: { width: `${ICON_SIZE}px`, height: `${ICON_SIZE}px` },
+            style: { width: `${iconSize}px`, height: `${iconSize}px` },
             draggable: false,
           }))}
         </div>
@@ -38,6 +42,10 @@ const TopPlacePin = (placeId?: string, cuisineType?: string): HTMLDivElement => 
   if (shell) {
     shell.dataset.placeId = placeId;
     shell.style.setProperty('--bubble-color', getCuisineColor(cuisineType));
+    shell.style.setProperty('--bubble-size', `${topPlacePinConfig.bubbleSize}px`);
+    shell.style.setProperty('--anchor-dot-size', `${topPlacePinConfig.anchorDotSize}px`);
+    shell.style.setProperty('--rank-badge-size', `${topPlacePinConfig.rankBadgeSize}px`);
+    shell.style.setProperty('--rank-badge-font-size', `${topPlacePinConfig.rankBadgeFontSize}px`);
   }
 
   return element;

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../../../context/AppUIContext';
+import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
 import useFetchHeatmap from './InputHooks/useFetchHeatmap';
 import heatmapLayer from './heatmapLayer';
 import sortLayerOrder from './sortLayerOrder';
@@ -14,6 +15,7 @@ const useHeatmapLayer = (
 ): void => {
 
   const { heatmapEnabled: enabled } = useAppUI(); //markInitialLoadItemComplete
+  const isDesktop = !useIsMobileCtx();
   const { geojson } = useFetchHeatmap(enabled);
   const latestGeojsonRef = useRef(geojson);
   const appliedGeojsonRef = useRef<typeof geojson | null>(null);
@@ -61,7 +63,7 @@ const useHeatmapLayer = (
       }
 
       if (!map.getLayer(LAYER_ID)) {
-        map.addLayer(heatmapLayer(LAYER_ID, SOURCE_ID));
+        map.addLayer(heatmapLayer(LAYER_ID, SOURCE_ID, isDesktop));
       }
       if (source && appliedGeojsonRef.current !== latestGeojsonRef.current) {
         source.setData(latestGeojsonRef.current);

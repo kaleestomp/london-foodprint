@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FC } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
 import { useCityContext } from '../../../context/CityContext';
+import { useIsMobileCtx } from '../../../context/IsMobileContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
 import { useQueryClient } from '@tanstack/react-query';
 // import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
@@ -26,6 +27,8 @@ const RestaurantList: FC<{
 
   // REFRESH STATE
   const [shouldAutoRefresh, setShouldAutoRefresh] = useState(true);
+  const isMobile = useIsMobileCtx();
+  const skeletonRowCount = isMobile ? 8 : 20;
 
   // DO NOT RESET OVERRIDE 
   // When the drawer is closed and a place is selected
@@ -48,7 +51,7 @@ const RestaurantList: FC<{
   const resetSignal = autoUpdate || shouldAutoRefresh;
   const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale, filterKey
   } = useFetchInfinitePlacesList(resetSignal, pageSize, enabled);
-  const items = isClosed ? [] : (res?.data ?? []);
+  const items = isMobile && isClosed ? [] : (res?.data ?? []);
 
   // UNMATCHED SELECTED PLACE ID
   // Selected cluster singleton marker with no matching row in the loaded list.
@@ -79,7 +82,7 @@ const RestaurantList: FC<{
     return (
       <div className="list-scroll-content">
         <div className="list-section">
-          <ListLoading enabled />
+          <ListLoading enabled rowCount={skeletonRowCount} />
         </div>
       </div>
     );
@@ -95,7 +98,7 @@ const RestaurantList: FC<{
       <div ref={scrollRef} className="list-scroll-content" onScroll={onScroll}>
         <RefreshButton onListRefresh={onListRefresh} isVisible={showRefreshButton} isLoading={isRefreshPending} />
         <div className={`list-section${shouldFade ? ' list-fade-in' : ''}`} onAnimationEnd={shouldFade ? onRefreshAnimationEnd : undefined} >
-          <ListLoading enabled={status === 'loading' && items.length === 0} />
+          <ListLoading enabled={status === 'loading' && items.length === 0} rowCount={skeletonRowCount} />
           <NoResults enabled={status !== 'loading' && items.length === 0} />
           <Virtualizer mapRef={mapRef} items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} unmatchedPlaceId={unmatchedPlaceId} onSelect={() => setShouldAutoRefresh(false)} />
           <ListLoading enabled={isFetchingNextPage} rowCount={3} />

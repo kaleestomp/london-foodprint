@@ -1,0 +1,33 @@
+.desktop-panel-tabs {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 8px;
+  border-top: var(--drawer-outline);
+  border-bottom: var(--drawer-outline);
+  background: transparent;
+}
+
+.desktop-panel-tabs button {
+  display: inline-flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 99px;
+  color: var(--app-text-caption-color);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.desktop-panel-tabs button:hover,
+.desktop-panel-tabs button.is-active {
+  color: var(--app-primary-black);
+  transform: scale(1.2) translateY(-1px);
+  font-weight: bold;
+  transition: transform 100ms ease;
+}

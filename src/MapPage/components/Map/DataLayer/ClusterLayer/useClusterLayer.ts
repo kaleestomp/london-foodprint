@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as maplibregl from 'maplibre-gl';
 
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
+import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
 import useFetchHeatmap from '../HeatmapLayer/InputHooks/useFetchHeatmap';
 import { clusterCountLayer, unclusteredPointHighlightLayer, unclusteredPointHitLayer, unclusteredPointLayer, unclusteredPointShadowLayer } from './clusterLayers';
 import sortLayerOrder from './sortLayerOrder';
@@ -36,6 +37,7 @@ const useClusterLayer = (
 ) => {
 
   const { geojson } = useFetchHeatmap(enabled);
+  const isDesktop = !useIsMobileCtx();
   const latestGeojsonRef = useRef(geojson);
   const { selectedPlaceId, selectedLayer } = usePlaceSelection();
   const suppressedSingletonId = (selectedLayer === 'list')
@@ -117,7 +119,7 @@ const useClusterLayer = (
         });
       }
       if (!map.getLayer(COUNT_LAYER_ID))
-        map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID, false));
+        map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID, false, isDesktop));
       if (!map.getLayer(PLACES_SHADOW_LAYER_ID))
         map.addLayer(unclusteredPointShadowLayer(PLACES_SHADOW_LAYER_ID, SOURCE_ID));
       if (!map.getLayer(PLACES_LAYER_ID))
@@ -157,7 +159,7 @@ const useClusterLayer = (
 
       removeLayer();
     };
-  }, [enabled, mapRef]); //markInitialLoadItemComplete
+  }, [enabled, isDesktop, mapRef]); //markInitialLoadItemComplete
 
   useEffect(() => {
     const map = mapRef.current;

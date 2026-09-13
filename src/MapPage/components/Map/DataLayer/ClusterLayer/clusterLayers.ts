@@ -1,5 +1,6 @@
 import type { CircleLayerSpecification, ExpressionSpecification, SymbolLayerSpecification } from 'maplibre-gl';
 import { getCuisineColorExpression } from '../TopPlacesLayer/syncMarkers/markers/backdropColors/getCuisineColor';
+import { DESKTOP_CLUSTER_LABEL_SIZE, MOBILE_CLUSTER_LABEL_SIZE } from './clusterLayerConfig';
 
 const MARKER_SIZE = 5;
 
@@ -15,7 +16,11 @@ export const clusterCountLayer = (
   layerId: string,
   sourceId: string,
   darkMode: boolean = true,
-): SymbolLayerSpecification => ({
+  isDesktop = false,
+): SymbolLayerSpecification => {
+  const clusterLabelSize = isDesktop ? DESKTOP_CLUSTER_LABEL_SIZE : MOBILE_CLUSTER_LABEL_SIZE;
+
+  return {
   id: layerId,
   type: 'symbol',
   source: sourceId,
@@ -24,13 +29,7 @@ export const clusterCountLayer = (
     'text-field': ['get', 'point_count_abbreviated'],
     // 'text-font': ['Open Sans SemiBold'],
     // 'text-size': 10,
-    'text-size': [
-      'interpolate',
-      ['linear'],
-      ['get', 'point_count'],
-      10, 10,
-      1000, 14,
-    ],
+    'text-size': clusterLabelSize,
     'text-allow-overlap': true,
   },
   paint: {
@@ -39,7 +38,8 @@ export const clusterCountLayer = (
     'text-halo-width': darkMode ? 0.5 : 1,
     'text-opacity': 0.9,
   },
-});
+  };
+};
 
 export const unclusteredPointLayer = (
   layerId: string,

@@ -7,6 +7,7 @@ import { PlaceSelectionProvider } from '../context/PlaceSelectionContext';
 import { TopPlacesProvider } from '../context/TopPlacesContext';
 import { DrawerStateProvider } from './components/SlideUpDrawer/DrawerStateContext';
 import { GeoSearchProvider } from './components/GeoSearch/GeoSearchContext';
+import { useIsMobileCtx } from '../context/IsMobileContext';
 
 import Map from './components/Map/Map';
 import Loading from '../components/Loading/Loading';
@@ -15,6 +16,9 @@ import Loading from '../components/Loading/Loading';
 // import BaseToolbar from './components/BaseToolbar/BaseToolbar';
 import MapToolbar from './components/MapToolbar/MapToolbar';
 import DrawerMapViewportSync from './components/MapViewportSync/DrawerMapViewportSync';
+import DesktopPanel from './components/DesktopPanel/DesktopPanel';
+import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
+import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 
 import SlideUpDrawer from './components/SlideUpDrawer/SlideUpDrawer.tsx';
 
@@ -25,6 +29,7 @@ import './MapPage.css';
 
 const MapPage: FC = () => {
   const { isLoading } = useAppUI()!;
+  const isMobile = useIsMobileCtx();
   const mapRef = useRef<maplibregl.Map | null>(null);
 
   // IPLocationHandler({ mapRef });
@@ -43,11 +48,15 @@ const MapPage: FC = () => {
               <GeoSearchProvider>
               <Map mapRef={mapRef} />
               <DrawerStateProvider>
-                <div className="map-safe-area">
-                  <MapToolbar mapRef={mapRef} />
-                  <DrawerMapViewportSync mapRef={mapRef} />
-                  <SlideUpDrawer mapRef={mapRef} />
-                </div>
+                <BubbleAvatarStateProvider>
+                  <div className="map-safe-area">
+                    <MapToolbar mapRef={mapRef} />
+                    <DrawerMapViewportSync mapRef={mapRef} />
+                    <SlideUpDrawer mapRef={mapRef} />
+                    <DesktopPanel mapRef={mapRef} />
+                    {!isMobile && <BubbleAvatar mapRef={mapRef} />}
+                  </div>
+                </BubbleAvatarStateProvider>
               </DrawerStateProvider>
               </GeoSearchProvider>
             </TopPlacesProvider>

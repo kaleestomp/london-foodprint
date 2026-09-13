@@ -41,9 +41,19 @@
   --bubble-avatar-bg-blur: blur(0px);
 }
 
-@media (max-width: 959px) {
+/* CSS custom properties cannot be used in media-query conditions. */
+@media (max-width: 430px) {
   .bubble-avatar-root  {
     --bubble-avatar-home-position-right: var(--bubble-avatar-bottom-offset);
     --bubble-avatar-home-position-margin-right: -10px;
+  }
+}
+
+@media (min-width: 431px) {
+  .bubble-avatar-root {
+    --bubble-avatar-home-position-right: 50px;
+    --bubble-avatar-home-position-margin-right: 0px;
+    --bubble-avatar-bottom-offset: 50px;
+    
   }
 }

@@ -64,7 +64,7 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 18px;
+    width: var(--rank-badge-size, 18px);
     height: 8px;
     border-radius: 50%;
     pointer-events: none;
@@ -81,7 +81,7 @@
     right: -10px;
     width: 18px;
     /* 14px */
-    height: 18px;
+    height: var(--rank-badge-size, 18px);
     padding: 0;
     display: block;
 
@@ -132,7 +132,7 @@
     /* font-variant-numeric: tabular-nums; */
     overflow: visible;
     color: rgba(255, 255, 255, 0.9);
-    font-size: 9px;
+    font-size: var(--rank-badge-font-size, 9px);
     font-weight: 600;
     line-height: 0.9;
 }

@@ -8,6 +8,7 @@ import Content from './Content/Content';
 import AboveDrawer from './AboveDrawer/AboveDrawer';
 import DrawerOverlay from './DrawerOverlay';
 import { useDrawerState } from './DrawerStateContext';
+import { useIsMobileCtx } from '../../../context/IsMobileContext';
 
 import './Styling/drawerRoot.css';
 
@@ -17,8 +18,11 @@ const SlideUpDrawer: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
 }> = ({ mapRef }) => {
 
+  const isMobile = useIsMobileCtx();
   const [drawerContainer, setDrawerContainer] = useState<HTMLDivElement | null>(null);
   const { snap, updateSnap, isAtFullHeight, isClosed } = useDrawerState();
+
+  if (!isMobile) return null;
 
   return (
     <Drawer.Root

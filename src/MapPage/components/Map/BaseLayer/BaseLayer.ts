@@ -8,6 +8,7 @@ import syncMaxPitch from './useCamera/syncMaxPitch';
 import useInvertedMaskLayer from './useMaskLayer/useInvertedMaskLayer';
 import useToggleBuilding3DLayer from './useBuilding3DLayer/useToggleBuilding3DLayer';
 import { useCityContext } from '../../../../context/CityContext';
+// import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -17,6 +18,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
 } => {
   // const { markInitialLoadItemComplete } = useAppUI();
   const { cityParams } = useCityContext();
+  // const isMobile = useIsMobileCtx();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const internalMapRef = useRef<maplibregl.Map | null>(null);
   const mapRef = externalMapRef ?? internalMapRef;
@@ -24,6 +26,8 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current || !cityParams) return;
 
+    // const availableWorkers = navigator.hardwareConcurrency || 1;
+    // const workerCount = isMobile ? 1 : Math.min(4, availableWorkers);
     setWorkerCount(1);
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
