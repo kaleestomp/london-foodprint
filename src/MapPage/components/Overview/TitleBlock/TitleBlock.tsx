@@ -1,24 +1,33 @@
 import type { FC } from 'react';
+import Typography from '@mui/material/Typography';
 
-import useFormatPlaceCount from '../usePlaceCount/useFormatPlaceCount';
+import useFormatSubfix from '../useTitle/useFormatSubfix';
+import useFormatSubtitle from '../useTitle/useFormatSubtitle';
+import useFormatVerdict from '../useTitle/useFormatVerdict';
 import './TitleBlock.css';
 
-const TitleBlock: FC<{ 
+const TitleBlock: FC<{
   count: number | null
-}> = ({ count }) => {
+  tierRep: number 
+}> = ({ count, tierRep }) => {
 
-  const { subfix, subline } = useFormatPlaceCount(count);
+  const subfix = useFormatSubfix(count);
+  const subtitle = useFormatSubtitle();
+  const verdict = useFormatVerdict(tierRep);
   return (
     <div className="overview-title-block">
-        {count !== null && <div className="overview-title">
-          {count}
-        </div>}
-        <div className="overview-subtitle-1">
-          {subfix}
-        </div>
-        <div className="overview-subtitle-2">
-            {subline}
-        </div>
+      <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+        {count !== null && <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+          {count} 
+        </Typography>}
+        
+        <Typography variant="caption" sx={{ ml: 0.5 }}>
+            {subfix}
+        </Typography>
+      </span>
+      <Typography variant="caption" className="place-detail-subtitle" sx={{ lineHeight: 1.0 }}>
+        {verdict}
+      </Typography>
     </div>
   );
 };

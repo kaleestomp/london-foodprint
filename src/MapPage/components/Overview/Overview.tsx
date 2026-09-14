@@ -16,7 +16,7 @@ const Overview: FC = () => {
                 <TierBadge value={tierRep ?? 0} isFirstLoading={isFirstLoading} />
             </div>
             <div className="overview-center-element">
-                <TitleBlock count={count} />
+                <TitleBlock count={count} tierRep={tierRep ?? 0}/>
             </div>
             <div className="overview-side-panel overview-side-panel--right">
                 <PriceBadge />

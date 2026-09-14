@@ -1,4 +1,4 @@
-const formatTierTag = (tier: number): number => {
+const readTierPercentage = (tier: number): number => {
 
     if (tier === 0) return 100;
     if (tier === 1) return 50;
@@ -8,4 +8,4 @@ const formatTierTag = (tier: number): number => {
     return 0;
 };
 
-export default formatTierTag;
+export default readTierPercentage;

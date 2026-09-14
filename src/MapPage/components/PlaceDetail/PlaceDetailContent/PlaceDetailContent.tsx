@@ -12,6 +12,7 @@ const PlaceDetailContent: FC<{
 
     if (!item) return null;
     return (
+        // <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}></Typography>
         <div className="place-detail-content">
             <Typography variant="h6" className="place-detail-title" sx={{ fontWeight: 500 }}>
                 {item.display_name}

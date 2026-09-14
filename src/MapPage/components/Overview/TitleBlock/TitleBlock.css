@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: 2px;
   width: 100%;
-  text-align: center;
+  text-align: start;
   line-height: 1.0;
 }
 

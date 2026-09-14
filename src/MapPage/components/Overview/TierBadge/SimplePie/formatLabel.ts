@@ -1,4 +1,4 @@
-const LABEL_FONT_FAMILY = "system-ui, 'Segoe UI', Roboto, sans-serif";
+const LABEL_FONT_FAMILY = 'Roboto, Helvetica, Arial, sans-serif';
 
 const formatLabel = (
     labelValue: number,
@@ -30,28 +30,26 @@ const formatLabel = (
         rich: {
             prefix: {
                 fontFamily: LABEL_FONT_FAMILY,
-                fontSize: 11,
-                fontWeight: 'regular',
+                fontSize: 10,
                 align: 'center',
                 padding: [0, 0, 0, 0],
             },
             value: {
                 fontFamily: LABEL_FONT_FAMILY,
                 padding: [0, 0, 0, 2],
-                fontSize: 20,
-                fontWeight: 700,
+                fontSize: 16,
+                fontWeight: 600,
                 align: 'center',
             },
             percent: {
                 fontFamily: LABEL_FONT_FAMILY,
-                fontSize: 11,
-                fontWeight: 'bold',
+                fontSize: 10,
                 padding: [0, 0, 0, 0],
                 align: 'center',
             },
             suffix: {
                 fontFamily: LABEL_FONT_FAMILY,
-                fontSize: 11,
+                fontSize: 10,
                 align: 'center',
             },
         },

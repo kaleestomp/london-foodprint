@@ -2,7 +2,7 @@ import type { FC } from 'react';
 
 import SimplePie from './SimplePie/SimplePie';
 import SimplePieSkeleton from './SimplePie/SimplePieSkeleton';
-import formatTierTag from './formatTierTag';
+import readTierPercentage from './formatTierTag';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import { useCityContext } from '../../../../context/CityContext';
 
@@ -11,7 +11,7 @@ const TierBadge: FC<{
     isFirstLoading?: boolean;
 }> = ({ value, isFirstLoading }) => {
     const { scoreTier } = useSearchFilters();
-    const tierTag = formatTierTag(scoreTier ?? 0);
+    const tierTag = readTierPercentage(scoreTier ?? 0);
     const { cityParams } = useCityContext();
     const { display_name: city } = cityParams;
     
