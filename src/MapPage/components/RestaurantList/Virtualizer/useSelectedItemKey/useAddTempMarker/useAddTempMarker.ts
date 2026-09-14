@@ -32,8 +32,8 @@ const useAddTempMarker = (
             return;
         }
 
-        const isListOwnedSelection = selectedLayer === 'list' && selectionSource === 'list';
-        if (!isListOwnedSelection) {
+        const isTemporarySelection = selectedLayer === 'temporary' && selectionSource === 'list';
+        if (!isTemporarySelection) {
             clearSelected();
             return;
         }

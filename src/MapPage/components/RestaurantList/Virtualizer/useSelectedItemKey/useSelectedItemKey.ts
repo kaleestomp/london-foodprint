@@ -4,8 +4,9 @@ import type * as maplibregl from 'maplibre-gl';
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
 import useAddTempMarker from './useAddTempMarker/useAddTempMarker';
 import useFocusCamera from './focusCamera';
-import useReportSelectedPlace from './useReportSelectedPlace';
 import { type PlacesListItem } from '../../../../request/useRequestPlacesList/request'
+import useTargetLayer from './useTargetLayer';
+import useManageSelectionContext from './useManageSelectionContext/useManageSelectionContext';
 
 export const getListItemKey = (id: string): string => id;
 const useSelectedItemKey = (
@@ -18,38 +19,47 @@ const useSelectedItemKey = (
   // SELECTED ITEM KEY STATE
   const [selectedItemKey, setSelectedItemKey] = useState<string | null>(null);
 
-  // SYNC THE LIST SELECTION STATE WITH THE ACTIVE map/list selection.
+  // MATCH MAP SELECTION TO LIST ITEM KEY.
   useEffect(() => {
     if (selectedPlaceId === null) {
-      setSelectedItemKey((current) => (current === null ? current : null));
-      return;
+      setSelectedItemKey(null);
+    } else {
+      const matchedIndex = items.findIndex((row) => row.id === selectedPlaceId);
+      const matchInVirtualRange = matchedIndex >= 0;
+      if (matchInVirtualRange) {
+        const nextKey = getListItemKey(items[matchedIndex].id);
+        setSelectedItemKey(nextKey);
+      }
     }
-
-    const matchedIndex = items.findIndex((row) => row.id === selectedPlaceId);
-    if (matchedIndex < 0) return;
-
-    const nextKey = getListItemKey(items[matchedIndex].id);
-    setSelectedItemKey((current) => (current === nextKey ? current : nextKey));
-  }, [items, selectedPlaceId]);
+  // ITEMS purposely REMOVED from deps 
+  // to AVOID finding match AFTER list refresh;
+  // MATCH ID is either found in the moment or not;
+  }, [selectedPlaceId]); 
 
   // CLEAR SELECTED ITEM IF IT NO LONGER EXISTS IN THE LIST
   useEffect(() => {
-    if (!selectedItemKey) return;
-    const hasSelectedItem = items.some((row) => getListItemKey(row.id) === selectedItemKey);
-    if (!hasSelectedItem) setSelectedItemKey(null);
+    if (selectedItemKey) {
+      const selectionInList = items.some((row) => getListItemKey(row.id) === selectedItemKey);
+      if (!selectionInList) setSelectedItemKey(null);
+    }
   }, [items, selectedItemKey]);
 
   // GET THE CURRENTLY SELECTED ITEM 
   const selectedItem = useMemo(() => {
-    if (!selectedItemKey) return null;
-    return items.find((row) => getListItemKey(row.id) === selectedItemKey) ?? null;
+    if (selectedItemKey) {
+      const item = items.find((row) => getListItemKey(row.id) === selectedItemKey);
+      return item ?? null;
+    } else { 
+      return null;
+    }
   }, [items, selectedItemKey]);
 
-  // REPORT SELECTED ITEM TO CONTEXT
-  const isTopPlace: boolean | null = useReportSelectedPlace(selectedItem);
+  // REPORT / CLEAR SELECTED ITEM TO CONTEXT
+  const targetLayer = useTargetLayer(selectedItem);
+  useManageSelectionContext(selectedItem, targetLayer);
   
   // RENDER NEW MARKER IF NOT FOUND IN TOP PLACES MARKERS
-  useAddTempMarker(mapRef, selectedItem, (isTopPlace === false));
+  useAddTempMarker(mapRef, selectedItem, (targetLayer !== 'topPlaces'));
 
   // FOCUS CAMERA ON SELECTED ITEM
   useFocusCamera(mapRef, selectedItem, selectionSource);

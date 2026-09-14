@@ -4,7 +4,7 @@ import { type PlacesListParams } from '../../../request/useRequestPlacesList/use
 const useActiveParams = (
     liveParams: PlacesListParams | null,
     liveParamKey: string,
-    shouldReset: boolean,
+    reset: boolean,
 ): PlacesListParams | null => {
 
     const [activeParams, setActiveParams] = useState<PlacesListParams | null>(null);
@@ -18,12 +18,12 @@ const useActiveParams = (
         }
 
         // Keep fetching on the last adopted params while stale updates are paused.
-        if (!shouldReset && activeParams) return;
+        if (!reset && activeParams) return;
         if (activeParamKey === liveParamKey) return;
 
         setActiveParams(liveParams);
         setActiveParamKey(liveParamKey);
-    }, [shouldReset, activeParamKey, activeParams, liveParamKey, liveParams]);
+    }, [reset, activeParamKey, activeParams, liveParamKey, liveParams]);
 
     return activeParams;
 };

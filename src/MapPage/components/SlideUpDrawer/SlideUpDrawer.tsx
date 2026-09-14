@@ -9,6 +9,7 @@ import AboveDrawer from './AboveDrawer/AboveDrawer';
 import DrawerOverlay from './DrawerOverlay';
 import { useDrawerState } from './DrawerStateContext';
 import { useIsMobileCtx } from '../../../context/IsMobileContext';
+import { RenderedListProvider } from '../RestaurantList/RenderedListContext';
 
 import './Styling/drawerRoot.css';
 
@@ -46,9 +47,11 @@ const SlideUpDrawer: FC<{
             <div className={`base-ui-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}>
               <div className="base-ui-handle" aria-hidden="true" />
               <Drawer.Content className="base-ui-drawer-content">
-                <DrawerHeader />
-                {/* <SampleContent snap={snap} /> */}
-                <Content panelUp={!isClosed} mapRef={mapRef} />
+                <RenderedListProvider>
+                  <DrawerHeader />
+                  {/* <SampleContent snap={snap} /> */}
+                  <Content panelUp={!isClosed} mapRef={mapRef} />
+                </RenderedListProvider>
               </Drawer.Content>
             </div>
             </Drawer.Popup>

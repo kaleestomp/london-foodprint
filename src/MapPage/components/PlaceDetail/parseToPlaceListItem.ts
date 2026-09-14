@@ -1,5 +1,5 @@
-import { type PlacesListItem } from '../../../request/useRequestPlacesList/request';
-import calculateDistanceM from '../../../../utils/geo/calculateDistanceM';
+import { type PlacesListItem } from '../../request/useRequestPlacesList/request';
+import calculateDistanceM from '../../../utils/geo/calculateDistanceM';
 
 // Fields absent from the place-detail response are not rendered by ListItem when null.
 const parseToPlacesListItem = (

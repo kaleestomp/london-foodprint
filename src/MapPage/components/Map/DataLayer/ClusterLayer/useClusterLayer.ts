@@ -40,7 +40,7 @@ const useClusterLayer = (
   const isDesktop = !useIsMobileCtx();
   const latestGeojsonRef = useRef(geojson);
   const { selectedPlaceId, selectedLayer } = usePlaceSelection();
-  const suppressedSingletonId = (selectedLayer === 'list')
+  const suppressedSingletonId = (selectedLayer === 'temporary')
     ? selectedPlaceId
     : null;
 

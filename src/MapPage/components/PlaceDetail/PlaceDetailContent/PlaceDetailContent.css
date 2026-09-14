@@ -1,0 +1,16 @@
+.place-detail-content {
+  min-width: 0;
+  padding-right: 36px;
+}
+
+.place-detail-title {
+  font-size: 1rem !important;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.place-detail-subtitle {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}

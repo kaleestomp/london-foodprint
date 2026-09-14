@@ -3,6 +3,7 @@ import type * as maplibregl from 'maplibre-gl';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useAppUI } from '../../../../context/AppUIContext';
+import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
 import RestaurantList from '../../RestaurantList/RestaurantList';
 import FilterSection from '../../FilterTabs/FilterSection';
 // import SampleContent from '../SampleContent/SampleContent';
@@ -27,7 +28,7 @@ const Content: FC<{
             {/* <SampleContent /> */}
             <FilterSection />
             {activeToolbarTab === null && 
-                <RestaurantList mapRef={mapRef} pageSize={pageSize} autoUpdate={!panelUp} enabled={enableList} />
+                <RestaurantList mapRef={mapRef} pageSize={pageSize} resetOverride={!panelUp} enabled={enableList} />
             }
 
             {/* {suggestionsVisible ? (
@@ -36,7 +37,7 @@ const Content: FC<{
                 <>  
                     <FilterSection />
                     {activeToolbarTab === null && 
-                        <RestaurantList mapRef={mapRef} pageSize={pageSize} autoUpdate={!panelUp} />
+                        <RestaurantList mapRef={mapRef} pageSize={pageSize} resetOverride={!panelUp} />
                     }
                     
                 </>

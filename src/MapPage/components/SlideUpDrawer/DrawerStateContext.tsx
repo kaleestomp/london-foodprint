@@ -25,23 +25,31 @@ export const DrawerStateProvider = ({ children }: { children: ReactNode }) => {
         setIsClosed(newSnap === SNAP_HEIGHTS[0]);
         setSnapPX(snapToPX(newSnap));
     };
-    const openDrawer = () => updateSnap(SNAP_HEIGHTS[1]);
+    const openDrawer = () => {
+        if (isClosed) updateSnap(SNAP_HEIGHTS[1]);
+    };
     const [isAtFullHeight, setIsAtFullHeight] = useState<boolean>(false);
     const [isClosed, setIsClosed] = useState<boolean>(true);
     const [snapPX, setSnapPX] = useState<number | null>(null); 
 
-    const { selectedPlaceId, selectionSource, reportSelectedPlaceId } = usePlaceSelection();
+    // OPEN DRAWER TO HALF (FROM CLOSED)
+    // ON SELECTING AN ITEM FROM THE MAP
+    const { selectedPlaceId, selectionSource, clearSelection } = usePlaceSelection();
     useEffect(() => {
-        if (selectedPlaceId && snap === SNAP_HEIGHTS[0]) //&& selectionSource === 'map'
-            updateSnap(SNAP_HEIGHTS[1]);
+        const itemSelectedFromMap = selectedPlaceId && selectionSource === 'map';
+        if (itemSelectedFromMap && isClosed)
+            openDrawer();
     }, [selectedPlaceId]);
+
+    // CLEAR PLACE SELECTION ON DRAWER CLOSED
+    // IF PLACE IS SELECTED FROM THE LIST
     useEffect(() => {
-        if(isClosed && selectedPlaceId && selectionSource === 'list')
-            reportSelectedPlaceId(null, null);
+        const itemSelectedFromList = selectedPlaceId && selectionSource === 'list';
+        if(isClosed && itemSelectedFromList)
+            clearSelection();
     }, [isClosed]);
 
-    // const [drawerHeight, setDrawerHeight] = useState(0);
-    // const reportDrawerHeight = (height: number) => setDrawerHeight(height);
+    // EXPOSED STATES
     const exposed = useMemo<DrawerState>(() => ({
         snap, updateSnap, openDrawer, 
         snapPX, isAtFullHeight, isClosed

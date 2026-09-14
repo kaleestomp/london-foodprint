@@ -7,7 +7,11 @@ import useActiveParams from './useActiveParams';
 import useRequestInfinitePlacesList, { type PlacesListParams } from '../../../request/useRequestPlacesList/useRequestInfinitePlacesList';
 import { type PlacesListResponse } from '../../../request/useRequestPlacesList/request';
 
-type ListQueryResult = {
+const useFetchInfinitePlacesList = (
+  reset: boolean = true,
+  pageSize: number = 10,
+  enabled: boolean = true,
+): {
   status: 'empty' | 'loading' | 'success' | 'error';
   res: PlacesListResponse | null;
   fetchNextPage: () => void;
@@ -15,13 +19,7 @@ type ListQueryResult = {
   isFetchingNextPage: boolean;
   isListStale: boolean;
   filterKey: string;
-};
-
-const useFetchInfinitePlacesList = (
-  shouldReset: boolean = true,
-  pageSize: number = 10,
-  enabled: boolean = true,
-): ListQueryResult => {
+} => {
 
 
   const { geoBounds, geoKey } = useGetSearchBounds();
@@ -31,7 +29,7 @@ const useFetchInfinitePlacesList = (
     geoBounds ? { ...geoBounds, ...filterParams, city, page_size: pageSize } : null
   ), [geoBounds, filterParams, city, pageSize]);
   const liveParamKey = `${city}||${geoKey}||${filterKey}||${pageSize}`;
-  const activeParams = useActiveParams(liveParams, liveParamKey, shouldReset);
+  const activeParams = useActiveParams(liveParams, liveParamKey, reset);
 
   const [isListStale, setIsListStale] = useState(false);
   useEffect(() => {
@@ -40,8 +38,8 @@ const useFetchInfinitePlacesList = (
 
   const { status, res, isReady, // isFetching,
     hasNextPage, isFetchingNextPage, fetchNextPage
-  } = useRequestInfinitePlacesList(activeParams, enabled && shouldReset);
-
+  } = useRequestInfinitePlacesList(activeParams, enabled && reset);
+  
   useEffect(() => {
     if (isReady) setIsListStale(false);
   }, [isReady]);

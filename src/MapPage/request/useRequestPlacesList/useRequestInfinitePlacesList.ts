@@ -38,7 +38,7 @@ const useRequestInfinitePlacesList = (
     isFetchingNextPage: boolean;
     fetchNextPage: () => void;
 } => {
-
+    
     const { citySlug: city } = useCityContext();
     const queryKey = useMemo(() => buildQueryKey(params ? { ...params, city } : params), [params, city]);
 

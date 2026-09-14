@@ -1,9 +1,9 @@
 .base-ui-handle {
-  position: relative;
-  flex: 0 0 var(--drawer-header-height);
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--drawer-header-height) !important;
   width: 100% !important;
   margin: 0 !important;
-  height: var(--drawer-header-height) !important;
   background: transparent !important;
   z-index: 9;
 }

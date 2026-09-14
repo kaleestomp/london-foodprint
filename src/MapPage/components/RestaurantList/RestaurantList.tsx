@@ -1,106 +1,102 @@
-import { useEffect, useRef, useState, type FC } from 'react';
+import { useEffect, useState, type FC } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
 import { useCityContext } from '../../../context/CityContext';
 import { useIsMobileCtx } from '../../../context/IsMobileContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
-import { useQueryClient } from '@tanstack/react-query';
 // import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
 import useFetchInfinitePlacesList from './InputHook/useFetchInfinitePlacesList';
-import useReportUnmatchedSelection from './PlaceholderListItem/useReportUnmatchedSelection';
+import useReportSelectionNotInList from './useReportSelectionNotInList';
 import ListLoading from './SkeletonCard/ListLoading';
 import NoResults from './SkeletonCard/NoResult';
 import RefreshButton from './RefreshButton/RefreshButton';
 import useScrollState from './Virtualizer/useScrollState';
 import useRefreshState from './RefreshButton/useRefreshState';
 import Virtualizer from './Virtualizer/Virtualizer';
-import PlaceholderListItem from '../RestaurantList/PlaceholderListItem/PlaceholderListItem';
+// import PlaceholderListItem from '../RestaurantList/PlaceholderListItem/PlaceholderListItem';
+import useClearOnDrawerClose from './useClearOnClose';
 
 import './RestaurantList.css';
 
 const RestaurantList: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
-  pageSize?: number;
-  autoUpdate?: boolean;
+  pageSize: number;
+  resetOverride?: boolean;
   enabled?: boolean;
-}> = ({ mapRef, pageSize = 10, autoUpdate = false, enabled = true }) => {
+}> = ({ mapRef, pageSize, resetOverride = false, enabled = true }) => {
 
   // REFRESH STATE
-  const [shouldAutoRefresh, setShouldAutoRefresh] = useState(true);
+  const [liveRefresh, setLiveRefresh] = useState(true);
   const isMobile = useIsMobileCtx();
-  const skeletonRowCount = isMobile ? 8 : 20;
 
   // DO NOT RESET OVERRIDE 
-  // When the drawer is closed and a place is selected
+  // When the drawer is closed, remove the cached places list 
+  // and reset auto-refresh
   const { isClosed, isAtFullHeight } = useDrawerState();
-  const queryClient = useQueryClient();
-  const wasClosedRef = useRef(isClosed);
-
-  useEffect(() => {
-    if (isClosed && !wasClosedRef.current) {
-      queryClient.removeQueries({ queryKey: ['places-list'] });
-      setShouldAutoRefresh(true);
-    }
-    wasClosedRef.current = isClosed;
-  }, [isClosed, queryClient]);
-
-  // const { selectedPlaceId } = usePlaceSelection();
-  // const doNotReset = isClosed && selectedPlaceId !== null;
+  useClearOnDrawerClose(isClosed, setLiveRefresh);
 
   // NETWORK CALL
-  const resetSignal = autoUpdate || shouldAutoRefresh;
+  const reset = resetOverride || liveRefresh;
+  const enableCall = enabled && !(isMobile && isClosed);
   const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale, filterKey
-  } = useFetchInfinitePlacesList(resetSignal, pageSize, enabled);
-  const items = isMobile && isClosed ? [] : (res?.data ?? []);
-
+  } = useFetchInfinitePlacesList(reset, pageSize, enableCall);
+  const items = enableCall ? (res?.data ?? []) : [];
+  
   // UNMATCHED SELECTED PLACE ID
   // Selected cluster singleton marker with no matching row in the loaded list.
-  const unmatchedPlaceId = useReportUnmatchedSelection(items, status);
+  useReportSelectionNotInList(items, status);
 
-  // FILTER OR CITY CHANGE â†’ AUTO-REFRESH (bypass refresh button)
+  // FILTER OR CITY CHANGE STARTS LIVE-REFRESH
   const { citySlug } = useCityContext();
   useEffect(() => {
-    setShouldAutoRefresh(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setLiveRefresh(true);
   }, [filterKey, citySlug]);
 
   // SCROLL HANDLER
-  const readToFetchNext = hasNextPage && !isFetchingNextPage;
-  const { scrollRef, onScroll } = useScrollState(readToFetchNext, fetchNextPage, setShouldAutoRefresh);
+  const nextPageFetchReady = hasNextPage && !isFetchingNextPage;
+  const { scrollRef, onScroll } = useScrollState(nextPageFetchReady, fetchNextPage, setLiveRefresh);
 
   // RESET SCROLL CONTAINER WHEN A REFRESHED LIST HAS SETTLED
-  const { scrollResetEpoch, shouldFade, isRefreshPending, onListRefresh, onRefreshAnimationEnd
-  } = useRefreshState(isListStale, setShouldAutoRefresh);
+  const { scrollResetEpoch, fadeRefreshBtn, isRefreshPending, onListRefresh, onRefreshAnimationEnd
+  } = useRefreshState(isListStale, setLiveRefresh);
 
   // REFRESH BUTTON STATES
-  // button may disappear mid pan due to matching geo params to last fetch
-  // this triggers 'isReady' to true; meaning list is no longer stale
-  const refreshAvaliable = isListStale && !shouldAutoRefresh;
-  const showRefreshButton = !isClosed && !isAtFullHeight && (refreshAvaliable || isRefreshPending);
+  const refreshAvaliable = isListStale && !liveRefresh;
+  const uiAvaliable = (isMobile && !isClosed && !isAtFullHeight) || !isMobile;
+  const showRefreshButton = uiAvaliable && (refreshAvaliable || isRefreshPending);
 
+  // SKELETON STATE
   if (!enabled) {
     return (
-      <div className="list-scroll-content">
-        <div className="list-section">
-          <ListLoading enabled rowCount={skeletonRowCount} />
+      <>
+        {/* {unmatchedPlaceId && (
+          <div className="placeholder-list-item">
+            <PlaceholderListItem placeId={unmatchedPlaceId} />
+          </div>
+        )} */}
+        <div className="list-scroll-content">
+          <div className="list-section">
+            <ListLoading enabled rowCount={isMobile ? 8 : 20} />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
+  // DEFAULT STATE
   return (
     <>
-      {unmatchedPlaceId && (
+      {/* {unmatchedPlaceId && (
         <div className="placeholder-list-item">
           <PlaceholderListItem placeId={unmatchedPlaceId} />
         </div>
-      )}
+      )} */}
       <div ref={scrollRef} className="list-scroll-content" onScroll={onScroll}>
         <RefreshButton onListRefresh={onListRefresh} isVisible={showRefreshButton} isLoading={isRefreshPending} />
-        <div className={`list-section${shouldFade ? ' list-fade-in' : ''}`} onAnimationEnd={shouldFade ? onRefreshAnimationEnd : undefined} >
-          <ListLoading enabled={status === 'loading' && items.length === 0} rowCount={skeletonRowCount} />
+        <div className={`list-section${fadeRefreshBtn ? ' list-fade-in' : ''}`} onAnimationEnd={fadeRefreshBtn ? onRefreshAnimationEnd : undefined} >
+          <ListLoading enabled={status === 'loading' && items.length === 0} rowCount={isMobile ? 6 : 12} />
           <NoResults enabled={status !== 'loading' && items.length === 0} />
-          <Virtualizer mapRef={mapRef} items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} unmatchedPlaceId={unmatchedPlaceId} onSelect={() => setShouldAutoRefresh(false)} />
+          <Virtualizer mapRef={mapRef} items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} onSelect={() => setLiveRefresh(false)} />
           <ListLoading enabled={isFetchingNextPage} rowCount={3} />
         </div>
       </div>

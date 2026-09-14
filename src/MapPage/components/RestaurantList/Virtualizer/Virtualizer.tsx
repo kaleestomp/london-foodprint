@@ -15,9 +15,9 @@ const Virtualizer: FC<{
     items: PlacesListItem[];
     scrollRef: React.RefObject<HTMLElement | null>;
     scrollResetEpoch: number;
-    unmatchedPlaceId: string | null;
+    // unmatchedPlaceId: string | null;
     onSelect: () => void;
-}> = ({ mapRef, items, scrollRef, scrollResetEpoch, unmatchedPlaceId, onSelect }) => {
+}> = ({ mapRef, items, scrollRef, scrollResetEpoch, onSelect }) => {
 
     // SELECTION STATE
     const { selectionSource } = usePlaceSelection();
@@ -38,16 +38,16 @@ const Virtualizer: FC<{
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scrollResetEpoch]);
 
-    // ALIGN THE NEAREST ROW ON COMMAND.
-    useLayoutEffect(() => {
-        const nearestIndex = rowVirtualizer.range?.startIndex;
-        if (nearestIndex === undefined) return;
-        rowVirtualizer.scrollToIndex(nearestIndex, {
-            align: 'auto',
-            behavior: 'auto',
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [unmatchedPlaceId]);
+    // // ALIGN THE NEAREST ROW ON COMMAND.
+    // useLayoutEffect(() => {
+    //     const nearestIndex = rowVirtualizer.range?.startIndex;
+    //     if (nearestIndex === undefined) return;
+    //     rowVirtualizer.scrollToIndex(nearestIndex, {
+    //         align: 'auto',
+    //         behavior: 'auto',
+    //     });
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [unmatchedPlaceId]);
 
     // KEEP THE SELECTED ROW IN VIEW WHEN THE SELECTION COMES FROM THE MAP.
     useLayoutEffect(() => {

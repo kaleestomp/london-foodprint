@@ -1,81 +1,113 @@
-.restaurant-panel-scroll-content {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding: 0 var(--app-layout-margin) 24px;
-  border-top: 1px solid var(--app-divider-color);
+.place-detail {
+    --panel-height: var(--drawer-home-height);
+    --edge-inset: 8px;
+    --place-detail-icon-size: calc(var(--panel-height) - var(--edge-inset) * 2);
+    /* --place-detail-icon-size: calc(var(--drawer-home-height) - 16px); */
 
-  /* padding: 10px calc(var(--app-layout-margin) - 4px) 24px;
-  background: var(--app-glass-card-bg-2);
-  margin-inline: 4px;
-  box-shadow: var(--app-card-box-shadow);
-  border-radius: var(--app-card-border-radius) var(--app-card-border-radius) 0 0; */
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    display: grid;
+    grid-template-columns: var(--drawer-home-height) minmax(0, 1fr) var(--drawer-home-height);
+    min-height: var(--drawer-home-height);
+    max-height: 104px;
+    align-items: center;
+    padding: 8px;
+    margin: 0;
+    border: 0;
+    border-radius: var(--border-radius-is-closed) var(--border-radius-is-closed) 0 0;
+    cursor: default;
+    overflow: hidden;
+    contain: layout;
+    transition: background-color 240ms ease;
 }
 
-.restaurant-list-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  color: var(--app-text-color);
-  
+.place-detail.is-closed {
+    max-height: 104px;
+    margin: 0;
+    padding: 8px;
+    border-radius: var(--border-radius-is-closed) var(--border-radius-is-closed) 0 0;
 }
 
-.restaurant-list-detail {
-  margin-top: 18px;
-  padding-top: 14px;
+.place-detail.is-open {
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
 }
 
-.restaurant-list-row {
-  display: block;
-  text-align: left;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--app-divider-color);
+.place-detail:hover {
+    transform: none;
 }
 
-.restaurant-list-row-title {
-  color: var(--app-text-color);
-  margin-bottom: 2px;
+.place-detail-side-panel {
+    grid-column: 1;
+    grid-row: 1;
+    display: grid;
+    place-items: center;
+    align-self: start;
+    width: var(--place-detail-icon-size);
+    height: var(--place-detail-icon-size);
+    background: transparent;
+    overflow: visible;
+    border-radius: 50%;
 }
 
-.restaurant-list-links {
-  display: flex;
-  gap: 10px;
+.place-detail-side-panel--left {
+    justify-self: start;
 }
 
-.restaurant-list-links a {
-  color: var(--app-text-caption-color);
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 500;
+.place-detail-side-panel--right {
+    grid-column: 3;
+    justify-self: end;
+    justify-content: center;
 }
 
-.restaurant-list-links a:hover {
-  text-decoration: underline;
+.place-detail-center-column {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
 }
 
-.restaurant-list-pagination {
-  display: flex;
-  gap: 8px;
-  padding-top: 6px;
+.place-detail-side-panel .list-item-icon-column {
+    flex: none;
+    width: var(--place-detail-icon-size);
+    padding-bottom: 0;
 }
 
-.restaurant-list-pagination button {
-  border: 1px solid var(--app-divider-color);
-  background: #fff;
-  border-radius: 8px;
-  min-height: 30px;
-  min-width: 64px;
-  padding: 0 10px;
-  cursor: pointer;
+.place-detail-side-panel .list-item-icon-badge,
+.place-detail-side-panel .list-item-icon {
+    width: var(--place-detail-icon-size);
+    height: var(--place-detail-icon-size);
 }
 
-.restaurant-list-pagination button:disabled {
-  opacity: 0.45;
-  cursor: default;
+
+.place-detail .list-item-extra {
+    display: block;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
 }
 
-.restaurant-list-detail-body {
-  padding-top: 6px;
+.place-detail .list-item-rank-badge {
+    position: static;
+    width: 65px;
+    height: 65px;
+    /* padding: 0 8px; */
+}
+.place-detail .list-item-rank-value {
+    font-size: 22px;
+}
+.place-detail .list-item-rank-percent {
+    font-size: 14px;
+}
+/* .place-detail .list-item-rank-badge-label {
+    -webkit-text-stroke: 1px var(--app-primary-black);
+    paint-order: stroke fill;
+} */
+
+.place-detail > .MuiBox-root {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.place-detail > .MuiBox-root .MuiSkeleton-root {
+    max-width: 100%;
 }
