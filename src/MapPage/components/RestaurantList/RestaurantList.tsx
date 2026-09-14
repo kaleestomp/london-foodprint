@@ -64,7 +64,7 @@ const RestaurantList: FC<{
   const refreshAvaliable = isListStale && !liveRefresh;
   const uiAvaliable = (isMobile && !isClosed && !isAtFullHeight) || !isMobile;
   const showRefreshButton = uiAvaliable && (refreshAvaliable || isRefreshPending);
-
+  
   // SKELETON STATE
   if (!enabled) {
     return (

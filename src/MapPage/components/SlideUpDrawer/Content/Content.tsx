@@ -4,6 +4,7 @@ import type * as maplibregl from 'maplibre-gl';
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useAppUI } from '../../../../context/AppUIContext';
 // import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
+import delaySwitch from '../../../../utils/timer/delayTimer';
 import RestaurantList from '../../RestaurantList/RestaurantList';
 import FilterSection from '../../FilterTabs/FilterSection';
 // import SampleContent from '../SampleContent/SampleContent';
@@ -20,7 +21,8 @@ const Content: FC<{
     const isMobile = useIsMobileCtx();
     // const { suggestionsVisible } = useGeoSearch();
     const pageSize = isMobile ? 5 : 20;
-    const enableList = (isMobile && panelUp) || !isMobile;
+    const panelUpDelayed = delaySwitch(panelUp, 200);
+    const enableList = (isMobile && panelUpDelayed) || !isMobile;
     const { activeToolbarTab } = useAppUI();
     
     return (
@@ -28,7 +30,7 @@ const Content: FC<{
             {/* <SampleContent /> */}
             <FilterSection />
             {activeToolbarTab === null && 
-                <RestaurantList mapRef={mapRef} pageSize={pageSize} resetOverride={!panelUp} enabled={enableList} />
+                <RestaurantList mapRef={mapRef} pageSize={pageSize} resetOverride={!panelUpDelayed} enabled={enableList} />
             }
 
             {/* {suggestionsVisible ? (

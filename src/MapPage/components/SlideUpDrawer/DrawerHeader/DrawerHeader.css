@@ -1,12 +1,18 @@
 .drawer-header {
   flex: 0 0 auto;
   user-select: none;
-  /* min-height: var(--drawer-header-height); */
+  height: var(--drawer-header-height);
   background: transparent;
-
-  padding: 0;
-  transition: padding 400ms ease;
+  overflow: hidden;
+  margin: 0;
+  transition: 
+    margin 400ms ease 200ms, 
+    height 400ms ease 200ms;
 }
 .drawer-header.is-open {
-  padding: 8px 8px 0;
+  margin: 8px 8px 0;
+}
+.drawer-header.is-hidden {
+  margin: 0;
+  height: 0;
 }

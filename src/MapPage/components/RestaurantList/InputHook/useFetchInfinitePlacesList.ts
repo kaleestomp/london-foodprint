@@ -43,7 +43,9 @@ const useFetchInfinitePlacesList = (
   useEffect(() => {
     if (isReady) setIsListStale(false);
   }, [isReady]);
-
+  // isListStale STUCK ON TRUE AFTER SELECT FIRST ITEM ON LINE - REFRESH - SELECT SECOND ITEM ON LIST - REFRESH - SELECT FIRST ITEM ONE LIST - REFRESH
+  // because isReady does not flip
+  // console.log(isReady);
   return {
     status, res, 
     hasNextPage, isFetchingNextPage,

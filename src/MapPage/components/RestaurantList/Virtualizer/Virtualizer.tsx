@@ -58,7 +58,7 @@ const Virtualizer: FC<{
         if (index < 0) return;
 
         rowVirtualizer.scrollToIndex(index, {
-            align: 'start',
+            align: 'center', //start
             behavior: 'smooth',
         });
     }, [items, rowVirtualizer, selectedItemKey, selectionSource]);

@@ -8,6 +8,8 @@
   width: 100%;
   min-height: var(--panel-height);
   padding: var(--edge-inset);
+  overflow: hidden;
+  transition: height 400ms ease, padding 400ms ease;
 }
 
 .overview-side-panel {

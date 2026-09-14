@@ -10,13 +10,14 @@ const useRefreshState = (
   onListRefresh: () => void;
   onRefreshAnimationEnd: (event: AnimationEvent<HTMLDivElement>) => void;
 } => {
-
+  
   // UPDATE SCROLL CONTAINER WHEN A REFRESHED LIST HAS SETTLED
   const [scrollResetEpoch, setScrollResetEpoch] = useState(0);
   const [fadeRefreshBtn, setFadeRefreshBtn] = useState(false);
   const [isRefreshPending, setIsRefreshPending] = useState(false);
   const pendingBtnFadeRef = useRef(false);
   const wasListStaleRef = useRef(false);
+
   useEffect(() => {
     // If list was stale but not anymore, 
     // trigger fade refresh button animation
