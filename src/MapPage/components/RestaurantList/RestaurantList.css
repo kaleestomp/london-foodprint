@@ -10,6 +10,10 @@
   /* background: red; */
 }
 
+.list-scroll-content.is-hidden {
+  display: none;
+}
+
 .placeholder-list-item {
   flex: 0 0 auto;
   min-width: 0;

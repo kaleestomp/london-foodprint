@@ -1,0 +1,70 @@
+
+.nested-drawer-trigger {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--app-primary-blue);
+  color: #fff;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 22%);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.nested-drawer-trigger:hover {
+  filter: brightness(1.08);
+}
+
+.nested-drawer-trigger:focus-visible,
+.nested-drawer-close:focus-visible {
+  outline: 3px solid rgb(31 130 192 / 35%);
+  outline-offset: 2px;
+}
+
+.nested-drawer-viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.nested-drawer-popup {
+  --stack-step: 0.05;
+  --nested-default-transition: var(--default-transition); 
+
+  position: relative;
+  width: 100%; /*min(100% - 32px, 480px);*/
+  min-height: var(--drawer-open-height);
+  margin: 0; /*0 16px 16px*/;
+  border-radius: var(--border-radius-default); /*18px*/
+  overflow: auto;
+  
+  background: var(--drawer-bg);
+  box-shadow: var(--drawer-shadow-is-open);
+  pointer-events: auto;
+  transform: translateY(var(--drawer-swipe-movement-y, 0px))
+    scale(calc(1 - (var(--nested-drawers, 0) * var(--stack-step))));
+  transform-origin: bottom center;
+  transition: transform var(--nested-default-transition);
+  will-change: transform;
+}
+.nested-drawer-popup[data-starting-style],
+.nested-drawer-popup[data-ending-style] {
+  transform: translateY(calc(100% + 2px))
+    scale(calc(1 - (var(--nested-drawers, 0) * var(--stack-step))));
+}
+
+.nested-drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+}

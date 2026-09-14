@@ -16,19 +16,19 @@ const useReportSelectionNotInList = (
 
   const { isClosed } = useDrawerState();
   const { selectedPlaceId, selectionSource } = usePlaceSelection();
-  const { setUnmatchedPlaceId } = useRenderedList();
+  const { reportUnmatchedPlaceId } = useRenderedList();
   const unmatchedPlaceIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const selectionInvalid = selectedPlaceId === null || selectionSource !== 'map';
     if (selectionInvalid) {
-      setUnmatchedPlaceId(null);
+      reportUnmatchedPlaceId(null);
       unmatchedPlaceIdRef.current = null;
 
     } else if (isClosed) {
       // A map selection made while the drawer is closed 
       // must remain UNMATCHED.
-      setUnmatchedPlaceId(selectedPlaceId);
+      reportUnmatchedPlaceId(selectedPlaceId, true);
       unmatchedPlaceIdRef.current = selectedPlaceId;
 
     } else if (unmatchedPlaceIdRef.current === selectedPlaceId) {
@@ -41,7 +41,7 @@ const useReportSelectionNotInList = (
       // Hold an existing unmatched verdict while the list is refreshing.
       const holdVerdict = !isInList && status === 'loading' && unmatchedPlaceIdRef.current !== null;
       if (holdVerdict) return;
-      setUnmatchedPlaceId(isInList ? null : selectedPlaceId);
+      reportUnmatchedPlaceId(isInList ? null : selectedPlaceId);
       unmatchedPlaceIdRef.current = isInList ? null : selectedPlaceId;
     }
   // ITEMS purposely REMOVED from deps to avoid matching after list refresh.

@@ -1,7 +1,7 @@
 .base-ui-handle {
   position: absolute;
   inset: 0 0 auto;
-  height: calc(var(--drawer-header-height)*-1) !important;
+  height: calc(var(--drawer-header-height)*0.5) !important;
   width: 100% !important;
   margin: 0 !important;
   background: transparent !important;

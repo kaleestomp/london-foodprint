@@ -1,0 +1,46 @@
+.place-detail-titleblock {
+  min-width: 0;
+  margin-right: -30px;
+  
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.place-detail-title {
+  display: block;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  /* line-height: 1.2 !important; */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: font-size 200ms ease 200ms;
+}
+.place-detail-title.is-extended {
+  display: -webkit-box;
+  text-wrap: balance;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.place-detail-subtitle {
+  display: -webkit-box;
+  margin-right: 10px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  /* white-space: nowrap; */
+
+  transition: font-size 200ms ease;
+}
+.place-detail-subtitle.is-extended {
+  font-size: 16px !important;
+  margin-right: 14px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

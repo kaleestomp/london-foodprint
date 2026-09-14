@@ -29,7 +29,7 @@ const Virtualizer: FC<{
         getScrollElement: () => scrollRef.current,
         estimateSize: () => 86, // estimated height of each list item
         getItemKey: (index) => getListItemKey(items[index].id),
-        overscan: 2,
+        overscan: 5, //2
         scrollPaddingStart: -10,
     });
     // SYNC VIRTUALIZER OFFSET AFTER A REFRESHED LIST HAS SETTLED

@@ -2,6 +2,7 @@
     --panel-height: var(--drawer-home-height);
     --edge-inset: 8px;
     --place-detail-icon-size: calc(var(--panel-height) - var(--edge-inset) * 2);
+    --place-detail-transition: 200ms ease 200ms;
     /* --place-detail-icon-size: calc(var(--drawer-home-height) - 16px); */
 
     position: relative;
@@ -11,7 +12,7 @@
     grid-template-columns: var(--drawer-home-height) minmax(0, 1fr) var(--drawer-home-height);
     min-height: var(--drawer-home-height);
     max-height: 104px;
-    align-items: center;
+    align-items: top;
     padding: 8px;
     margin: 0;
     border: 0;
@@ -19,7 +20,7 @@
     cursor: default;
     overflow: hidden;
     contain: layout;
-    transition: background-color 240ms ease;
+    transition: background-color var(--place-detail-transition);
 }
 
 .place-detail.is-closed {
@@ -50,15 +51,20 @@
     border-radius: 50%;
 }
 
-.place-detail-side-panel--left {
+.place-detail-side-panel.left {
     justify-self: start;
 }
 
-.place-detail-side-panel--right {
+.place-detail-side-panel.right {
     grid-column: 3;
     justify-self: end;
     justify-content: center;
 }
+.place-detail-side-panel.right.is-open {
+    /* transform: translateX(5px);
+    transition: transform var(--place-detail-transition); */
+}
+
 
 .place-detail-center-column {
     grid-column: 2;

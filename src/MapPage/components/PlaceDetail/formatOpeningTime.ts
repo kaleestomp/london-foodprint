@@ -8,6 +8,7 @@ const formatOpeningTime = (
     closeAt: string;
     isOpen: boolean;
     label: string;
+    labelShort: string;
 } | null => {
 
     if (!openingTime) return null;
@@ -41,8 +42,12 @@ const formatOpeningTime = (
         : closingSoon ? `Close soon · ${closeAt}` 
         : notYetOpen ? `Open at ${openAt}`
         : isOpen ? `Open Now` : `Closed`;
+    const labelShort = openSoon ? `Open soon` 
+        : closingSoon ? `Close soon` 
+        : notYetOpen ? `Open Later`
+        : isOpen ? `Open Now` : `Closed`;
     
-    const parsed = { openAt, closeAt, isOpen, label }
+    const parsed = { openAt, closeAt, isOpen, label, labelShort }
     
     return parsed;
 };

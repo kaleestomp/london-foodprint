@@ -1,0 +1,17 @@
+.place-detail-body {
+	--place-detail-body-edge-inset: 8px;
+    /* keep body height stable during initial load */
+	flex: 1 1 auto;
+	min-height: calc(var(--drawer-open-height) - var(--drawer-home-height));
+    overflow-y: auto;
+	overscroll-behavior: contain;
+
+	display: grid;
+	grid-template-columns: var(--drawer-home-height) minmax(0, 1fr);
+	grid-auto-rows: max-content;
+	align-content: start;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 8px var(--place-detail-body-edge-inset);
+	
+}

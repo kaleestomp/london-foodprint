@@ -23,7 +23,11 @@ const RestaurantList: FC<{
   pageSize: number;
   resetOverride?: boolean;
   enabled?: boolean;
-}> = ({ mapRef, pageSize, resetOverride = false, enabled = true }) => {
+  hidden?: boolean; 
+  // CANNOT UNMOUNT FOR NOW 
+  // DUE TO useReportSelectionNotInList
+  // REQUIRED TO UPDATE RENDERED LIST CONTEXT
+}> = ({ mapRef, pageSize, resetOverride = false, enabled = true, hidden = false }) => {
 
   // REFRESH STATE
   const [liveRefresh, setLiveRefresh] = useState(true);
@@ -64,7 +68,8 @@ const RestaurantList: FC<{
   const refreshAvaliable = isListStale && !liveRefresh;
   const uiAvaliable = (isMobile && !isClosed && !isAtFullHeight) || !isMobile;
   const showRefreshButton = uiAvaliable && (refreshAvaliable || isRefreshPending);
-  
+  const wrapperClass = `list-scroll-content${hidden ? ' is-hidden' : ''}`;
+
   // SKELETON STATE
   if (!enabled) {
     return (
@@ -74,7 +79,7 @@ const RestaurantList: FC<{
             <PlaceholderListItem placeId={unmatchedPlaceId} />
           </div>
         )} */}
-        <div className="list-scroll-content">
+        <div className={wrapperClass}>
           <div className="list-section">
             <ListLoading enabled rowCount={isMobile ? 8 : 20} />
           </div>
@@ -91,7 +96,7 @@ const RestaurantList: FC<{
           <PlaceholderListItem placeId={unmatchedPlaceId} />
         </div>
       )} */}
-      <div ref={scrollRef} className="list-scroll-content" onScroll={onScroll}>
+      <div ref={scrollRef} className={wrapperClass} onScroll={onScroll}>
         <RefreshButton onListRefresh={onListRefresh} isVisible={showRefreshButton} isLoading={isRefreshPending} />
         <div className={`list-section${fadeRefreshBtn ? ' list-fade-in' : ''}`} onAnimationEnd={fadeRefreshBtn ? onRefreshAnimationEnd : undefined} >
           <ListLoading enabled={status === 'loading' && items.length === 0} rowCount={isMobile ? 6 : 12} />

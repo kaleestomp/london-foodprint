@@ -14,6 +14,14 @@
   transition: transform var(--default-transition);
   transform: translateY(calc(var(--drawer-snap-point-offset) + var(--drawer-swipe-movement-y)));
   will-change: transform;
+
+  /* Nested drawer open state */
+  &[data-nested-drawer-open] {
+    transform: scale(0.95) 
+      translateY(calc(
+        var(--drawer-snap-point-offset) + var(--drawer-swipe-movement-y) - 20px
+      ));
+  }
   
   /* Drawer popup spans the entire viewport. It must not cover the external
     map toolbar when the drawer itself is not modal. */

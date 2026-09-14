@@ -39,9 +39,11 @@ const SlideUpDrawer: FC<{
       <DrawerOverlay isVisible={isAtFullHeight} />
       <div ref={setDrawerContainer} className={`base-ui-container${isAtFullHeight ? ' is-full-height' : isClosed ? '' : ' is-open'}`}>
         {drawerContainer && <Drawer.Portal container={drawerContainer}>
+          {/* <Drawer.Backdrop className="base-ui-drawer-backdrop" /> */}
           <Drawer.Viewport className="base-ui-viewport">
             <Drawer.Popup data-testid="content" className={
-              `base-ui-popup${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`
+              `base-ui-popup${isAtFullHeight ? ' is-full-height' 
+                : !isClosed ? ' is-open' : ''}`
               }>
             <AboveDrawer mapRef={mapRef} />
             <div className={`base-ui-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}>
