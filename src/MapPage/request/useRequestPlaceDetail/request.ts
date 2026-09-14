@@ -1,5 +1,10 @@
 import { apiBasePromise } from '../../../utils/apiBase';
 
+export interface OpeningTime {
+  open_minute: number;
+  close_minute: number;
+}
+
 export interface PlaceDetailResponse {
   id: string;
   lat: number;
@@ -8,13 +13,20 @@ export interface PlaceDetailResponse {
   display_name: string;
   cuisine_type: string | null;
   price: string | null;
+  local_rep_ratio: number | null;
+  local_total: number | null;
+  rep_delta: number | null;
+  pcd: string | null;
+  chain_count: number | null;
+  chain_name: string | null;
   is_chain: boolean | null;
   is_major_chain: boolean | null;
   venue_type: string | null;
   google_maps_uri: string | null;
   website_uri: string | null;
   short_formatted_address: string | null;
-  pcd: string | null;
+  review_count: number | null;
+  opening_time: OpeningTime | null;
 }
 
 export const request = async (
