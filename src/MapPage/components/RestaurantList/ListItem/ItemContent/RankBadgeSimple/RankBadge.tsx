@@ -1,10 +1,11 @@
 import type { FC } from 'react';
 
 import { type PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
+import { type PlaceDetailResponse } from '../../../../../request/useRequestPlaceDetail/request';
 import './RankBadge.css';
 
 const RankBadge: FC<{
-  item: PlacesListItem;
+  item: PlaceDetailResponse | PlacesListItem;
   accentColor: string;
 }> = ({ item, accentColor }) => {
 

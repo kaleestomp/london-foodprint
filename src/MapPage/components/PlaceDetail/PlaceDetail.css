@@ -72,10 +72,13 @@
     padding-bottom: 0;
 }
 
-.place-detail-side-panel .list-item-icon-badge,
-.place-detail-side-panel .list-item-icon {
+.place-detail-side-panel .list-item-icon-badge{
     width: var(--place-detail-icon-size);
     height: var(--place-detail-icon-size);
+}
+.place-detail-side-panel .list-item-icon {
+    /* width: 20px;
+    height: 20px; */
 }
 
 
@@ -88,12 +91,12 @@
 
 .place-detail .list-item-rank-badge {
     position: static;
-    width: 65px;
-    height: 65px;
+    width: 60px;
+    height: 60px;
     /* padding: 0 8px; */
 }
 .place-detail .list-item-rank-value {
-    font-size: 22px;
+    /* font-size: 20px; */
 }
 .place-detail .list-item-rank-percent {
     font-size: 14px;

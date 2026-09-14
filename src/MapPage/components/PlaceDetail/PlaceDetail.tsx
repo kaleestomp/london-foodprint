@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import { useSearchFilters } from '../../../context/SearchFiltersContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
 import useRequestPlaceDetail from '../../request/useRequestPlaceDetail/useRequestPlaceDetail';
-import toPlacesListItem from './parseToPlaceListItem';
+import calculateDistanceM from '../../../utils/geo/calculateDistanceM';
 
 import { getCuisineColor } from '../Map/DataLayer/TopPlacesLayer/syncMarkers/markers/backdropColors/getCuisineColor';
 import brightenColor from '../../../utils/format/brightenColor';
@@ -24,8 +24,11 @@ const PlaceDetail: FC<{ placeId: string }> = ({ placeId }) => {
     const { status, res } = useRequestPlaceDetail(placeId);
     if (status === 'error') return null;
     const showSkeleton = status !== 'success' || !res;
-
-    const item = showSkeleton ? null : toPlacesListItem(res, searchMask?.center);
+    const item = showSkeleton ? null : res;
+    
+    const distance_m = item && searchMask?.center
+        ? calculateDistanceM(searchMask?.center, { lat: item.lat, lng: item.lon })
+        : null;
     const cuisineColor = item ? getCuisineColor(item.cuisine_type) : '#ffffff';
     return (
         <div className={`place-detail ${isClosed ? 'is-closed' : 'is-open'}`}
@@ -41,7 +44,7 @@ const PlaceDetail: FC<{ placeId: string }> = ({ placeId }) => {
                         <ItemIcon item={item} accentColor={cuisineColor} />
                     </div>
                     <div className="place-detail-center-column">
-                        <PlaceDetailContent item={item} />
+                        <PlaceDetailContent item={item} distance={distance_m} />
                     </div>
                     <div className="place-detail-side-panel place-detail-side-panel--right">
                         <RankBadge item={item} accentColor={brightenColor(cuisineColor, -0.8)} />

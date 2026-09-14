@@ -1,16 +1,23 @@
 .place-detail-content {
   min-width: 0;
-  padding-right: 36px;
+  margin-right: -30px;
 }
 
 .place-detail-title {
-  font-size: 1rem !important;
-  line-height: 1.2;
+  display: block;
+  font-size: 16px !important;
+  /* line-height: 1.2 !important; */
+  
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+
 }
 
 .place-detail-subtitle {
-  font-size: 0.8rem;
-  line-height: 1.2;
-  white-space: nowrap;
+  display: block;
+  margin-right: 10px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }

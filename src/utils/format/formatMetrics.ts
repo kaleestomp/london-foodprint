@@ -1,7 +1,7 @@
 const DETOUR_FACTOR = 1.34;
 const WALKING_SPEED_M_PER_MIN = 80; // average walking speed in meters per minute
 
-export const formatDistance = (distanceM: number | null): string => {
+export const formatDistance = (distanceM: number | null | undefined): string => {
   if (typeof distanceM !== 'number' || Number.isNaN(distanceM)) return '';
   const distUrban = distanceM * DETOUR_FACTOR;
   if (distUrban >= 1000) return `${(distUrban / 1000).toFixed(1)}km`;
@@ -10,7 +10,7 @@ export const formatDistance = (distanceM: number | null): string => {
   return `${Math.round(distUrban/10)*10}m`;
 };
 
-export const formatWalkDistance = (distanceM: number | null): string => {
+export const formatWalkDistance = (distanceM: number | null | undefined): string => {
   if (typeof distanceM !== 'number' || Number.isNaN(distanceM)) return '';
   const distUrban = distanceM * DETOUR_FACTOR;
   const walkMins = distUrban / WALKING_SPEED_M_PER_MIN;

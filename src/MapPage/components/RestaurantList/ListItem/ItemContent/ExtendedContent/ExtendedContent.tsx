@@ -9,15 +9,17 @@ import CurrencyPoundIcon from '@mui/icons-material/CurrencyPound';
 
 import IconPair from './IconPair';
 import { formatWalkDistance, formatDistance } from '../../../../../../utils/format/formatMetrics';
+import type { PlaceDetailResponse } from '../../../../../request/useRequestPlaceDetail/request';
 import type { PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
 import './ExtendedContent.css';
 
 const ExtendedContent: FC<{
-  item: PlacesListItem;
-}> = ({ item }) => {
+  item: PlaceDetailResponse | PlacesListItem;
+  distance?: number | null;
+}> = ({ item, distance }) => {
 
-  const walkMins = formatWalkDistance(item.distance_m);
-  const distance = formatDistance(item.distance_m);
+  const walkMins = formatWalkDistance(distance);
+  const distanceM = formatDistance(distance);
 
   return (
     <div className="list-item-extra">
@@ -36,7 +38,7 @@ const ExtendedContent: FC<{
           : null
         }
         {walkMins
-          ? <IconPair icon={<DirectionsWalkIcon fontSize="small" />} text={`${walkMins} | ${distance}`} />
+          ? <IconPair icon={<DirectionsWalkIcon fontSize="small" />} text={`${walkMins} | ${distanceM}`} />
           : null
         }
         {item.price

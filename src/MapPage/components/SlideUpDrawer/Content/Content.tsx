@@ -3,7 +3,7 @@ import type * as maplibregl from 'maplibre-gl';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useAppUI } from '../../../../context/AppUIContext';
-import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
+// import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
 import RestaurantList from '../../RestaurantList/RestaurantList';
 import FilterSection from '../../FilterTabs/FilterSection';
 // import SampleContent from '../SampleContent/SampleContent';

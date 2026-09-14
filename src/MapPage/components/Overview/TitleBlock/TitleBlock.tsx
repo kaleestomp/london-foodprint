@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import Typography from '@mui/material/Typography';
 
 import useFormatSubfix from '../useTitle/useFormatSubfix';
-import useFormatSubtitle from '../useTitle/useFormatSubtitle';
+// import useFormatSubtitle from '../useTitle/useFormatSubtitle';
 import useFormatVerdict from '../useTitle/useFormatVerdict';
 import './TitleBlock.css';
 
@@ -12,7 +12,7 @@ const TitleBlock: FC<{
 }> = ({ count, tierRep }) => {
 
   const subfix = useFormatSubfix(count);
-  const subtitle = useFormatSubtitle();
+  // const subtitle = useFormatSubtitle();
   const verdict = useFormatVerdict(tierRep);
   return (
     <div className="overview-title-block">
