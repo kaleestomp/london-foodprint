@@ -1,5 +1,11 @@
 import { useCallback, useState } from 'react';
-import { type LocationResult } from './useGeoSearch';
+
+export type LocationResult = {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+};
 
 const API_BASE =
   (import.meta.env as Record<string, string | undefined>).VITE_RENDER_API_URL ??

@@ -5,8 +5,8 @@ type Params = {
 };
 
 type Result = {
-  expanded: boolean;
-  isCollapsing: boolean;
+  isExpanded: boolean;
+  // isCollapsing: boolean;
   showExpandedLayout: boolean;
   reopenLayout: () => void;
   startCollapseAnimation: () => void;
@@ -17,10 +17,10 @@ const useCollapseTransition = ({ transitionMs }: Params): Result => {
   
   const collapseTimerRef = useRef<number | null>(null);
 
-  const [expanded, setExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isCollapsing, setIsCollapsing] = useState(false);
 
-  const showExpandedLayout = expanded || isCollapsing;
+  const showExpandedLayout = isExpanded || isCollapsing;
 
   const clearCollapseTimer = useCallback(() => {
     if (collapseTimerRef.current !== null) {
@@ -31,7 +31,7 @@ const useCollapseTransition = ({ transitionMs }: Params): Result => {
 
   const startCollapseAnimation = useCallback(() => {
     clearCollapseTimer();
-    setExpanded(false);
+    setIsExpanded(false);
     setIsCollapsing(true);
     collapseTimerRef.current = window.setTimeout(() => {
       setIsCollapsing(false);
@@ -42,7 +42,7 @@ const useCollapseTransition = ({ transitionMs }: Params): Result => {
   const reopenLayout = useCallback(() => {
     clearCollapseTimer();
     setIsCollapsing(false);
-    setExpanded(true);
+    setIsExpanded(true);
   }, [clearCollapseTimer]);
 
   useEffect(() => {
@@ -52,8 +52,8 @@ const useCollapseTransition = ({ transitionMs }: Params): Result => {
   }, [clearCollapseTimer]);
 
   return {
-    expanded,
-    isCollapsing,
+    isExpanded,
+    // isCollapsing,
     showExpandedLayout,
     reopenLayout,
     startCollapseAnimation,

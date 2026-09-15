@@ -15,12 +15,8 @@ const useGeoSearchbarAnimation = ({
 }): {
   rootRef: React.RefObject<HTMLDivElement | null>;
   inputRef: React.RefObject<HTMLInputElement | null>;
-  expanded: boolean;
-  isCollapsing: boolean;
-  showExpandedLayout: boolean;
   showDropdown: boolean;
   reopenSearch: () => void;
-  onExpand: () => void;
   onInputKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
   closeDropdown: () => void;
 } => {
@@ -28,23 +24,16 @@ const useGeoSearchbarAnimation = ({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const { expanded, isCollapsing, showExpandedLayout, 
+  const { isExpanded, showExpandedLayout, 
     reopenLayout, startCollapseAnimation } = useCollapseTransition({ transitionMs: widthTransitionMs });
 
-  const maybeCollapseIfEmpty = useCallback(() => {
-    if (query.trim().length > 0) {
-      return;
-    }
-    startCollapseAnimation();
+  const collapseIfEmpty = useCallback(() => {
+    if (query.trim().length === 0) startCollapseAnimation();
   }, [query, startCollapseAnimation]);
 
   const { showDropdown, openDropdownPanel, closeDropdown } = useDropdownDisclosure({
-    rootRef,
-    isExpandedLayout: showExpandedLayout,
-    isExpanded: expanded,
-    hasDropdownContent,
-    onDismissAfterClose: maybeCollapseIfEmpty,
-    onDropdownOpenChange,
+    rootRef, showExpandedLayout, isExpanded, hasDropdownContent,
+    onDismissAfterClose: collapseIfEmpty, onDropdownOpenChange,
   });
 
   const reopenSearch = useCallback(() => {
@@ -52,10 +41,10 @@ const useGeoSearchbarAnimation = ({
     openDropdownPanel();
   }, [openDropdownPanel, reopenLayout]);
 
-  const onExpand = useCallback(() => {
-    reopenLayout();
-    requestAnimationFrame(() => inputRef.current?.focus());
-  }, [reopenLayout]);
+  // const onExpand = useCallback(() => {
+  //   reopenLayout();
+  //   requestAnimationFrame(() => inputRef.current?.focus());
+  // }, [reopenLayout]);
 
   const onInputKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback((event) => {
     if (event.key !== 'Escape') {
@@ -63,19 +52,15 @@ const useGeoSearchbarAnimation = ({
     }
     event.preventDefault();
     closeDropdown();
-    maybeCollapseIfEmpty();
+    collapseIfEmpty();
     inputRef.current?.blur();
-  }, [closeDropdown, maybeCollapseIfEmpty]);
+  }, [closeDropdown, collapseIfEmpty]);
 
   return {
     rootRef,
     inputRef,
-    expanded,
-    isCollapsing,
-    showExpandedLayout,
     showDropdown,
     reopenSearch,
-    onExpand,
     onInputKeyDown,
     closeDropdown,
   };

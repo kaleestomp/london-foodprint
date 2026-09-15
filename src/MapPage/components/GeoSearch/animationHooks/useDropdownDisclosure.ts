@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type RefObject } from 'react';
 
 type Params = {
   rootRef: RefObject<HTMLDivElement | null>;
-  isExpandedLayout: boolean;
+  showExpandedLayout: boolean;
   isExpanded: boolean;
   hasDropdownContent: boolean;
   onDismissAfterClose: () => void;
@@ -18,14 +18,14 @@ type Result = {
 
 const useDropdownDisclosure = ({
   rootRef,
-  isExpandedLayout,
+  showExpandedLayout,
   isExpanded,
   hasDropdownContent,
   onDismissAfterClose,
   onDropdownOpenChange,
 }: Params): Result => {
-  const [openDropdown, setOpenDropdown] = useState(false);
 
+  const [openDropdown, setOpenDropdown] = useState(false);
   const showDropdown = isExpanded && openDropdown && hasDropdownContent;
 
   const openDropdownPanel = useCallback(() => {
@@ -37,7 +37,7 @@ const useDropdownDisclosure = ({
   }, []);
 
   useEffect(() => {
-    if (!isExpandedLayout) {
+    if (!showExpandedLayout) {
       return;
     }
 
@@ -50,7 +50,7 @@ const useDropdownDisclosure = ({
 
     document.addEventListener('mousedown', onPointerDown);
     return () => document.removeEventListener('mousedown', onPointerDown);
-  }, [closeDropdown, isExpandedLayout, onDismissAfterClose, rootRef]);
+  }, [closeDropdown, showExpandedLayout, onDismissAfterClose, rootRef]);
 
   useEffect(() => {
     onDropdownOpenChange?.(showDropdown);

@@ -22,6 +22,7 @@ const GeoSearchbarMaptiler: React.FC<{
   const { rootRef, inputRef, showDropdown, reopenSearch, onInputKeyDown, closeDropdown 
   } = useGeoSearchbarAnimation({ query, hasDropdownContent, onDropdownOpenChange });
 
+  // HANDLE INPUT CHANGES
   const onInputChange = useCallback((value: string) => {
     reopenSearch();
     setQuery(value);

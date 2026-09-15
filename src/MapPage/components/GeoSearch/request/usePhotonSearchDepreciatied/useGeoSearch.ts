@@ -1,13 +1,7 @@
 import { useEffect, useState } from 'react';
 import { isWithinCityBounds } from '../../../Map/MapTemplate';
 import { useCityContext } from '../../../../../context/CityContext';
-
-export type LocationResult = {
-  place_id: number;
-  display_name: string;
-  lat: string;
-  lon: string;
-};
+import type { LocationResult } from '../usePhotonReverseGeocode/useReverseGeocode';
 
 const API_BASE =
   (import.meta.env as Record<string, string | undefined>).VITE_RENDER_API_URL ??

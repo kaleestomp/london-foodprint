@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { type LocationResult } from '../../GeoSearch/request/photon/useGeoSearch';
+import { type LocationResult } from '../../GeoSearch/request/usePhotonReverseGeocode/useReverseGeocode';
 
 const PIN_COLOR = '#e63946';
 const PIN_SIZE = 32;
