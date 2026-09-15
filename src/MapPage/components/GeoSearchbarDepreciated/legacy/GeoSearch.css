@@ -85,7 +85,7 @@
   box-shadow: none !important;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 550px) {
   .geo-search-input {
     font-size: var(--geo-search-input-font-size-mobile);
   }

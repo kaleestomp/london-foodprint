@@ -1,4 +1,7 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+
+import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
+import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
 
 type RenderedListContextValue = {
   unmatchedPlaceId: string | null;
@@ -11,52 +14,33 @@ const RenderedListContext = createContext<RenderedListContextValue | null>(null)
 export const RenderedListProvider = ({ children }: { children: ReactNode }) => {
   const [unmatchedPlaceId, setUnmatchedPlaceId] = useState<string | null>(null);
   const [selectedWhileClosed, setSelectedWhileClosed] = useState(false);
+  const { selectedPlaceId, selectionSource } = usePlaceSelection();
+  const { isClosed } = useDrawerState();
   const showPlaceMainDrawer = unmatchedPlaceId !== null && selectedWhileClosed;
 
-  const reportUnmatchedPlaceId = (value: string | null, selectedWhileClosed = false) => {
+  const reportUnmatchedPlaceId = useCallback((value: string | null, selectedWhileClosed = false) => {
     setUnmatchedPlaceId(value);
-    setSelectedWhileClosed(value !== null && selectedWhileClosed);
-  };
-  
-  // const { selectedPlaceId, selectionSource } = usePlaceSelection();
-  // useEffect(() => {
-  //   // CLEAR UNMATCHED
-  //   const selectionDroped = selectedPlaceId === null;
-  //   if (selectionDroped) {
-  //     setUnmatchedPlaceId(null);
-  //     setSelectedWhileClosed(false);
-  //     return;
-  //   }
-  // }, [selectedPlaceId, selectionSource]);
-
-  // const { isClosed } = useDrawerState();
-  // const { selectedPlaceId, selectionSource } = usePlaceSelection();
-  // useEffect(() => {
-  //   // CLEAR UNMATCHED
-  //   const selectionDroped = selectedPlaceId === null;
-  //   const unmatchedStale = unmatchedPlaceId !== selectedPlaceId;
-  //   if (selectionDroped || unmatchedStale) {
-  //     setUnmatchedPlaceId(null);
-  //     setSelectedWhileClosed(false);
-  //     return;
-  //   }
-
-  //   // UPDATE UNMATCHED
-  //   const selectionInvalid = selectionSource !== 'map';
-  //   if (!selectionInvalid && isClosed) {
-  //     // A map selection made while the drawer is closed 
-  //     // must remain UNMATCHED.
-  //     reportUnmatchedPlaceId(selectedPlaceId, true);
-  //   }
-  // }, [selectedPlaceId, selectionSource, isClosed]);
-
-
+    setSelectedWhileClosed((prev) => (
+      value !== null && (selectedWhileClosed || prev)
+    ));
+  }, []);
+  useEffect(() => {
+    if (selectedPlaceId === null || selectionSource !== 'map') {
+      reportUnmatchedPlaceId(null);
+    } else if (isClosed) {
+      reportUnmatchedPlaceId(selectedPlaceId, true);
+    } else if (!isClosed && selectedWhileClosed === true) {
+      // Also counts if last selection was made while the drawer was closed
+      // This allows place detail panel to stay on if user switches between place markers
+      reportUnmatchedPlaceId(selectedPlaceId, true);
+    }
+  }, [isClosed, selectedPlaceId, selectionSource, reportUnmatchedPlaceId]);
 
   const value = useMemo(() => ({
     unmatchedPlaceId,
     showPlaceMainDrawer,
     reportUnmatchedPlaceId,
-  }), [unmatchedPlaceId, selectedWhileClosed]);
+  }), [reportUnmatchedPlaceId, selectedWhileClosed, unmatchedPlaceId]);
 
   return (
     <RenderedListContext.Provider value={value}>

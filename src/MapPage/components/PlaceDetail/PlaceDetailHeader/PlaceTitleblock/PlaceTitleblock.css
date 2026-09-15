@@ -12,7 +12,7 @@
   display: block;
   font-size: 16px !important;
   font-weight: 700 !important;
-  /* line-height: 1.2 !important; */
+  line-height: 1.2 !important;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -20,16 +20,20 @@
 }
 .place-detail-title.is-extended {
   display: -webkit-box;
+  font-size: 18px !important;
+  /* margin-right: -100px; */
+
   text-wrap: balance;
   white-space: normal;
   overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
+  /* -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
+  line-clamp: 2; */
 }
 
 .place-detail-subtitle {
   display: -webkit-box;
+  padding-top: 4px;
   margin-right: 10px;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;

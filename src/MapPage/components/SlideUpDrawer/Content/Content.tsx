@@ -36,8 +36,9 @@ const Content: FC<{
             <NestedDrawer />
             {/* <SampleContent /> */}
             {activeToolbarTab  && <FilterSection />}
-            <RestaurantList mapRef={mapRef} pageSize={pageSize} resetOverride={!panelUp} enabled={enableList} hidden={hideList} />
-
+            { !hideList && 
+                <RestaurantList mapRef={mapRef} pageSize={pageSize} resetOverride={!panelUp} enabled={enableList} />
+            }
             
             {showPlaceMainDrawer && unmatchedPlaceId !== null 
                 && <PlaceDetailBody placeId={unmatchedPlaceId} />

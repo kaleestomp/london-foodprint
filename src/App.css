@@ -76,7 +76,7 @@ html[data-theme='dark'] {
 }
 
 /* CSS custom properties cannot be used in media-query conditions. */
-@media (max-width: 430px) {
+@media (max-width: 550px) {
   :root  {
     --app-layout-margin-top: var(--app-layout-margin);
     --app-toolbar-height: 56px;

@@ -15,10 +15,10 @@ const DetailRow: FC<{
         <div className="place-detail-body-row" key={label}>
             <span className="place-detail-body-icon" aria-hidden="true">{icon}</span>
             <div className="place-detail-body-copy">
-                {label && (<Typography component="span" variant="caption" className="place-detail-body-label">
+                {label && (<Typography variant="caption" className="place-detail-body-label">
                     {label}
                 </Typography>)}
-                <Typography component="span" variant="body2" className="place-detail-body-value">
+                <Typography variant="h6" className="place-detail-body-value">
                     {valueOrDash(value)}
                 </Typography>
             </div>

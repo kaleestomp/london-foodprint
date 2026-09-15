@@ -72,7 +72,7 @@
   pointer-events: none;
 }
 
-@media (max-width: 430px) {
+@media (max-width: 550px) {
   .map-toolbar {
     width: calc(100vw - (var(--app-layout-margin) * 2));
     justify-content: space-between;
@@ -80,7 +80,7 @@
 }
 
 /* DESKTOP SIZE */
-@media (min-width: 431px) {
+@media (min-width: 551px) {
   .map-toolbar {
     --toolbar-height: 60px;
     --toolbar-icon-size: 40px;
@@ -95,7 +95,7 @@
   }
 }
 
-@media (min-width: 431px) {
+@media (min-width: 551px) {
   .map-toolbar {
     left: calc(var(--app-layout-margin) + var(--left-panel-width) + var(--app-layout-gap));
     right: var(--app-layout-margin);

@@ -23,11 +23,11 @@ const RestaurantList: FC<{
   pageSize: number;
   resetOverride?: boolean;
   enabled?: boolean;
-  hidden?: boolean; 
+  // hidden?: boolean; 
   // CANNOT UNMOUNT FOR NOW 
   // DUE TO useReportSelectionNotInList
   // REQUIRED TO UPDATE RENDERED LIST CONTEXT
-}> = ({ mapRef, pageSize, resetOverride = false, enabled = true, hidden = false }) => {
+}> = ({ mapRef, pageSize, resetOverride = false, enabled = true }) => {
 
   // REFRESH STATE
   const [liveRefresh, setLiveRefresh] = useState(true);
@@ -68,7 +68,7 @@ const RestaurantList: FC<{
   const refreshAvaliable = isListStale && !liveRefresh;
   const uiAvaliable = (isMobile && !isClosed && !isAtFullHeight) || !isMobile;
   const showRefreshButton = uiAvaliable && (refreshAvaliable || isRefreshPending);
-  const wrapperClass = `list-scroll-content${hidden ? ' is-hidden' : ''}`;
+  const wrapperClass = "list-scroll-content"; //`list-scroll-content${hidden ? ' is-hidden' : ''}`;
 
   // SKELETON STATE
   if (!enabled) {

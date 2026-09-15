@@ -8,14 +8,14 @@
 
 .place-detail-body-icon {
 	display: grid;
-	place-items: center;
+	place-items: flex-end;
+	margin-right: 10px;
 	color: var(--app-primary-black);
 }
-
-.place-detail-body-icon svg {
+/* .place-detail-body-icon svg {
 	width: 20px;
 	height: 20px;
-}
+} */
 
 .place-detail-body-copy {
 	display: flex;
@@ -36,19 +36,18 @@
 	overflow-wrap: anywhere;
 }
 
-.place-detail-body-value a {
+/* .place-detail-body-value a {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
 	color: inherit;
-}
-
-.place-detail-body-value a svg {
+} */
+/* .place-detail-body-value a svg {
 	width: 14px;
 	height: 14px;
-}
+} */
 
-@media (max-width: 480px) {
+@media (max-width: 550px) {
 	.place-detail-body-copy {
 		display: block;
 	}

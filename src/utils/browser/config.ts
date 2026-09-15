@@ -1,4 +1,4 @@
-export const MOBILE_BREAKPOINT = 430;
+export const MOBILE_BREAKPOINT = 550;
 
 export const RESIZE_HEIGHT_JITTER_PX = 120;
 export const RESIZE_WIDTH_JITTER_PX = 16;
