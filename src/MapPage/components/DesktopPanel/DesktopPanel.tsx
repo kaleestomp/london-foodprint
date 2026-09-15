@@ -3,7 +3,7 @@ import type * as maplibregl from 'maplibre-gl';
 
 import DrawerHeader from '../SlideUpDrawer/DrawerHeader/DrawerHeader';
 import Content from '../SlideUpDrawer/Content/Content';
-import GeoSearchbar from '../GeoSearchbarMaptiler/GeoSearchbar';
+import GeoSearchbar from '../GeoSearch/GeoSearchbar';
 import DesktopPanelTabs from './DesktopPanelTabs';
 
 import './DesktopPanel.css';

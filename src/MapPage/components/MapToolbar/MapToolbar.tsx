@@ -4,7 +4,7 @@ import type * as maplibregl from 'maplibre-gl';
 import { useAppUI } from '../../../context/AppUIContext';
 import { useIsMobileCtx } from '../../../context/IsMobileContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
-import GeoSearchbar from '../GeoSearchbarMaptiler/GeoSearchbar';
+import GeoSearchbar from '../GeoSearch/GeoSearchbar';
 import MyLocationButton from './MyLocationButtonFAB/MyLocationButton';
 // import LayersButton from './LayersButton/LayersButton';
 import NorthResetButton from './NorthResetButton/NorthResetButton';

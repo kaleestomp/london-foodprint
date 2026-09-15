@@ -4,14 +4,15 @@ import useDropdownDisclosure from './useDropdownDisclosure';
 
 const DEFAULT_WIDTH_TRANSITION_MS = 220;
 
-type Params = {
+const useGeoSearchbarAnimation = ({
+  query, hasDropdownContent, onDropdownOpenChange,
+  widthTransitionMs = DEFAULT_WIDTH_TRANSITION_MS,
+}: {
   query: string;
   hasDropdownContent: boolean;
   onDropdownOpenChange?: (isOpen: boolean) => void;
   widthTransitionMs?: number;
-};
-
-type Result = {
+}): {
   rootRef: React.RefObject<HTMLDivElement | null>;
   inputRef: React.RefObject<HTMLInputElement | null>;
   expanded: boolean;
@@ -22,24 +23,13 @@ type Result = {
   onExpand: () => void;
   onInputKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
   closeDropdown: () => void;
-};
+} => {
 
-const useGeoSearchbarAnimation = ({
-  query,
-  hasDropdownContent,
-  onDropdownOpenChange,
-  widthTransitionMs = DEFAULT_WIDTH_TRANSITION_MS,
-}: Params): Result => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const {
-    expanded,
-    isCollapsing,
-    showExpandedLayout,
-    reopenLayout,
-    startCollapseAnimation,
-  } = useCollapseTransition({ transitionMs: widthTransitionMs });
+  const { expanded, isCollapsing, showExpandedLayout, 
+    reopenLayout, startCollapseAnimation } = useCollapseTransition({ transitionMs: widthTransitionMs });
 
   const maybeCollapseIfEmpty = useCallback(() => {
     if (query.trim().length > 0) {
@@ -48,11 +38,7 @@ const useGeoSearchbarAnimation = ({
     startCollapseAnimation();
   }, [query, startCollapseAnimation]);
 
-  const {
-    showDropdown,
-    openDropdownPanel,
-    closeDropdown,
-  } = useDropdownDisclosure({
+  const { showDropdown, openDropdownPanel, closeDropdown } = useDropdownDisclosure({
     rootRef,
     isExpandedLayout: showExpandedLayout,
     isExpanded: expanded,

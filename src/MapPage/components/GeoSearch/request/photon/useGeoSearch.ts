@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { isWithinCityBounds } from '../../Map/MapTemplate';
-import { useCityContext } from '../../../../context/CityContext';
+import { isWithinCityBounds } from '../../../Map/MapTemplate';
+import { useCityContext } from '../../../../../context/CityContext';
 
 export type LocationResult = {
   place_id: number;

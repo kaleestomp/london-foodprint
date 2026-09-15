@@ -4,7 +4,7 @@ import SignpostIcon from '@mui/icons-material/Signpost';
 import MapIcon from '@mui/icons-material/Map';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 
-import type { GeoSuggestion } from '../../GeoSearch/types';
+import type { GeoSuggestion } from '../types';
 
 import './SuggestedDropdown.css';
 

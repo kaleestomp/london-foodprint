@@ -1,61 +1,60 @@
-import { useCallback, useRef } from 'react';
-import IconButton from '@mui/material/IconButton';
-import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import { useCallback } from 'react';
 
 import { useGeoSearch } from './GeoSearchContext';
+import GeoSearchInputBox from './GeoSearchInputBox/GeoSearchInputBox';
+import useGeoSearchbarAnimation from './animationHooks/useGeoSearchbarAnimation';
+import useRequestMaptilerSuggestions from './request/useRequestMaptilerSuggestions/useRequestMaptilerSuggestions';
+import type { GeoSuggestion } from './types';
+import SuggestedDropdown from './SuggestedDropdown/SuggestedDropdown';
 
 import './GeoSearchbar.css';
 
-const GeoSearchbar: React.FC = () => {
+const GeoSearchbarMaptiler: React.FC<{
+  onDropdownOpenChange?: (isOpen: boolean) => void;
+}> = ({ onDropdownOpenChange }) => {
+  
+  // TRACK QUERY UI STATE
+  const { query, selectSuggestion, setQuery, clearSearch } = useGeoSearch();
+  // FETCH SELECTIONS
+  const { suggestions, isFetching: isLoading } = useRequestMaptilerSuggestions(query);
+  // HANDLE ANIMATIONS
+  const hasDropdownContent = isLoading || suggestions.length > 0;
+  const { rootRef, inputRef, showDropdown, reopenSearch, onInputKeyDown, closeDropdown 
+  } = useGeoSearchbarAnimation({ query, hasDropdownContent, onDropdownOpenChange });
 
-  const {
-    query,
-    setQuery,
-    clearSearch,
-  } = useGeoSearch();
-
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const onInputKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback((event) => {
-    if (event.key !== 'Escape') { return; }
-    event.preventDefault();
+  const onInputChange = useCallback((value: string) => {
+    reopenSearch();
+    setQuery(value);
+  }, [reopenSearch, setQuery]);
+  const onInputClear = useCallback(() => {
     clearSearch();
-  }, [clearSearch]);
-
-  const onClear = useCallback(() => {
-    clearSearch();
-    requestAnimationFrame(() => inputRef.current?.focus());
-  }, [clearSearch]);
+    closeDropdown();
+  }, [clearSearch, closeDropdown]); 
+  const handleSelect = useCallback((suggestion: GeoSuggestion) => {
+    selectSuggestion(suggestion);
+    closeDropdown();
+  }, [closeDropdown, selectSuggestion]);
 
   return (
-    <div className="drawer-geo-search" > {/* data-vaul-no-drag ADD this directly after css class*/}
-      <div className="drawer-geo-search-shell">
-        <span className="drawer-geo-search-lead" aria-hidden="true">
-          <SearchOutlinedIcon fontSize="medium" />
-        </span>
-        <input
-          ref={inputRef}
-          className="drawer-geo-search-input"
-          type="text"
-          value={query}
-          placeholder=""
-          aria-label="Search places"
-          onChange={(event) => setQuery(event.target.value)}
+    <div ref={rootRef} className="geo-searchbar-root">
+      <div className="geo-searchbar-and-dropdown">
+        <GeoSearchInputBox
+          inputRef={inputRef}
+          queryStr={query}
+          onFocus={reopenSearch}
           onKeyDown={onInputKeyDown}
+          onChange={onInputChange}
+          onClear={onInputClear}
         />
-        {query.length > 0 && (
-          <IconButton
-            className="drawer-geo-search-clear"
-            aria-label="Clear search"
-            onClick={onClear}
-          >
-            <CloseOutlinedIcon fontSize="small" />
-          </IconButton>
-        )}
+        <SuggestedDropdown
+          showDropdown={showDropdown}
+          isLoading={isLoading}
+          suggestions={suggestions}
+          onSelect={handleSelect}
+        />
       </div>
     </div>
   );
 };
 
-export default GeoSearchbar;
+export default GeoSearchbarMaptiler;

@@ -1,7 +1,7 @@
 import SearchIcon from '@mui/icons-material/Search';
 import type { ReactNode } from 'react';
 
-import GeoSearchbarClearButton from '../../GeoSearchbarDepreciated/ClearButton/GeoSearchbarClearButton';
+import GeoSearchbarClearButton from './ClearButton/GeoSearchbarClearButton';
 import './GeoSearchInputBox.css';
 
 const GeoSearchInputBox: React.FC<{

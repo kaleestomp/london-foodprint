@@ -1,17 +1,4 @@
-// REMOVED DEP ON GEOJSON PACKAGE
-// import type geojson from 'geojson';
-type MaptilerGeometry = {
-  type:
-    | 'Point'
-    | 'MultiPoint'
-    | 'LineString'
-    | 'MultiLineString'
-    | 'Polygon'
-    | 'MultiPolygon'
-    | 'GeometryCollection';
-  coordinates?: unknown;
-  geometries?: MaptilerGeometry[];
-};
+import type { Geometry } from 'geojson';
 
 /**
  * MapTiler Geocoding API response types.
@@ -27,7 +14,7 @@ export type MaptilerFeature = {
   center?: [number, number]; // [lng, lat]
   bbox?: [number, number, number, number]; // [w, s, e, n]
   relevance?: number;
-  geometry: MaptilerGeometry;
+  geometry: Geometry;
   properties?: Record<string, unknown>;
 };
 

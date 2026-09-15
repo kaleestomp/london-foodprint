@@ -14,6 +14,7 @@ type Result = {
 };
 
 const useCollapseTransition = ({ transitionMs }: Params): Result => {
+  
   const collapseTimerRef = useRef<number | null>(null);
 
   const [expanded, setExpanded] = useState(false);

@@ -3,8 +3,8 @@ import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import DirectionsOutlinedIcon from '@mui/icons-material/DirectionsOutlined';
 
-import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
-import { useGeoSearch } from './GeoSearchContext';
+import { useDrawerState } from '../../../SlideUpDrawer/DrawerStateContext';
+import { useGeoSearch } from '../../GeoSearchContext';
 
 import './SuggestionList.css';
 
@@ -14,7 +14,7 @@ import './SuggestionList.css';
  * lowest snap point, the drawer is snapped open (0.5) to reveal the list.
  */
 const SuggestionList: React.FC<{
-  suggestions: import('./types').GeoSuggestion[];
+  suggestions: import('../../types').GeoSuggestion[];
   isLoading: boolean;
   suggestionsVisible: boolean;
 }> = ({ suggestions, isLoading, suggestionsVisible }) => {
