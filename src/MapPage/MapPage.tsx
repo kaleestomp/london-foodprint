@@ -8,11 +8,11 @@ import { TopPlacesProvider } from '../context/TopPlacesContext';
 import { DrawerStateProvider } from './components/SlideUpDrawer/DrawerStateContext';
 import { GeoSearchProvider } from './components/GeoSearch/GeoSearchContext';
 import { useIsMobileCtx } from '../context/IsMobileContext';
+import { PlaceDetailCardProvider } from '../context/PlaceDetailCardContext';
 
 import Map from './components/Map/Map';
 import Loading from '../components/Loading/Loading';
 // import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
-// import IPLocationHandler from './components/Map/IPLocationHandler/IPLocationHandler';
 // import BaseToolbar from './components/BaseToolbar/BaseToolbar';
 import MapToolbar from './components/MapToolbar/MapToolbar';
 import DrawerMapViewportSync from './components/MapViewportSync/DrawerMapViewportSync';
@@ -32,7 +32,6 @@ const MapPage: FC = () => {
   const isMobile = useIsMobileCtx();
   const mapRef = useRef<maplibregl.Map | null>(null);
 
-  // IPLocationHandler({ mapRef });
   // const { reportCity } = useCityContext();
   // useEffect(() => {
   //   reportCity('newcastle');
@@ -41,28 +40,38 @@ const MapPage: FC = () => {
   return (
     <div className="map-page-container">
       <Loading loading={isLoading} />
+
       <div className='map-viewport'>
         <ViewportQueryProvider>
           <PlaceSelectionProvider>
             <TopPlacesProvider>
               <GeoSearchProvider>
-              <Map mapRef={mapRef} />
-              <DrawerStateProvider>
-                <BubbleAvatarStateProvider>
-                  <div className="map-safe-area">
-                    <MapToolbar mapRef={mapRef} />
+                <Map mapRef={mapRef} />
+
+                <div className="map-safe-area">
+                  <DrawerStateProvider>
                     <DrawerMapViewportSync mapRef={mapRef} />
-                    <SlideUpDrawer mapRef={mapRef} />
-                    <DesktopPanel mapRef={mapRef} />
-                    {!isMobile && <BubbleAvatar mapRef={mapRef} />}
-                  </div>
-                </BubbleAvatarStateProvider>
-              </DrawerStateProvider>
+                    <MapToolbar mapRef={mapRef} />
+                    
+                    <PlaceDetailCardProvider>
+                      {!isMobile && <DesktopPanel mapRef={mapRef} />}
+
+                      <BubbleAvatarStateProvider>
+                        <SlideUpDrawer mapRef={mapRef} />
+                        {!isMobile && <BubbleAvatar mapRef={mapRef} />}
+                      </BubbleAvatarStateProvider>
+
+                    </PlaceDetailCardProvider>
+
+                  </DrawerStateProvider>
+                </div>
+
               </GeoSearchProvider>
             </TopPlacesProvider>
           </PlaceSelectionProvider>
         </ViewportQueryProvider>
       </div>
+
     </div>
   );
 };

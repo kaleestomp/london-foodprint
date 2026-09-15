@@ -3,7 +3,7 @@ import type * as maplibregl from 'maplibre-gl';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useAppUI } from '../../../../context/AppUIContext';
-import { useRenderedList } from '../../RestaurantList/RenderedListContext';
+import { useRenderedList } from '../../../../context/PlaceDetailCardContext';
 // import delaySwitch from '../../../../utils/timer/delayTimer';
 import RestaurantList from '../../RestaurantList/RestaurantList';
 import FilterSection from '../../FilterTabs/FilterSection';
@@ -28,11 +28,11 @@ const Content: FC<{
 
     const { activeToolbarTab } = useAppUI();
     const showToolbarTap = activeToolbarTab !== null;
-    const { unmatchedPlaceId, showPlaceMainDrawer } = useRenderedList();
+    const { untrackedPlaceId, showPlaceMainDrawer } = useRenderedList();
     const hideList = showToolbarTap || showPlaceMainDrawer;
     
     return (
-        <div className={`drawer-content${panelUp ? ' open' : ''}${showPlaceMainDrawer && unmatchedPlaceId !== null ? ' place-detail-content' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
+        <div className={`drawer-content${panelUp ? ' open' : ''}${showPlaceMainDrawer && untrackedPlaceId !== null ? ' place-detail-content' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
             <NestedDrawer />
             {/* <SampleContent /> */}
             {activeToolbarTab  && <FilterSection />}
@@ -40,7 +40,7 @@ const Content: FC<{
                 <RestaurantList mapRef={mapRef} pageSize={pageSize} resetOverride={!panelUp} enabled={enableList} />
             }
             
-            {showPlaceMainDrawer && unmatchedPlaceId !== null && <PlaceDetail placeId={unmatchedPlaceId} />}
+            {showPlaceMainDrawer && untrackedPlaceId !== null && <PlaceDetail placeId={untrackedPlaceId} />}
             {/* {suggestionsVisible ? (
                 <SuggestionList />
             ) : (

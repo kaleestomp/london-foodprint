@@ -1,25 +1,27 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
-import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
-
-type RenderedListContextValue = {
-  unmatchedPlaceId: string | null;
+import { usePlaceSelection } from './PlaceSelectionContext';
+import { useDrawerState } from '../MapPage/components/SlideUpDrawer/DrawerStateContext';
+type PlaceDetailCardContextValue = {
+  untrackedPlaceId: string | null;
   showPlaceMainDrawer: boolean;
   reportUnmatchedPlaceId: (value: string | null, selectedWhileClosed?: boolean) => void;
 };
 
-const RenderedListContext = createContext<RenderedListContextValue | null>(null);
-
-export const RenderedListProvider = ({ children }: { children: ReactNode }) => {
-  const [unmatchedPlaceId, setUnmatchedPlaceId] = useState<string | null>(null);
-  const [selectedWhileClosed, setSelectedWhileClosed] = useState(false);
+// THIS CONTEXT TRACKS WHEN AND HOW 
+// A PLACE DETAIL CARD SHOULD BE RENDERED 
+// by tracking selection of place markers 
+// that are not tracked on rendered list
+const PlaceDetailCardContext = createContext<PlaceDetailCardContextValue | null>(null);
+export const PlaceDetailCardProvider = ({ children }: { children: ReactNode }) => {
+  const [ untrackedPlaceId, setUntrackedPlaceId ] = useState<string | null>(null);
+  const [ selectedWhileClosed, setSelectedWhileClosed ] = useState(false);
   const { selectedPlaceId, selectionSource } = usePlaceSelection();
   const { isClosed } = useDrawerState();
-  const showPlaceMainDrawer = unmatchedPlaceId !== null && selectedWhileClosed;
+  const showPlaceMainDrawer = untrackedPlaceId !== null && selectedWhileClosed;
 
   const reportUnmatchedPlaceId = useCallback((value: string | null, selectedWhileClosed = false) => {
-    setUnmatchedPlaceId(value);
+    setUntrackedPlaceId(value);
     setSelectedWhileClosed((prev) => (
       value !== null && (selectedWhileClosed || prev)
     ));
@@ -37,20 +39,20 @@ export const RenderedListProvider = ({ children }: { children: ReactNode }) => {
   }, [isClosed, selectedPlaceId, selectionSource, reportUnmatchedPlaceId]);
 
   const value = useMemo(() => ({
-    unmatchedPlaceId,
+    untrackedPlaceId,
     showPlaceMainDrawer,
     reportUnmatchedPlaceId,
-  }), [reportUnmatchedPlaceId, selectedWhileClosed, unmatchedPlaceId]);
+  }), [reportUnmatchedPlaceId, selectedWhileClosed, untrackedPlaceId]);
 
   return (
-    <RenderedListContext.Provider value={value}>
+    <PlaceDetailCardContext.Provider value={value}>
       {children}
-    </RenderedListContext.Provider>
+    </PlaceDetailCardContext.Provider>
   );
 };
 
-export const useRenderedList = (): RenderedListContextValue => {
-  const context = useContext(RenderedListContext);
+export const useRenderedList = (): PlaceDetailCardContextValue => {
+  const context = useContext(PlaceDetailCardContext);
   if (!context) {
     throw new Error('useRenderedList must be used within RenderedListProvider');
   }

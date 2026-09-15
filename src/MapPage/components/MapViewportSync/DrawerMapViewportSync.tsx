@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
 import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
-// import { usePullUpPanelSnapState } from '../PullUpPanel/SnapHooks/PullUpPanelSnapContext';
 import useBottomPadding from './useBottomPadding/useBottomPadding';
 
 type Props = {
@@ -20,7 +19,6 @@ const PANEL_PADDING_CLOSE_DELAY_MS = 100;
 
 const DrawerMapViewportSync: React.FC<Props> = ({ mapRef }) => {
   
-  // const { isDragging } = usePullUpPanelSnapState();
   const { selectionSource } = usePlaceSelection();
 
   const bottomPadding = useBottomPadding(mapRef);
