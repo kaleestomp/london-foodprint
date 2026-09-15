@@ -13,9 +13,13 @@ import './SuggestionList.css';
  * content section. When fresh suggestions arrive while the drawer is at its
  * lowest snap point, the drawer is snapped open (0.5) to reveal the list.
  */
-const SuggestionList: React.FC = () => {
+const SuggestionList: React.FC<{
+  suggestions: import('./types').GeoSuggestion[];
+  isLoading: boolean;
+  suggestionsVisible: boolean;
+}> = ({ suggestions, isLoading, suggestionsVisible }) => {
 
-  const { suggestions, isLoading, suggestionsVisible, selectSuggestion } = useGeoSearch();
+  const { selectSuggestion } = useGeoSearch();
   const { isClosed, openDrawer } = useDrawerState();
 
   const hasSuggestions = suggestions.length > 0;
@@ -59,9 +63,9 @@ const SuggestionList: React.FC = () => {
                 <span className="geo-suggestion-icon" aria-hidden="true">
                   {suggestion.expectsBoundary
                     ? <LayersOutlinedIcon fontSize="small" />
-                    : suggestion.expectsStreet
-                      ? <DirectionsOutlinedIcon fontSize="small" />
-                      : <PlaceOutlinedIcon fontSize="small" />}
+                    : suggestion.expectsPlace
+                      ? <PlaceOutlinedIcon fontSize="small" />
+                      : <DirectionsOutlinedIcon fontSize="small" />}
                 </span>
                 <span className="geo-suggestion-text">
                   <span className="geo-suggestion-primary">{suggestion.primary}</span>

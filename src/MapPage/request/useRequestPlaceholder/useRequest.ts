@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { type dataContract, request } from './request';
+import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
 
-type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
 const useRequest = (path: string): {
   status: RequestStatus;
@@ -17,15 +17,7 @@ const useRequest = (path: string): {
     enabled: Boolean(normalizedPath),
   });
 
-  const status: RequestStatus = !normalizedPath
-    ? 'empty'
-    : query.isPending || (query.isFetching && !query.data)
-      ? 'loading'
-      : query.isError
-        ? 'error'
-        : query.data
-          ? 'success'
-          : 'empty';
+  const status = getRequestStatus({ enabled: Boolean(normalizedPath), isPending: query.isPending, isFetching: query.isFetching, isError: query.isError, hasData: Boolean(query.data) });
 
   return {
     status,

@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useCityContext } from '../../../context/CityContext';
 import { type PlaceDetailResponse, request } from './request';
+import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
 
-type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
 const useRequestPlaceDetail = (placeId: string | null): {
   status: RequestStatus;
@@ -19,15 +19,7 @@ const useRequestPlaceDetail = (placeId: string | null): {
     enabled: Boolean(normalizedPlaceId),
   });
 
-  const status: RequestStatus = !normalizedPlaceId
-    ? 'empty'
-    : query.isPending || (query.isFetching && !query.data)
-      ? 'loading'
-      : query.isError
-        ? 'error'
-        : query.data
-          ? 'success'
-          : 'empty';
+  const status = getRequestStatus({ enabled: Boolean(normalizedPlaceId), isPending: query.isPending, isFetching: query.isFetching, isError: query.isError, hasData: Boolean(query.data) });
 
   return {
     status,

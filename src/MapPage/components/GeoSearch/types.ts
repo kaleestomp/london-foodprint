@@ -36,6 +36,7 @@ export type GeoSuggestion = {
   placeTypes: string[];
   center: [number, number] | null; // [lng, lat]
   expectsBoundary: boolean;
+  expectsPlace: boolean;
   expectsStreet: boolean;
 };
 

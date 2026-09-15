@@ -9,7 +9,7 @@ import GeoSearchbarDropdown from './DropDown/GeoSearchbarDropdown';
 import GeoSearchbarMyLocationButton from './MyLocation/GeoSearchbarMyLocationButton';
 import GeoSearchbarClearButton from './ClearButton/GeoSearchbarClearButton';
 import GeoSearchbarInitializeButton from './InitializeButton/GeoSearchbarInitializeButton';
-import useGeoSearchbarAnimation from './animationHooks/useGeoSearchbarAnimation';
+import useGeoSearchbarAnimation from '../GeoSearch/animationHooks/useGeoSearchbarAnimation';
 import toLatLng from './DropDown/toLatLng';
 
 import './GeoSearchbar.css';
