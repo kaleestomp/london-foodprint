@@ -1,21 +1,13 @@
 import type { FC } from 'react'; //ReactNode
-// import Skeleton from '@mui/material/Skeleton';
-// import Typography from '@mui/material/Typography';
-// import BusinessIcon from '@mui/icons-material/Business';
-// import CallSplitIcon from '@mui/icons-material/CallSplit';
-// import LinkIcon from '@mui/icons-material/Link';
-// import LocationOnIcon from '@mui/icons-material/LocationOn';
-// import NumbersIcon from '@mui/icons-material/Numbers';
-// import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-// import ScheduleIcon from '@mui/icons-material/Schedule';
-// import SellIcon from '@mui/icons-material/Sell';
-// import StarIcon from '@mui/icons-material/Star';
-// import StorefrontIcon from '@mui/icons-material/Storefront';
-// import TagIcon from '@mui/icons-material/Tag';
 import CurrencyPoundRoundedIcon from '@mui/icons-material/CurrencyPoundRounded';
+import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import DirectionsWalkRoundedIcon from '@mui/icons-material/DirectionsWalkRounded';
+
+import { useSearchFilters } from '../../../../context/SearchFiltersContext';
+import calculateDistanceM from '../../../../utils/geo/calculateDistanceM';
+import { formatDistance } from '../../../../utils/format/formatMetrics';
 
 import type { PlaceDetailResponse } from '../../../request/useRequestPlaceDetail/request';
-import useRequestPlaceDetail from '../../../request/useRequestPlaceDetail/useRequestPlaceDetail';
 // import formatOpeningTime from '../formatOpeningTime';
 import PlaceDetailBodySkeleton from './PlaceDetailBodySkeleton';
 import DetailRow from './DetailRow/DetailRow';
@@ -25,14 +17,16 @@ import './PlaceDetailBody.css';
 // const valueOrDash = (value: ReactNode): ReactNode => value ?? '—';
 
 const PlaceDetailBody: FC<{ 
-    placeId: string 
-}> = ({ placeId }) => {
+    place: PlaceDetailResponse 
+}> = ({ place }) => {
 
-    const { status, res } = useRequestPlaceDetail(placeId);
-    const showSkeleton = status !== 'success' || !res;
-    const item = showSkeleton ? null : res as PlaceDetailResponse;
+	const { searchMask } = useSearchFilters();
+    const distanceM = place && searchMask?.center
+        ? calculateDistanceM(searchMask?.center, { lat: place.lat, lng: place.lon })
+        : null;
+    const labelDistance = formatDistance(distanceM);
 
-	if (!item) {
+	if (!place) {
 		return <PlaceDetailBodySkeleton />;
 	}
     // const rankComment = item.ranking ? getRankComment(item.ranking, item.review_count) : null;
@@ -58,7 +52,9 @@ const PlaceDetailBody: FC<{
 
 	return (
 		<div className="place-detail-body">
-            <DetailRow key="price" value={item.price} icon={<CurrencyPoundRoundedIcon fontSize="medium" />} />
+			{labelDistance && <DetailRow key="distance" value={labelDistance} icon={<DirectionsWalkRoundedIcon />} />}
+            {place.price && <DetailRow key="price" value={place.price} icon={<CurrencyPoundRoundedIcon />} />}
+			{place.short_formatted_address && <DetailRow key="location" value={place.short_formatted_address} icon={<LocationOnRoundedIcon />} />}
 			{/* {rows.map(({ label, value, icon }) => (
 				<DetailRow key={label} label={label} value={value} icon={icon} />
 			))} */}

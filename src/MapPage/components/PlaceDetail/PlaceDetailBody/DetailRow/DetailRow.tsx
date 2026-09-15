@@ -14,7 +14,7 @@ const DetailRow: FC<{
 	return (
         <div className="place-detail-body-row" key={label}>
             <span className="place-detail-body-icon" aria-hidden="true">{icon}</span>
-            <div className="place-detail-body-copy">
+            <div className="place-detail-body-block">
                 {label && (<Typography variant="caption" className="place-detail-body-label">
                     {label}
                 </Typography>)}

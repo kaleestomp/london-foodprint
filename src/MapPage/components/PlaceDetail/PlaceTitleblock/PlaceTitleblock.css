@@ -1,8 +1,9 @@
 .place-detail-titleblock {
   min-width: 0;
-  margin-right: -30px;
-  
-  height: 100%;
+  /* margin-top: 14px; */
+  margin-right: 80px;
+
+  min-height: calc(var(--drawer-home-height) - 16px);
   display: flex;
   flex-direction: column;
   justify-content: center;

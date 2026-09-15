@@ -11,7 +11,7 @@ import FilterSection from '../../FilterTabs/FilterSection';
 // import SuggestionList from '../../GeoSearch/SuggestionList';
 // import { useGeoSearch } from '../../GeoSearch/GeoSearchContext';
 import NestedDrawer from '../NestedDrawer/NestedDrawer';
-import PlaceDetailBody from '../../PlaceDetail/PlaceDetailBody/PlaceDetailBody';
+import PlaceDetail from '../../PlaceDetail/PlaceDetail';
 
 import './Content.css';
 
@@ -32,7 +32,7 @@ const Content: FC<{
     const hideList = showToolbarTap || showPlaceMainDrawer;
     
     return (
-        <div className={`drawer-content${panelUp ? ' open' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
+        <div className={`drawer-content${panelUp ? ' open' : ''}${showPlaceMainDrawer && unmatchedPlaceId !== null ? ' place-detail-content' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
             <NestedDrawer />
             {/* <SampleContent /> */}
             {activeToolbarTab  && <FilterSection />}
@@ -40,9 +40,7 @@ const Content: FC<{
                 <RestaurantList mapRef={mapRef} pageSize={pageSize} resetOverride={!panelUp} enabled={enableList} />
             }
             
-            {showPlaceMainDrawer && unmatchedPlaceId !== null 
-                && <PlaceDetailBody placeId={unmatchedPlaceId} />
-            }
+            {showPlaceMainDrawer && unmatchedPlaceId !== null && <PlaceDetail placeId={unmatchedPlaceId} />}
             {/* {suggestionsVisible ? (
                 <SuggestionList />
             ) : (

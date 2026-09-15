@@ -18,6 +18,9 @@
   margin-top: 0;
 
 }
+.drawer-content.place-detail-content {
+  margin-top: 0;
+}
 .drawer-content:not(.open) .list-scroll-content {
   overflow: hidden;
   overscroll-behavior: none;
