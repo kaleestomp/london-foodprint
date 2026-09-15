@@ -1,4 +1,4 @@
-import type geojson from 'geojson';
+import type { Geometry } from 'geojson';
 
 /**
  * MapTiler Geocoding API response types.
@@ -14,7 +14,7 @@ export type MaptilerFeature = {
   center?: [number, number]; // [lng, lat]
   bbox?: [number, number, number, number]; // [w, s, e, n]
   relevance?: number;
-  geometry: geojson.Geometry;
+  geometry: Geometry;
   properties?: Record<string, unknown>;
 };
 
@@ -36,6 +36,7 @@ export type GeoSuggestion = {
   placeTypes: string[];
   center: [number, number] | null; // [lng, lat]
   expectsBoundary: boolean;
+  expectsPlace: boolean;
   expectsStreet: boolean;
 };
 

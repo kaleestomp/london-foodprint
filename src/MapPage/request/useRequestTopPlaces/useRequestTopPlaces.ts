@@ -3,8 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCityContext } from '../../../context/CityContext';
 import buildQueryKey from './buildQueryKey';
 import { type TopPlacesResponse, request } from './request';
-
-type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
+import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
 
 export interface TopPlacesParams {
   city?: string;
@@ -71,15 +70,7 @@ const useRequestTopPlaces = (
     setResponseKey(debouncedQueryKey);
   }, [debouncedQueryKey, query.data, query.isPlaceholderData]);
 
-  const status: RequestStatus = !debouncedQueryKey
-    ? 'empty'
-    : query.isPending || (query.isFetching && !query.data)
-      ? 'loading'
-      : query.isError
-        ? 'error'
-        : query.data
-          ? 'success'
-          : 'empty';
+  const status = getRequestStatus({ enabled: Boolean(debouncedQueryKey), isPending: query.isPending, isFetching: query.isFetching, isError: query.isError, hasData: Boolean(query.data) });
 
   return { status, error: query.error as Error | null, res: debouncedQueryKey ? (query.data ?? null) : null, queryKey, responseKey };
 };

@@ -2,8 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useCityContext } from '../../../context/CityContext';
 import { type PriceHistogramParams, type PriceHistogramResponse, buildQueryKey, request } from './request';
-
-export type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
+import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
 
 const useRequestPriceHistogram = (params: PriceHistogramParams | null): {
   status: RequestStatus;
@@ -22,15 +21,7 @@ const useRequestPriceHistogram = (params: PriceHistogramParams | null): {
     placeholderData: (previousData) => previousData,
   });
 
-  const status: RequestStatus = !queryKey
-    ? 'empty'
-    : query.isPending || (query.isFetching && !query.data)
-      ? 'loading'
-      : query.isError
-        ? 'error'
-        : query.data
-          ? 'success'
-          : 'empty';
+  const status = getRequestStatus({ enabled: Boolean(queryKey), isPending: query.isPending, isFetching: query.isFetching, isError: query.isError, hasData: Boolean(query.data) });
 
   return {
     status,

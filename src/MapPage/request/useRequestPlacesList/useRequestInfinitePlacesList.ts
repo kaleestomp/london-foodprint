@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
+import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
 
 import { useCityContext } from '../../../context/CityContext';
 import buildQueryKey from './buildQueryKey';
 import { type PlacesListResponse, request } from './request';
 export const DEFAULT_PAGE_SIZE = 10;
 
-type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 export interface PlacesListParams {
     city?: string;
     sw_lat: number;
@@ -72,10 +72,7 @@ const useRequestInfinitePlacesList = (
         };
     }, [query.data]);
 
-    const status: RequestStatus = !queryKey ? 'empty' 
-        : query.isPending ? 'loading' 
-        : query.isError ? 'error' 
-        : query.data ? 'success' : 'empty';
+    const status = getRequestStatus({ enabled: Boolean(queryKey), isPending: query.isPending, isFetching: query.isFetching, isError: query.isError, hasData: Boolean(query.data) });
 
     const error = query.error as Error | null;
     const isReady = query.isFetched && !query.isFetching; 

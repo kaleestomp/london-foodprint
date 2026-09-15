@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
 import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
-import { useRenderedList } from './RenderedListContext';
+import { useRenderedList } from '../../../context/PlaceDetailCardContext';
 import { type PlacesListItem } from '../../request/useRequestPlacesList/request';
 
 type ListStatus = 'empty' | 'loading' | 'success' | 'error';

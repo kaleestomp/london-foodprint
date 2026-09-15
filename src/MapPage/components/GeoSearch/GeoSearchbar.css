@@ -1,95 +1,82 @@
-.drawer-geo-search {
-  --drawer-geo-search-size: 36px;
-  --drawer-geo-search-active-size: 36px;
-  --drawer-geo-search-icon-color: var(--app-toolbar-icon-color);
+.geo-searchbar-root {
+    --geo-searchbar-height: var(--toolbar-height, 38px);
+    --geo-searchbar-active-height: calc(var(--toolbar-height, 38px) * 1.2);
+    --geo-searchbar-border: none; /*1px solid rgba(45, 45, 45, 0.5)*/
+    --geo-searchbar-bg: var(--toolbar-background); /*var(--app-glass-bg) var(--toolbar-background) */
+    --geo-searchbar-bg-hover: var(--toolbar-background-hover);
+    --geo-searchbar-bg-active: var(--toolbar-background-active);
+    --geo-searchbar-backdrop-filter: none; /*var(--app-backdrop-filter)*/;
+    --geo-searchbar-backdrop-filter-active: var(--toolbar-backdrop-filter-active);
+    --geo-searchbar-hover-transform: scale(1.01);
+    --geo-searchbar-icon-size: var(--toolbar-icon-size, 20px);
 
-  position: relative;
-  z-index: 12;
-  padding: 6px 0 0;
-  flex: 0 0 auto;
-  width: 100%;
-  height: var(--drawer-geo-search-size);
-  box-sizing: border-box;
-  transition: height 140ms ease;
-}
-
-.drawer-geo-search:focus-within {
-  height: var(--drawer-geo-search-active-size);
-}
-
-.drawer-geo-search-shell {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: var(--drawer-geo-search-size);
-  padding: 0 4px;
-  box-sizing: border-box;
-  overflow: hidden;
-
-  background: var(--app-paper-color-brighter);
-  /*border: 1px solid var(--app-faint-outline-color) */
-  border-radius: calc(var(--drawer-geo-search-size) / 2);
-  color: var(--drawer-geo-search-icon-color);
-  transition: all 400ms ease;
+    position: relative;
+    width: var(--geo-searchbar-height);
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    transition: width 220ms ease;
+    width: 100%;
+    
 }
 
-.drawer-geo-search-shell:focus-within {
-  height: var(--drawer-geo-search-active-size);
-  border-radius: calc(var(--drawer-geo-search-active-size) / 2);
-  background: #fff;
-  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); */
-}
-.drawer-geo-search-shell:focus-within .drawer-geo-search-lead {
-  width: var(--drawer-geo-search-active-size);
+.geo-searchbar-and-dropdown {
+    position: relative;
+    isolation: isolate;
+
+    max-width: var(--geo-searchbar-height);
+    background: var(--geo-searchbar-bg);
+    border: var(--geo-searchbar-border);
+    backdrop-filter: var(--geo-searchbar-backdrop-filter);
+    color: var(--app-toolbar-icon-color);
+    border-radius: calc(var(--geo-searchbar-height) / 2);
+    overflow: hidden;
+    transition: all 400ms ease;
 }
 
-.drawer-geo-search-lead svg {
-  width: 24px;
-  height: 24px;
-  opacity: 0.45;
-  transition: all 400ms ease;
-}
-.drawer-geo-search-shell:focus-within .drawer-geo-search-lead svg {
-  width: 30px;
-  height: 30px;
-  opacity: 1;
+.geo-searchbar-and-dropdown:hover {
+    transform: var(--geo-searchbar-hover-transform);
+    background: var(--geo-searchbar-bg-hover);
+    border: none;
+    max-width: 400px;
 }
 
-.drawer-geo-search-lead {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--drawer-geo-search-size);
-  color: var(--drawer-geo-search-icon-color);
+.geo-searchbar-and-dropdown:focus-within {
+    outline: none;
+    background: var(--geo-searchbar-bg-active);
+    box-shadow: var(--toolbar-shadow-active); 
+    border: none;
+    max-width: 400px;
 }
 
-.drawer-geo-search-input {
-  flex: 1 1 auto;
-  width: 0;
-  min-width: 0;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: var(--app-text-color);
-  font-size: 15px;
-  line-height: 1;
-  opacity: 0.5;
-  transition: all 400ms ease;
-}
-.drawer-geo-search-shell:focus-within .drawer-geo-search-input {
-  opacity: 1.0;
+.geo-searchbar-and-dropdown>* {
+    position: relative;
+    z-index: 1;
 }
 
-.drawer-geo-search-clear {
-  flex: 0 0 auto;
-  color: var(--drawer-geo-search-icon-color) !important;
-  opacity: 0.5;
-}
-.drawer-geo-search-shell:focus-within .drawer-geo-search-clear {
-  opacity: 1.0;
+@property --searchbar-ring-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
 }
 
-.drawer-geo-search-input::placeholder {
-  color: var(--app-text-caption-color);
+@keyframes searchbar-ring-spin {
+    to {
+        --searchbar-ring-angle: 360deg;
+    }
+}
+
+.geo-searchbar-icon {
+    width: var(--geo-searchbar-icon-size);
+    height: var(--geo-searchbar-icon-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.geo-searchbar-icon svg {
+    width: var(--geo-searchbar-icon-size);
+    height: var(--geo-searchbar-icon-size);
+    color: var(--app-toolbar-icon-color);
 }

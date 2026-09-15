@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useCityContext } from '../../../context/CityContext';
 import { type NearbyResponse, request } from './request';
+import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
 
-type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
 export interface NearbyParams {
   city?: string;
@@ -59,15 +59,7 @@ const useRequestNearby = (params: NearbyParams | null): {
     placeholderData: (previousData) => previousData,
   });
 
-  const status: RequestStatus = !queryKey
-    ? 'empty'
-    : query.isPending || (query.isFetching && !query.data)
-      ? 'loading'
-      : query.isError
-        ? 'error'
-        : query.data
-          ? 'success'
-          : 'empty';
+  const status = getRequestStatus({ enabled: Boolean(queryKey), isPending: query.isPending, isFetching: query.isFetching, isError: query.isError, hasData: Boolean(query.data) });
 
   return {
     status,

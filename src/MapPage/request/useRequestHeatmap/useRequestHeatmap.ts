@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCityContext } from '../../../context/CityContext';
 import buildQueryKey from './buildQueryKey';
 import { type HeatmapResponse, request } from './request';
+import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
 
 export type HeatmapParams = {
   city?: string;
@@ -17,8 +18,6 @@ export type HeatmapParams = {
   score_basis?: 0 | 1 | 2;
   score_tier?: 0 | 1 | 2 | 3 | 4;
 };
-
-type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
 
 type UseRequestHeatmapResult = {
   status: RequestStatus;
@@ -40,15 +39,7 @@ const useRequestHeatmap = (params: HeatmapParams | null): UseRequestHeatmapResul
     placeholderData: (previousData) => previousData,
   });
 
-  const status: RequestStatus = !queryKey
-    ? 'empty'
-    : query.isPending || (query.isFetching && !query.data)
-      ? 'loading'
-      : query.isError
-        ? 'error'
-        : query.data
-          ? 'success'
-          : 'empty';
+  const status = getRequestStatus({ enabled: Boolean(queryKey), isPending: query.isPending, isFetching: query.isFetching, isError: query.isError, hasData: Boolean(query.data) });
 
   return {
     status,

@@ -4,7 +4,7 @@ import { type PlacesListResponse, request } from './request';
 import { useCityContext } from '../../../context/CityContext';
 import type { PlacesListParams } from '../useRequestPlacesList/useRequestInfinitePlacesList';
 import { DEFAULT_PAGE_SIZE } from '../useRequestPlacesList/useRequestInfinitePlacesList';
-type RequestStatus = 'empty' | 'loading' | 'success' | 'error';
+import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
 
 export const buildQueryKey = (params: PlacesListParams): string => {
   const qs = new URLSearchParams({
@@ -56,15 +56,7 @@ const useRequestPlacesList = (params: PlacesListParams | null): {
     enabled: Boolean(queryKey),
   });
 
-  const status: RequestStatus = !queryKey
-    ? 'empty'
-    : query.isPending || (query.isFetching && !query.data)
-      ? 'loading'
-      : query.isError
-        ? 'error'
-        : query.data
-          ? 'success'
-          : 'empty';
+  const status = getRequestStatus({ enabled: Boolean(queryKey), isPending: query.isPending, isFetching: query.isFetching, isError: query.isError, hasData: Boolean(query.data) });
 
   return { status, error: query.error as Error | null, res: query.data ?? null };
 };
