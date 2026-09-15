@@ -2,8 +2,9 @@ import { createContext, useCallback, useContext, useMemo, useState } from 'react
 import type { ReactNode } from 'react';
 
 import { useAppUI } from '../../../context/AppUIContext';
+import useMaptilerFeatureRequestCall from './request/useMaptilerFeatureRequestCall/useMaptilerFeatureRequestCall';
 import type { MaptilerFeature, BoundarySelection, GeoSuggestion, StreetSelection } from './types';
-import fetchMaptilerFeatureAndSetStates from './request/fetchMaptilerFeatureAndSetStates/fetchMaptilerFeatureAndSetStates';
+import updateFeatureState from './request/useMaptilerFeatureRequestCall/updateFeatureState';
 
 interface GeoSearchContextType {
   query: string;
@@ -22,8 +23,9 @@ interface GeoSearchContextType {
 const GeoSearchContext = createContext<GeoSearchContextType | null>(null);
 
 export const GeoSearchProvider = ({ children }: { children: ReactNode }) => {
-  
+
   const { queueLiveLocationDrop } = useAppUI();
+  const requestMaptilerFeature = useMaptilerFeatureRequestCall();
 
   const [query, setQueryState] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
@@ -54,11 +56,12 @@ export const GeoSearchProvider = ({ children }: { children: ReactNode }) => {
 
   const clearBoundary = useCallback(() => setSelectedBoundary(null), []);
 
-  const dropAtCenter = useCallback((center: [number, number] | null ) => {
+  const dropAtCenter = useCallback((center: [number, number] | null) => {
     if (center) {
       queueLiveLocationDrop(center[1], center[0]);
     }
   }, [queueLiveLocationDrop]);
+
   const onBoundaryType = useCallback((feature: MaptilerFeature, label: string) => {
     setSelectedStreet(null);
     setSelectedBoundary({ feature, label });
@@ -67,7 +70,7 @@ export const GeoSearchProvider = ({ children }: { children: ReactNode }) => {
     setSelectedBoundary(null);
     setSelectedStreet({ feature, label });
   }, []);
-  const onOtherType = useCallback((center: [number, number] | null | undefined ) => {
+  const onPlaceType = useCallback((center: [number, number] | null | undefined) => {
     setSelectedBoundary(null);
     setSelectedStreet(null);
     dropAtCenter(center ?? null);
@@ -77,15 +80,26 @@ export const GeoSearchProvider = ({ children }: { children: ReactNode }) => {
 
     setQueryState(suggestion.secondary ? `${suggestion.primary}, ${suggestion.secondary}` : suggestion.primary);
     setIsListDismissed(true); // unmounts the suggestion list, revealing the restaurant list
+    const isPlaceType = suggestion.expectsPlace || (!suggestion.expectsBoundary && !suggestion.expectsStreet);
+    if (isPlaceType) {
+      onPlaceType(suggestion.center ?? null);
+      
+    } else {
+      void requestMaptilerFeature(suggestion.id)
+        .then((feature) => updateFeatureState(
+          feature,
+          suggestion.primary,
+          suggestion.center,
+          { onBoundaryType, onStreetType, onOtherType: onPlaceType },
 
-    if (suggestion.expectsPlace || (!suggestion.expectsBoundary && !suggestion.expectsStreet)) {
-      onOtherType(suggestion.center ?? null);
-      return;
+        )).catch((error: unknown) => {
+          if (!(error instanceof DOMException && error.name === 'AbortError')) {
+            onPlaceType(suggestion.center);
+          }
+        });
     }
 
-    fetchMaptilerFeatureAndSetStates(suggestion.id, suggestion.primary, suggestion.center, onBoundaryType, onStreetType, onOtherType)
-    
-  }, [dropAtCenter, onBoundaryType, onStreetType, onOtherType]);
+  }, [onBoundaryType, onPlaceType, onStreetType, requestMaptilerFeature]);
 
   const exposed = useMemo<GeoSearchContextType>(() => ({
     query,
