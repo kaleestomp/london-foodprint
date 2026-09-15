@@ -1,4 +1,11 @@
+import type { Geometry } from 'geojson';
+import type { SearchMaskType } from '../../../context/SearchFiltersContext';
+
 export type LatLng = { lat: number; lng: number };
+export type LocationTarget = LatLng & {
+  searchType?: SearchMaskType;
+  geometry?: Geometry;
+};
 export type Point = { x: number; y: number };
 
 /** Interaction Spec */

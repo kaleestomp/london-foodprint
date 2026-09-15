@@ -3,7 +3,6 @@ import type * as maplibregl from 'maplibre-gl';
 
 import { useGeoSearch } from '../../../GeoSearch/GeoSearchContext';
 import { boundaryFillLayer, boundaryLineLayer } from './boundaryLayer';
-import featureBbox from './featureBbox';
 
 const SOURCE_ID = 'geo-search-boundary-source';
 const FILL_LAYER_ID = 'geo-search-boundary-fill';
@@ -12,7 +11,9 @@ const LINE_LAYER_ID = 'geo-search-boundary-line';
 /**
  * Plots the boundary shape of the selected geo search result on the map.
  * Coordinate-based selections are handled separately via
- * queueLiveLocationDrop; this layer only renders Polygon/MultiPolygon
+ * queueLiveLocationDrop; this layer only renders Polygon/MultiPolygon.
+ * Selection can trigger camera navigation, but the map navigation controller
+ * owns the camera movement.
  * selections. Boundary-based place querying is intentionally left open.
  */
 const useBoundaryLayer = (
@@ -69,14 +70,15 @@ const useBoundaryLayer = (
     refreshLayer();
     map.on('styledata', refreshLayer);
 
-    const bbox = featureBbox(feature);
-    if (bbox) {
-      map.fitBounds(
-        [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
-        { padding: 80, duration: 900, maxZoom: 15 },
-      );
-    }
-
+    // CAMERA MOVEMENT NOT HANDLED BY DEDICATED NAVIGATION CONTROLLER
+    // const bbox = featureBbox(feature);
+    // if (bbox) {
+    //   map.fitBounds(
+    //     [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
+    //     { padding: 80, duration: 900, maxZoom: 15 },
+    //   );
+    // }
+    
     return () => {
       map.off('styledata', refreshLayer);
       removeLayer();

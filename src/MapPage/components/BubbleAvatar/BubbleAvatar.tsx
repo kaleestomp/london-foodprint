@@ -4,7 +4,7 @@ import type * as maplibregl from 'maplibre-gl';
 import { useSearchFilters } from '../../../context/SearchFiltersContext';
 import { useBubbleAvatarState } from './BubbleAvatarStateContext';
 import BubbleHome from './BubbleAvatarHome/BubbleAvatarHome';
-import onAutoLocation from './onAutoLocation/onAutoLocation';
+import useAutoLocation from './onAutoLocation/onAutoLocation';
 import useAvatarMapLayer from './useAvatarMapLayer/useAvatarMapLayer';
 
 import BubbleHomeGhost from './BubbleHomeGhost/BubbleHomeGhost';
@@ -24,7 +24,7 @@ const BubbleAvatar: React.FC<{
     // const currentScrPos = useGetCurrentScreenXY(mapRef, searchMask?.center);
 
     // HANDLE AUTO LOCATION ON GEOSEARCH
-    const { flyOutTo, dropOnEndFlight } = onAutoLocation({ mapRef });
+    const { flyOutTo, dropOnEndFlight } = useAutoLocation({ mapRef });
 
     // ADD AVATAR TO MAP ON DROPPED MODE
     useAvatarMapLayer(mapRef);
@@ -41,7 +41,7 @@ const BubbleAvatar: React.FC<{
             resetBubbleToHome();
         }
 
-    }, [pickupPos, resetBubbleToHome, lat, lng]);
+    }, [mapRef, pickupPos, resetBubbleToHome, lat, lng]);
 
     const isDropped = lat !== undefined && lng !== undefined;
     const isAwayFromHome = isDropped || isDragging || pickupPos !== null;

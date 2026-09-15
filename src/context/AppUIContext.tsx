@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'; 
 import type { ReactNode } from 'react'; 
+import type { Geometry } from 'geojson';
+import type { SearchMaskType } from './SearchFiltersContext';
 
 export type ToolbarFilterTab = 'rating' | 'price' | 'cuisine' | 'search';
 export type InitialLoadItem = 'baseTiles' | 'clusterLayer' | 'heatmapLayer';
@@ -7,12 +9,14 @@ export type LiveLocation = {
   lat: number;
   lng: number;
   token: number;
+  searchType?: SearchMaskType;
+  geometry?: Geometry;
 };
 
 interface AppUIContextType { 
   isLoading: boolean; toggleLoading: (loading: boolean) => void;
   activeToolbarTab: ToolbarFilterTab | null; setActiveToolbarTab: (tab: ToolbarFilterTab | null) => void;
-  liveLocation: LiveLocation | null; queueLiveLocationDrop: (lat: number, lng: number) => void;
+  liveLocation: LiveLocation | null; queueLiveLocationDrop: (lat: number, lng: number, metadata?: Pick<LiveLocation, 'searchType' | 'geometry'>) => void;
   darkMode: boolean; toggleDarkMode: () => void;
   heatmapEnabled: boolean; toggleHeatmapEnabled: () => void;
   // initialLoadComplete: boolean; markInitialLoadItemComplete: (item: InitialLoadItem) => void;
@@ -59,8 +63,8 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
   //   });
   // }, [initialLoadComplete]);
 
-  const queueLiveLocationDrop = useCallback((lat: number, lng: number) => {
-    setLiveLocation({ lat, lng, token: Date.now() });
+  const queueLiveLocationDrop = useCallback((lat: number, lng: number, metadata?: Pick<LiveLocation, 'searchType' | 'geometry'>) => {
+    setLiveLocation({ lat, lng, token: Date.now(), ...metadata });
   }, []);
 
   const toggleDarkMode = useCallback(() => {

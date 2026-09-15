@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { type Root } from 'react-dom/client';
 import type * as maplibregl from 'maplibre-gl';
 
-import useFocusMap from './useFocusMap/useFocusMap';
 import addSearchRadiusMarker from './addSearchRadiusMarker/addSearchRadiusMarker';
 import addAvatarMarker from './addAvatarMarker/addAvatarMarker';
 import { DROP_ENTRY_DELAY_MS, ZOOM_LEVEL } from '../config';
@@ -29,9 +28,6 @@ const useAvatarMapLayer = (
     const onPickupRef = useRef(handlePickup);
     useEffect(() => { onPickupRef.current = handlePickup; }, [handlePickup]);
     
-    // FOCUS MAP TO LOCATION
-    useFocusMap( mapRef );
-
     // PLOT AVATAR + CIRCLE MARKER
     useEffect(() => {
 

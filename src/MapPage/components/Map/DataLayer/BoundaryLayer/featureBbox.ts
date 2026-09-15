@@ -27,16 +27,13 @@ const visitPositions = (geometry: geojson.Geometry, visit: (lng: number, lat: nu
   }
 };
 
-/** Feature bbox as [w, s, e, n]; computed from geometry when not provided. */
-const featureBbox = (feature: MaptilerFeature): Bbox | null => {
-  if (feature.bbox) { return feature.bbox; }
-  if (!feature.geometry) { return null; }
-
+/** Geometry bbox as [w, s, e, n]. */
+export const geometryBbox = (geometry: geojson.Geometry): Bbox | null => {
   let west = Infinity;
   let south = Infinity;
   let east = -Infinity;
   let north = -Infinity;
-  visitPositions(feature.geometry, (lng, lat) => {
+  visitPositions(geometry, (lng, lat) => {
     west = Math.min(west, lng);
     south = Math.min(south, lat);
     east = Math.max(east, lng);
@@ -47,6 +44,13 @@ const featureBbox = (feature: MaptilerFeature): Bbox | null => {
     return null;
   }
   return [west, south, east, north];
+};
+
+/** Feature bbox as [w, s, e, n]; computed from geometry when not provided. */
+const featureBbox = (feature: MaptilerFeature): Bbox | null => {
+  if (feature.bbox) { return feature.bbox; }
+  if (!feature.geometry) { return null; }
+  return geometryBbox(feature.geometry);
 };
 
 export default featureBbox;

@@ -55,7 +55,7 @@ src/MapPage/components/BubbleAvatar/
 │
 ├── handleUserLocation/
 │   ├── useHandleUserLocation.ts       ← composer: wires map pan and bubble flight for auto-location flow
-│   ├── useMapPanToLocation.ts         ← hook: watches location trigger, pans map, emits targetLatLng + flight token
+│   ├── onAutoLocation.ts              ← hook: consumes the map-settled target and drives avatar flight
 │   └── useFlyBubbleToLocation.ts      ← hook: converts target lat/lng to screen coords, drives fly-out + drop
 │
 ├── Searchmask/
@@ -408,8 +408,8 @@ Eye `motion.div` rendering was moved out of `BubbleAvatarHome` into a dedicated 
 ### Fly-out / auto-location wiring
 
 `handleUserLocation/` was introduced to decouple the user-location flow from `BubbleAvatar.tsx`:
-- `useMapPanToLocation` watches a location trigger, pans the map, and emits a `programmaticFlightToken` to prevent repeated flights.
-- `useFlyBubbleToLocation` converts the target lat/lng to screen coordinates and drives the bubble fly-out animation + auto-drop.
+- Map location navigation owns pan/fit/zoom and publishes a settled target through `MapLocationNavigationContext`.
+- `useFlyBubbleToLocation` converts the settled target to screen coordinates and drives the bubble fly-out animation + auto-drop.
 - `useHandleUserLocation` composes both and returns only what `BubbleAvatar.tsx` needs.
 
 ---
