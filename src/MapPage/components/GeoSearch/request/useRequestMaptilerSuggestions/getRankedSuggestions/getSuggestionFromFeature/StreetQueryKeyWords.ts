@@ -18,13 +18,17 @@ const STREET_QUERY_KEYWORDS = new RegExp(
 		'ter',
 		'way',
 		'court',
-		'ct',
-		'square',
-		'sq',
-		'gardens',
-		'gdn',
+		// 'ct',
+		// 'square',
+		// 'sq',
+		// 'gardens',
+		// 'gdn',
 	].join('|')})\\b`,
 	'i',
+);
+
+export const containsStreetKeyword = (value: string): boolean => (
+	STREET_QUERY_KEYWORDS.test(value)
 );
 
 export default STREET_QUERY_KEYWORDS;
