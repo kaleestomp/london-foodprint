@@ -28,18 +28,18 @@ const PlaceTitleblock: FC<{
     if (!item) return null;
     return (
         // <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}></Typography>
-        <div className="place-detail-titleblock">
+        <div className={`place-detail-titleblock ${!compact ? 'is-extended' : ''}`}>
             <Typography variant="subtitle2"
                 className={`place-detail-title ${!compact ? 'is-extended' : ''}`}
             >
                 {item.display_name}
             </Typography>
-            <Typography
+            {compact && <Typography
                 variant="caption"
                 className={`place-detail-subtitle ${!compact ? 'is-extended' : ''}`}
             >
                 {item.cuisine_type ?? ''}
-            </Typography>
+            </Typography>}
             {compact && (<Typography variant="caption" className="place-detail-subtitle" >
                 {[labelDistance,
                     labelPrice,

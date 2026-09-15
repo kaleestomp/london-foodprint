@@ -11,7 +11,6 @@ import ItemSkeleton from '../RestaurantList/ListItem/ItemSkeleton/ItemSkeleton';
 import CloseButton from '../RestaurantList/ListItem/CloseButton/CloseButton';
 import PlaceTitleblock from './PlaceTitleblock/PlaceTitleblock';
 import PlaceDetailBody from './PlaceDetailBody/PlaceDetailBody';
-import SampleContent from '../SlideUpDrawer/SampleContent/SampleContent';
 import './PlaceDetail.css';
 
 // Fallback card for a selected cluster singleton marker with no matching row in the loaded list.

@@ -1,12 +1,15 @@
 .place-detail-titleblock {
   min-width: 0;
-  /* margin-top: 14px; */
+  margin-top: 0; /* 8px */
   margin-right: 80px;
 
   min-height: calc(var(--drawer-home-height) - 16px);
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+.place-detail-titleblock.is-extended {
+  /* justify-content: flex-end; */
 }
 
 .place-detail-title {
@@ -22,6 +25,7 @@
 .place-detail-title.is-extended {
   display: -webkit-box;
   font-size: 18px !important;
+  
   /* margin-right: -100px; */
 
   text-wrap: balance;

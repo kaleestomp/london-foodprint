@@ -1,4 +1,6 @@
 .place-detail {
+    /* background: red; */
+
     --edge-inset: 8px;
     --place-detail-icon-size: calc(var(--drawer-home-height) - var(--edge-inset) * 2);
     --place-detail-transition: 200ms ease 200ms;
@@ -24,7 +26,8 @@
 
 .place-detail-content .place-detail.is-open {
     width: calc(100% - 16px);
-    margin: 8px 8px 0;
+    margin: 0 8px 0; /* 8px 8px 0; */
+    padding-top: 16px;
 }
 
 .place-detail.is-closed {
@@ -36,7 +39,15 @@
 
 .place-detail.is-open {
     min-height: calc(var(--drawer-open-height) - 9px);
+    /* max-height: calc(var(--drawer-open-height) - 9px); */
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
     border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+}
+.place-detail.is-open::-webkit-scrollbar {
+    display: none;
 }
 
 .place-detail:hover {

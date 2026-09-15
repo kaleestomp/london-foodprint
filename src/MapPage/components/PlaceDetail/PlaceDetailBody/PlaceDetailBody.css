@@ -2,10 +2,19 @@
 	/* background:red; */
     /* keep body height stable during initial load */
 	flex: 1 1 auto;
+	margin-top: 8px;
+	margin-left: -40px;
 	min-height: calc(var(--drawer-open-height) - var(--drawer-home-height));
 	overflow: visible;
 	overscroll-behavior: contain;
 
 	width: 100%;
 	box-sizing: border-box;
+}
+
+.place-detail-body-rows {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 0px 16px;
 }

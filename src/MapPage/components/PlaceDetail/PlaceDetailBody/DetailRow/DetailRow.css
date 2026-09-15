@@ -1,21 +1,15 @@
 .place-detail-body-row {
-	--place-detail-icon-column-size: 55px;
 	--place-detail-icon-body-size: 32px;
 	margin-top: 14px;
-	margin-left: calc(var(--place-detail-icon-column-size)*-1);
-	overflow: visible;
+	flex: 0 1 auto;
+	display: flex;
 	align-items: flex-start;
-	
-	display: grid;
-	grid-column: 1 / -1;
-	grid-template-columns: var(--place-detail-icon-column-size) minmax(0, 1fr);
-	/* align-items: flex-start; */
+	gap: 8px;
 	min-height: 40px;
 }
 
 .place-detail-body-icon {
-	/* background: red; */
-
+	flex: 0 0 var(--place-detail-icon-body-size);
 	width: var(--place-detail-icon-body-size);
 	height: var(--place-detail-icon-body-size);
 	position: relative;
@@ -40,8 +34,7 @@
 }
 
 .place-detail-body-block {
-	/* background: red; */
-
+	flex: 1 1 auto;
 	min-height: var(--place-detail-icon-body-size);
 	display: flex;
 	align-items: center;
