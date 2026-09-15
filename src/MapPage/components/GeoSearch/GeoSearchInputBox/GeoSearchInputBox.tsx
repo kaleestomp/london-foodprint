@@ -13,7 +13,7 @@ const GeoSearchInputBox: React.FC<{
   onClear: () => void;
   iconOverride?: ReactNode;
   // rightAction?: ReactNode;
-}> = ({ inputRef, queryStr, onFocus, onChange, onClear, onKeyDown, iconOverride = false }) => {
+}> = ({ inputRef, queryStr, onFocus, onChange, onClear, onKeyDown, iconOverride }) => {
 
   return (
     <div className="geo-searchbar-shell">
