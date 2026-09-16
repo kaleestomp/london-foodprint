@@ -25,18 +25,18 @@ const Content: FC<{
 
     const { activeToolbarTab } = useAppUI();
     const showToolbarTap = activeToolbarTab !== null;
-    const { untrackedPlaceId, showPlaceMainDrawer } = useRenderedList();
-    const hideList = showToolbarTap || showPlaceMainDrawer;
+    const { untrackedPlaceId, showOnDrawer, showOnNestedDrawer } = useRenderedList();
+    const hideList = showToolbarTap || showOnDrawer;
     
     return (
-        <div className={`drawer-content${panelUp ? ' open' : ''}${showPlaceMainDrawer && untrackedPlaceId !== null ? ' place-detail-content' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
-            <NestedDrawer />
+        <div className={`drawer-content${panelUp ? ' open' : ''}${showOnDrawer && untrackedPlaceId !== null ? ' place-detail-content' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
+            <NestedDrawer open={showOnNestedDrawer} />
             {activeToolbarTab  && <FilterSection />}
             { !hideList && 
                 <RestaurantList mapRef={mapRef} pageSize={pageSize} resetOverride={!panelUp} enabled={enableList} />
             }
             
-            {showPlaceMainDrawer && untrackedPlaceId !== null && <PlaceDetail placeId={untrackedPlaceId} />}
+            {showOnDrawer && untrackedPlaceId !== null && <PlaceDetail placeId={untrackedPlaceId} />}
 
         </div>
     );

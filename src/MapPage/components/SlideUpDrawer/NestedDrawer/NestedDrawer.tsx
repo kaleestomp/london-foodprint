@@ -3,8 +3,10 @@ import { Drawer } from '@base-ui/react/drawer';
 
 import './NestedDrawer.css';
 
-const NestedDrawer: FC = () => {
-    const [open, setOpen] = useState(false);
+const NestedDrawer: FC<{
+    open: boolean
+}> = ({ open }) => {
+    // const [open, setOpen] = useState(false);
     
     return (
         <Drawer.Root open={open} onOpenChange={setOpen}>

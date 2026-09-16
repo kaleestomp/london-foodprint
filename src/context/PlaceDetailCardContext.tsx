@@ -4,7 +4,8 @@ import { usePlaceSelection } from './PlaceSelectionContext';
 import { useDrawerState } from '../MapPage/components/SlideUpDrawer/DrawerStateContext';
 type PlaceDetailCardContextValue = {
   untrackedPlaceId: string | null;
-  showPlaceMainDrawer: boolean;
+  showOnDrawer: boolean;
+  showOnNestedDrawer: boolean;
   reportUnmatchedPlaceId: (value: string | null, selectedWhileClosed?: boolean) => void;
 };
 
@@ -18,7 +19,8 @@ export const PlaceDetailCardProvider = ({ children }: { children: ReactNode }) =
   const [ selectedWhileClosed, setSelectedWhileClosed ] = useState(false);
   const { selectedPlaceId, selectionSource } = usePlaceSelection();
   const { isClosed } = useDrawerState();
-  const showPlaceMainDrawer = untrackedPlaceId !== null && selectedWhileClosed;
+  const showOnDrawer = untrackedPlaceId !== null && selectedWhileClosed;
+  const showOnNestedDrawer = untrackedPlaceId !== null && !showOnDrawer;
 
   const reportUnmatchedPlaceId = useCallback((value: string | null, selectedWhileClosed = false) => {
     setUntrackedPlaceId(value);
@@ -39,9 +41,7 @@ export const PlaceDetailCardProvider = ({ children }: { children: ReactNode }) =
   }, [isClosed, selectedPlaceId, selectionSource, reportUnmatchedPlaceId]);
 
   const value = useMemo(() => ({
-    untrackedPlaceId,
-    showPlaceMainDrawer,
-    reportUnmatchedPlaceId,
+    untrackedPlaceId, showOnDrawer, showOnNestedDrawer, reportUnmatchedPlaceId,
   }), [reportUnmatchedPlaceId, selectedWhileClosed, untrackedPlaceId]);
 
   return (
@@ -54,7 +54,7 @@ export const PlaceDetailCardProvider = ({ children }: { children: ReactNode }) =
 export const useRenderedList = (): PlaceDetailCardContextValue => {
   const context = useContext(PlaceDetailCardContext);
   if (!context) {
-    throw new Error('useRenderedList must be used within RenderedListProvider');
+    throw new Error('useRenderedList must be used within PlaceDetailCardProvider');
   }
   return context;
 };

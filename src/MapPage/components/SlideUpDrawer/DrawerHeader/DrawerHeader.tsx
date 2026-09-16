@@ -9,15 +9,15 @@ import './DrawerHeader.css';
 const DrawerHeader: FC = () => {
 
   const { isClosed } = useDrawerState();
-  const { showPlaceMainDrawer } = useRenderedList();
+  const { showOnDrawer } = useRenderedList();
   const { selectedPlaceId } = usePlaceSelection();
 
-  const hideHeader = showPlaceMainDrawer || (!isClosed && selectedPlaceId !== null);
+  const hideHeader = showOnDrawer || (!isClosed && selectedPlaceId !== null);
   const headerState = hideHeader ? 'is-hidden' : !isClosed ? 'is-open' : '';
   
   return (
     <div className={`drawer-header ${headerState}`}>
-      {!showPlaceMainDrawer && <Overview />}
+      {!showOnDrawer && <Overview />}
     </div>
     
   );
