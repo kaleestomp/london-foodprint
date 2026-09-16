@@ -74,6 +74,27 @@ SQL_NEARBY_PRICE = """
     GROUP BY cost
 """
 
+SQL_GEOMETRY_PRICE = """
+    SELECT cost, COUNT(*)::INT AS count
+    FROM places
+    WHERE city_slug = $1
+      AND {spatial_predicate}
+      AND (
+            CARDINALITY($4::TEXT[]) = 0
+            OR cost = ANY(ARRAY_REMOVE($4::TEXT[], '__null__'))
+            OR ('__null__' = ANY($4::TEXT[]) AND cost IS NULL)
+          )
+      AND (
+            $5 = '__all__'
+            OR ($5 = '__null__' AND venue_type IS NULL)
+            OR ($5 != '__all__' AND $5 != '__null__' AND venue_type = $5)
+          )
+      AND cost IS NOT NULL
+      AND cost IN ('<10', '10+', '20+', '40+', '60+', '100+')
+      AND {rank_column} >= $6
+    GROUP BY cost
+"""
+
 SQL_CITYWIDE_CUISINE = """
   SELECT COALESCE(cuisine_type, 'Unspecified') AS cuisine, COUNT(*)::INT AS count
     FROM places
@@ -140,6 +161,26 @@ SQL_NEARBY_CUISINE = """
                 ))
           )
       AND {rank_column} >= $7
+    GROUP BY cuisine_type
+    ORDER BY count DESC, cuisine_type ASC
+"""
+
+SQL_GEOMETRY_CUISINE = """
+    SELECT COALESCE(cuisine_type, 'Unspecified') AS cuisine, COUNT(*)::INT AS count
+    FROM places
+    WHERE city_slug = $1
+      AND {spatial_predicate}
+      AND (
+            $4 = '__all__'
+            OR ($4 = '__null__' AND venue_type IS NULL)
+            OR ($4 != '__all__' AND $4 != '__null__' AND venue_type = $4)
+          )
+      AND (
+            CARDINALITY($5::TEXT[]) = 0
+            OR cost = ANY(ARRAY_REMOVE($5::TEXT[], '__null__'))
+            OR ('__null__' = ANY($5::TEXT[]) AND cost IS NULL)
+          )
+      AND {rank_column} >= $6
     GROUP BY cuisine_type
     ORDER BY count DESC, cuisine_type ASC
 """

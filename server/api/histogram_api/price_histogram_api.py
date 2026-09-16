@@ -6,7 +6,13 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query, Request
 from api.cache_keys import build_endpoint_cache_key
 from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
-from api.histogram_api.sql import SQL_CITYWIDE_PRICE, SQL_NEARBY_PRICE, SQL_VIEW_PRICE
+from api.histogram_api.sql import (
+    SQL_CITYWIDE_PRICE,
+    SQL_GEOMETRY_PRICE,
+    SQL_NEARBY_PRICE,
+    SQL_VIEW_PRICE,
+)
+from api.sql_util.spatial import build_geometry_predicate, parse_geometry_search
 
 router = APIRouter()
 
@@ -32,6 +38,8 @@ async def get_cost_histogram(
     sw_lng: float | None = Query(default=None),
     ne_lat: float | None = Query(default=None),
     ne_lng: float | None = Query(default=None),
+    search_type: str | None = Query(default=None),
+    geometry: str | None = Query(default=None),
     cuisine: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=2),
@@ -43,7 +51,8 @@ async def get_cost_histogram(
         raise HTTPException(status_code=422, detail="scope must be 'view', 'nearby', or 'citywide'")
     if scope == "view" and any(v is None for v in (sw_lat, sw_lng, ne_lat, ne_lng)):
         raise HTTPException(status_code=422, detail="sw_lat, sw_lng, ne_lat, ne_lng are required for scope=view")
-    if scope == "nearby" and any(v is None for v in (lat, lng, radius_m)):
+    geometry_search = parse_geometry_search(search_type, geometry, radius_m)
+    if scope == "nearby" and geometry_search is None and any(v is None for v in (lat, lng, radius_m)):
         raise HTTPException(status_code=422, detail="lat, lng, radius_m are required for scope=nearby")
 
     # NORMALIZE FILTERS
@@ -83,6 +92,23 @@ async def get_cost_histogram(
             rows = await conn.fetch(
                 SQL_CITYWIDE_PRICE.format(rank_column=tier_column),
                 city_slug, cuisine_values, venue_value, score_tier,
+            )
+        elif geometry_search is not None:
+            rows = await conn.fetch(
+                SQL_GEOMETRY_PRICE.format(
+                    rank_column=tier_column,
+                    spatial_predicate=build_geometry_predicate(
+                        geometry_search.search_type,
+                        geometry_placeholder="$2",
+                        radius_placeholder="$3",
+                    ),
+                ),
+                city_slug,
+                geometry_search.geometry_json,
+                geometry_search.radius_m or 0.0,
+                cuisine_values,
+                venue_value,
+                score_tier,
             )
         elif scope == "nearby":
             rows = await conn.fetch(

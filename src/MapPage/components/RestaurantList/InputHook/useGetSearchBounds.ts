@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import { useViewportQuery } from '../../../../context/ViewportQueryContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import getLatLngboxFromCircle from '../../Map/DataLayer/utils/getLatLngboxFromCircle';
+import { buildSearchMaskParams } from '../../../request/params/buildSearchMaskParams';
+import type { Geometry } from 'geojson';
 
 type GeoBounds = {
     sw_lat: number;
@@ -12,6 +14,8 @@ type GeoBounds = {
     center_lat?: number;
     center_lng?: number;
     radius_m?: number;
+    search_type?: 'boundary' | 'street';
+    geometry?: Geometry;
 };
 const useGetSearchBounds = () : {
     geoBounds: GeoBounds | null;
@@ -39,7 +43,11 @@ const useGetSearchBounds = () : {
     }, [viewportParams, searchMask]);
 
     // SELECT SEARCH BOUNDS
-    const geoBounds = circleBoundingBox ?? viewportBoundingBox;
+    const geoBounds = useMemo(() => {
+        if (!circleBoundingBox) return viewportBoundingBox;
+        const maskParams = buildSearchMaskParams(searchMask!);
+        return { ...circleBoundingBox, ...maskParams };
+    }, [circleBoundingBox, searchMask, viewportBoundingBox]);
 
     // GEOGRAPHIC SCOPE KEY
     // Stable string key representing the current geographic scope 
@@ -47,7 +55,7 @@ const useGetSearchBounds = () : {
     const geoKey = useMemo(() => {
         if (searchMask) {
             const { lat, lng } = searchMask.center;
-            return `bubble:${lat}:${lng}:${searchMask.radiusM}`;
+            return `bubble:${lat}:${lng}:${searchMask.radiusM}:${searchMask.type ?? ''}:${JSON.stringify(searchMask.geometry ?? null)}`;
         }
         if (!viewportParams) return '';
         const { sw_lat, sw_lng, ne_lat, ne_lng } = viewportParams;

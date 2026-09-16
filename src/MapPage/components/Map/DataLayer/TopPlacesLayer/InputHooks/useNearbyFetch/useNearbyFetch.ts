@@ -26,6 +26,7 @@ const useNearbyFetch = (
     searchMask, effectiveCuisines, effectivePriceRanges,
     venueType, scoreBasis, scoreTier, enabled, limit,
   ]);
+  console.log('nearbyTopPlacesParams:', nearbyTopPlacesParams);
   const { res, queryKey, responseKey } = useRequestTopPlaces(nearbyTopPlacesParams, { debounceMs: 0 });
 
   const [nearbyTopPlaces, setNearbyTopPlaces] = useState<TopPlaceItem[]>([]);

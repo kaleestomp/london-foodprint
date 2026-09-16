@@ -3,7 +3,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from api.sql_util.normalize import get_score_basis_column, normalize_dimension, normalize_dimension_list
-from api.places_count_api.sql import SQL_PLACE_COUNT
+from api.places_count_api.sql import SQL_PLACE_COUNT, SQL_PLACE_COUNT_GEOMETRY
+from api.sql_util.spatial import build_geometry_predicate, parse_geometry_search
 
 
 router = APIRouter()
@@ -18,6 +19,17 @@ def _spatial_clause(scope: str) -> tuple[str, int]:
             7,
         )
     return "TRUE", 4
+
+
+def _geometry_sql(rank_column: str, search_type: str) -> str:
+    return SQL_PLACE_COUNT_GEOMETRY.format(
+        rank_column=rank_column,
+        spatial_clause=build_geometry_predicate(
+            search_type,
+            geometry_placeholder="$5",
+            radius_placeholder="$6",
+        ),
+    )
 
 
 def _build_sql(scope: str, rank_column: str) -> str:
@@ -39,6 +51,8 @@ async def get_places_count(
     sw_lng: float | None = Query(default=None),
     ne_lat: float | None = Query(default=None),
     ne_lng: float | None = Query(default=None),
+    search_type: str | None = Query(default=None),
+    geometry: str | None = Query(default=None),
     cuisine: list[str] | None = Query(default=None),
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
@@ -50,7 +64,8 @@ async def get_places_count(
         raise HTTPException(status_code=422, detail="scope must be 'view', 'nearby', or 'citywide'")
     if scope == "view" and any(value is None for value in (sw_lat, sw_lng, ne_lat, ne_lng)):
         raise HTTPException(status_code=422, detail="sw_lat, sw_lng, ne_lat, ne_lng are required for scope=view")
-    if scope == "nearby" and any(value is None for value in (lat, lng, radius_m)):
+    geometry_search = parse_geometry_search(search_type, geometry, radius_m)
+    if scope == "nearby" and geometry_search is None and any(value is None for value in (lat, lng, radius_m)):
         raise HTTPException(status_code=422, detail="lat, lng, radius_m are required for scope=nearby")
 
     cuisine_values = normalize_dimension_list(cuisine)
@@ -59,7 +74,18 @@ async def get_places_count(
     city_slug = city.lower().strip()
     rank_column = get_score_basis_column(score_basis)
 
-    if scope == "view":
+    if geometry_search is not None:
+        sql_query = _geometry_sql(rank_column, geometry_search.search_type)
+        query_args = (
+            city_slug,
+            cuisine_values,
+            venue_value,
+            cost_values,
+            geometry_search.geometry_json,
+            geometry_search.radius_m or 0.0,
+            score_tier,
+        )
+    elif scope == "view":
         query_args = (
             city_slug, cuisine_values, venue_value, cost_values,
             sw_lat, ne_lat, sw_lng, ne_lng, score_tier,
@@ -73,7 +99,7 @@ async def get_places_count(
         query_args = (city_slug, cuisine_values, venue_value, cost_values, score_tier)
 
     async with request.app.state.pool.acquire() as conn:
-        row = await conn.fetchrow(_build_sql(scope, rank_column), *query_args)
+        row = await conn.fetchrow(sql_query if geometry_search is not None else _build_sql(scope, rank_column), *query_args)
 
     count = int(row["count"])
     total = int(row["total"])

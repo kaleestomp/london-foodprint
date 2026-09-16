@@ -1,18 +1,19 @@
 import { useMemo } from 'react';
 import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
+import type { SearchMaskRequestParams } from '../params/buildSearchMaskParams';
 
 import { useCityContext } from '../../../context/CityContext';
 import buildQueryKey from './buildQueryKey';
 import { type PlacesListResponse, request } from './request';
 export const DEFAULT_PAGE_SIZE = 10;
 
-export interface PlacesListParams {
+export interface PlacesListParams extends SearchMaskRequestParams {
     city?: string;
-    sw_lat: number;
-    sw_lng: number;
-    ne_lat: number;
-    ne_lng: number;
+    sw_lat?: number;
+    sw_lng?: number;
+    ne_lat?: number;
+    ne_lng?: number;
     center_lat?: number;
     center_lng?: number;
     radius_m?: number;

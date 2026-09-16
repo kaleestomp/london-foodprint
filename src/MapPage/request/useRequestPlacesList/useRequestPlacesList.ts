@@ -9,15 +9,22 @@ import { getRequestStatus, type RequestStatus } from '../../../utils/requestStat
 export const buildQueryKey = (params: PlacesListParams): string => {
   const qs = new URLSearchParams({
     city: params.city ?? 'london',
-    sw_lat: String(params.sw_lat),
-    sw_lng: String(params.sw_lng),
-    ne_lat: String(params.ne_lat),
-    ne_lng: String(params.ne_lng),
     venue_type: params.venue_type ?? '',
     score_basis: String(params.score_basis ?? 0),
     page_size: String(params.page_size ?? DEFAULT_PAGE_SIZE),
     page: String(params.page ?? 1),
   });
+
+  for (const [key, value] of [
+    ['sw_lat', params.sw_lat], ['sw_lng', params.sw_lng],
+    ['ne_lat', params.ne_lat], ['ne_lng', params.ne_lng],
+    ['center_lat', params.center_lat], ['center_lng', params.center_lng],
+    ['radius_m', params.radius_m], ['search_type', params.search_type],
+  ] as const) {
+    if (value != null) qs.set(key, String(value));
+  }
+
+  if (params.geometry != null) qs.set('geometry', JSON.stringify(params.geometry));
 
   if (
     typeof params.center_lat === 'number'
