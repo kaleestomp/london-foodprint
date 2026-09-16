@@ -12,11 +12,11 @@ export const buildSearchMaskParams = (
   searchMask: SearchMask
 ): SearchMaskRequestParams => {
 
-  return {
-    lat: searchMask.center.lat,
-    lng: searchMask.center.lng,
-    radius_m: searchMask.radiusM,
-  };
+  // return {
+  //   lat: searchMask.center.lat,
+  //   lng: searchMask.center.lng,
+  //   radius_m: searchMask.radiusM,
+  // };
   
   if (searchMask.type === 'boundary' && searchMask.geometry) {
     return {
