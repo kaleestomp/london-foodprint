@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 
 import type { LocationTarget } from '../BubbleAvatar/config';
-import { MapLocationNavigationContext } from './MapNavigation/MapLocationNavigationContext';
+import { MapLocationNavigationContext } from './MapNavigationContext/MapLocationNavigationContext';
 
 export const MapLocationNavigationProvider = ({ children }: { children: ReactNode }) => {
   const [settledTarget, setSettledTarget] = useState<LocationTarget | null>(null);

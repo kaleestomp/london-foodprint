@@ -1,43 +1,28 @@
 import { useCallback } from 'react';
 import * as maplibregl from 'maplibre-gl';
 
-import { type LatLng } from '../config';
+import { type LatLng } from '../../BubbleAvatar/config';
 
-type CameraPadding = {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
-};
+const useMapViewportNavigation = ( 
+  mapRef: React.RefObject<maplibregl.Map | null>
+) => {
+  const getFocusCenter = useCallback((target: LatLng) => (
+    new maplibregl.LngLat(target.lng, target.lat)
+  ), []);
 
-type FocusMapArgs = {
+  const focusMap = useCallback(({
+    target, method, zoom, animate = true,
+    onSettled, skipIfWithinMeters, padding,
+  }: {
   target: LatLng;
   method: 'pan' | 'setView';
   zoom?: number;
   animate?: boolean;
   onSettled?: () => void;
   skipIfWithinMeters?: number;
-  padding?: CameraPadding;
-};
+  padding?: { top: number, right: number, bottom: number, left: number };
+}) => {
 
-type UseMapViewportNavigationArgs = {
-  mapRef: React.RefObject<maplibregl.Map | null>;
-};
-
-const useMapViewportNavigation = ({ mapRef }: UseMapViewportNavigationArgs) => {
-  const getFocusCenter = useCallback((target: LatLng) => (
-    new maplibregl.LngLat(target.lng, target.lat)
-  ), []);
-
-  const focusMap = useCallback(({
-    target,
-    method,
-    zoom,
-    animate = true,
-    onSettled,
-    skipIfWithinMeters,
-    padding,
-  }: FocusMapArgs) => {
     const map = mapRef.current;
     if (!map) {
       onSettled?.();

@@ -11,7 +11,8 @@ export type Point = { x: number; y: number };
 /** Interaction Spec */
 export const HOME_SNAP_RADIUS = 80;
 export const LONGPRESS_MS = 150;
-export const ZOOM_LEVEL = 14;
+export const INIT_ZOOM_CLAMP_START = 13;
+export const INIT_ZOOM_CLAMP_END = 14;
 export const DROP_ENTRY_DELAY_MS = 200;
 
 /** UI Specs */

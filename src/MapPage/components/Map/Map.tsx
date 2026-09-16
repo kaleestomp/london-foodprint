@@ -5,7 +5,7 @@ import BaseLayer from './BaseLayer/BaseLayer';
 import DataLayer from './DataLayer/DataLayer';
 import onUserRoam from './InputHooks/onUserRoam';
 import { useViewportQuery } from '../../../context/ViewportQueryContext';
-import useMapLocationNavigation from './MapNavigation/useMapLocationNavigation';
+import useMapLocationNavigation from './MapNavigationContext/useMapLocationNavigation';
 
 import './Map.css';
 

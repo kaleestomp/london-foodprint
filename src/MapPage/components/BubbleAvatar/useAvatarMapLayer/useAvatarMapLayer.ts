@@ -4,7 +4,7 @@ import type * as maplibregl from 'maplibre-gl';
 
 import addSearchRadiusMarker from './addSearchRadiusMarker/addSearchRadiusMarker';
 import addAvatarMarker from './addAvatarMarker/addAvatarMarker';
-import { DROP_ENTRY_DELAY_MS, ZOOM_LEVEL } from '../config';
+import { DROP_ENTRY_DELAY_MS, INIT_ZOOM_CLAMP_END } from '../config';
 
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
@@ -38,7 +38,7 @@ const useAvatarMapLayer = (
         
         // CICLE MARKER
         const { lat, lng } = center;
-        const isAlreadyAtTargetZoom = map.getZoom() === ZOOM_LEVEL;
+        const isAlreadyAtTargetZoom = map.getZoom() === INIT_ZOOM_CLAMP_END;
         const entryDelayMs = isAlreadyAtTargetZoom ? 0 : DROP_ENTRY_DELAY_MS;
         const removeCircleMarker = addSearchRadiusMarker( map, lat, lng, radiusM, entryDelayMs );
         // AVATAR MARKER

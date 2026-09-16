@@ -2,7 +2,7 @@ import React from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
 import useFlyBubbleToLocation from './useFlyBubbleToLocation';
-import { useMapLocationNavigationState } from '../../Map/MapNavigation/useMapLocationNavigationState';
+import { useMapLocationNavigationState } from '../../Map/MapNavigationContext/MapLocationNavigationContext';
 
 type props = {
     mapRef: React.RefObject<maplibregl.Map | null>;

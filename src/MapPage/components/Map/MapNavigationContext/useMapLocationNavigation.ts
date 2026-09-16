@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../../context/AppUIContext';
-import { useMapLocationNavigationState } from './useMapLocationNavigationState';
-import useMapViewportNavigation from '../../BubbleAvatar/MapNavigation/useMapViewportNavigation';
+import { useMapLocationNavigationState } from './MapLocationNavigationContext';
+import useMapViewportNavigation from './useMapViewportNavigation';
 import { type LocationTarget } from '../../BubbleAvatar/config';
 import { geometryBbox } from '../DataLayer/BoundaryLayer/featureBbox';
 
@@ -12,7 +12,7 @@ const useMapLocationNavigationController = (
 ): void => {
   const { liveLocation } = useAppUI();
   const { reportSettled } = useMapLocationNavigationState();
-  const { focusMap } = useMapViewportNavigation({ mapRef });
+  const { focusMap } = useMapViewportNavigation( mapRef );
   const handledTokenRef = useRef<number | null>(null);
 
   const targetLocation = useMemo<LocationTarget | null>(() => (

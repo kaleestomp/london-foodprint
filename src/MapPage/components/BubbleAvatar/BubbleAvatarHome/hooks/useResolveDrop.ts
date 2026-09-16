@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
-import { HOME_SNAP_RADIUS, type Point } from '../../config';
+import { HOME_SNAP_RADIUS, INIT_ZOOM_CLAMP_START, type Point, INIT_ZOOM_CLAMP_END } from '../../config';
 import { useBubbleAvatarState } from '../../BubbleAvatarStateContext';
 import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
 import { useDrawerState } from '../../../SlideUpDrawer/DrawerStateContext';
 import checkIsDropBlocked from './checkIsDropBlocked';
+import useMapViewportNavigation from '../../../Map/MapNavigationContext/useMapViewportNavigation';
 
 /**
  * Resolves pickup mode when pointer is released before drag starts.
@@ -18,11 +19,12 @@ const useResolveDrop = (
   homeCenter: Point,
   // isDropBlocked?: (point: Point) => boolean,
 ) => {
-  
+
   const { handleDropXY, handleDropCancel } = useBubbleAvatarState();
   const isMobile = useIsMobileCtx();
   const { snapPX } = useDrawerState();
-  
+  const { focusMap } = useMapViewportNavigation( mapRef );
+
   const resolveDrop = useCallback((point: Point) => {
 
     const map = mapRef.current;
@@ -46,21 +48,29 @@ const useResolveDrop = (
       return;
     }
 
+    // FOCUS MAP ON DROPPED POINT
+    const pointOnMap = map.unproject([
+      point.x - map.getContainer().getBoundingClientRect().left,
+      point.y - map.getContainer().getBoundingClientRect().top,
+    ]);
+    const currentZoom = map.getZoom();
+    const dropZoom = Math.min(Math.max(currentZoom, INIT_ZOOM_CLAMP_START), INIT_ZOOM_CLAMP_END);
+    focusMap({
+      target: {
+        lat: pointOnMap.lat,
+        lng: pointOnMap.lng,
+      },
+      method: dropZoom === currentZoom ? 'pan' : 'setView',
+      zoom: dropZoom,
+      animate: true,
+      skipIfWithinMeters: dropZoom === currentZoom ? 1 : undefined,
+      padding: { top: 0, right: 0, bottom: 0, left: 0 },
+    });
+
     // OTHERWISE DROP ON MAP
     handleDropXY(map, point.x, point.y);
-    // const mapRect = map.getContainer().getBoundingClientRect();
-    // const insideMap = insideRect(mapRect, point);
-    // if (insideMap) {
-    //   const leafletPoint = L.point(point.x - mapRect.left, point.y - mapRect.top);
-    //   const latLng = map.containerPointToLatLng(leafletPoint);
-    //   handleDropLatLng(map, latLng.lat, latLng.lng);
-    //   return;
-    // } else {
-    //   // CANCEL IF NOT
-    //   handleDropCancel();
-    // }
 
-  }, [mapRef, handleDropXY, handleDropCancel, homeCenter, isMobile, snapPX]);
+  }, [mapRef, handleDropXY, handleDropCancel, homeCenter, isMobile, snapPX, focusMap]);
 
   return resolveDrop;
 };

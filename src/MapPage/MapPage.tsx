@@ -11,7 +11,7 @@ import { useIsMobileCtx } from '../context/IsMobileContext';
 import { PlaceDetailCardProvider } from '../context/PlaceDetailCardContext';
 
 import Map from './components/Map/Map';
-import { MapLocationNavigationProvider } from './components/Map/MapNavigation/MapLocationNavigationProvider.tsx';
+import { MapLocationNavigationProvider } from './components/Map/MapNavigationContext/MapLocationNavigationContext.tsx';
 import Loading from '../components/Loading/Loading';
 // import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 // import BaseToolbar from './components/BaseToolbar/BaseToolbar';
