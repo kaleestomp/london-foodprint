@@ -1,6 +1,10 @@
 import type * as maplibregl from 'maplibre-gl';
 
-import { WORLD_RING, buildCircleHole, PolygonMask } from './polygonMask';
+import PolygonMask from '../polygonMask/polygonMask';
+import { WORLD_RING } from '../polygonMask/geometry';
+import buildCircleHole from '../polygonMask/buildCircleHole';
+
+
 const CIRCLE_ENTRY_MS = 280;
 const OUTSIDE_MASK_OPACITY = 0.48;
 
@@ -9,16 +13,12 @@ const addSearchRadiusMarker = (
   lat: number,
   lng: number,
   radius: number,
-  entryDelayMs: number
+  entryDelayMs: number,
 ) => {
-
   let circleAnimFrame: number | null = null;
   let circleStartTimer: ReturnType<typeof setTimeout> | null = null;
-
-  // Darkens everything outside the active search radius.
   const outsideMask = PolygonMask(map, lat, lng);
 
-  // ANIMATION LOGIC
   const startCircleIn = () => {
     const startTs = performance.now();
     const animateCircleIn = (ts: number) => {
@@ -29,28 +29,23 @@ const addSearchRadiusMarker = (
       outsideMask.setLatLngs([WORLD_RING, buildCircleHole(lat, lng, animatedRadius)]);
       outsideMask.setStyle({ fillOpacity: OUTSIDE_MASK_OPACITY * eased });
 
-      if (t < 1)
-        circleAnimFrame = window.requestAnimationFrame(animateCircleIn);
+      if (t < 1) circleAnimFrame = window.requestAnimationFrame(animateCircleIn);
     };
 
     circleAnimFrame = window.requestAnimationFrame(animateCircleIn);
   };
 
-  // START ANIMATION
   if (entryDelayMs > 0) {
     circleStartTimer = setTimeout(startCircleIn, entryDelayMs);
   } else {
     startCircleIn();
   }
 
-  // CLEANUP
-  const cleanup = () => {
+  return () => {
     if (circleStartTimer) clearTimeout(circleStartTimer);
     if (circleAnimFrame !== null) window.cancelAnimationFrame(circleAnimFrame);
     outsideMask.remove();
   };
-
-  return cleanup;
 };
 
 export default addSearchRadiusMarker;

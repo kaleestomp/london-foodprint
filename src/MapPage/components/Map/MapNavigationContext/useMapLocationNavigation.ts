@@ -5,7 +5,7 @@ import { useAppUI } from '../../../../context/AppUIContext';
 import { useMapLocationNavigationState } from './MapLocationNavigationContext';
 import useMapViewportNavigation from './useMapViewportNavigation';
 import { type LocationTarget } from '../../BubbleAvatar/config';
-import { geometryBbox } from '../DataLayer/BoundaryLayer/featureBbox';
+import { geometryBbox } from '../StyleLayer/BoundaryLayer/featureBbox';
 
 const useMapLocationNavigationController = (
   mapRef: React.RefObject<maplibregl.Map | null>,

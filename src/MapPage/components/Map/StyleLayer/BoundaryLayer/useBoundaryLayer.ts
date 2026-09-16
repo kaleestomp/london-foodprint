@@ -2,11 +2,15 @@ import { useEffect } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
 import { useGeoSearch } from '../../../GeoSearch/GeoSearchContext';
-import { boundaryFillLayer, boundaryLineLayer } from './boundaryLayer';
+import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import { boundaryLineLayer } from './boundaryLayer';
+import PolygonMask from '../polygonMask/polygonMask';
+import buildBoundaryMaskRings from '../polygonMask/buildBoundaryMaskRings';
 
 const SOURCE_ID = 'geo-search-boundary-source';
-const FILL_LAYER_ID = 'geo-search-boundary-fill';
+// const FILL_LAYER_ID = 'geo-search-boundary-fill';
 const LINE_LAYER_ID = 'geo-search-boundary-line';
+const BOUNDARY_MASK_OPACITY = 0.48;
 
 /**
  * Plots the boundary shape of the selected geo search result on the map.
@@ -21,16 +25,25 @@ const useBoundaryLayer = (
 ): void => {
 
   const { selectedBoundary } = useGeoSearch();
+  const { searchMask } = useSearchFilters();
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) { return; }
 
+    const boundaryMaskRings = searchMask?.type === 'boundary' && searchMask.geometry
+      ? buildBoundaryMaskRings(searchMask.geometry)
+      : null;
+    const boundaryMask = boundaryMaskRings
+      ? PolygonMask(map, 0, 0, boundaryMaskRings)
+      : null;
+    boundaryMask?.setStyle({ fillOpacity: BOUNDARY_MASK_OPACITY });
+
     const removeLayer = () => {
       const currentMap = mapRef.current;
       if (!currentMap) { return; }
       try {
-        if (currentMap.getLayer(FILL_LAYER_ID)) { currentMap.removeLayer(FILL_LAYER_ID); }
+        // if (currentMap.getLayer(FILL_LAYER_ID)) { currentMap.removeLayer(FILL_LAYER_ID); }
         if (currentMap.getLayer(LINE_LAYER_ID)) { currentMap.removeLayer(LINE_LAYER_ID); }
         if (currentMap.getSource(SOURCE_ID)) { currentMap.removeSource(SOURCE_ID); }
       } catch {
@@ -59,9 +72,9 @@ const useBoundaryLayer = (
         map.addSource(SOURCE_ID, { type: 'geojson', data });
       }
 
-      if (!map.getLayer(FILL_LAYER_ID)) {
-        map.addLayer(boundaryFillLayer(FILL_LAYER_ID, SOURCE_ID));
-      }
+      // if (!map.getLayer(FILL_LAYER_ID)) {
+      //   map.addLayer(boundaryFillLayer(FILL_LAYER_ID, SOURCE_ID));
+      // }
       if (!map.getLayer(LINE_LAYER_ID)) {
         map.addLayer(boundaryLineLayer(LINE_LAYER_ID, SOURCE_ID));
       }
@@ -82,8 +95,9 @@ const useBoundaryLayer = (
     return () => {
       map.off('styledata', refreshLayer);
       removeLayer();
+      boundaryMask?.remove();
     };
-  }, [selectedBoundary, mapRef]);
+  }, [selectedBoundary, searchMask, mapRef]);
 };
 
 export default useBoundaryLayer;

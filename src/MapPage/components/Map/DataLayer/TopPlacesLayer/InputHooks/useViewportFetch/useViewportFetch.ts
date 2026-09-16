@@ -5,7 +5,7 @@ import { useViewportQuery } from '../../../../../../../context/ViewportQueryCont
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../request/useRequestTopPlaces/useRequestTopPlaces';
 import resolveConstraint from './resolveConstraint';
-import useMaskFilter from './useMaskFilter';
+import useMaskFilter from './useMaskFilter/useMaskFilter';
 
 const useViewportFetch = (
   limit: number = 10,

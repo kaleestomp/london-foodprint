@@ -19,6 +19,7 @@ export const DROP_ENTRY_DELAY_MS = 200;
 // Bubble centre sits this many px from the viewport edge
 export const CIRCLE_COLOR = '#ba160c'; // iOS system blue, for now at least
 export const SEARCH_RADIUS = 800;
+export const STREET_SEARCH_RADIUS = 100;
 
 /** Animation Specs */
 export const JITTER = 0.55; // random jitter for x/y gaze offsets

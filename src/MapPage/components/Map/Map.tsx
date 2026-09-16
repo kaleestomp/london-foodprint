@@ -6,6 +6,7 @@ import DataLayer from './DataLayer/DataLayer';
 import onUserRoam from './InputHooks/onUserRoam';
 import { useViewportQuery } from '../../../context/ViewportQueryContext';
 import useMapLocationNavigation from './MapNavigationContext/useMapLocationNavigation';
+import StyleLayer from './StyleLayer/StyleLayer';
 
 import './Map.css';
 
@@ -23,6 +24,7 @@ const Map: React.FC<Props> = ({ mapRef: externalMapRef }) => {
   }, [viewportParams, setViewportParams]);
 
   DataLayer(mapRef, true);
+  StyleLayer(mapRef);
 
   return <div className="map-canvas" ref={mapContainerRef} />;
 };

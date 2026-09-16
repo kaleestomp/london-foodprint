@@ -3,7 +3,7 @@ import type { ReactNode, Dispatch, SetStateAction } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 import { useSearchFilters, type SearchMaskType } from '../../../context/SearchFiltersContext';
 import type { Geometry } from 'geojson';
-import { SEARCH_RADIUS } from './config';
+import { SEARCH_RADIUS, STREET_SEARCH_RADIUS } from './config';
 
 type Point = { x: number; y: number };
 
@@ -74,7 +74,7 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
 
     setSearchMask({
       center: { lat, lng },
-      radiusM: SEARCH_RADIUS,
+      radiusM: metadata?.type === 'street' ? STREET_SEARCH_RADIUS : SEARCH_RADIUS,
       type: metadata?.type ?? 'radius',
       geometry: metadata?.geometry,
     });

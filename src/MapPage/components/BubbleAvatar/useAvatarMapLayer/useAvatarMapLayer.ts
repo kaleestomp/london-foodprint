@@ -2,9 +2,7 @@ import { useEffect, useRef } from 'react';
 import { type Root } from 'react-dom/client';
 import type * as maplibregl from 'maplibre-gl';
 
-import addSearchRadiusMarker from './addSearchRadiusMarker/addSearchRadiusMarker';
 import addAvatarMarker from './addAvatarMarker/addAvatarMarker';
-import { DROP_ENTRY_DELAY_MS, INIT_ZOOM_CLAMP_END } from '../config';
 
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
@@ -33,21 +31,16 @@ const useAvatarMapLayer = (
 
         const map = mapRef.current;
         if (!map) return;
-        const {center, radiusM} = searchMask ?? {};
-        if (!center || !radiusM) return;
-        
-        // CICLE MARKER
+        const center = searchMask?.center;
+        if (!center) return;
+
         const { lat, lng } = center;
-        const isAlreadyAtTargetZoom = map.getZoom() === INIT_ZOOM_CLAMP_END;
-        const entryDelayMs = isAlreadyAtTargetZoom ? 0 : DROP_ENTRY_DELAY_MS;
-        const removeCircleMarker = addSearchRadiusMarker( map, lat, lng, radiusM, entryDelayMs );
         // AVATAR MARKER
         const removeAvatarMarker = addAvatarMarker( map, lat, lng, reactRootRef, onPickupRef );
 
         // CLEAN-UP
         // runs when droppedPos changes or component unmounts
         return () => {
-            removeCircleMarker();
             removeAvatarMarker();
             // Defensive: if the marker was removed before pointerup/pointercancel,
             // Maplibre dragging can remain disabled.
