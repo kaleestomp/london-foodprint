@@ -1,4 +1,6 @@
 import { apiBasePromise } from '../../../utils/apiBase';
+import { appendFilterQueryParams } from '../params/appendFilterQueryParams';
+import { appendSearchMaskQueryParams, type SearchMaskRequestParams } from '../params/buildSearchMaskParams';
 
 export interface CostHistogramEntry {
   cost: string;
@@ -6,7 +8,7 @@ export interface CostHistogramEntry {
 }
 export type PriceHistogramScope = 'view' | 'nearby' | 'citywide';
 
-export interface PriceHistogramParams {
+export interface PriceHistogramParams extends SearchMaskRequestParams {
   scope: PriceHistogramScope;
   city?: string;
   lat?: number;
@@ -30,9 +32,7 @@ export const buildQueryKey = (params: PriceHistogramParams): string => {
   const qs = new URLSearchParams();
   qs.set('city', params.city ?? 'london');
   qs.set('scope', params.scope);
-  qs.set('venue_type', params.venue_type ?? '');
-  qs.set('score_basis', String(params.score_basis ?? 0));
-  qs.set('score_tier', String(params.score_tier ?? 0));
+  appendFilterQueryParams(qs, params);
 
   if (params.scope === 'view') {
     qs.set('sw_lat', String(params.sw_lat));
@@ -40,14 +40,9 @@ export const buildQueryKey = (params: PriceHistogramParams): string => {
     qs.set('ne_lat', String(params.ne_lat));
     qs.set('ne_lng', String(params.ne_lng));
   } else if (params.scope === 'nearby') {
-    qs.set('lat', String(params.lat));
-    qs.set('lng', String(params.lng));
-    qs.set('radius_m', String(params.radius_m));
+    appendSearchMaskQueryParams(qs, params);
   }
 
-  for (const cuisine of (params.cuisines ?? []).slice().sort((a, b) => a.localeCompare(b))) {
-    qs.append('cuisine', cuisine);
-  }
   return qs.toString();
 };
 

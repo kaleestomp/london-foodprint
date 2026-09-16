@@ -4,6 +4,7 @@ import {
   useSearchFilters,
 } from '../../../../../context/SearchFiltersContext';
 import { useViewportQuery } from '../../../../../context/ViewportQueryContext';
+import { buildSearchMaskParams } from '../../../../request/params/buildSearchMaskParams';
 
 
 const getPriceHistRequestParams = () => {
@@ -15,9 +16,7 @@ const getPriceHistRequestParams = () => {
     if (searchMask) {
       return {
         scope: 'nearby' as const,
-        lat: searchMask.center.lat,
-        lng: searchMask.center.lng,
-        radius_m: searchMask.radiusM,
+        ...buildSearchMaskParams(searchMask),
         cuisines: effectiveCuisines,
         venue_type: venueType ?? '',
         score_basis: scoreBasis,

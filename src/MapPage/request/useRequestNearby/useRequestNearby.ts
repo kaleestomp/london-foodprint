@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCityContext } from '../../../context/CityContext';
 import { type NearbyResponse, request } from './request';
 import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
+import { appendFilterQueryParams } from '../params/appendFilterQueryParams';
 
 
 export interface NearbyParams {
@@ -24,19 +25,9 @@ const buildQueryKey = (params: NearbyParams): string => {
     lat: String(params.lat),
     lng: String(params.lng),
     radius_m: String(params.radius_m ?? 1000),
-    venue_type: params.venue_type ?? '',
-    score_basis: String(params.score_basis ?? 0),
-    score_tier: String(params.score_tier ?? 0),
     page: String(params.page ?? 1),
   });
-
-  for (const cost of [...(params.cost ?? [])].sort((left, right) => left.localeCompare(right))) {
-    qs.append('cost', cost);
-  }
-
-  for (const cuisine of [...(params.cuisines ?? [])].sort((left, right) => left.localeCompare(right))) {
-    qs.append('cuisine', cuisine);
-  }
+  appendFilterQueryParams(qs, params);
 
   return qs.toString();
 };

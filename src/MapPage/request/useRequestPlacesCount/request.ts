@@ -1,8 +1,10 @@
 import { apiBasePromise } from '../../../utils/apiBase';
+import { appendFilterQueryParams } from '../params/appendFilterQueryParams';
+import { appendSearchMaskQueryParams, type SearchMaskRequestParams } from '../params/buildSearchMaskParams';
 
 export type PlacesCountScope = 'view' | 'nearby' | 'citywide';
 
-export interface PlacesCountParams {
+export interface PlacesCountParams extends SearchMaskRequestParams {
   scope: PlacesCountScope;
   city?: string;
   lat?: number;
@@ -13,7 +15,7 @@ export interface PlacesCountParams {
   ne_lat?: number;
   ne_lng?: number;
   cuisines?: string[];
-  costs?: string[];
+  cost?: string[];
   venue_type?: string;
   score_basis?: 0 | 1 | 2;
   score_tier?: 0 | 1 | 2 | 3 | 4;
@@ -29,9 +31,7 @@ export const buildQueryKey = (params: PlacesCountParams): string => {
   const qs = new URLSearchParams();
   qs.set('city', params.city ?? 'london');
   qs.set('scope', params.scope);
-  qs.set('venue_type', params.venue_type ?? '');
-  qs.set('score_basis', String(params.score_basis ?? 0));
-  qs.set('score_tier', String(params.score_tier ?? 0));
+  appendFilterQueryParams(qs, params);
   qs.set('requestTierRep', String(params.requestTierRep));
 
   if (params.scope === 'view') {
@@ -40,17 +40,9 @@ export const buildQueryKey = (params: PlacesCountParams): string => {
     qs.set('ne_lat', String(params.ne_lat));
     qs.set('ne_lng', String(params.ne_lng));
   } else if (params.scope === 'nearby') {
-    qs.set('lat', String(params.lat));
-    qs.set('lng', String(params.lng));
-    qs.set('radius_m', String(params.radius_m));
+    appendSearchMaskQueryParams(qs, params);
   }
 
-  for (const cuisine of (params.cuisines ?? []).slice().sort((a, b) => a.localeCompare(b))) {
-    qs.append('cuisine', cuisine);
-  }
-  for (const cost of (params.costs ?? []).slice().sort((a, b) => a.localeCompare(b))) {
-    qs.append('cost', cost);
-  }
   return qs.toString();
 };
 

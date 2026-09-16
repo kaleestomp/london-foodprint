@@ -3,6 +3,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import { useViewportQuery } from '../../../../context/ViewportQueryContext';
 import useRequestPlacesCount from '../../../request/useRequestPlacesCount/useRequestPlacesCount';
+import { buildSearchMaskParams } from '../../../request/params/buildSearchMaskParams';
 
 const useFetchPlaceCount = (): {
   count: number | null;
@@ -24,11 +25,9 @@ const useFetchPlaceCount = (): {
     if (searchMask) {
       return {
         scope: 'nearby' as const,
-        lat: searchMask.center.lat,
-        lng: searchMask.center.lng,
-        radius_m: searchMask.radiusM,
+        ...buildSearchMaskParams(searchMask),
         cuisines: effectiveCuisines,
-        costs: effectivePriceRanges,
+        cost: effectivePriceRanges,
         venue_type: venueType ?? '',
         score_basis: scoreBasis,
         score_tier: scoreTier,
@@ -45,7 +44,7 @@ const useFetchPlaceCount = (): {
       ne_lat: viewportParams.ne_lat,
       ne_lng: viewportParams.ne_lng,
       cuisines: effectiveCuisines,
-      costs: effectivePriceRanges,
+      cost: effectivePriceRanges,
       venue_type: venueType ?? '',
       score_basis: scoreBasis,
       score_tier: scoreTier,

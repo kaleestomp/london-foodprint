@@ -1,4 +1,5 @@
 import type { TopPlacesParams } from './useRequestTopPlaces';
+import { appendFilterQueryParams } from '../params/appendFilterQueryParams';
 
 const buildQueryKey = (params: TopPlacesParams): string => {
   const qs = new URLSearchParams();
@@ -11,18 +12,10 @@ const buildQueryKey = (params: TopPlacesParams): string => {
   if (params.lat != null) qs.set('lat', String(params.lat));
   if (params.lng != null) qs.set('lng', String(params.lng));
   if (params.radius_m != null) qs.set('radius_m', String(params.radius_m));
-  qs.set('venue_type', params.venue_type ?? '');
-  qs.set('score_basis', String(params.score_basis ?? 0));
-  qs.set('score_tier', String(params.score_tier ?? 0));
+  if (params.search_type != null) qs.set('search_type', params.search_type);
+  if (params.geometry != null) qs.set('geometry', JSON.stringify(params.geometry));
+  appendFilterQueryParams(qs, params);
   qs.set('limit', String(params.limit ?? 10));
-
-  for (const cost of [...(params.cost ?? [])].sort((left, right) => left.localeCompare(right))) {
-    qs.append('cost', cost);
-  }
-
-  for (const cuisine of [...(params.cuisines ?? [])].sort((left, right) => left.localeCompare(right))) {
-    qs.append('cuisine', cuisine);
-  }
 
   return qs.toString();
 };
