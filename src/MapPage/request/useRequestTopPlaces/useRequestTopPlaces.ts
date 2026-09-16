@@ -4,16 +4,14 @@ import { useCityContext } from '../../../context/CityContext';
 import buildQueryKey from './buildQueryKey';
 import { type TopPlacesResponse, request } from './request';
 import { getRequestStatus, type RequestStatus } from '../../../utils/requestStatus';
+import type { SearchMaskRequestParams } from '../params/buildSearchMaskParams';
 
-export interface TopPlacesParams {
+export interface TopPlacesParams extends SearchMaskRequestParams {
   city?: string;
   sw_lat?: number;
   sw_lng?: number;
   ne_lat?: number;
   ne_lng?: number;
-  lat?: number;
-  lng?: number;
-  radius_m?: number;
   cuisines?: string[];
   cost?: string[];
   venue_type?: string;

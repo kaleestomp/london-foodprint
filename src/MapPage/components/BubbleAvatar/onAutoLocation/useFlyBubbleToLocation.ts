@@ -4,14 +4,14 @@ import type * as maplibregl from 'maplibre-gl';
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
 import getCurrentScreenXY from '../Searchmask/getCurrentScreenXY';
-import { type LatLng, type Point } from '../config';
+import { type LocationTarget, type Point } from '../config';
 
 type props = {
     mapRef: React.RefObject<maplibregl.Map | null>;
-    targetLatLng: LatLng | null;
+    targetLocation: LocationTarget | null;
     token: number | null;
 };
-const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => { 
+const useFlyBubbleToLocation = ({ mapRef, targetLocation, token }: props) => { 
 
     const { resetBubbleToHome, handleDropLatLng } = useBubbleAvatarState();
     const { searchMask } = useSearchFilters();
@@ -21,25 +21,31 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
     // Handel Fly Bubble to User Location Logic (LIVE / GEOSEARCH)
     // ==========================================================
     const [flyOutTo, setFlyOutTo] = useState<Point | null>(null);
-    const pendingTargetLatLngRef = useRef<LatLng | null>(null);
+    const pendingTargetLatLngRef = useRef<LocationTarget | null>(null);
     const handledFlightTokenRef = useRef<number | null>(null);
+    // CLEAR flight state after a drop occurs
+    // Only clear the programmatic flight once a real drop lands on the map.
+    // Clearing on null would cancel an in-flight programmatic animation.
+    const clear = useCallback(() => {
+        setFlyOutTo(null);
+        pendingTargetLatLngRef.current = null;
+    }, []);
     // Calculate the screen point to fly the bubble to
     const startFlight = useCallback(() => {
-        if (!targetLatLng || !mapRef.current) 
+        if (!targetLocation || !mapRef.current) 
             return;
         const map = mapRef.current;
         const rect = map.getContainer().getBoundingClientRect();
         const screenXY = isDropped ? getCurrentScreenXY(mapRef, lat, lng, rect) : undefined;
         resetBubbleToHome( screenXY ); // Swap with undefined to disable fly-in animation
 
-        const latLng = { lat: targetLatLng.lat, lng: targetLatLng.lng };
-        const projectedTarget = map.project([latLng.lng, latLng.lat]);
-        pendingTargetLatLngRef.current = { lat: latLng.lat, lng: latLng.lng };
+        const projectedTarget = map.project([targetLocation.lng, targetLocation.lat]);
+        pendingTargetLatLngRef.current = targetLocation;
         setFlyOutTo({
             x: rect.left + projectedTarget.x,
             y: rect.top + projectedTarget.y,
         });
-    }, [mapRef, targetLatLng, lat, lng, resetBubbleToHome]);
+    }, [isDropped, mapRef, targetLocation, lat, lng, resetBubbleToHome]);
     
     // Handle the drop pin logic when the flight animation completes
     const dropOnEndFlight = useCallback(() => {
@@ -48,13 +54,12 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
         if (!pendingTargetLatLng || !map) return;
 
         // Handle Bubble Drop Logic
-        handleDropLatLng(pendingTargetLatLng.lat, pendingTargetLatLng.lng);
-    }, [handleDropLatLng]);
-    // Clear all Bubble Flight States at end of flight animation
-    const clear = useCallback(() => {
-        setFlyOutTo(null);
-        pendingTargetLatLngRef.current = null;
-    }, []);
+        clear();
+        handleDropLatLng(pendingTargetLatLng.lat, pendingTargetLatLng.lng, {
+            type: pendingTargetLatLng.searchType,
+            geometry: pendingTargetLatLng.geometry,
+        });
+    }, [clear, handleDropLatLng, mapRef]);
     
     // EXECUTION LOGIC
     // ==========================================================
@@ -64,14 +69,6 @@ const useFlyBubbleToLocation = ({ mapRef, targetLatLng, token }: props) => {
         handledFlightTokenRef.current = token;
         startFlight();
     }, [token, startFlight]);
-
-    // useEffect to clear flight state after a drop occurs
-    useEffect(() => {
-        // Only clear the programmatic flight once a real drop lands on the map.
-        // Clearing on null would cancel an in-flight programmatic animation.
-        if (!searchMask?.center) return;
-        clear();
-    }, [clear, searchMask?.center]);
 
     return  {
         flyOutTo,

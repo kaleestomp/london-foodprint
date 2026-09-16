@@ -2,10 +2,9 @@ import { useEffect, useRef } from 'react';
 import { type Root } from 'react-dom/client';
 import type * as maplibregl from 'maplibre-gl';
 
-import useFocusMap from './useFocusMap/useFocusMap';
 import addSearchRadiusMarker from './addSearchRadiusMarker/addSearchRadiusMarker';
 import addAvatarMarker from './addAvatarMarker/addAvatarMarker';
-import { DROP_ENTRY_DELAY_MS, ZOOM_LEVEL } from '../config';
+import { DROP_ENTRY_DELAY_MS, INIT_ZOOM_CLAMP_END } from '../config';
 
 import { useBubbleAvatarState } from '../BubbleAvatarStateContext';
 import { useSearchFilters } from '../../../../context/SearchFiltersContext';
@@ -29,9 +28,6 @@ const useAvatarMapLayer = (
     const onPickupRef = useRef(handlePickup);
     useEffect(() => { onPickupRef.current = handlePickup; }, [handlePickup]);
     
-    // FOCUS MAP TO LOCATION
-    useFocusMap( mapRef );
-
     // PLOT AVATAR + CIRCLE MARKER
     useEffect(() => {
 
@@ -42,7 +38,7 @@ const useAvatarMapLayer = (
         
         // CICLE MARKER
         const { lat, lng } = center;
-        const isAlreadyAtTargetZoom = map.getZoom() === ZOOM_LEVEL;
+        const isAlreadyAtTargetZoom = map.getZoom() === INIT_ZOOM_CLAMP_END;
         const entryDelayMs = isAlreadyAtTargetZoom ? 0 : DROP_ENTRY_DELAY_MS;
         const removeCircleMarker = addSearchRadiusMarker( map, lat, lng, radiusM, entryDelayMs );
         // AVATAR MARKER

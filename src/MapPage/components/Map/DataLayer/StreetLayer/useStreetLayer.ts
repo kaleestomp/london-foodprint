@@ -2,13 +2,15 @@ import { useEffect } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
 import { useGeoSearch } from '../../../GeoSearch/GeoSearchContext';
-import featureBbox from '../BoundaryLayer/featureBbox';
 import { streetLineLayer } from './streetLayer';
 
 const SOURCE_ID = 'geo-search-street-source';
 const LAYER_ID = 'geo-search-street-line';
 
-/** Renders the full LineString/MultiLineString geometry of a selected street. */
+/** Renders the full LineString/MultiLineString geometry of a selected street.
+ * Selection can trigger camera navigation, but the map navigation controller
+ * owns the camera movement.
+ */
 const useStreetLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
 ): void => {
@@ -57,14 +59,6 @@ const useStreetLayer = (
 
     refreshLayer();
     map.on('styledata', refreshLayer);
-
-    const bbox = featureBbox(feature);
-    if (bbox) {
-      map.fitBounds(
-        [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
-        { padding: 80, duration: 900, maxZoom: 17 },
-      );
-    }
 
     return () => {
       map.off('styledata', refreshLayer);

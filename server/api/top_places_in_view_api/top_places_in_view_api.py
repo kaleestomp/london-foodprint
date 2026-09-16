@@ -3,7 +3,12 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
-from api.top_places_in_view_api.sql import TOP_PLACES_IN_VIEW_BBOX_SQL, TOP_PLACES_IN_VIEW_RADIUS_SQL
+from api.sql_util.spatial import build_geometry_predicate, parse_geometry_search
+from api.top_places_in_view_api.sql import (
+    TOP_PLACES_IN_VIEW_BBOX_SQL,
+    TOP_PLACES_IN_VIEW_GEOMETRY_SQL,
+    TOP_PLACES_IN_VIEW_RADIUS_SQL,
+)
 
 router = APIRouter()
 
@@ -19,6 +24,8 @@ async def get_top_places_in_view(
     lat: float | None = Query(default=None),
     lng: float | None = Query(default=None),
     radius_m: float | None = Query(default=None),
+    search_type: str | None = Query(default=None),
+    geometry: str | None = Query(default=None),
     cuisine: list[str] | None = Query(default=None),
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
@@ -32,8 +39,24 @@ async def get_top_places_in_view(
     venue_value = normalize_dimension(venue_type)
     tier_column = get_score_basis_column(score_basis)
     city_slug = city.lower().strip()
+    geometry_search = parse_geometry_search(search_type, geometry, radius_m)
 
-    if lat is not None and lng is not None and radius_m is not None:
+    if geometry_search is not None:
+        query_sql = TOP_PLACES_IN_VIEW_GEOMETRY_SQL.format(
+            rank_column=tier_column,
+            spatial_predicate=build_geometry_predicate(geometry_search.search_type),
+        )
+        params = (
+            city_slug,
+            geometry_search.geometry_json,
+            geometry_search.radius_m or 0.0,
+            cuisine_values,
+            venue_value,
+            cost_values,
+            score_tier,
+            limit,
+        )
+    elif lat is not None and lng is not None and radius_m is not None:
         query_sql = TOP_PLACES_IN_VIEW_RADIUS_SQL.format(rank_column=tier_column)
         params = (city_slug, lat, lng, radius_m, cuisine_values, venue_value, cost_values, score_tier, limit)
     else:

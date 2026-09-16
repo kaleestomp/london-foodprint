@@ -3,6 +3,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useSearchFilters } from '../../../../../../../context/SearchFiltersContext';
 import { type TopPlaceItem } from '../../../../../../request/useRequestTopPlaces/request';
 import useRequestTopPlaces, { type TopPlacesParams } from '../../../../../../request/useRequestTopPlaces/useRequestTopPlaces';
+import { buildSearchMaskParams } from '../../../../../../request/params/buildSearchMaskParams';
 
 const useNearbyFetch = (
   limit: number,
@@ -10,12 +11,10 @@ const useNearbyFetch = (
 ): TopPlaceItem[] => {
 
   const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, searchMask } = useSearchFilters();
-  const radiusTopPlacesParams = useMemo<TopPlacesParams | null>(() => {
+  const nearbyTopPlacesParams = useMemo<TopPlacesParams | null>(() => {
     if (!enabled || !searchMask) return null;
     return {
-      lat: searchMask.center.lat,
-      lng: searchMask.center.lng,
-      radius_m: searchMask.radiusM,
+      ...buildSearchMaskParams(searchMask),
       cuisines: effectiveCuisines,
       venue_type: venueType ?? undefined,
       cost: effectivePriceRanges,
@@ -27,7 +26,7 @@ const useNearbyFetch = (
     searchMask, effectiveCuisines, effectivePriceRanges,
     venueType, scoreBasis, scoreTier, enabled, limit,
   ]);
-  const { res, queryKey, responseKey } = useRequestTopPlaces(radiusTopPlacesParams, { debounceMs: 0 });
+  const { res, queryKey, responseKey } = useRequestTopPlaces(nearbyTopPlacesParams, { debounceMs: 0 });
 
   const [nearbyTopPlaces, setNearbyTopPlaces] = useState<TopPlaceItem[]>([]);
   useEffect(() => {

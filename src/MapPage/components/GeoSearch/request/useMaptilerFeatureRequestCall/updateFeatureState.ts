@@ -2,8 +2,8 @@ import { isBoundaryGeometry, isStreetGeometry } from './featureTypeCheck';
 import type { MaptilerFeature } from '../../types';
 
 type FeatureCallbacks = {
-    onBoundaryType: (feature: MaptilerFeature, label: string) => void;
-    onStreetType: (feature: MaptilerFeature, label: string) => void;
+    onBoundaryType: (feature: MaptilerFeature, label: string, fallbackPoint: [number, number] | null | undefined) => void;
+    onStreetType: (feature: MaptilerFeature, label: string, fallbackPoint: [number, number] | null | undefined) => void;
     onOtherType: (center: [number, number] | null | undefined) => void;
 };
 
@@ -14,9 +14,9 @@ const updateFeatureState = (
     { onBoundaryType, onStreetType, onOtherType }: FeatureCallbacks,
 ) => {
     if (feature && isBoundaryGeometry(feature)) {
-        onBoundaryType(feature, label);
+        onBoundaryType(feature, label, fallbackPoint);
     } else if (feature && isStreetGeometry(feature)) {
-        onStreetType(feature, label);
+        onStreetType(feature, label, fallbackPoint);
     } else {
         onOtherType(feature?.center ?? fallbackPoint);
     }

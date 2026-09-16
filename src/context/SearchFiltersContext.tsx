@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
+import type { Geometry } from 'geojson';
 import { CUISINE_DISPLAY } from '../utils/format/formatCuisines';
 
 export const CUISINE_FILTER_OPTIONS = Object.keys(CUISINE_DISPLAY);
@@ -11,7 +12,15 @@ type PriceRangeInterval = [number, number];
 type WilsonBasis = 0 | 1 | 2; // 0: pro-rating, 1: balanced, 2: pro-traffic
 type TierOptions = 0 | 1 | 2 | 3 | 4; // 100% 50% 25% 10% 5%
 type TierBasis = 0 | 1 | 2; // 0: standard, 1: diversity cap, 2: diversity + no major chain
-export type SearchMask = { center: { lat: number; lng: number }, radiusM: number };
+export type SearchMaskType = 'radius' | 'boundary' | 'street';
+export type SearchMask = {
+  center: { lat: number; lng: number };
+  radiusM: number;
+  type?: SearchMaskType;
+  // Query snapshot. Boundary/street geometry intentionally overlaps the
+  // selected feature in GeoSearchContext so fetch hooks do not depend on UI state.
+  geometry?: Geometry;
+};
 
 type SearchFiltersContextType = {
   cuisines: string[]; effectiveCuisines: string[]; 
@@ -35,9 +44,16 @@ const SearchFiltersContext = createContext<SearchFiltersContextType | null>(null
 
 export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => {
   
+  // SEARCH MASK FILTERS
+  const [searchMask, setSearchMask] = useState<SearchMask | null>(null);
+  // console.log(searchMask);
+
+  // GENERAL SETTING FILTERS
+  const [isGlobal, setIsGlobal] = useState<boolean>(false);
+
+  // CUISINE FILTERS
   const [cuisines, setCuisines] = useState<string[]>([]);
   const [cuisineSelectionMode, setCuisineSelectionMode] = useState<CuisineSelectionMode>('include');
-  const [isGlobal, setIsGlobal] = useState<boolean>(false);
   const effectiveCuisines = useMemo<string[]>(() => ( cuisineSelectionMode === 'include' 
     ? cuisines : CUISINE_FILTER_OPTIONS.filter((option) => !cuisines.includes(option))
   ), [cuisineSelectionMode, cuisines]);
@@ -51,6 +67,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   };
   const clearCuisines = () => setCuisines([]);
 
+  // PRICE RANGE FILTERS
   const [priceRangeInterval, setPriceRangeInterval] = useState<PriceRangeInterval | null>(null);
   const effectivePriceRanges = useMemo<PriceRangeFilterOption[]>(() => {
     if (!priceRangeInterval) return [];
@@ -58,9 +75,13 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
     return PRICE_RANGE_FILTER_OPTIONS.slice(start, end + 1);
   }, [priceRangeInterval]);
 
+  // VENUE TYPE FILTERS
   const [venueType, setVenueType] = useState<VenueTypeFilterOption | null>(null);
-  const [searchMask, setSearchMask] = useState<SearchMask | null>(null);
+  // Committed spatial constraint for data requests, separate from the
+  // immediately visible selection state held by GeoSearchContext. Geometry
+  // is intentionally delayed until the avatar flight animation completes.
 
+  // SCORING FILTERS
   const [scoreBasis, setScoreBasis] = useState<TierBasis>(2); // 0: Tier 1: Diversity, 2: No Block Chain
   const [scoreTier, setScoreTier] = useState<TierOptions>(2);
   const [wilsonBasis, setWilsonBasis] = useState<WilsonBasis>(2);
@@ -70,6 +91,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
     setScoreBasis(value);
   };
 
+  // CLEAR FILTERS
   const resetFilters = () => {
     setCuisines([]);
     setCuisineSelectionMode('include');

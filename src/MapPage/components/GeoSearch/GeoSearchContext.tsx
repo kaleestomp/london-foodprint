@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from 'react
 import type { ReactNode } from 'react';
 
 import { useAppUI } from '../../../context/AppUIContext';
+import type { SearchMaskType } from '../../../context/SearchFiltersContext';
 import useMaptilerFeatureRequestCall from './request/useMaptilerFeatureRequestCall/useMaptilerFeatureRequestCall';
 import type { MaptilerFeature, BoundarySelection, GeoSuggestion, StreetSelection } from './types';
 import updateFeatureState from './request/useMaptilerFeatureRequestCall/updateFeatureState';
@@ -23,6 +24,10 @@ export const GeoSearchProvider = ({ children }: { children: ReactNode }) => {
   const requestMaptilerFeature = useMaptilerFeatureRequestCall();
 
   const [query, setQueryState] = useState('');
+  // Presentation state for the selected feature layers. This updates
+  // immediately; geometry is copied into searchMask later as the committed
+  // request snapshot after the avatar flight completes.
+  // searchMask updates then triggers network requests for the selected area.
   const [selectedBoundary, setSelectedBoundary] = useState<BoundarySelection | null>(null);
   const [selectedStreet, setSelectedStreet] = useState<StreetSelection | null>(null);
 
@@ -38,20 +43,31 @@ export const GeoSearchProvider = ({ children }: { children: ReactNode }) => {
     setSelectedStreet(null);
   }, []);
 
-  const dropAtCenter = useCallback((center: [number, number] | null) => {
+  const dropAtCenter = useCallback((
+    center: [number, number] | null,
+    metadata?: { searchType?: SearchMaskType; geometry?: MaptilerFeature['geometry'] },
+  ) => {
     if (center) {
-      queueLiveLocationDrop(center[1], center[0]);
+      queueLiveLocationDrop(center[1], center[0], metadata);
     }
   }, [queueLiveLocationDrop]);
 
-  const onBoundaryType = useCallback((feature: MaptilerFeature, label: string) => {
+  const onBoundaryType = useCallback((feature: MaptilerFeature, label: string, fallbackPoint: [number, number] | null | undefined) => {
     setSelectedStreet(null);
     setSelectedBoundary({ feature, label });
-  }, []);
-  const onStreetType = useCallback((feature: MaptilerFeature, label: string) => {
+    dropAtCenter(feature.center ?? fallbackPoint ?? null, {
+      searchType: 'boundary',
+      geometry: feature.geometry,
+    });
+  }, [dropAtCenter]);
+  const onStreetType = useCallback((feature: MaptilerFeature, label: string, fallbackPoint: [number, number] | null | undefined) => {
     setSelectedBoundary(null);
     setSelectedStreet({ feature, label });
-  }, []);
+    dropAtCenter(feature.center ?? fallbackPoint ?? null, {
+      searchType: 'street',
+      geometry: feature.geometry,
+    });
+  }, [dropAtCenter]);
   const onPlaceType = useCallback((center: [number, number] | null | undefined) => {
     setSelectedBoundary(null);
     setSelectedStreet(null);

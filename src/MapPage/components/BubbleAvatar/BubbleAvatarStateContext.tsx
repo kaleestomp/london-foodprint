@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import type { ReactNode, Dispatch, SetStateAction } from 'react';
 import type * as maplibregl from 'maplibre-gl';
-import { useSearchFilters } from '../../../context/SearchFiltersContext';
+import { useSearchFilters, type SearchMaskType } from '../../../context/SearchFiltersContext';
+import type { Geometry } from 'geojson';
 import { SEARCH_RADIUS } from './config';
 
 type Point = { x: number; y: number };
@@ -29,7 +30,7 @@ interface BubbleAvatarState {
   /** Reset all floating state to HOME */
   resetBubbleToHome: (from?: Point) => void;
   /** Handle user drop event: store the map location and the screen-space point */
-  handleDropLatLng: (lat: number, lng: number) => void;
+  handleDropLatLng: (lat: number, lng: number, metadata?: { type?: SearchMaskType; geometry?: Geometry }) => void;
   handleDropXY: (map: maplibregl.Map, x: number, y: number) => void;
   /** Set pickup position for manual drag start */
   handlePickup: (x: number, y: number) => void;
@@ -69,9 +70,14 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
     setIsDragging(false);
   }, []);
 
-  const handleDropLatLng = useCallback((lat: number, lng: number) => {
+  const handleDropLatLng = useCallback((lat: number, lng: number, metadata?: { type?: SearchMaskType; geometry?: Geometry }) => {
 
-    setSearchMask({ center: { lat, lng }, radiusM: SEARCH_RADIUS });
+    setSearchMask({
+      center: { lat, lng },
+      radiusM: SEARCH_RADIUS,
+      type: metadata?.type ?? 'radius',
+      geometry: metadata?.geometry,
+    });
     setPickupPos(null);
     setFlyInFrom(null);
     setIsDragging(false);
@@ -87,7 +93,7 @@ export const BubbleAvatarStateProvider: React.FC<{ children: ReactNode }> = ({ c
     if (insideMap) {
       const point = { x: x - rect.left, y: y - rect.top };
       const { lat, lng } = map.unproject([point.x, point.y]);
-      setSearchMask({ center: { lat, lng }, radiusM: SEARCH_RADIUS });
+      setSearchMask({ center: { lat, lng }, radiusM: SEARCH_RADIUS, type: 'radius' });
       setPickupPos(null);
       setFlyInFrom(null);
       setIsDragging(false);

@@ -1,4 +1,5 @@
 import { type PlacesListParams, DEFAULT_PAGE_SIZE } from './useRequestInfinitePlacesList';
+import { appendFilterQueryParams } from '../params/appendFilterQueryParams';
 
 export const buildQueryKey = (
   params: PlacesListParams | null,
@@ -15,10 +16,10 @@ export const buildQueryKey = (
     sw_lng: String(params.sw_lng),
     ne_lat: String(params.ne_lat),
     ne_lng: String(params.ne_lng),
-    venue_type: params.venue_type ?? '',
-    score_basis: String(params.score_basis ?? 0),
     page_size: String(params.page_size ?? DEFAULT_PAGE_SIZE),
   });
+  const { score_tier: _, ...filterParams } = params;
+  appendFilterQueryParams(qs, filterParams);
 
   if (typeof page === 'number') {
     qs.set('page', String(page));
@@ -32,13 +33,6 @@ export const buildQueryKey = (
     qs.set('center_lat', String(params.center_lat));
     qs.set('center_lng', String(params.center_lng));
     qs.set('radius_m', String(params.radius_m));
-  }
-
-  for (const cost of [...(params.cost ?? [])].sort((a, b) => a.localeCompare(b))) {
-    qs.append('cost', cost);
-  }
-  for (const cuisine of [...(params.cuisines ?? [])].sort((a, b) => a.localeCompare(b))) {
-    qs.append('cuisine', cuisine);
   }
 
   return qs.toString();

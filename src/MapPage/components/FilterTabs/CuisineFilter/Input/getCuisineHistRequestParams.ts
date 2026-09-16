@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
 import { useViewportQuery } from '../../../../../context/ViewportQueryContext';
+import { buildSearchMaskParams } from '../../../../request/params/buildSearchMaskParams';
 
 
 const getCuisineHistRequestParams = () => {
@@ -12,9 +13,7 @@ const getCuisineHistRequestParams = () => {
     if (searchMask) {
       return {
         scope: 'nearby' as const,
-        lat: searchMask.center.lat,
-        lng: searchMask.center.lng,
-        radius_m: searchMask.radiusM,
+        ...buildSearchMaskParams(searchMask),
         cost: effectivePriceRanges,
         venue_type: venueType ?? '',
         score_basis: scoreBasis,

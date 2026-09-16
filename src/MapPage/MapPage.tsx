@@ -11,6 +11,7 @@ import { useIsMobileCtx } from '../context/IsMobileContext';
 import { PlaceDetailCardProvider } from '../context/PlaceDetailCardContext';
 
 import Map from './components/Map/Map';
+import { MapLocationNavigationProvider } from './components/Map/MapNavigationContext/MapLocationNavigationContext.tsx';
 import Loading from '../components/Loading/Loading';
 // import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 // import BaseToolbar from './components/BaseToolbar/BaseToolbar';
@@ -46,25 +47,27 @@ const MapPage: FC = () => {
           <PlaceSelectionProvider>
             <TopPlacesProvider>
               <GeoSearchProvider>
-                <Map mapRef={mapRef} />
+                <MapLocationNavigationProvider>
+                  <Map mapRef={mapRef} />
 
-                <div className="map-safe-area">
-                  <DrawerStateProvider>
-                    <DrawerMapViewportSync mapRef={mapRef} />
-                    <MapToolbar mapRef={mapRef} />
-                    
-                    <PlaceDetailCardProvider>
-                      {!isMobile && <DesktopPanel mapRef={mapRef} />}
+                  <div className="map-safe-area">
+                    <DrawerStateProvider>
+                      <DrawerMapViewportSync mapRef={mapRef} />
+                      <MapToolbar mapRef={mapRef} />
 
-                      <BubbleAvatarStateProvider>
-                        <SlideUpDrawer mapRef={mapRef} />
-                        {!isMobile && <BubbleAvatar mapRef={mapRef} />}
-                      </BubbleAvatarStateProvider>
+                      <PlaceDetailCardProvider>
+                        {!isMobile && <DesktopPanel mapRef={mapRef} />}
 
-                    </PlaceDetailCardProvider>
+                        <BubbleAvatarStateProvider>
+                          <SlideUpDrawer mapRef={mapRef} />
+                          {!isMobile && <BubbleAvatar mapRef={mapRef} />}
+                        </BubbleAvatarStateProvider>
 
-                  </DrawerStateProvider>
-                </div>
+                      </PlaceDetailCardProvider>
+
+                    </DrawerStateProvider>
+                  </div>
+                </MapLocationNavigationProvider>
 
               </GeoSearchProvider>
             </TopPlacesProvider>

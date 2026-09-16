@@ -38,7 +38,7 @@ const GeoSearchbarMaptiler: React.FC<{
 
   return (
     <div ref={rootRef} className="geo-searchbar-root">
-      <div className="geo-searchbar-and-dropdown">
+      <div className={`geo-searchbar-and-dropdown ${query ? 'is-active' : ''}`}>
         <GeoSearchInputBox
           inputRef={inputRef}
           queryStr={query}

@@ -75,10 +75,9 @@ SQL_NEARBY_PRICE = """
 """
 
 SQL_CITYWIDE_CUISINE = """
-    SELECT cuisine_type AS cuisine, COUNT(*)::INT AS count
+  SELECT COALESCE(cuisine_type, 'Unspecified') AS cuisine, COUNT(*)::INT AS count
     FROM places
     WHERE city_slug = $1
-      AND cuisine_type IS NOT NULL
       AND (
             $2 = '__all__'  -- no filter, all venues
             OR ($2 = '__null__' AND venue_type IS NULL)
@@ -97,12 +96,11 @@ SQL_CITYWIDE_CUISINE = """
 """
 
 SQL_VIEW_CUISINE = """
-    SELECT cuisine_type AS cuisine, COUNT(*)::INT AS count
+  SELECT COALESCE(cuisine_type, 'Unspecified') AS cuisine, COUNT(*)::INT AS count
     FROM places
     WHERE city_slug = $1
       AND lat BETWEEN $2 AND $3
       AND lon BETWEEN $4 AND $5
-      AND cuisine_type IS NOT NULL
       AND (
             $6 = '__all__'  -- no filter, all venues
             OR ($6 = '__null__' AND venue_type IS NULL)
@@ -121,7 +119,7 @@ SQL_VIEW_CUISINE = """
 """
 
 SQL_NEARBY_CUISINE = """
-    SELECT cuisine_type AS cuisine, COUNT(*)::INT AS count
+    SELECT COALESCE(cuisine_type, 'Unspecified') AS cuisine, COUNT(*)::INT AS count
     FROM places
     WHERE city_slug = $1
       AND ST_DWithin(
@@ -129,7 +127,6 @@ SQL_NEARBY_CUISINE = """
             ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography,
             $4
           )
-      AND cuisine_type IS NOT NULL
       AND (
             $5 = '__all__'  -- no filter, all venues
             OR ($5 = '__null__' AND venue_type IS NULL)
