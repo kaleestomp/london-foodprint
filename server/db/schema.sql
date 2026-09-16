@@ -112,6 +112,7 @@ CREATE INDEX idx_places_city_operational      ON places (city_slug, operational)
 -- 4. SPATIAL & H3 LOOKUP INDEXES
 -- Drives PostGIS ST_DWithin distance checks (nearby API & radius histograms)
 CREATE INDEX idx_places_geom                  ON places USING GIST (geom);
+CREATE INDEX idx_places_geom_geography        ON places USING GIST ((geom::geography));
 -- Drives H3 cell lookups (nearby API k-ring filtering)
 CREATE INDEX idx_places_city_h3_r10           ON places (city_slug, h3_r10);
 CREATE INDEX idx_places_city_h3_r9            ON places (city_slug, h3_r9);

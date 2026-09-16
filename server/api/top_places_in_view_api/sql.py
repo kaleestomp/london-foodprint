@@ -73,3 +73,39 @@ TOP_PLACES_IN_VIEW_RADIUS_SQL = """
     ORDER BY normal_1 DESC NULLS LAST, id ASC
     LIMIT $9
 """
+
+TOP_PLACES_IN_VIEW_GEOMETRY_SQL = """
+    SELECT
+      id,
+      display_name AS restaurant_name,
+      cuisine_type,
+      lat,
+      lon,
+      normal_1,
+      {rank_column} AS rank
+    FROM places
+    WHERE city_slug = $1
+      AND {spatial_predicate}
+      AND (
+            CARDINALITY($4::TEXT[]) = 0
+            OR (CARDINALITY($4::TEXT[]) > 0 AND (
+                  cuisine_type = ANY(ARRAY_REMOVE($4::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($4::TEXT[]) AND cuisine_type IS NULL)
+                ))
+          )
+      AND (
+            $5 = '__all__'
+            OR ($5 = '__null__' AND venue_type IS NULL)
+            OR ($5 != '__all__' AND $5 != '__null__' AND venue_type = $5)
+          )
+      AND (
+            CARDINALITY($6::TEXT[]) = 0
+            OR (CARDINALITY($6::TEXT[]) > 0 AND (
+                  cost = ANY(ARRAY_REMOVE($6::TEXT[], '__null__'))
+                  OR ('__null__' = ANY($6::TEXT[]) AND cost IS NULL)
+                ))
+          )
+      AND {rank_column} >= $7
+    ORDER BY normal_1 DESC NULLS LAST, id ASC
+    LIMIT $8
+"""
