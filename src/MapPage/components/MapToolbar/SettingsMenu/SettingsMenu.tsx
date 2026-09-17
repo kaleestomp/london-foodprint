@@ -10,7 +10,6 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
 import BubbleChartIcon from '@mui/icons-material/BubbleChart';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
-import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 
 import { useAppUI } from '../../../../context/AppUIContext';
 import { useCityContext, type cityOptions } from '../../../../context/CityContext';
@@ -26,7 +25,6 @@ const SettingsMenu: React.FC = () => {
   const {
     heatmapEnabled,
     toggleHeatmapEnabled,
-    topPlacesEnabled,
   } = useAppUI();
   const { venueType, setVenueType } = useSearchFilters();
 
@@ -98,13 +96,13 @@ const SettingsMenu: React.FC = () => {
                 selected={heatmapEnabled}
                 onClick={toggleHeatmapEnabled}
               />
-              <RatingCard
+              {/* <RatingCard
                 icon={<StarsRoundedIcon />}
                 label="Top 10s"
                 selected={topPlacesEnabled}
                 disabled
                 onClick={() => {}}
-              />
+              /> */}
             </div>
           </section>
 
