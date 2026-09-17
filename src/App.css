@@ -82,3 +82,32 @@ html[data-theme='dark'] {
     --app-toolbar-height: 56px;
   }
 }
+
+.mobile-only-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  box-sizing: border-box;
+  background: #fff;
+  color: var(--app-primary-black);
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  text-align: center;
+}
+
+.mobile-only-screen p {
+  max-width: 280px;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.mobile-only-screen-icon {
+  width: 48px !important;
+  height: 48px !important;
+}
