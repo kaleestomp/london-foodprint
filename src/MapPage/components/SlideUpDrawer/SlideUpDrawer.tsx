@@ -11,7 +11,7 @@ import { useIsMobileCtx } from '../../../context/IsMobileContext';
 
 import './Styling/drawerRoot.css';
 
-export const SNAP_HEIGHTS = ['104px', 0.45, `${window.innerHeight - 96}px`];//400px 200px 94px 320px 104px ${window.innerHeight - 28}px
+export const SNAP_HEIGHTS = ['104px', '380px', `${window.innerHeight - 96}px`];//400px 200px 94px 320px 104px ${window.innerHeight - 28}px
 
 const SlideUpDrawer: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;

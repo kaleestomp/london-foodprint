@@ -10,7 +10,7 @@
   
   /* ADD FLOATING GAP */
   --drawer-home-height: 104px;
-  --drawer-open-height: 45vh; /* previously 400px KEEP IT MATCHED WITH SNAP_HEIGHTS */
+  --drawer-open-height: 380px; /* previously 400px KEEP IT MATCHED WITH SNAP_HEIGHTS */
   --inset-is-closed: 25px;
   --inset-is-open: 0px; /* previously 8px */
   --screen-notch-radius: 60px;
