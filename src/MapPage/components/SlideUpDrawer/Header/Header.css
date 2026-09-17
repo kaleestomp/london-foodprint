@@ -1,20 +1,30 @@
+.drawer-header-slot {
+  block-size: var(--drawer-header-height);
+  overflow: clip;
+  transition: block-size 200ms ease 200ms;
+}
+.drawer-header-slot.is-hidden {
+  block-size: 0;
+}
 .drawer-header {
-  flex: 0 0 var(--drawer-header-height);
-  min-height: 0;
-  overflow: hidden;
-  transition: 
-    flex-basis 400ms ease 200ms, 
-    margin 400ms ease 200ms, 
-    opacity 180ms ease 200ms;
+  block-size: var(--drawer-header-height);
+  transform: translateY(0);
+  opacity: 1;
 
   user-select: none;
+  touch-action: none;
+  transition: 
+    transform 180ms ease,
+    opacity 180ms ease;
+  will-change: transform, opacity;
 }
+
 .drawer-header.is-open {
-  margin: 8px 8px 0;
+  margin-inline: 8px;
+  margin-block-start: 8px;
 }
-.drawer-header.is-hidden {
-  flex-basis: 0; 
-  margin: 0; 
+.drawer-header-slot.is-hidden .drawer-header {
+  transform: translateY(-8px);
   opacity: 0;
   pointer-events: none;
 }

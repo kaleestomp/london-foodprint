@@ -23,11 +23,12 @@ const Header: FC = () => {
   const mountOverview = showSettings || !mountPlaceDetail;
   
   return (
-    <div className={`drawer-header ${hideHeader ? 'is-hidden' : !isClosed ? 'is-open' : ''}`}>
-      {mountOverview && <Overview />}
-      {mountPlaceDetail && <PlaceHeader placeId={selectedPlaceId} compact={showPlaceCompact} />}
+    <div className={`drawer-header-slot ${hideHeader ? 'is-hidden' : ''}`}>
+      <div className={`drawer-header ${!isClosed ? 'is-open' : ''}`}>
+        {mountOverview && <Overview />}
+        {mountPlaceDetail && <PlaceHeader placeId={selectedPlaceId} compact={showPlaceCompact} />}
+      </div>
     </div>
-    
   );
 };
 

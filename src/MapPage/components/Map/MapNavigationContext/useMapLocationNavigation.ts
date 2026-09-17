@@ -6,15 +6,14 @@ import { useMapLocationNavigationState } from './MapLocationNavigationContext';
 import useMapViewportNavigation from './useMapViewportNavigation';
 import { type LocationTarget } from '../../BubbleAvatar/config';
 import { geometryBbox } from '../StyleLayer/BoundaryLayer/featureBbox';
-import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
 
 const useMapLocationNavigationController = (
   mapRef: React.RefObject<maplibregl.Map | null>,
+  snapPX: number | null,
 ): void => {
   const { liveLocation } = useAppUI();
   const { reportSettled } = useMapLocationNavigationState();
   const { focusMap } = useMapViewportNavigation( mapRef );
-  const { snapPX } = useDrawerState();
   const handledTokenRef = useRef<number | null>(null);
 
   const targetLocation = useMemo<LocationTarget | null>(() => (
