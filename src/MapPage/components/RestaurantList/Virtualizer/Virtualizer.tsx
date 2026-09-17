@@ -1,6 +1,4 @@
 import { useLayoutEffect, type FC } from 'react';
-
-import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type * as maplibregl from 'maplibre-gl';
 
@@ -20,7 +18,6 @@ const Virtualizer: FC<{
 }> = ({ mapRef, items, scrollRef, scrollResetEpoch, onSelect }) => {
 
     // SELECTION STATE
-    const { selectionSource } = usePlaceSelection();
     const [selectedItemKey, setSelectedItemKey] = useSelectedItemKey(items, mapRef);
 
     // VIRTUALIZER
@@ -32,36 +29,13 @@ const Virtualizer: FC<{
         overscan: 5, //2
         scrollPaddingStart: -10,
     });
+    
     // SYNC VIRTUALIZER OFFSET AFTER A REFRESHED LIST HAS SETTLED
     useLayoutEffect(() => {
         rowVirtualizer.scrollToOffset(0, { behavior: 'auto' });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scrollResetEpoch]);
 
-    // // ALIGN THE NEAREST ROW ON COMMAND.
-    // useLayoutEffect(() => {
-    //     const nearestIndex = rowVirtualizer.range?.startIndex;
-    //     if (nearestIndex === undefined) return;
-    //     rowVirtualizer.scrollToIndex(nearestIndex, {
-    //         align: 'auto',
-    //         behavior: 'auto',
-    //     });
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [unmatchedPlaceId]);
-
-    // KEEP THE SELECTED ROW IN VIEW WHEN THE SELECTION COMES FROM THE MAP.
-    useLayoutEffect(() => {
-        if (!selectedItemKey) return;
-        if (selectionSource !== 'map') return;
-
-        const index = items.findIndex((row) => getListItemKey(row.id) === selectedItemKey);
-        if (index < 0) return;
-
-        rowVirtualizer.scrollToIndex(index, {
-            align: 'center', //start
-            behavior: 'smooth',
-        });
-    }, [items, rowVirtualizer, selectedItemKey, selectionSource]);
 
     return (
         <div className="list-virtualizer" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>

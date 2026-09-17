@@ -4,16 +4,13 @@ import type * as maplibregl from 'maplibre-gl';
 import { useCityContext } from '../../../context/CityContext';
 import { useIsMobileCtx } from '../../../context/IsMobileContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
-// import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
 import useFetchInfinitePlacesList from './InputHook/useFetchInfinitePlacesList';
-import useReportSelectionNotInList from './useReportSelectionNotInList';
 import ListLoading from './SkeletonCard/ListLoading';
 import NoResults from './SkeletonCard/NoResult';
 import RefreshButton from './RefreshButton/RefreshButton';
 import useScrollState from './Virtualizer/useScrollState';
 import useRefreshState from './RefreshButton/useRefreshState';
 import Virtualizer from './Virtualizer/Virtualizer';
-// import PlaceholderListItem from '../RestaurantList/PlaceholderListItem/PlaceholderListItem';
 import useClearOnDrawerClose from './useClearOnClose';
 
 import './RestaurantList.css';
@@ -45,10 +42,6 @@ const RestaurantList: FC<{
   const { status, res, hasNextPage, isFetchingNextPage, fetchNextPage, isListStale, filterKey
   } = useFetchInfinitePlacesList(reset, pageSize, enableCall);
   const items = enableCall ? (res?.data ?? []) : [];
-  
-  // UNMATCHED SELECTED PLACE ID
-  // Selected cluster singleton marker with no matching row in the loaded list.
-  useReportSelectionNotInList(items, status);
 
   // FILTER OR CITY CHANGE STARTS LIVE-REFRESH
   const { citySlug } = useCityContext();
@@ -70,43 +63,24 @@ const RestaurantList: FC<{
   const showRefreshButton = uiAvaliable && (refreshAvaliable || isRefreshPending);
   const wrapperClass = "list-scroll-content"; //`list-scroll-content${hidden ? ' is-hidden' : ''}`;
 
-  // SKELETON STATE
-  if (!enabled) {
-    return (
-      <>
-        {/* {unmatchedPlaceId && (
-          <div className="placeholder-list-item">
-            <PlaceholderListItem placeId={unmatchedPlaceId} />
-          </div>
-        )} */}
-        <div className={wrapperClass}>
-          <div className="list-section">
-            <ListLoading enabled rowCount={isMobile ? 8 : 20} />
-          </div>
-        </div>
-      </>
-    );
-  }
-
   // DEFAULT STATE
-  return (
-    <>
-      {/* {unmatchedPlaceId && (
-        <div className="placeholder-list-item">
-          <PlaceholderListItem placeId={unmatchedPlaceId} />
-        </div>
-      )} */}
-      <div ref={scrollRef} className={wrapperClass} onScroll={onScroll}>
-        <RefreshButton onListRefresh={onListRefresh} isVisible={showRefreshButton} isLoading={isRefreshPending} />
-        <div className={`list-section${fadeRefreshBtn ? ' list-fade-in' : ''}`} onAnimationEnd={fadeRefreshBtn ? onRefreshAnimationEnd : undefined} >
-          <ListLoading enabled={status === 'loading' && items.length === 0} rowCount={isMobile ? 6 : 12} />
-          <NoResults enabled={status !== 'loading' && items.length === 0} />
-          <Virtualizer mapRef={mapRef} items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} onSelect={() => setLiveRefresh(false)} />
-          <ListLoading enabled={isFetchingNextPage} rowCount={3} />
-        </div>
+  return enabled ? (
+    <div ref={scrollRef} className={wrapperClass} onScroll={onScroll}>
+      <RefreshButton onListRefresh={onListRefresh} isVisible={showRefreshButton} isLoading={isRefreshPending} />
+      <div className={`list-section${fadeRefreshBtn ? ' list-fade-in' : ''}`} onAnimationEnd={fadeRefreshBtn ? onRefreshAnimationEnd : undefined} >
+        <ListLoading enabled={status === 'loading' && items.length === 0} rowCount={isMobile ? 6 : 12} />
+        <NoResults enabled={status !== 'loading' && items.length === 0} />
+        <Virtualizer mapRef={mapRef} items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} onSelect={() => setLiveRefresh(false)} />
+        <ListLoading enabled={isFetchingNextPage} rowCount={3} />
       </div>
-    </>
+    </div>
 
+  ) : ( // SKELETON STATE
+    <div className={wrapperClass}>
+      <div className="list-section">
+        <ListLoading enabled rowCount={isMobile ? 8 : 20} />
+      </div>
+    </div>
   );
 };
 

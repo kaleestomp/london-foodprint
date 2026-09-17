@@ -12,10 +12,11 @@ const Header: FC = () => {
   
   const { activeToolbarTab } = useAppUI();
   const { isClosed } = useDrawerState();
-  const { showOnList: showPlaceOnList, showOnDrawer: showPlace } = usePlaceDetailCardState();
-  const { selectedPlaceId } = usePlaceSelection();
+  const { showOnMainDrawer: showPlace } = usePlaceDetailCardState();
+  const { selectedPlaceId, selectionSource } = usePlaceSelection();
 
-  const hideHeader = showPlaceOnList;// || activeToolbarTab === 'cuisine';
+  // HIDE HEADER ONLY IF SELECTION IS FROM LIST
+  const hideHeader = selectionSource === 'list';
   const showSettings = Boolean(activeToolbarTab);
   const showPlaceCompact = showPlace ? (showPlace && isClosed)
     : (isClosed && Boolean(selectedPlaceId));

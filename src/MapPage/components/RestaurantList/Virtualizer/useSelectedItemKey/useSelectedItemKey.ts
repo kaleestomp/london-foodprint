@@ -6,7 +6,7 @@ import useAddTempMarker from './useAddTempMarker/useAddTempMarker';
 import useFocusCamera from './focusCamera';
 import { type PlacesListItem } from '../../../../request/useRequestPlacesList/request'
 import useTargetLayer from './useTargetLayer';
-import useManageSelectionContext from './useManageSelectionContext/useManageSelectionContext';
+import useReportSelectionForMapPaint from './useReportSelectionForMapPaint';
 
 export const getListItemKey = (id: string): string => id;
 const useSelectedItemKey = (
@@ -54,9 +54,9 @@ const useSelectedItemKey = (
     }
   }, [items, selectedItemKey]);
 
-  // REPORT / CLEAR SELECTED ITEM TO CONTEXT
+  // REPORT / CLEAR SELECTED ITEM ON MAP LAYERS
   const targetLayer = useTargetLayer(selectedItem);
-  useManageSelectionContext(selectedItem, targetLayer);
+  useReportSelectionForMapPaint(selectedItem, targetLayer);
   
   // RENDER NEW MARKER IF NOT FOUND IN TOP PLACES MARKERS
   useAddTempMarker(mapRef, selectedItem, (targetLayer !== 'topPlaces'));

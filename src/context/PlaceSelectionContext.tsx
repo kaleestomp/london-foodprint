@@ -4,7 +4,7 @@ export type SelectedLayer = 'topPlaces' | 'cluster' | 'temporary';
 export type selectionSource = 'map' | 'list';
 type PlaceSelectionContextType = {
   selectedPlaceId: string | null;
-  selectedLayer: SelectedLayer | null;
+  targetPaintLayer: SelectedLayer | null;
   selectionSource: selectionSource | null;
   reportSelectedPlaceId: (placeId: string | null, layer: SelectedLayer | null, source?: selectionSource) => void;
   clearSelection: () => void;
@@ -14,7 +14,7 @@ const PlaceSelectionContext = createContext<PlaceSelectionContextType | null>(nu
 
 export const PlaceSelectionProvider = ({ children }: { children: ReactNode }) => {
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
-  const [selectedLayer, setSelectedLayer] = useState<SelectedLayer | null>(null);
+  const [targetPaintLayer, setTargetPaintLayer] = useState<SelectedLayer | null>(null);
   const [selectionSource, setSelectionSource] = useState<selectionSource | null>(null);
   
   const reportSelectedPlaceId = useCallback((
@@ -23,18 +23,18 @@ export const PlaceSelectionProvider = ({ children }: { children: ReactNode }) =>
     source: selectionSource = 'map'
   ) => {
     setSelectedPlaceId(placeId);
-    setSelectedLayer(layer);
+    setTargetPaintLayer(layer);
     setSelectionSource(source);
   }, []);
   const clearSelection = useCallback(() => {
     setSelectedPlaceId(null);
-    setSelectedLayer(null);
+    setTargetPaintLayer(null);
     setSelectionSource(null);
   }, []);
 
   const value = useMemo<PlaceSelectionContextType>(() => ({
-    selectedPlaceId, selectedLayer, selectionSource, reportSelectedPlaceId, clearSelection
-  }), [selectedPlaceId, selectedLayer, selectionSource, reportSelectedPlaceId, clearSelection]);
+    selectedPlaceId, targetPaintLayer, selectionSource, reportSelectedPlaceId, clearSelection
+  }), [selectedPlaceId, targetPaintLayer, selectionSource, reportSelectedPlaceId, clearSelection]);
 
   return <PlaceSelectionContext.Provider value={value}>{children}</PlaceSelectionContext.Provider>;
 };
