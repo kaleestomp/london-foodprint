@@ -3,7 +3,7 @@
   --app-layout-gap: 20px;
   --app-layout-margin: 20px;
   --app-layout-margin-top: var(--app-layout-margin);
-  --left-panel-width: clamp(400px, 30vw, 500px);
+  --left-panel-width: 400px;
 
   /* CARD */
   --app-card-border: 1px solid rgba(255, 255, 255, 0.5);

@@ -20,9 +20,9 @@ import MapToolbar from './components/MapToolbar/MapToolbar';
 import DrawerMapViewportSync from './components/MapViewportSync/DrawerMapViewportSync';
 import DesktopPanel from './components/DesktopPanel/DesktopPanel';
 import { BubbleAvatarStateProvider } from './components/BubbleAvatar/BubbleAvatarStateContext';
-import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 
 import SlideUpDrawer from './components/SlideUpDrawer/SlideUpDrawer.tsx';
+import DesktopDock from './components/DesktopDock/DesktopDock';
 
 // import { useCityContext } from '../context/CityContext';
 
@@ -61,8 +61,9 @@ const MapPage: FC = () => {
                         {!isMobile && <DesktopPanel mapRef={mapRef} />}
 
                         <BubbleAvatarStateProvider>
-                          <SlideUpDrawer mapRef={mapRef} />
-                          {!isMobile && <BubbleAvatar mapRef={mapRef} />}
+                          {isMobile
+                            ? <SlideUpDrawer mapRef={mapRef} />
+                            : <DesktopDock mapRef={mapRef} />}
                         </BubbleAvatarStateProvider>
 
                       </PlaceDetailCardProvider>

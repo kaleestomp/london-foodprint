@@ -82,10 +82,25 @@
 /* DESKTOP SIZE */
 @media (min-width: 551px) {
   .map-toolbar {
-    --toolbar-height: 60px;
+    /* --toolbar-height: 60px;
     --toolbar-icon-size: 40px;
-    --toolbar-button-gap: 20px;
+    --toolbar-button-gap: 20px; */
     justify-content: flex-end;
+  }
+
+  /* Keep the search control centred against the viewport, not against the
+     remaining toolbar space beside the desktop panel. */
+  .map-toolbar > .geo-searchbar-root {
+    position: fixed;
+    top: var(--app-layout-margin-top);
+    left: 50%;
+    width: min(400px, calc(100vw - (var(--app-layout-margin) * 2)));
+    margin: 0;
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+  .map-toolbar > .geo-searchbar-root .geo-searchbar-and-dropdown {
+    max-width: 400px;
   }
 
   .map-toolbar-fab svg,

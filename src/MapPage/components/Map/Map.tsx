@@ -13,7 +13,7 @@ type Props = {
   mapRef?: React.RefObject<maplibregl.Map | null>;
 };
 const Map: React.FC<Props> = ({ mapRef: externalMapRef }) => {
-  const { mapContainerRef, mapRef } = BaseLayer(externalMapRef, false);
+  const { mapContainerRef, mapRef } = BaseLayer(externalMapRef, true);
   const viewportParams = onUserRoam(mapRef);
   const { setViewportParams } = useViewportQuery();
 

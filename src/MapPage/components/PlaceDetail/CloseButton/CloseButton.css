@@ -18,3 +18,17 @@
 .place-detail-show-more:hover {
     filter: brightness(1.1);
 }
+
+.place-detail-show-more.icon-mode {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    place-items: center;
+    border-radius: 50%;
+}
+
+.place-detail-show-more.icon-mode svg {
+    font-size: 25px;
+}

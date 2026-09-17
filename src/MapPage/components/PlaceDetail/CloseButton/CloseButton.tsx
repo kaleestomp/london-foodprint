@@ -1,16 +1,18 @@
 import type { FC } from 'react';
-import './ShowMoreButton.css';
 
-const ShowMoreButton: FC<{
+import './CloseButton.css';
+
+const CloseButton: FC<{
     onClick: () => void;
 }> = ({ onClick }) => (
     <button
         type="button"
         className="place-detail-show-more"
+        aria-label="close"
         onClick={onClick}
     >
         More Listings
     </button>
 );
 
-export default ShowMoreButton;
+export default CloseButton;

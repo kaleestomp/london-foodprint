@@ -1,0 +1,130 @@
+.desktop-dock {
+  --desktop-dock-width: 400px;
+  --desktop-dock-height: 104px;
+  --desktop-dock-expanded-height: 380px;
+
+  position: fixed;
+  z-index: 20;
+  right: 50%;
+  bottom: var(--app-layout-margin);
+  display: flex;
+  width: var(--desktop-dock-width);
+  height: var(--desktop-dock-height);
+  max-width: calc(100vw - (var(--app-layout-margin) * 2));
+  flex-direction: column;
+  overflow: visible;
+  transform: translateX(50%);
+  border: var(--drawer-outline);
+  border-radius: var(--border-radius-is-closed);
+  background: var(--drawer-bg);
+  box-shadow: var(--drawer-shadow);
+  transition:
+    width var(--default-transition),
+    height var(--default-transition),
+    border-radius var(--default-transition),
+    box-shadow var(--default-transition);
+}
+
+/* Keep the desktop filter/avatar controls anchored to the dock rather than
+   the viewport. They intentionally sit slightly above its top edge, as they
+   do above the mobile drawer. */
+.desktop-dock > .above-drawer {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  left: 0;
+  z-index: 10;
+}
+
+/* BubbleAvatar defines these variables on its own root, so overriding them
+   on .desktop-dock alone does not reach the fixed home button. */
+.desktop-dock .bubble-avatar-root {
+  /* --bubble-avatar-home-position-right: calc(50% - (var(--desktop-dock-width) / 2)); */
+  --bubble-avatar-bottom-offset: calc(var(--desktop-dock-height) + 10px);
+}
+.desktop-dock .bubble-btn,
+.desktop-dock .bubble-home-reset {
+  transition:
+    right var(--default-transition),
+    bottom var(--default-transition),
+    margin-right var(--default-transition);
+  will-change: right, bottom;
+}
+
+.desktop-dock > .desktop-dock-header,
+.desktop-dock > .desktop-dock-content {
+  overflow: hidden;
+}
+
+.desktop-dock.is-expanded {
+  width: calc(var(--desktop-dock-width) + 16px);
+  height: var(--desktop-dock-expanded-height);
+  border-radius: 20px; /*var(--border-radius-default)*/
+  box-shadow: var(--drawer-shadow-is-open);
+}
+.desktop-dock.is-expanded .bubble-avatar-root {
+  --bubble-avatar-bottom-offset: calc(var(--desktop-dock-expanded-height) + 10px);
+}
+
+.desktop-dock-header {
+  flex: 0 0 var(--desktop-dock-height);
+  min-height: 0;
+  cursor: default;
+}
+
+.desktop-dock-header[role='button'] {
+  cursor: pointer;
+}
+
+.desktop-dock-header:focus-visible {
+  outline: 2px solid var(--app-primary-blue);
+  outline-offset: -2px;
+}
+
+.desktop-dock-header .drawer-header-slot,
+.desktop-dock-header .drawer-header {
+  height: var(--desktop-dock-height);
+}
+
+.desktop-dock-content {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-divider-color) transparent;
+}
+
+.desktop-dock-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.desktop-dock-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.desktop-dock-content::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--app-divider-color);
+}
+
+.desktop-dock-content .place-detail {
+  min-height: 0;
+  border-radius: var(--border-radius-default);
+}
+
+.desktop-dock-collapse-button {
+  position: fixed !important;
+  z-index: 21;
+  bottom: var(--app-layout-margin);
+  left: calc(50% + 224px);
+  width: 40px;
+  height: 40px;
+  color: var(--app-paper-color) !important;
+  background: var(--app-primary-black) !important;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 24%);
+}
+
+.desktop-dock-collapse-button:hover {
+  filter: brightness(1.1);
+  background: var(--app-primary-black) !important;
+}

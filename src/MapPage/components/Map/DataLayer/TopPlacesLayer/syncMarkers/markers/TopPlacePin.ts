@@ -43,6 +43,7 @@ const TopPlacePin = (placeId?: string, cuisineType?: string): HTMLDivElement => 
     shell.dataset.placeId = placeId;
     shell.style.setProperty('--bubble-color', getCuisineColor(cuisineType));
     shell.style.setProperty('--bubble-size', `${topPlacePinConfig.bubbleSize}px`);
+    shell.style.setProperty('--selected-translateY', `${topPlacePinConfig.selectedTranslateY}px`);
     shell.style.setProperty('--anchor-dot-size', `${topPlacePinConfig.anchorDotSize}px`);
     shell.style.setProperty('--rank-badge-size', `${topPlacePinConfig.rankBadgeSize}px`);
     shell.style.setProperty('--rank-badge-font-size', `${topPlacePinConfig.rankBadgeFontSize}px`);

@@ -51,9 +51,9 @@
 
 @media (min-width: 551px) {
   .bubble-avatar-root {
-    --bubble-avatar-home-position-right: 50px;
+    --bubble-avatar-home-position-right: 0px; /*50*/
     --bubble-avatar-home-position-margin-right: 0px;
-    --bubble-avatar-bottom-offset: 50px;
+    /* --bubble-avatar-bottom-offset: 50px; */
     
   }
 }

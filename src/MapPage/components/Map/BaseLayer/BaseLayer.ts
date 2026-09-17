@@ -8,7 +8,7 @@ import syncMaxPitch from './useCamera/syncMaxPitch';
 import useInvertedMaskLayer from './useMaskLayer/useInvertedMaskLayer';
 import useToggleBuilding3DLayer from './useBuilding3DLayer/useToggleBuilding3DLayer';
 import { useCityContext } from '../../../../context/CityContext';
-// import { useIsMobileCtx } from '../../../../context/IsMobileContext';
+import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -21,7 +21,7 @@ const BaseLayer = (
 } => {
   // const { markInitialLoadItemComplete } = useAppUI();
   const { cityParams } = useCityContext();
-  // const isMobile = useIsMobileCtx();
+  const isMobile = useIsMobileCtx();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const internalMapRef = useRef<maplibregl.Map | null>(null);
   const mapRef = externalMapRef ?? internalMapRef;
@@ -29,9 +29,9 @@ const BaseLayer = (
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current || !cityParams) return;
 
-    // const availableWorkers = navigator.hardwareConcurrency || 1;
-    // const workerCount = isMobile ? 1 : Math.min(4, availableWorkers);
-    setWorkerCount(1);
+    // Keep the mobile map lightweight. Desktop should use MapLibre's default
+    // worker scheduling rather than a strict worker-count override.
+    if (isMobile) setWorkerCount(1);
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: enable ? STYLE_LIGHT : undefined,
@@ -80,7 +80,7 @@ const BaseLayer = (
       map.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isMobile]);
 
   // Recenter + re-bound the existing map when the city changes (city switch).
   useEffect(() => {

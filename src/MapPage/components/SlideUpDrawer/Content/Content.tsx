@@ -5,6 +5,7 @@ import type * as maplibregl from 'maplibre-gl';
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useAppUI } from '../../../../context/AppUIContext';
 import { usePlaceDetailCardState } from '../../../../context/PlaceDetailCardContext';
+
 // import delaySwitch from '../../../../utils/timer/delayTimer';
 import RestaurantList from '../../RestaurantList/RestaurantList';
 import FilterSection from '../../FilterTabs/FilterSection';
@@ -12,6 +13,7 @@ import NestedDrawer from '../NestedDrawer/NestedDrawer';
 import PlaceDetail from '../../PlaceDetail/PlaceDetail';
 
 import './Content.css';
+
 
 const Content: FC<{
     panelUp: boolean;
