@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from api.cache_keys import build_endpoint_cache_key
-from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
+from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column, get_wilson_basis_column
 from api.histogram_api.sql import (
     SQL_CITYWIDE_PRICE,
     SQL_GEOMETRY_PRICE,
@@ -43,6 +43,7 @@ async def get_cost_histogram(
     cuisine: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=2),
+    wilson_basis: int = Query(default=1, ge=0, le=2),
     score_tier: int = Query(default=0, ge=0, le=4),
 ) -> dict[str, Any]:
 
@@ -60,6 +61,7 @@ async def get_cost_histogram(
     cuisine_values = normalize_dimension_list(cuisine)
     venue_value = normalize_dimension(venue_type)
     tier_column = get_score_basis_column(score_basis)
+    get_wilson_basis_column(wilson_basis)
     city_slug = city.lower().strip()
 
     # TRY CITYWIDE CACHE FIRST
@@ -74,6 +76,7 @@ async def get_cost_histogram(
                 ",".join(sorted(cuisine_values)),
                 venue_value,
                 str(score_basis),
+                str(wilson_basis),
                 str(score_tier),
             ],
         )

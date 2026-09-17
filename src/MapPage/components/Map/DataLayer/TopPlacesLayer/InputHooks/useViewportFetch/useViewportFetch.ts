@@ -12,7 +12,7 @@ const useViewportFetch = (
   enabled: boolean = true,
 ): TopPlaceItem[] => {
 
-  const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, searchMask } = useSearchFilters();
+  const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, wilsonBasis, searchMask } = useSearchFilters();
   const { viewportParams } = useViewportQuery();
   const geoParams = resolveConstraint(viewportParams, searchMask);
   const topPlacesParams = useMemo<TopPlacesParams | null>(() => {
@@ -26,12 +26,13 @@ const useViewportFetch = (
       cost: effectivePriceRanges,
       venue_type: venueType ?? undefined,
       score_basis: scoreBasis,
+      wilson_basis: wilsonBasis,
       score_tier: scoreTier,
       limit,
     };
   }, [
     geoParams, effectiveCuisines, effectivePriceRanges,
-    venueType, scoreBasis, scoreTier, enabled,
+    venueType, scoreBasis, scoreTier, wilsonBasis, enabled,
   ]);
   
   const { res } = useRequestTopPlaces(topPlacesParams, { debounceMs: 0 });

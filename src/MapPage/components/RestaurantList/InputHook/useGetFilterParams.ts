@@ -4,7 +4,7 @@ import { type PlacesListParams } from '../../../request/useRequestPlacesList/use
 
 type FilterParams = Pick<
     PlacesListParams, 
-    'cuisines' | 'cost' | 'venue_type' | 'score_basis' 
+    'cuisines' | 'cost' | 'venue_type' | 'score_basis' | 'wilson_basis'
 >;
 
 const useGetFilterParams = (): {
@@ -13,16 +13,17 @@ const useGetFilterParams = (): {
 } => {
 
     const { effectiveCuisines, effectivePriceRanges, 
-        venueType, scoreBasis } = useSearchFilters();
+        venueType, scoreBasis, wilsonBasis } = useSearchFilters();
 
     const filterParams = useMemo(() => ({
         cuisines: effectiveCuisines,
         cost: effectivePriceRanges,
         venue_type: venueType ?? '',
         score_basis: scoreBasis,
+        wilson_basis: wilsonBasis,
         // score_tier: scoreTier,
     }), [effectiveCuisines, effectivePriceRanges, 
-        venueType, scoreBasis]);
+        venueType, scoreBasis, wilsonBasis]);
 
     // Stable string key representing active filters 
     // — changes trigger page reset
@@ -31,7 +32,8 @@ const useGetFilterParams = (): {
         [...effectivePriceRanges].sort((a, b) => a.localeCompare(b)).join('|'),
         venueType ?? '',
         String(scoreBasis),
-    ].join('||'), [effectiveCuisines, effectivePriceRanges, venueType, scoreBasis]);
+        String(wilsonBasis),
+    ].join('||'), [effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, wilsonBasis]);
 
     return { filterParams, filterKey };
 };

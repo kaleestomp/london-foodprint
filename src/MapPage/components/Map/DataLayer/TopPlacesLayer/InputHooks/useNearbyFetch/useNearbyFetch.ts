@@ -10,7 +10,7 @@ const useNearbyFetch = (
   enabled?: boolean,
 ): TopPlaceItem[] => {
 
-  const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, searchMask } = useSearchFilters();
+  const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, wilsonBasis, searchMask } = useSearchFilters();
   const nearbyTopPlacesParams = useMemo<TopPlacesParams | null>(() => {
     if (!enabled || !searchMask) return null;
     return {
@@ -19,12 +19,13 @@ const useNearbyFetch = (
       venue_type: venueType ?? undefined,
       cost: effectivePriceRanges,
       score_basis: scoreBasis,
+      wilson_basis: wilsonBasis,
       score_tier: scoreTier,
       limit,
     };
   }, [
     searchMask, effectiveCuisines, effectivePriceRanges,
-    venueType, scoreBasis, scoreTier, enabled, limit,
+    venueType, scoreBasis, scoreTier, wilsonBasis, enabled, limit,
   ]);
 
   const { res, queryKey, responseKey } = useRequestTopPlaces(nearbyTopPlacesParams, { debounceMs: 0 });

@@ -57,6 +57,7 @@ async def get_places_count(
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=2),
+    wilson_basis: int = Query(default=1, ge=0, le=2),
     score_tier: int = Query(default=0, ge=0, le=4),
     requestTierRep: bool = Query(default=False),
 ) -> dict[str, Any]:

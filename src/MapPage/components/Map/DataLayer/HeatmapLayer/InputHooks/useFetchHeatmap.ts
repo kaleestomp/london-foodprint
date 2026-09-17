@@ -10,7 +10,7 @@ const useFetchHeatmap = (
   enabled: boolean = true,
 ): { status: string; geojson: GeoJSON.FeatureCollection<GeoJSON.Point> } => {
 
-  const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier } = useSearchFilters();
+  const { effectiveCuisines, effectivePriceRanges, venueType, scoreBasis, scoreTier, wilsonBasis } = useSearchFilters();
   const heatmapParams = useMemo<HeatmapParams | null>(() => {
     if (!enabled) return null;
     return {
@@ -18,11 +18,12 @@ const useFetchHeatmap = (
       cost: effectivePriceRanges,
       venue_type: venueType ?? undefined,
       score_basis: scoreBasis,
+      wilson_basis: wilsonBasis,
       score_tier: scoreTier,
     };
   }, [
     effectiveCuisines, effectivePriceRanges,
-    venueType, scoreBasis, scoreTier, enabled,
+    venueType, scoreBasis, scoreTier, wilsonBasis, enabled,
   ]);
   const { status, res } = useRequestHeatmap(heatmapParams);
   

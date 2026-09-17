@@ -21,6 +21,7 @@ export interface PriceHistogramParams extends SearchMaskRequestParams {
   cuisines?: string[];
   venue_type?: string;
   score_basis?: 0 | 1 | 2;
+  wilson_basis?: 0 | 1 | 2;
   score_tier?: 0 | 1 | 2 | 3 | 4;
 }
 

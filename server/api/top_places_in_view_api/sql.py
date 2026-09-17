@@ -30,8 +30,8 @@ TOP_PLACES_IN_VIEW_BBOX_SQL = """
                   OR ('__null__' = ANY($8::TEXT[]) AND cost IS NULL)
                 ))
           )
-      AND {rank_column} >= $9
-    ORDER BY normal_1 DESC NULLS LAST, id ASC
+      AND {tier_column} >= $9
+    ORDER BY {rank_column} DESC NULLS LAST, id ASC
     LIMIT $10
 """
 
@@ -69,8 +69,8 @@ TOP_PLACES_IN_VIEW_RADIUS_SQL = """
                   OR ('__null__' = ANY($7::TEXT[]) AND cost IS NULL)
                 ))
           )
-      AND {rank_column} >= $8
-    ORDER BY normal_1 DESC NULLS LAST, id ASC
+      AND {tier_column} >= $8
+    ORDER BY {rank_column} DESC NULLS LAST, id ASC
     LIMIT $9
 """
 
@@ -105,7 +105,7 @@ TOP_PLACES_IN_VIEW_GEOMETRY_SQL = """
                   OR ('__null__' = ANY($6::TEXT[]) AND cost IS NULL)
                 ))
           )
-      AND {rank_column} >= $7
-    ORDER BY normal_1 DESC NULLS LAST, id ASC
+      AND {tier_column} >= $7
+    ORDER BY {rank_column} DESC NULLS LAST, id ASC
     LIMIT $8
 """

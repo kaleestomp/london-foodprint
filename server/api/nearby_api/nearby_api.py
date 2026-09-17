@@ -3,7 +3,7 @@ from typing import Any
 
 import h3
 from fastapi import APIRouter, Query, Request
-from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
+from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column, get_wilson_basis_column
 from api.nearby_api.sql import SQL_NEARBY
 from api.map_util.map_util import PAGE_SIZE_ON_REQUEST
 
@@ -21,6 +21,7 @@ async def get_nearby(
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=2),
+    wilson_basis: int = Query(default=1, ge=0, le=2),
     score_tier: int = Query(default=0, ge=0, le=4),
     page: int = Query(default=1, ge=1),
 ) -> dict[str, Any]:
@@ -29,6 +30,7 @@ async def get_nearby(
     cost_values = normalize_dimension_list(cost)
     venue_value = normalize_dimension(venue_type)
     tier_column = get_score_basis_column(score_basis)
+    rank_column = get_wilson_basis_column(wilson_basis)
     city_slug = city.lower().strip()
     center_r10 = h3.latlng_to_cell(lat, lng, 10)
     k = math.ceil(radius_m / 114.2) + 1
@@ -37,7 +39,7 @@ async def get_nearby(
 
     async with request.app.state.pool.acquire() as conn:
         rows = await conn.fetch(
-            SQL_NEARBY.format(rank_column=tier_column, page_size=PAGE_SIZE_ON_REQUEST),
+            SQL_NEARBY.format(rank_column=rank_column, tier_column=tier_column, page_size=PAGE_SIZE_ON_REQUEST),
             city_slug,
             ring_cells,
             lng,

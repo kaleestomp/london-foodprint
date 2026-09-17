@@ -36,3 +36,8 @@ def get_score_basis_column(score_basis: int, model_version: int = 1) -> str:
         return f"tier_d{m}"
     return f"tier_i{m}"
 
+
+def get_wilson_basis_column(wilson_basis: int) -> str:
+    """Return the allow-listed Wilson score column for the selected basis."""
+    basis = wilson_basis if wilson_basis in (0, 1, 2) else 1
+    return f"wilson_{basis}"

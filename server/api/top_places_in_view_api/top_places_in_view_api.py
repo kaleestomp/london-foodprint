@@ -2,7 +2,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
-from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
+from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column, get_wilson_basis_column
 from api.sql_util.spatial import build_geometry_predicate, parse_geometry_search
 from api.top_places_in_view_api.sql import (
     TOP_PLACES_IN_VIEW_BBOX_SQL,
@@ -30,6 +30,7 @@ async def get_top_places_in_view(
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
     score_basis: int = Query(default=0, ge=0, le=2),
+    wilson_basis: int = Query(default=1, ge=0, le=2),
     score_tier: int = Query(default=0, ge=0, le=4),
     limit: int = Query(default=10, ge=1, le=50),
 ) -> dict[str, Any]:
@@ -38,12 +39,14 @@ async def get_top_places_in_view(
     cost_values = normalize_dimension_list(cost)
     venue_value = normalize_dimension(venue_type)
     tier_column = get_score_basis_column(score_basis)
+    rank_column = get_wilson_basis_column(wilson_basis)
     city_slug = city.lower().strip()
     geometry_search = parse_geometry_search(search_type, geometry, radius_m)
 
     if geometry_search is not None:
         query_sql = TOP_PLACES_IN_VIEW_GEOMETRY_SQL.format(
-            rank_column=tier_column,
+            rank_column=rank_column,
+            tier_column=tier_column,
             spatial_predicate=build_geometry_predicate(geometry_search.search_type),
         )
         params = (
@@ -57,12 +60,12 @@ async def get_top_places_in_view(
             limit,
         )
     elif lat is not None and lng is not None and radius_m is not None:
-        query_sql = TOP_PLACES_IN_VIEW_RADIUS_SQL.format(rank_column=tier_column)
+        query_sql = TOP_PLACES_IN_VIEW_RADIUS_SQL.format(rank_column=rank_column, tier_column=tier_column)
         params = (city_slug, lat, lng, radius_m, cuisine_values, venue_value, cost_values, score_tier, limit)
     else:
         if sw_lat is None or sw_lng is None or ne_lat is None or ne_lng is None:
             raise HTTPException(status_code=400, detail='Provide either bbox params or radius params.')
-        query_sql = TOP_PLACES_IN_VIEW_BBOX_SQL.format(rank_column=tier_column)
+        query_sql = TOP_PLACES_IN_VIEW_BBOX_SQL.format(rank_column=rank_column, tier_column=tier_column)
         params = (city_slug, sw_lat, ne_lat, sw_lng, ne_lng, cuisine_values, venue_value, cost_values, score_tier, limit)
 
     async with request.app.state.pool.acquire() as conn:

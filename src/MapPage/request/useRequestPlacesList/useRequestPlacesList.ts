@@ -11,6 +11,7 @@ export const buildQueryKey = (params: PlacesListParams): string => {
     city: params.city ?? 'london',
     venue_type: params.venue_type ?? '',
     score_basis: String(params.score_basis ?? 0),
+    wilson_basis: String(params.wilson_basis ?? 1),
     page_size: String(params.page_size ?? DEFAULT_PAGE_SIZE),
     page: String(params.page ?? 1),
   });

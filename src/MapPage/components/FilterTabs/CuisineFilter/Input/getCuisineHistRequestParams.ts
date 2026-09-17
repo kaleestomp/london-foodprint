@@ -6,7 +6,7 @@ import { buildSearchMaskParams } from '../../../../request/params/buildSearchMas
 
 
 const getCuisineHistRequestParams = () => {
-  const { effectivePriceRanges, venueType, scoreTier, scoreBasis, searchMask } = useSearchFilters();
+  const { effectivePriceRanges, venueType, scoreTier, scoreBasis, wilsonBasis, searchMask } = useSearchFilters();
   const { viewportParams } = useViewportQuery();
 
   const requestParams = useMemo(() => {
@@ -17,6 +17,7 @@ const getCuisineHistRequestParams = () => {
         cost: effectivePriceRanges,
         venue_type: venueType ?? '',
         score_basis: scoreBasis,
+        wilson_basis: wilsonBasis,
         score_tier: scoreTier,
       };
     }
@@ -32,9 +33,10 @@ const getCuisineHistRequestParams = () => {
       cost: effectivePriceRanges,
       venue_type: venueType ?? '',
       score_basis: scoreBasis,
+      wilson_basis: wilsonBasis,
       score_tier: scoreTier,
     };
-  }, [searchMask, viewportParams, effectivePriceRanges, venueType, scoreBasis, scoreTier]);
+  }, [searchMask, viewportParams, effectivePriceRanges, venueType, scoreBasis, scoreTier, wilsonBasis]);
 
   return requestParams;
 };

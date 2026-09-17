@@ -17,6 +17,7 @@ const useFetchPlaceCount = (): {
     venueType,
     scoreBasis,
     scoreTier,
+    wilsonBasis,
     searchMask,
   } = useSearchFilters();
   const { viewportParams } = useViewportQuery();
@@ -30,6 +31,7 @@ const useFetchPlaceCount = (): {
         cost: effectivePriceRanges,
         venue_type: venueType ?? '',
         score_basis: scoreBasis,
+        wilson_basis: wilsonBasis,
         score_tier: scoreTier,
         requestTierRep: true,
       };
@@ -47,6 +49,7 @@ const useFetchPlaceCount = (): {
       cost: effectivePriceRanges,
       venue_type: venueType ?? '',
       score_basis: scoreBasis,
+      wilson_basis: wilsonBasis,
       score_tier: scoreTier,
       requestTierRep: true,
     };
@@ -56,6 +59,7 @@ const useFetchPlaceCount = (): {
     venueType,
     scoreBasis,
     scoreTier,
+    wilsonBasis,
     searchMask,
     viewportParams,
   ]);

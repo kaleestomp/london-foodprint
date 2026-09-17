@@ -2,7 +2,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
-from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column
+from api.sql_util.normalize import normalize_dimension, normalize_dimension_list, get_score_basis_column, get_wilson_basis_column
 from api.sql_util.spatial import build_geometry_predicate, parse_geometry_search
 from api.places_list_api.sql import SQL_PLACES_LIST, SQL_PLACES_LIST_GEOMETRY
 
@@ -26,7 +26,8 @@ async def get_places_list(
     cuisine: list[str] | None = Query(default=None),
     cost: list[str] | None = Query(default=None),
     venue_type: str | None = Query(default=""),
-    rank_column: str = Query(default="normal_1"),
+    rank_column: str | None = Query(default=None),
+    wilson_basis: int = Query(default=1, ge=0, le=2),
     score_basis: int = Query(default=0, ge=0, le=2),
     score_tier: int = Query(default=0, ge=0, le=4),
     page: int = Query(default=1, ge=1),
@@ -46,11 +47,11 @@ async def get_places_list(
         "normal_0": "normal_0",
         "normal_1": "normal_1",
         "normal_2": "normal_2",
-        "wilson_0": "normal_0",
-        "wilson_1": "normal_1",
-        "wilson_2": "normal_2",
+        "wilson_0": "wilson_0",
+        "wilson_1": "wilson_1",
+        "wilson_2": "wilson_2",
     }
-    sort_column = rank_column_map.get(rank_column, "normal_1")
+    sort_column = rank_column_map.get(rank_column, get_wilson_basis_column(wilson_basis))
     # Always reference $13 in SQL — an unreferenced typed parameter makes Postgres
     # raise IndeterminateDatatypeError. tier_* >= 0 is a no-op (tiers are 0–4).
     tier_column = get_score_basis_column(score_basis)

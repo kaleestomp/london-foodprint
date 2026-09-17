@@ -38,9 +38,8 @@ SQL_NEARBY = """
                             OR ('__null__' = ANY($8::TEXT[]) AND cost IS NULL)
                           ))
                     )
-        AND {rank_column} >= $9
+        AND {tier_column} >= $9
     ORDER BY {rank_column} DESC
     LIMIT {page_size}
     OFFSET $10
 """
-
