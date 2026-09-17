@@ -25,13 +25,13 @@ const Content: FC<{
 
     const { activeToolbarTab } = useAppUI();
     const showSettings = Boolean(activeToolbarTab);
-    // const { selectedPlaceId } = usePlaceSelection();
-    const { showOnDrawer: showPlace, showOnNestedDrawer: showPlaceNested, untrackedPlaceId: placeId } = usePlaceDetailCardState();
+
+    const { showOnMainDrawer: showPlace, showOnNestedDrawer, placeId } = usePlaceDetailCardState();
     const hideList = showSettings || showPlace;
 
     return (
         <>
-            <NestedDrawer launch={ showPlaceNested } >
+            <NestedDrawer launch={ showOnNestedDrawer } >
                 <PlaceDetail placeId={placeId} nested />
             </NestedDrawer>
             <div className={`drawer-content${panelUp ? ' open' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
@@ -41,7 +41,10 @@ const Content: FC<{
                     mapRef={mapRef} pageSize={pageSize}
                     resetOverride={!panelUp} enabled={enableList}
                 />}
-                {showPlace && !showSettings && <PlaceDetail placeId={placeId} showHeader={false} />}
+                {showPlace && !showSettings && <PlaceDetail 
+                    placeId={placeId} 
+                    showHeader={false} 
+                />}
 
             </div>
         </>
