@@ -1,0 +1,42 @@
+.settings-dialog-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.settings-dialog-paper {
+    min-width: max(280px, 80vw);
+    border-radius: 20px !important;
+}
+
+.settings-card-section+.settings-card-section {
+    margin-top: 20px;
+}
+
+.settings-card-section h2 {
+    margin: 0 0 10px;
+    color: var(--app-text-caption-color, rgba(0, 0, 0, 0.8));
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.settings-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.settings-card-grid .rating-card {
+    height: 88px;
+    min-height: 88px;
+    box-sizing: border-box;
+}
+
+/* @media (min-width: 551px) {
+  .settings-dialog-content {
+    min-width: 0;
+  }
+} */

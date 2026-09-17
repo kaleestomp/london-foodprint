@@ -32,6 +32,7 @@
     border-radius: calc(var(--geo-searchbar-height) / 2);
     overflow: hidden;
     transition: all 400ms ease;
+    z-index: 20;
 }
 .geo-searchbar-and-dropdown.is-active,
 .geo-searchbar-and-dropdown:hover {

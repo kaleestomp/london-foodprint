@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import type geojson from 'geojson';
 import londonJson from '../assets/cityParams/london.json';
 
@@ -52,6 +53,7 @@ const cityLoaders = import.meta.glob<{ default: geojson.FeatureCollection }>('..
 const londonFc = londonJson as geojson.FeatureCollection;
 
 export const CityProvider = ({ children }: { children: ReactNode }) => {
+  const location = useLocation();
   const [citySlug, setCitySlug] = useState<cityOptions>('london');
   const [cityParams, setCityParams] = useState<CityParams>(() => toCityParams(londonFc, 'london'));
   const [cityBoundary, setCityBoundary] = useState<geojson.FeatureCollection | null>(londonFc);
@@ -74,6 +76,14 @@ export const CityProvider = ({ children }: { children: ReactNode }) => {
     });
 
   }, []);
+
+  useEffect(() => {
+    const pathCity = location.pathname.split('/').filter(Boolean)[0];
+    if (pathCity === 'london' || pathCity === 'newcastle') {
+      reportCity(pathCity);
+    }
+  }, [location.pathname, reportCity]);
+
   const value = useMemo<CityContextType>(() => ({
     citySlug, cityParams, cityBoundary, reportCity
   }), [citySlug, cityParams, cityBoundary, reportCity]);

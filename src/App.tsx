@@ -20,7 +20,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<MapPage />} />
+      <Route path="/:city?" element={<MapPage />} />
     </Routes>
   );
 };

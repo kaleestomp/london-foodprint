@@ -8,6 +8,7 @@ import GeoSearchbar from '../GeoSearch/GeoSearchbar';
 import MyLocationButton from './MyLocationButtonFAB/MyLocationButton';
 // import LayersButton from './LayersButton/LayersButton';
 import NorthResetButton from './NorthResetButton/NorthResetButton';
+import SettingsMenu from './SettingsMenu/SettingsMenu';
 
 import './MapToolbar.css';
 
@@ -27,8 +28,12 @@ const MapToolbar: React.FC<Props> = ({
 
   return (
     <div className={`map-toolbar ${isHidden ? 'map-toolbar-hidden' : ''}${isSearchDropdownOpen ? ' map-toolbar-search-open' : ''}`}>
+      {/* <div className="map-toolbar-menu">
+        <SettingsMenu />
+      </div> */}
       <GeoSearchbar onDropdownOpenChange={setIsSearchDropdownOpen}/>
       <div className="map-toolbar-side-action" aria-hidden={isSearchDropdownOpen}>
+        <SettingsMenu />
         <MyLocationButton onLiveLocationDrop={queueLiveLocationDrop}/>
         <NorthResetButton mapRef={mapRef} />
       </div>

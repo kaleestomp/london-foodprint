@@ -54,9 +54,12 @@ const SimplePie: FC<{
 					flexDirection: 'column',
 					alignItems: 'center',
 					justifyContent: 'center',
+					width: '100%',
+					margin: 'auto',
 					fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 					textAlign: 'center',
 					lineHeight: 1,
+					maxWidth: '72px',
 					pointerEvents: 'none',
 				}}
 			>
@@ -82,7 +85,17 @@ const SimplePie: FC<{
 								%
 							</Typography>
 						</span>
-						<Typography variant="caption" sx={{ fontSize: 10, lineHeight: 1.0 }}>
+						<Typography
+							variant="caption"
+							sx={{
+								fontSize: 10,
+								lineHeight: 1.0,
+								display: 'block',
+								maxWidth: '100%',
+								whiteSpace: 'normal',
+								overflowWrap: 'anywhere',
+							}}
+						>
 							{city}
 						</Typography>
 					</>
