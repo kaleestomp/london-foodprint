@@ -12,7 +12,10 @@ import { useCityContext } from '../../../../context/CityContext';
 
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
+const BaseLayer = (
+  externalMapRef?: React.RefObject<maplibregl.Map | null>,
+  enable: boolean = true,
+): {
   mapContainerRef: React.RefObject<HTMLDivElement | null>;
   mapRef: React.RefObject<maplibregl.Map | null>;
 } => {
@@ -31,7 +34,7 @@ const BaseLayer = (externalMapRef?: React.RefObject<maplibregl.Map | null>): {
     setWorkerCount(1);
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: STYLE_LIGHT,
+      style: enable ? STYLE_LIGHT : undefined,
       center: cityParams.center,
       zoom: cityParams.initZoom,
       minZoom: cityParams.minZoom,

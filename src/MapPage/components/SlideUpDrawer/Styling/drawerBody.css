@@ -3,11 +3,13 @@
   /* ISOLATE FROM MAP PAINT */
   contain: layout paint;
   isolation: isolate;
-
-  position: relative;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
+
+  /* position: relative; */
+  display: flex;
+  flex: 1 1 auto; /* to accommodate a FLOATING GAP; Was flex: 0; */
+  min-height: 0; /* to accommodate a FLOATING GAP */
+  flex-direction: column;
 
   background: var(--drawer-bg);
   box-shadow: var(--drawer-shadow);
@@ -19,17 +21,14 @@
   border: var(--app-glass-border);
   box-shadow: var(--app-glass-shadow); */
 
-  /* to accommodate a FLOATING GAP */
-  /* flex: 0; */
-  flex: 1 1 auto;
-  min-height: 0;
-  border-radius: var(--border-radius-is-closed);
+  border-radius: var(--border-radius-is-closed) var(--border-radius-is-closed) 0 0;
   transition: 
     background var(--delayed-transition),
     border-radius var(--delayed-transition);
 
   /* ENSURE SNAP-HEIGHT WORKS CORRECTLY */
-  height: 100%;
+  /* This adds adds paint surface and slow frame-rate */
+  /* height: 100%; */
 }
 .base-ui-drawer-body.is-open {
   border-radius: 

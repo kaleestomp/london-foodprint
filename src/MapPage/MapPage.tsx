@@ -12,6 +12,7 @@ import { PlaceDetailCardProvider } from '../context/PlaceDetailCardContext';
 
 import Map from './components/Map/Map';
 import { MapLocationNavigationProvider } from './components/Map/MapNavigationContext/MapLocationNavigationContext.tsx';
+import MapNavigationController from './components/Map/MapNavigationContext/MapNavigationController';
 import Loading from '../components/Loading/Loading';
 // import BubbleAvatar from './components/BubbleAvatar/BubbleAvatar';
 // import BaseToolbar from './components/BaseToolbar/BaseToolbar';
@@ -48,9 +49,10 @@ const MapPage: FC = () => {
             <TopPlacesProvider>
               <GeoSearchProvider>
                 <MapLocationNavigationProvider>
-                  <DrawerStateProvider>
-                    <Map mapRef={mapRef} />
+                  <Map mapRef={mapRef} />
 
+                  <DrawerStateProvider>
+                    <MapNavigationController mapRef={mapRef} />
                     <div className="map-safe-area">
                       <DrawerMapViewportSync mapRef={mapRef} />
                       <MapToolbar mapRef={mapRef} />
@@ -64,7 +66,6 @@ const MapPage: FC = () => {
                         </BubbleAvatarStateProvider>
 
                       </PlaceDetailCardProvider>
-
                     </div>
                   </DrawerStateProvider>
                 </MapLocationNavigationProvider>

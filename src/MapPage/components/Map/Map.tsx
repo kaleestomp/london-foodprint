@@ -5,7 +5,6 @@ import BaseLayer from './BaseLayer/BaseLayer';
 import DataLayer from './DataLayer/DataLayer';
 import onUserRoam from './InputHooks/onUserRoam';
 import { useViewportQuery } from '../../../context/ViewportQueryContext';
-import useMapLocationNavigation from './MapNavigationContext/useMapLocationNavigation';
 import StyleLayer from './StyleLayer/StyleLayer';
 
 import './Map.css';
@@ -14,8 +13,7 @@ type Props = {
   mapRef?: React.RefObject<maplibregl.Map | null>;
 };
 const Map: React.FC<Props> = ({ mapRef: externalMapRef }) => {
-  const { mapContainerRef, mapRef } = BaseLayer(externalMapRef);
-  useMapLocationNavigation(mapRef);
+  const { mapContainerRef, mapRef } = BaseLayer(externalMapRef, true);
   const viewportParams = onUserRoam(mapRef);
   const { setViewportParams } = useViewportQuery();
 
