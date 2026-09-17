@@ -14,8 +14,8 @@
   user-select: none;
   touch-action: none;
   transition: 
-    transform 180ms ease,
-    opacity 180ms ease;
+    transform 180ms ease 200ms,
+    opacity 180ms ease 200ms;
   will-change: transform, opacity;
 }
 
