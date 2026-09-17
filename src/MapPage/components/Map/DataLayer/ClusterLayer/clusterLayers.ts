@@ -4,12 +4,12 @@ import { DESKTOP_CLUSTER_LABEL_SIZE, MOBILE_CLUSTER_LABEL_SIZE } from './cluster
 
 const MARKER_SIZE = 5;
 
-const singletonOpacity: ExpressionSpecification = [
+const singletonOpacity = (heatmapEnabled: boolean): ExpressionSpecification => [
   'interpolate',
   ['linear'],
   ['zoom'],
-  16, 0,
-  16.5, 1,
+  heatmapEnabled ? 16 : 15, 0,
+  heatmapEnabled ? 16.5 : 15.5, 1,
 ];
 
 export const clusterCountLayer = (
@@ -17,6 +17,7 @@ export const clusterCountLayer = (
   sourceId: string,
   darkMode: boolean = true,
   isDesktop = false,
+  heatmapEnabled = true,
 ): SymbolLayerSpecification => {
   const clusterLabelSize = isDesktop ? DESKTOP_CLUSTER_LABEL_SIZE : MOBILE_CLUSTER_LABEL_SIZE;
 
@@ -44,6 +45,7 @@ export const clusterCountLayer = (
 export const unclusteredPointLayer = (
   layerId: string,
   sourceId: string,
+  heatmapEnabled = true,
 ): CircleLayerSpecification => ({
   id: layerId,
   type: 'circle',
@@ -54,14 +56,15 @@ export const unclusteredPointLayer = (
     'circle-radius': MARKER_SIZE,
     'circle-stroke-width': 0.45,
     'circle-stroke-color': '#101010',
-    'circle-stroke-opacity': singletonOpacity,
-    'circle-opacity': singletonOpacity,
+    'circle-stroke-opacity': singletonOpacity(heatmapEnabled),
+    'circle-opacity': singletonOpacity(heatmapEnabled),
   }
 })
 
 export const unclusteredPointShadowLayer = (
   layerId: string,
   sourceId: string,
+  heatmapEnabled = true,
 ): CircleLayerSpecification => ({
   id: layerId,
   type: 'circle',
@@ -72,13 +75,14 @@ export const unclusteredPointShadowLayer = (
     'circle-radius': MARKER_SIZE, //4.6
     // 'circle-blur': 0.2, //0.45
     'circle-translate': [1.4, 1.8],
-    'circle-opacity': singletonOpacity,
+    'circle-opacity': singletonOpacity(heatmapEnabled),
   },
 })
 
 export const unclusteredPointHighlightLayer = (
   layerId: string,
   sourceId: string,
+  heatmapEnabled = true,
 ): CircleLayerSpecification => ({
   id: layerId,
   type: 'circle',
@@ -88,7 +92,7 @@ export const unclusteredPointHighlightLayer = (
     'circle-color': 'rgba(255, 255, 255, 0.55)',
     'circle-radius': MARKER_SIZE*0.4, //1.55
     'circle-translate': [-1.2, -1.2],
-    'circle-opacity': singletonOpacity,
+    'circle-opacity': singletonOpacity(heatmapEnabled),
   },
 })
 
@@ -133,4 +137,3 @@ export const unclusteredPointHitLayer = (
 //     'circle-stroke-opacity': 0.5,
 //   },
 // });
-

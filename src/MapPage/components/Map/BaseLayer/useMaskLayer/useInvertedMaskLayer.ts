@@ -11,10 +11,12 @@ export const useInvertedMaskLayer = (
   mapRef: React.RefObject<maplibregl.Map | null>,
 ) => {
 
-  const { cityBoundary } = useCityContext();
+  const { citySlug, cityBoundary } = useCityContext();
   const mask = useMemo(() => (
-    cityBoundary ? createInvertedMaskGeoJSON(cityBoundary) : undefined
-  ), [cityBoundary]);
+    citySlug === 'newcastle' || !cityBoundary
+      ? undefined
+      : createInvertedMaskGeoJSON(cityBoundary)
+  ), [cityBoundary, citySlug]);
   const currentMaskDataRef = useRef<FeatureCollection<Polygon> | undefined>(undefined);
 
   useEffect(() => {

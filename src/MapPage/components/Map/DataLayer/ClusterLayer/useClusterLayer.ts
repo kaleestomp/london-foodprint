@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as maplibregl from 'maplibre-gl';
 
 import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
+import { useAppUI } from '../../../../../context/AppUIContext';
 import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
 import useFetchHeatmap from '../HeatmapLayer/InputHooks/useFetchHeatmap';
 import { clusterCountLayer, unclusteredPointHighlightLayer, unclusteredPointHitLayer, unclusteredPointLayer, unclusteredPointShadowLayer } from './clusterLayers';
@@ -37,6 +38,7 @@ const useClusterLayer = (
 ) => {
 
   const { geojson } = useFetchHeatmap(enabled);
+  const { heatmapEnabled } = useAppUI();
   const isDesktop = !useIsMobileCtx();
   const latestGeojsonRef = useRef(geojson);
   const { selectedPlaceId, targetPaintLayer } = usePlaceSelection();
@@ -119,13 +121,13 @@ const useClusterLayer = (
         });
       }
       if (!map.getLayer(COUNT_LAYER_ID))
-        map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID, false, isDesktop));
+        map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID, false, isDesktop, heatmapEnabled));
       if (!map.getLayer(PLACES_SHADOW_LAYER_ID))
-        map.addLayer(unclusteredPointShadowLayer(PLACES_SHADOW_LAYER_ID, SOURCE_ID));
+        map.addLayer(unclusteredPointShadowLayer(PLACES_SHADOW_LAYER_ID, SOURCE_ID, heatmapEnabled));
       if (!map.getLayer(PLACES_LAYER_ID))
-        map.addLayer(unclusteredPointLayer(PLACES_LAYER_ID, SOURCE_ID));
+        map.addLayer(unclusteredPointLayer(PLACES_LAYER_ID, SOURCE_ID, heatmapEnabled));
       if (!map.getLayer(PLACES_HIGHLIGHT_LAYER_ID))
-        map.addLayer(unclusteredPointHighlightLayer(PLACES_HIGHLIGHT_LAYER_ID, SOURCE_ID));
+        map.addLayer(unclusteredPointHighlightLayer(PLACES_HIGHLIGHT_LAYER_ID, SOURCE_ID, heatmapEnabled));
       if (!map.getLayer(PLACES_HIT_LAYER_ID))
         map.addLayer(unclusteredPointHitLayer(PLACES_HIT_LAYER_ID, SOURCE_ID));
 
@@ -159,7 +161,7 @@ const useClusterLayer = (
 
       removeLayer();
     };
-  }, [enabled, isDesktop, mapRef]); //markInitialLoadItemComplete
+  }, [enabled, heatmapEnabled, isDesktop, mapRef]); //markInitialLoadItemComplete
 
   useEffect(() => {
     const map = mapRef.current;

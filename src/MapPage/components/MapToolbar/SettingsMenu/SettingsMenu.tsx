@@ -27,7 +27,6 @@ const SettingsMenu: React.FC = () => {
     heatmapEnabled,
     toggleHeatmapEnabled,
     topPlacesEnabled,
-    toggleTopPlacesEnabled,
   } = useAppUI();
   const { venueType, setVenueType } = useSearchFilters();
 
@@ -103,7 +102,8 @@ const SettingsMenu: React.FC = () => {
                 icon={<StarsRoundedIcon />}
                 label="Top 10s"
                 selected={topPlacesEnabled}
-                onClick={toggleTopPlacesEnabled}
+                disabled
+                onClick={() => {}}
               />
             </div>
           </section>
