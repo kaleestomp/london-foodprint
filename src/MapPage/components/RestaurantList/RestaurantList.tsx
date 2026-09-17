@@ -70,7 +70,10 @@ const RestaurantList: FC<{
       <div className={`list-section${fadeRefreshBtn ? ' list-fade-in' : ''}`} onAnimationEnd={fadeRefreshBtn ? onRefreshAnimationEnd : undefined} >
         <ListLoading enabled={status === 'loading' && items.length === 0} rowCount={isMobile ? 6 : 12} />
         <NoResults enabled={status !== 'loading' && items.length === 0} />
-        <Virtualizer mapRef={mapRef} items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} onSelect={() => setLiveRefresh(false)} />
+        <Virtualizer mapRef={mapRef} 
+          items={items} scrollRef={scrollRef} scrollResetEpoch={scrollResetEpoch} 
+          onSelect={() => setLiveRefresh(false)} 
+        />
         <ListLoading enabled={isFetchingNextPage} rowCount={3} />
       </div>
     </div>

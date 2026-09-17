@@ -6,6 +6,7 @@ type PlaceDetailCardContextValue = {
   placeId: string | null;
   showOnMainDrawer: boolean;
   showOnNestedDrawer: boolean;
+  reportPlaceIdforDetail: (placeId: string | null, showOnMainDrawer?: boolean) => void;
 };
 
 // THIS CONTEXT TRACKS WHEN AND HOW 
@@ -45,9 +46,9 @@ export const PlaceDetailCardProvider = ({ children }: { children: ReactNode }) =
 
 
   const value = useMemo(() => ({
-    placeId, showOnMainDrawer, showOnNestedDrawer
+    placeId, showOnMainDrawer, showOnNestedDrawer, reportPlaceIdforDetail
   }), [placeId, showOnMainDrawer, showOnNestedDrawer
-
+    , reportPlaceIdforDetail
   ]);
 
   return (

@@ -6,17 +6,21 @@ import GoogleIcon from '@mui/icons-material/Google';
 import LanguageIcon from '@mui/icons-material/Language';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import CurrencyPoundIcon from '@mui/icons-material/CurrencyPound';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import IconButton from '@mui/material/IconButton';
 
 import IconPair from './IconPair';
 import { formatWalkDistance, formatDistance } from '../../../../../../utils/format/formatMetrics';
 import type { PlaceDetailResponse } from '../../../../../request/useRequestPlaceDetail/request';
 import type { PlacesListItem } from '../../../../../request/useRequestPlacesList/request';
+import { usePlaceDetailCardState } from '../../../../../../context/PlaceDetailCardContext';
 import './ExtendedContent.css';
 
 const ExtendedContent: FC<{
   item: PlaceDetailResponse | PlacesListItem;
   distance?: number | null;
 }> = ({ item, distance }) => {
+  const { reportPlaceIdforDetail } = usePlaceDetailCardState();
 
   const walkMins = formatWalkDistance(distance);
   const distanceM = formatDistance(distance);
@@ -48,9 +52,26 @@ const ExtendedContent: FC<{
         
       </div>
       <div className="list-item-links">
+
+        <IconButton
+          className="list-item-info-button"
+          size="small"
+          type="button"
+          aria-label="Show more place details"
+          title="Show more place details"
+          onClick={(event) => {
+            event.stopPropagation();
+            reportPlaceIdforDetail(item.id, false);
+          }}
+        >
+          <InfoOutlinedIcon fontSize="small" />
+        </IconButton>
         
         {item.website_uri && (
-          <a
+          <IconButton
+            className="list-item-link-button"
+            component="a"
+            size="small"
             href={item.website_uri}
             target="_blank"
             rel="noreferrer"
@@ -58,18 +79,21 @@ const ExtendedContent: FC<{
             title="Open website"
           >
             <LanguageIcon fontSize="small" />
-          </a>
+          </IconButton>
         )}
         {item.google_maps_uri && (
-          <a
+          <IconButton
+            className="list-item-link-button"
+            component="a"
+            size="small"
             href={item.google_maps_uri}
             target="_blank"
             rel="noreferrer"
             aria-label="Open in Google Maps"
             title="Open in Google Maps"
           >
-            <GoogleIcon fontSize="small" /> Map
-          </a>
+            <GoogleIcon fontSize="small" />
+          </IconButton>
         )}
       </div>
     </div>

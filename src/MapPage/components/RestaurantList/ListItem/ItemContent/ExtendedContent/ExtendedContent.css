@@ -32,26 +32,45 @@
   margin-bottom: -9px;
 }
 
-.list-item-links a {
-  /* width: 32px; */
+.list-item-links .list-item-link-button,
+.list-item-links .list-item-info-button {
+  width: 32px;
   height: 32px;
+  min-width: 32px;
+  padding: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  line-height: 0;
+  flex-shrink: 0;
   color: var(--app-text-caption-color);
   text-decoration: none;
   border-radius: 999px;
   border: 1px solid rgba(17, 24, 39, 0.12);
   background: rgba(255, 255, 255, 0.7);
   transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
-  font-size: .8rem;
-
   gap: 1px;
-  padding: 4px;
 }
 
-.list-item-links a:hover {
+.list-item-links .MuiSvgIcon-root {
+  display: block;
+}
+
+.list-item-links .list-item-info-button {
+  color: #fff;
+  background: var(--app-text-caption-color);
+  border-color: var(--app-text-caption-color);
+}
+
+.list-item-links .list-item-link-button:hover,
+.list-item-links .list-item-info-button:hover {
   background: rgba(255, 255, 255, 0.96);
   border-color: rgba(17, 24, 39, 0.2);
   transform: translateY(-1px);
+}
+
+.list-item-links .list-item-info-button:hover {
+  color: #fff;
+  background: var(--app-text-color);
+  border-color: var(--app-text-color);
 }
