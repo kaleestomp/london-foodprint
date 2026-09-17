@@ -4,7 +4,7 @@ const syncMaxPitch = (
     map: maplibregl.Map
 ) => {
 
-    const maxPitch = getMaxPitchForZoom(map.getZoom());
+    const maxPitch = 60; //getMaxPitchForZoom(map.getZoom());
     map.setMaxPitch(maxPitch);
     // if (map.getPitch() > maxPitch) {
     //     map.easeTo({
@@ -15,11 +15,10 @@ const syncMaxPitch = (
     // }
 };
 
-const getMaxPitchForZoom = (zoom: number): number => {
-    return 60;
-    // if (zoom < 12) return 0;
-    // if (zoom < 17) return 60 * (zoom - 12) / 5;
-    // else return 60;
-};
+// const getMaxPitchForZoom = (zoom: number): number => {
+//     if (zoom < 12) return 0;
+//     if (zoom < 17) return 60 * (zoom - 12) / 5;
+//     else return 60;
+// };
 
 export default syncMaxPitch;
