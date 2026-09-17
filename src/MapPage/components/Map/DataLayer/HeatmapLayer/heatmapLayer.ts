@@ -1,15 +1,19 @@
 import type { HeatmapLayerSpecification } from 'maplibre-gl';
 import { DEFAULT_GRADIENT } from './gradients';
-import { DESKTOP_HEATMAP_LAYER, DESKTOP_HEATMAP_OPACITY,
+import { HEATMAP_PLUS_LAYER, DESKTOP_HEATMAP_OPACITY,
     MOBILE_HEATMAP_LAYER, MOBILE_HEATMAP_OPACITY } from './heatmapLayerConfig';
+import type { cityOptions } from '../../../../../context/CityContext';
 // import { YlGnBu, YlOrBr, DEFAULT_GRADIENT, INFERNO, MAGMA, VIRIDIS, VIRIDIS_BRIGHT } from './gradients';
 
 const heatmapLayer = (
   layerId: string,
   sourceId: string,
     isDesktop = false,
+    city: cityOptions = 'london',
 ): HeatmapLayerSpecification => {
-    const heatmapRadius = isDesktop ? DESKTOP_HEATMAP_LAYER : MOBILE_HEATMAP_LAYER;
+    const heatmapRadius = isDesktop || city === 'newcastle'
+        ? HEATMAP_PLUS_LAYER
+        : MOBILE_HEATMAP_LAYER;
     const heatmapOpacity = isDesktop ? DESKTOP_HEATMAP_OPACITY : MOBILE_HEATMAP_OPACITY;
 
     return {

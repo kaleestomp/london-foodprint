@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
 import { useAppUI } from '../../../../../context/AppUIContext';
+import { useCityContext } from '../../../../../context/CityContext';
 import { useIsMobileCtx } from '../../../../../context/IsMobileContext';
 import useFetchHeatmap from './InputHooks/useFetchHeatmap';
 import heatmapLayer from './heatmapLayer';
@@ -15,6 +16,7 @@ const useHeatmapLayer = (
 ): void => {
 
   const { heatmapEnabled: enabled } = useAppUI(); //markInitialLoadItemComplete
+  const { citySlug } = useCityContext();
   const isDesktop = !useIsMobileCtx();
   const { geojson } = useFetchHeatmap(enabled);
   const latestGeojsonRef = useRef(geojson);
@@ -63,7 +65,7 @@ const useHeatmapLayer = (
       }
 
       if (!map.getLayer(LAYER_ID)) {
-        map.addLayer(heatmapLayer(LAYER_ID, SOURCE_ID, isDesktop));
+        map.addLayer(heatmapLayer(LAYER_ID, SOURCE_ID, isDesktop, citySlug));
       }
       if (source && appliedGeojsonRef.current !== latestGeojsonRef.current) {
         source.setData(latestGeojsonRef.current);
@@ -89,7 +91,7 @@ const useHeatmapLayer = (
       removeLayer();
       appliedGeojsonRef.current = null;
     };
-  }, [enabled, mapRef ]); //markInitialLoadItemComplete
+  }, [citySlug, enabled, mapRef ]); //markInitialLoadItemComplete
 
   useEffect(() => {
     const map = mapRef.current;
