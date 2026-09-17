@@ -6,7 +6,13 @@ London Foodprint is a React + TypeScript + Vite app for exploring London food re
 
 - Project name: London Foodprint
 - Repository name: london-foodprint
-- GitHub Pages base path: /london-foodprint/
+- Testing GitHub Pages base path: /london-foodprint/
+- Production GitHub Pages base path: /foodprint/
+
+The production base path is build-time configurable with `VITE_BASE_URL`. For
+example, setting it to `/foodprint/london/` publishes the app below that path.
+The value must be slash-prefixed and should end with `/`; the Vite config adds
+the trailing slash when it is omitted.
 
 ## Development
 
@@ -23,4 +29,7 @@ npm run build
 
 ## Deploy
 
-Deploys to GitHub Pages via the workflow in `.github/workflows/deploy-gh-pages.yml` on push to `master`.
+Testing deploys to GitHub Pages via `.github/workflows/deploy-gh-pages.yml` on
+push to `master`. Production deploys from `prod` via
+`.github/workflows/deploy-prod-gh-pages.yml` to the separate `foodprint`
+repository.

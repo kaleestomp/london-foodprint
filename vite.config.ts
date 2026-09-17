@@ -1,48 +1,56 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
-export default defineConfig(({ command }) => ({
-  plugins: [react()],
-  server: {
-    host: true,
-  },
-  optimizeDeps: {
-    // Vite 8 (rolldown) has issues pre-bundling CJS packages.
-    // Excluding them forces ESM-only resolution which works correctly.
-    // exclude: ['react-dom', 'echarts', 'echarts-for-react'],
-    // CJS-only packages that need explicit pre-bundling for named/default export interop.
-    include: ['fast-deep-equal', 'size-sensor'],
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
-            return 'react';
-          }
-          if (
-            id.includes('node_modules/@mui/material/')
-            || id.includes('node_modules/@mui/icons-material/')
-            || id.includes('node_modules/@emotion/react/')
-            || id.includes('node_modules/@emotion/styled/')
-          ) {
-            return 'mui';
-          }
-          if (id.includes('node_modules/echarts/') || id.includes('node_modules/echarts-for-react/')) {
-            return 'charts';
-          }
-          if (
-            id.includes('node_modules/leaflet/')
-            || id.includes('node_modules/maplibre-gl/')
-            || id.includes('node_modules/@maplibre/maplibre-gl-leaflet/')
-          ) {
-            return 'map';
-          }
-          return undefined;
+export default defineConfig(({ command, mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const configuredBase = env.VITE_BASE_URL?.trim()
+  const base = configuredBase || (command === 'serve' ? '/' : '/london-foodprint/')
+
+  return {
+    plugins: [react()],
+    server: {
+      host: true,
+    },
+    optimizeDeps: {
+      // Vite 8 (rolldown) has issues pre-bundling CJS packages.
+      // Excluding them forces ESM-only resolution which works correctly.
+      // exclude: ['react-dom', 'echarts', 'echarts-for-react'],
+      // CJS-only packages that need explicit pre-bundling for named/default export interop.
+      include: ['fast-deep-equal', 'size-sensor'],
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+              return 'react';
+            }
+            if (
+              id.includes('node_modules/@mui/material/')
+              || id.includes('node_modules/@mui/icons-material/')
+              || id.includes('node_modules/@emotion/react/')
+              || id.includes('node_modules/@emotion/styled/')
+            ) {
+              return 'mui';
+            }
+            if (id.includes('node_modules/echarts/') || id.includes('node_modules/echarts-for-react/')) {
+              return 'charts';
+            }
+            if (
+              id.includes('node_modules/leaflet/')
+              || id.includes('node_modules/maplibre-gl/')
+              || id.includes('node_modules/@maplibre/maplibre-gl-leaflet/')
+            ) {
+              return 'map';
+            }
+            return undefined;
+          },
         },
       },
     },
-  },
-  base: command === 'serve' ? '/' : '/london-foodprint/',
-}))
+    // Set VITE_BASE_URL to a slash-prefixed path, e.g. /foodprint/ or
+    // /foodprint/london/. Vite exposes the normalised value as BASE_URL.
+    base: base.endsWith('/') ? base : `${base}/`,
+  }
+})

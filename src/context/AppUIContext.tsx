@@ -19,6 +19,7 @@ interface AppUIContextType {
   liveLocation: LiveLocation | null; queueLiveLocationDrop: (lat: number, lng: number, metadata?: Pick<LiveLocation, 'searchType' | 'geometry'>) => void;
   darkMode: boolean; toggleDarkMode: () => void;
   heatmapEnabled: boolean; toggleHeatmapEnabled: () => void;
+  topPlacesEnabled: boolean; toggleTopPlacesEnabled: () => void;
   // initialLoadComplete: boolean; markInitialLoadItemComplete: (item: InitialLoadItem) => void;
 }
 
@@ -39,6 +40,7 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
   const [activeToolbarTab, setActiveToolbarTab] = useState<ToolbarFilterTab | null>(null);
   const [liveLocation, setLiveLocation] = useState<LiveLocation | null>(null);
   const [heatmapEnabled, setHeatmapEnabled] = useState(true);
+  const [topPlacesEnabled, setTopPlacesEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   // const [, setInitialLoadItems] = useState<Record<InitialLoadItem, boolean>>({
   //   baseTiles: false,
@@ -75,6 +77,10 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
     setHeatmapEnabled((prev) => !prev);
   }, []);
 
+  const toggleTopPlacesEnabled = useCallback(() => {
+    setTopPlacesEnabled((prev) => !prev);
+  }, []);
+
 
   const exposed = useMemo<AppUIContextType>(() => ({ 
     isLoading, toggleLoading,
@@ -83,6 +89,7 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
     liveLocation, queueLiveLocationDrop,
     darkMode, toggleDarkMode,
     heatmapEnabled, toggleHeatmapEnabled,
+    topPlacesEnabled, toggleTopPlacesEnabled,
   }), [
     isLoading, toggleLoading,
     // initialLoadComplete, markInitialLoadItemComplete,
@@ -90,6 +97,7 @@ export const AppUIProvider = ({ children }: { children: ReactNode }) => {
     liveLocation, queueLiveLocationDrop,
     darkMode, toggleDarkMode,
     heatmapEnabled, toggleHeatmapEnabled,
+    topPlacesEnabled, toggleTopPlacesEnabled,
   ]);
 
   return (

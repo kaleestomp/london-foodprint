@@ -1,0 +1,49 @@
+name: Deploy production to separate GitHub Pages
+
+on:
+  push:
+    branches:
+      - prod
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-prod-gh-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          VITE_MAPTILER_KEY: ${{ secrets.VITE_MAPTILER_KEY }}
+          VITE_BASE_URL: ${{ vars.VITE_BASE_URL || '/foodprint/' }}
+        run: npm run build
+
+      - name: Enable SPA deep links
+        run: cp dist/index.html dist/404.html
+
+      - name: Publish to production Pages repository
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.PROD_PAGES_TOKEN }}
+          external_repository: kaleestomp/foodprint
+          publish_branch: gh-pages
+          publish_dir: ./dist
+          force_orphan: true

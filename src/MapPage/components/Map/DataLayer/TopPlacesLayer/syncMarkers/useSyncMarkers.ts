@@ -85,7 +85,7 @@ const useSyncMarkers = (
 
         markersRef.current = activeMarkers;
 
-    }, [topPlaces, selectedPlaceId, targetPaintLayer, suppressSelected, reportSelectedPlaceId, isVisibleAtZoom]);
+    }, [topPlaces, enabled, selectedPlaceId, targetPaintLayer, suppressSelected, reportSelectedPlaceId, isVisibleAtZoom]);
 
     return markersRef;
 };
