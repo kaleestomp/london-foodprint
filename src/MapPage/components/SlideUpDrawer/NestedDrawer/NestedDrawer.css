@@ -42,7 +42,7 @@
 
   position: relative;
   width: 100%; /*min(100% - 32px, 480px);*/
-  min-height: var(--drawer-open-height);
+  height: var(--drawer-open-height);
   margin: 0; /*0 16px 16px*/;
   border-radius: var(--border-radius-default); /*18px*/
   overflow: auto;

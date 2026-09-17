@@ -48,10 +48,10 @@ const MapPage: FC = () => {
             <TopPlacesProvider>
               <GeoSearchProvider>
                 <MapLocationNavigationProvider>
-                  <Map mapRef={mapRef} />
+                  <DrawerStateProvider>
+                    <Map mapRef={mapRef} />
 
-                  <div className="map-safe-area">
-                    <DrawerStateProvider>
+                    <div className="map-safe-area">
                       <DrawerMapViewportSync mapRef={mapRef} />
                       <MapToolbar mapRef={mapRef} />
 
@@ -65,8 +65,8 @@ const MapPage: FC = () => {
 
                       </PlaceDetailCardProvider>
 
-                    </DrawerStateProvider>
-                  </div>
+                    </div>
+                  </DrawerStateProvider>
                 </MapLocationNavigationProvider>
 
               </GeoSearchProvider>

@@ -20,7 +20,7 @@ const ListItem: FC<{
   const cuisineColor = item ? getCuisineColor(item.cuisine_type) : '#ffffff';
   return (
     <div className={`list-item-row ${isSelected ? 'is-selected' : ''}`}
-      style={{ background: brightenColor(cuisineColor, isSelected ? 1.00 : 0.94) }}
+      style={{ background: brightenColor(cuisineColor, isSelected ? 1.00 : 0.94) ?? undefined }}
       onClick={ !item ? undefined : () => (
         closeButton ? (isSelected ? undefined : onSelect())
         : (isSelected ? onClose() : onSelect())

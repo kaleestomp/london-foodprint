@@ -1,6 +1,7 @@
 .cuisine-filter-panel {
     width: 100%;
     position: relative;
+    /* justify-items: right; */
     padding: 0px var(--app-layout-margin) 24px;
 }
 
@@ -15,7 +16,7 @@
 .title-block {
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
     position: relative;
     color: var(--app-primary-black);

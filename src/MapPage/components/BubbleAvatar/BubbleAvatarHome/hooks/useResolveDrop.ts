@@ -64,7 +64,9 @@ const useResolveDrop = (
       zoom: dropZoom,
       animate: true,
       skipIfWithinMeters: dropZoom === currentZoom ? 1 : undefined,
-      padding: { top: 0, right: 0, bottom: 0, left: 0 },
+      // Keep the dropped location centred in the map area that remains above
+      // the drawer, rather than in the full map viewport.
+      padding: { top: 0, right: 0, bottom: snapPX ?? 0, left: 0 },
     });
 
     // OTHERWISE DROP ON MAP

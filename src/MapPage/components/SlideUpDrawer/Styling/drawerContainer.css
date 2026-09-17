@@ -1,13 +1,14 @@
 .base-ui-container {
-  /* ISOLATE FROM MAP PAINT */
-  contain: layout paint;
+  /* Keep layout isolation, but do not paint-contain this element: the
+     AboveDrawer is intentionally allowed to render outside its bounds. */
+  contain: layout; /* + paint */;
   isolation: isolate;
   transform: translateZ(0);
 
   /* ADD FLOATING GAP */
   position: absolute;
   inset: 0 var(--inset-is-closed) var(--inset-is-closed);
-  overflow: hidden;
+  overflow: visible; /*hidden */
   pointer-events: none;
   border-radius: 0 0 var(--border-radius-is-closed) var(--border-radius-is-closed);
   transition: inset var(--delayed-transition), border-radius var(--delayed-transition);

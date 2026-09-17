@@ -1,7 +1,10 @@
 const brightenColor = (
-    color: string, 
+    color: string | null, 
     amount = 0.28
-): string => {
+): string | null => {
+
+    if (!color) return null;
+
     const rgb = color.match(/\d+/g)?.map(Number);
     if (!rgb || rgb.length < 3) return color;
 

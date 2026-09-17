@@ -16,9 +16,10 @@ const syncMaxPitch = (
 };
 
 const getMaxPitchForZoom = (zoom: number): number => {
-    if (zoom < 10) return 0;
-    if (zoom < 12) return 45 * (zoom - 10) / 2;
-    else return 65 * Math.min((zoom - 12) / 2, 1);
+
+    if (zoom < 12) return 0;
+    if (zoom < 17) return 60 * (zoom - 12) / 5;
+    else return 60;
 };
 
 export default syncMaxPitch;

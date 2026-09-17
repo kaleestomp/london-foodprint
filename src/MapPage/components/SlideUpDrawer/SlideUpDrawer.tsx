@@ -2,7 +2,7 @@ import { type FC, useState } from 'react';
 import { Drawer } from '@base-ui/react/drawer';
 import type * as maplibregl from 'maplibre-gl';
 
-import DrawerHeader from './DrawerHeader/DrawerHeader';
+import Header from './Header/Header';
 import Content from './Content/Content';
 import AboveDrawer from './AboveDrawer/AboveDrawer';
 import DrawerOverlay from './DrawerOverlay';
@@ -11,7 +11,7 @@ import { useIsMobileCtx } from '../../../context/IsMobileContext';
 
 import './Styling/drawerRoot.css';
 
-export const SNAP_HEIGHTS = ['104px', '400px', `${window.innerHeight - 96}px`];//200px 94px 320px 104px ${window.innerHeight - 28}px
+export const SNAP_HEIGHTS = ['104px', 0.45, `${window.innerHeight - 96}px`];//400px 200px 94px 320px 104px ${window.innerHeight - 28}px
 
 const SlideUpDrawer: FC<{
   mapRef: React.RefObject<maplibregl.Map | null>;
@@ -19,7 +19,7 @@ const SlideUpDrawer: FC<{
 
   const isMobile = useIsMobileCtx();
   const [drawerContainer, setDrawerContainer] = useState<HTMLDivElement | null>(null);
-  const { snap, updateSnap, isAtFullHeight, isClosed } = useDrawerState();
+  const { snap, updateSnap, isAtFullHeight, isClosed, themeColor } = useDrawerState();
 
   if (!isMobile) return null;
 
@@ -45,10 +45,13 @@ const SlideUpDrawer: FC<{
                 : !isClosed ? ' is-open' : ''}`
               }>
             <AboveDrawer mapRef={mapRef} />
-            <div className={`base-ui-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}>
+            <div
+              className={`base-ui-drawer-body${isAtFullHeight ? ' is-full-height' : !isClosed ? ' is-open' : ''}`}
+              style={{ backgroundColor: themeColor ?? 'var(--drawer-bg)' }}
+            >
               <div className="base-ui-handle" aria-hidden="true" />
               <Drawer.Content className="base-ui-drawer-content">
-                <DrawerHeader />
+                <Header />
                 {/* <SampleContent snap={snap} /> */}
                 <Content panelUp={!isClosed} mapRef={mapRef} />
               </Drawer.Content>

@@ -1,13 +1,15 @@
 import { type FC, useEffect } from 'react';
 import RamenDiningIcon from '@mui/icons-material/RamenDining';
 import CurrencyPoundIcon from '@mui/icons-material/CurrencyPound';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
+// import StarBorderIcon from '@mui/icons-material/StarBorder';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
 
 import { useAppUI } from '../../../context/AppUIContext';
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
 import PillButton from './PillButton/PillButton';
 import getCuisineCountLabel from './getCuisineCountLabel';
 import getAbstractPriceRangeLabel from './getAbstractPriceRangeLabel';
+// import getRatingLabel from './getRatingLabel';
 
 import './FilterButtons.css';
 
@@ -31,14 +33,15 @@ const FilterButtons: FC = () => {
 
   // Request Price Info
   const AbstractPriceRangeLabel = getAbstractPriceRangeLabel();
+  // const ratingLabel = getRatingLabel();
   // Request Cuisine Info
   const cuisineCountLabel = getCuisineCountLabel();
 
   return (
     <div className="filter-buttons">
       <PillButton
-        icon={<StarBorderIcon fontSize="small" />}
-        text="5%"
+        icon={<StarRoundedIcon fontSize="small" />}
+        text={activeToolbarTab !== 'rating' ? '' : 'Rating'}
         ariaLabel="Open rating filters"
         isActive={activeToolbarTab === 'rating'}
         onClick={() => openFilterTab('rating')}

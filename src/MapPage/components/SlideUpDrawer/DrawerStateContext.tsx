@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, useEffect } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
 import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
@@ -8,6 +8,8 @@ import snapToPX from './util/snapToPX';
 interface DrawerState {
     snap: number | string | null;
     updateSnap: (newSnap: number | string | null) => void;
+    themeColor: string | null;
+    reportThemeColor: (color: string | null) => void;
     openDrawer: () => void;
     snapPX: number | null;
     isAtFullHeight: boolean;
@@ -30,7 +32,11 @@ export const DrawerStateProvider = ({ children }: { children: ReactNode }) => {
     };
     const [isAtFullHeight, setIsAtFullHeight] = useState<boolean>(false);
     const [isClosed, setIsClosed] = useState<boolean>(true);
-    const [snapPX, setSnapPX] = useState<number | null>(null); 
+    const [snapPX, setSnapPX] = useState<number | null>(snapToPX(SNAP_HEIGHTS[0])); 
+    const [themeColor, setThemeColor] = useState<string | null>(null);
+    const reportThemeColor = useCallback((color: string | null) => {
+        setThemeColor(color);
+    }, []);
 
     // OPEN DRAWER TO HALF (FROM CLOSED)
     // ON SELECTING AN ITEM FROM THE MAP
@@ -51,9 +57,9 @@ export const DrawerStateProvider = ({ children }: { children: ReactNode }) => {
 
     // EXPOSED STATES
     const exposed = useMemo<DrawerState>(() => ({
-        snap, updateSnap, openDrawer, 
+        snap, updateSnap, themeColor, reportThemeColor, openDrawer, 
         snapPX, isAtFullHeight, isClosed
-    }), [isAtFullHeight, isClosed, snapPX, snap]);
+    }), [isAtFullHeight, isClosed, snapPX, snap, themeColor, reportThemeColor]);
 
     return (
         <DrawerStateContext.Provider value={exposed}>

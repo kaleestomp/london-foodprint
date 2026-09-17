@@ -25,9 +25,9 @@ const TitleBlock: FC<{
             {subfix}
         </Typography>
       </span>
-      <Typography variant="caption" className="place-detail-subtitle" sx={{ lineHeight: 1.0 }}>
+      { count !== null && <Typography variant="caption" className="place-detail-subtitle" sx={{ lineHeight: 1.0 }}>
         {verdict}
-      </Typography>
+      </Typography>}
     </div>
   );
 };

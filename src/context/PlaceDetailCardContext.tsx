@@ -4,7 +4,9 @@ import { usePlaceSelection } from './PlaceSelectionContext';
 import { useDrawerState } from '../MapPage/components/SlideUpDrawer/DrawerStateContext';
 type PlaceDetailCardContextValue = {
   untrackedPlaceId: string | null;
-  showPlaceMainDrawer: boolean;
+  showOnDrawer: boolean;
+  showOnNestedDrawer: boolean;
+  showOnList: boolean;
   reportUnmatchedPlaceId: (value: string | null, selectedWhileClosed?: boolean) => void;
 };
 
@@ -18,7 +20,13 @@ export const PlaceDetailCardProvider = ({ children }: { children: ReactNode }) =
   const [ selectedWhileClosed, setSelectedWhileClosed ] = useState(false);
   const { selectedPlaceId, selectionSource } = usePlaceSelection();
   const { isClosed } = useDrawerState();
-  const showPlaceMainDrawer = untrackedPlaceId !== null && selectedWhileClosed;
+
+  const placeSelected = Boolean(selectedPlaceId);
+  const untrackedPlaceSelected = Boolean(untrackedPlaceId);
+  const showOnDrawer = untrackedPlaceSelected && selectedWhileClosed;
+  const showOnNestedDrawer = untrackedPlaceSelected && !showOnDrawer;
+  const showOnList = !isClosed && placeSelected && !(showOnNestedDrawer || showOnDrawer);
+  // console.log({ showOnDrawer, showOnNestedDrawer, showOnList });
 
   const reportUnmatchedPlaceId = useCallback((value: string | null, selectedWhileClosed = false) => {
     setUntrackedPlaceId(value);
@@ -39,10 +47,8 @@ export const PlaceDetailCardProvider = ({ children }: { children: ReactNode }) =
   }, [isClosed, selectedPlaceId, selectionSource, reportUnmatchedPlaceId]);
 
   const value = useMemo(() => ({
-    untrackedPlaceId,
-    showPlaceMainDrawer,
-    reportUnmatchedPlaceId,
-  }), [reportUnmatchedPlaceId, selectedWhileClosed, untrackedPlaceId]);
+    untrackedPlaceId, showOnDrawer, showOnNestedDrawer, showOnList, reportUnmatchedPlaceId,
+  }), [untrackedPlaceId, showOnDrawer, showOnNestedDrawer, showOnList, reportUnmatchedPlaceId]);
 
   return (
     <PlaceDetailCardContext.Provider value={value}>
@@ -51,10 +57,10 @@ export const PlaceDetailCardProvider = ({ children }: { children: ReactNode }) =
   );
 };
 
-export const useRenderedList = (): PlaceDetailCardContextValue => {
+export const usePlaceDetailCardState = (): PlaceDetailCardContextValue => {
   const context = useContext(PlaceDetailCardContext);
   if (!context) {
-    throw new Error('useRenderedList must be used within RenderedListProvider');
+    throw new Error('usePlaceDetailCardState must be used within PlaceDetailCardProvider');
   }
   return context;
 };

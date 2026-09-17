@@ -15,11 +15,15 @@
   transform: translateY(calc(var(--drawer-snap-point-offset) + var(--drawer-swipe-movement-y)));
   will-change: transform;
 
+  /* ENSURE SNAP-HEIGHT WORKS CORRECTLY */
+  height: 100%;
+  min-height: 0;
+
   /* Nested drawer open state */
   &[data-nested-drawer-open] {
-    transform: scale(0.95) 
+    transform: scale(0.95) /*0.95*/ 
       translateY(calc(
-        var(--drawer-snap-point-offset) + var(--drawer-swipe-movement-y) - 20px
+        var(--drawer-snap-point-offset) + var(--drawer-swipe-movement-y) - 11px
       ));
   }
   
@@ -47,3 +51,18 @@
     transition-duration: calc(var(--drawer-swipe-strength) * 400ms);
   }
 }
+.base-ui-popup[data-nested-drawer-open] .base-ui-handle {
+  opacity: 0.25;
+  transition: opacity 100ms ease;
+}
+/* Keep the main content visible while the nested drawer is being swiped. */
+.base-ui-popup[data-nested-drawer-open] .base-ui-drawer-content {
+  opacity: 0.45;
+  filter: grayscale(0.4);
+  transition:
+    opacity 200ms ease,
+    filter 200ms ease;
+}
+/* .base-ui-popup[data-nested-drawer-open][data-nested-drawer-swiping].base-ui-drawer-content {
+  opacity: 0.25;
+} */

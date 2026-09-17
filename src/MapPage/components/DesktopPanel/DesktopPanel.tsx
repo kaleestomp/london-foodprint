@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import type * as maplibregl from 'maplibre-gl';
 
-import DrawerHeader from '../SlideUpDrawer/DrawerHeader/DrawerHeader';
+import Header from '../SlideUpDrawer/Header/Header';
 import Content from '../SlideUpDrawer/Content/Content';
 import GeoSearchbar from '../GeoSearch/GeoSearchbar';
 import DesktopPanelTabs from './DesktopPanelTabs';
@@ -16,7 +16,7 @@ const DesktopPanel: FC<{
     <aside className="desktop-panel" aria-label="Places and filters">
       <header className="desktop-panel-header">
 
-        <DrawerHeader />
+        <Header />
         <div className="desktop-panel-search">
           <GeoSearchbar />
         </div>
