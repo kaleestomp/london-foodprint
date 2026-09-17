@@ -24,7 +24,13 @@
             51.7
           ]
         ],
-        "display_name": "London"
+        "display_name": "London",
+        "dataBound": [
+          -0.266366,
+          51.404965,
+          0.135658,
+          51.584227
+        ]
       },
       "geometry": {
         "type": "Polygon",

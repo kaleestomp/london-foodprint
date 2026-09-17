@@ -22,7 +22,7 @@ const GeoSearchInputBox: React.FC<{
       </span>
       <input ref={inputRef}
         className="geo-searchbar-input"
-        placeholder="search locations..."
+        placeholder="look up an area, street, or place..."
         value={queryStr}
         onFocus={onFocus}
         onKeyDown={onKeyDown}

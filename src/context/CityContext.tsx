@@ -10,6 +10,7 @@ export type CityParams = {
     minZoom: number,
     maxZoom: number,
     maxBounds: [[number, number], [number, number]];
+    dataBound: [number, number, number, number];
 };
 type CityContextType = {
   citySlug: cityOptions;
@@ -26,6 +27,7 @@ type CityGeoProps = {
   minZoom?: number;
   maxZoom?: number;
   maxBounds?: [[number, number], [number, number]];
+  dataBound?: [number, number, number, number];
 };
 
 const toCityParams = (fc: geojson.FeatureCollection, slug: string): CityParams => {
@@ -37,6 +39,7 @@ const toCityParams = (fc: geojson.FeatureCollection, slug: string): CityParams =
     minZoom: props.minZoom ?? 10,
     maxZoom: props.maxZoom ?? 20,
     maxBounds: props.maxBounds ?? [[-180, -90], [180, 90]],
+    dataBound: props.dataBound ?? [-180, -90, 180, 90],
   };
 };
 

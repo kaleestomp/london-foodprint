@@ -31,7 +31,14 @@ const useBoundaryLayer = (
     const map = mapRef.current;
     if (!map) { return; }
 
-    const boundaryMaskRings = searchMask?.type === 'boundary' && searchMask.geometry
+    // Only create the polygon mask while a boundary selection is active.
+    // `searchMask` is committed after the avatar flight, so it can briefly
+    // still contain the previous boundary when a new place or street is
+    // selected. Creating a mask before checking `selectedBoundary` leaves
+    // that temporary mask without a cleanup path.
+    const boundaryMaskRings = selectedBoundary
+      && searchMask?.type === 'boundary'
+      && searchMask.geometry
       ? buildBoundaryMaskRings(searchMask.geometry)
       : null;
     const boundaryMask = boundaryMaskRings

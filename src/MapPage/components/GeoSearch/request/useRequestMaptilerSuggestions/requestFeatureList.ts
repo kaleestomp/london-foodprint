@@ -1,4 +1,3 @@
-import type { CityParams } from '../../../../../context/CityContext';
 import type { MaptilerFeature, MaptilerGeocodeResponse } from '../../types';
 
 const MAPTILER_KEY = (import.meta.env as Record<string, string | undefined>).VITE_MAPTILER_KEY;
@@ -13,7 +12,8 @@ const RESULT_LIMIT = 8;
 
 const requestFeatureList = async (
   query: string,
-  cityParams: CityParams | null,
+  refPoint: [number, number] | null,
+  maxBound: [number, number, number, number] | null,
   signal: AbortSignal,
 ): Promise<MaptilerFeature[]> => {
 
@@ -31,10 +31,10 @@ const requestFeatureList = async (
     country: 'gb',
   });
 
-  if (cityParams) {
-    const [[west, south], [east, north]] = cityParams.maxBounds;
+  if (maxBound) {
+    const [west, south, east, north] = maxBound;
     params.set('bbox', `${west},${south},${east},${north}`);
-    params.set('proximity', `${cityParams.center[0]},${cityParams.center[1]}`);
+    if (refPoint) params.set('proximity', `${refPoint[0]},${refPoint[1]}`);
   }
 
   const url = `${GEOCODING_BASE}/${encodeURIComponent(query)}.json?${params.toString()}`;

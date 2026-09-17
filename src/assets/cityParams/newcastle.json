@@ -24,7 +24,13 @@
             55.186
           ]
         ],
-        "display_name": "Newcastle upon Tyne"
+        "display_name": "Newcastle upon Tyne",
+        "dataBound": [
+          -1.86187,
+          54.871278,
+          -1.340174,
+          55.085706
+        ]
       },
       "geometry": {
         "type": "Polygon",
