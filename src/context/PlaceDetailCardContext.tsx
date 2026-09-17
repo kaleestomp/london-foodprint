@@ -3,11 +3,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { usePlaceSelection } from './PlaceSelectionContext';
 import { useDrawerState } from '../MapPage/components/SlideUpDrawer/DrawerStateContext';
 type PlaceDetailCardContextValue = {
-  untrackedPlaceId: string | null;
-  showOnDrawer: boolean;
+  placeId: string | null;
+  showOnMainDrawer: boolean;
   showOnNestedDrawer: boolean;
-  showOnList: boolean;
-  reportUnmatchedPlaceId: (value: string | null, selectedWhileClosed?: boolean) => void;
 };
 
 // THIS CONTEXT TRACKS WHEN AND HOW 
@@ -16,39 +14,41 @@ type PlaceDetailCardContextValue = {
 // that are not tracked on rendered list
 const PlaceDetailCardContext = createContext<PlaceDetailCardContextValue | null>(null);
 export const PlaceDetailCardProvider = ({ children }: { children: ReactNode }) => {
-  const [ untrackedPlaceId, setUntrackedPlaceId ] = useState<string | null>(null);
-  const [ selectedWhileClosed, setSelectedWhileClosed ] = useState(false);
-  const { selectedPlaceId, selectionSource } = usePlaceSelection();
-  const { isClosed } = useDrawerState();
 
-  const placeSelected = Boolean(selectedPlaceId);
-  const untrackedPlaceSelected = Boolean(untrackedPlaceId);
-  const showOnDrawer = untrackedPlaceSelected && selectedWhileClosed;
-  const showOnNestedDrawer = untrackedPlaceSelected && !showOnDrawer;
-  const showOnList = !isClosed && placeSelected && !(showOnNestedDrawer || showOnDrawer);
-  // console.log({ showOnDrawer, showOnNestedDrawer, showOnList });
-
-  const reportUnmatchedPlaceId = useCallback((value: string | null, selectedWhileClosed = false) => {
-    setUntrackedPlaceId(value);
-    setSelectedWhileClosed((prev) => (
-      value !== null && (selectedWhileClosed || prev)
-    ));
+  const [ placeId, setPlaceId ] = useState<string | null>(null);
+  const [ showOnMainDrawer, setShowOnMainDrawer ] = useState(false);
+  const showOnNestedDrawer = Boolean(placeId) && !showOnMainDrawer;
+  const reportPlaceIdforDetail = useCallback((value: string | null, showOnMainDrawer = false) => {
+    setPlaceId(value);
+    setShowOnMainDrawer((prev) => (value !== null && (showOnMainDrawer || prev)));
   }, []);
+
+  const { isClosed } = useDrawerState();
+  const { selectedPlaceId, selectionSource } = usePlaceSelection();
   useEffect(() => {
-    if (selectedPlaceId === null || selectionSource !== 'map') {
-      reportUnmatchedPlaceId(null);
-    } else if (isClosed) {
-      reportUnmatchedPlaceId(selectedPlaceId, true);
-    } else if (!isClosed && selectedWhileClosed === true) {
-      // Also counts if last selection was made while the drawer was closed
-      // This allows place detail panel to stay on if user switches between place markers
-      reportUnmatchedPlaceId(selectedPlaceId, true);
+
+    // INVALID SELECTION
+    // DISREGARD LIST SELECTIONS
+    if (selectedPlaceId === null || selectionSource !== 'map') { // INVALID SELECTION
+      reportPlaceIdforDetail(null);
+    
+    // SELECTION TO BE RENDERED ON BASE DRAWER
+    // selectiosn made while drawer is closed or 
+    // while showOnDrawer is already true
+    // This allows place detail panel to stay on same drawer
+    } else {
+      const shouldShowOnMainDrawer = (isClosed || showOnMainDrawer);
+      reportPlaceIdforDetail(selectedPlaceId, shouldShowOnMainDrawer);
     }
-  }, [isClosed, selectedPlaceId, selectionSource, reportUnmatchedPlaceId]);
+  }, [selectedPlaceId, selectionSource, isClosed, 
+    showOnMainDrawer, reportPlaceIdforDetail]);
+
 
   const value = useMemo(() => ({
-    untrackedPlaceId, showOnDrawer, showOnNestedDrawer, showOnList, reportUnmatchedPlaceId,
-  }), [untrackedPlaceId, showOnDrawer, showOnNestedDrawer, showOnList, reportUnmatchedPlaceId]);
+    placeId, showOnMainDrawer, showOnNestedDrawer
+  }), [placeId, showOnMainDrawer, showOnNestedDrawer
+
+  ]);
 
   return (
     <PlaceDetailCardContext.Provider value={value}>

@@ -26,10 +26,10 @@ const useSyncMarkers = (
     const isVisibleAtZoom = useTopPlacesMarkerVisibility(mapRef, enabled);
 
     // Sync Markers with TopPlaces Data
-    const { selectedPlaceId, selectedLayer, reportSelectedPlaceId } = usePlaceSelection();
+    const { selectedPlaceId, targetPaintLayer, reportSelectedPlaceId } = usePlaceSelection();
     const suppressSelected = useMemo(() => (
-        selectedPlaceId !== null && selectedLayer !== null && selectedLayer !== 'topPlaces' ? true : false
-    ), [selectedPlaceId, selectedLayer]);
+        selectedPlaceId !== null && targetPaintLayer !== null && targetPaintLayer !== 'topPlaces' ? true : false
+    ), [selectedPlaceId, targetPaintLayer]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -76,7 +76,7 @@ const useSyncMarkers = (
         // KEEP SELECTED MARKER VISIBLE
         // Keep the selected marker visible even when it is temporarily outside
         // the latest merged payload; it should only exit once unselected.
-        if (selectedPlaceId !== null && selectedLayer === 'topPlaces') {
+        if (selectedPlaceId !== null && targetPaintLayer === 'topPlaces') {
             keepSelectedMarkerVisisble({ activeMarkers, selectedPlaceId, map, cache, now });
         }
 
@@ -85,7 +85,7 @@ const useSyncMarkers = (
 
         markersRef.current = activeMarkers;
 
-    }, [topPlaces, selectedPlaceId, selectedLayer, suppressSelected, reportSelectedPlaceId, isVisibleAtZoom]);
+    }, [topPlaces, selectedPlaceId, targetPaintLayer, suppressSelected, reportSelectedPlaceId, isVisibleAtZoom]);
 
     return markersRef;
 };

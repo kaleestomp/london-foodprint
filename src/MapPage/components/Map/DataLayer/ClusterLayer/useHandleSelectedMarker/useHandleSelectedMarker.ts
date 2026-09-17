@@ -9,11 +9,11 @@ const useHandleSelectedMarker = (
     layerId: string,
 ) => {
 
-    const { selectedPlaceId, selectedLayer, reportSelectedPlaceId } = usePlaceSelection();
+    const { selectedPlaceId, targetPaintLayer, reportSelectedPlaceId } = usePlaceSelection();
     const selectedSingletonMarkerRef = useRef<maplibregl.Marker | null>(null);
     const selectedSingletonIdRef = useRef<string | null>(null);
     // Keep the latest ownership snapshot without re-binding map listeners.
-    const selectedLayerRef = useRef(selectedLayer);
+    const targetPaintLayerRef = useRef(targetPaintLayer);
     // Shared teardown path to keep marker/id refs in sync whenever selection changes.
     const clearSelectedSingletonMarker = () => {
         selectedSingletonMarkerRef.current?.remove();
@@ -22,8 +22,8 @@ const useHandleSelectedMarker = (
     };
 
     useEffect(() => {
-        selectedLayerRef.current = selectedLayer;
-    }, [selectedLayer]);
+        targetPaintLayerRef.current = targetPaintLayer;
+    }, [targetPaintLayer]);
 
     useEffect(() => {
         const selectedSingletonId = selectedSingletonIdRef.current;
@@ -35,11 +35,11 @@ const useHandleSelectedMarker = (
     // Selection ownership moved away from cluster (e.g. list/temp marker took over).
     // Remove any previously rendered cluster singleton marker to prevent doubled pins.
     useEffect(() => {
-        if (selectedLayer === 'cluster') return;
+        if (targetPaintLayer === 'cluster') return;
         if (!selectedSingletonMarkerRef.current) return;
 
         clearSelectedSingletonMarker();
-    }, [selectedLayer]);
+    }, [targetPaintLayer]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -55,7 +55,7 @@ const useHandleSelectedMarker = (
             const nextPlaceId = String(placeId);
             // Ignore re-clicks on the already-selected singleton to avoid re-creating
             // the same marker and replaying enter animation.
-            if (selectedLayerRef.current === 'cluster' && selectedSingletonIdRef.current === nextPlaceId) {
+            if (targetPaintLayerRef.current === 'cluster' && selectedSingletonIdRef.current === nextPlaceId) {
                 event.originalEvent.stopPropagation();
                 return;
             }

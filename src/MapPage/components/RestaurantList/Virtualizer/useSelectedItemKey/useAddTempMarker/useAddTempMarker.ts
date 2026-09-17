@@ -11,7 +11,7 @@ const useAddTempMarker = (
     enable: boolean
 ) => {
 
-    const { selectedPlaceId, selectedLayer, selectionSource } = usePlaceSelection();
+    const { selectedPlaceId, targetPaintLayer, selectionSource } = usePlaceSelection();
     const selectedMarkerRef = useRef<{ id: string | null, marker: maplibregl.Marker | null }>({ id: null, marker: null });
     const clearSelected = () => {
         selectedMarkerRef.current.marker?.remove();
@@ -32,7 +32,7 @@ const useAddTempMarker = (
             return;
         }
 
-        const isTemporarySelection = selectedLayer === 'temporary' && selectionSource === 'list';
+        const isTemporarySelection = targetPaintLayer === 'temporary' && selectionSource === 'list';
         if (!isTemporarySelection) {
             clearSelected();
             return;
@@ -59,7 +59,7 @@ const useAddTempMarker = (
 
         addTempMarker(map, place, selectedMarkerRef);
 
-    }, [mapRef, place, enable, selectedPlaceId, selectedLayer, selectionSource]);
+    }, [mapRef, place, enable, selectedPlaceId, targetPaintLayer, selectionSource]);
 
     useEffect(() => () => {
         clearSelected();

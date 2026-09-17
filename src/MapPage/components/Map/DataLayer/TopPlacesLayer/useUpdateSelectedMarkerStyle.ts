@@ -9,7 +9,7 @@ const useUpdateSelectedMarkerStyle = (
     topPlaces: Array<{ id: string }>,
 ): void => {
 
-    const { selectedPlaceId, selectedLayer } = usePlaceSelection();
+    const { selectedPlaceId, targetPaintLayer } = usePlaceSelection();
     
     // Update Selected Pin CSS State
     useEffect(() => {
@@ -22,7 +22,7 @@ const useUpdateSelectedMarkerStyle = (
             if (!motion) return;
 
             clearTopPlacePinSelectedState(marker);
-            if (selectedPlaceId !== null && placeId === selectedPlaceId && selectedLayer === 'topPlaces') {
+            if (selectedPlaceId !== null && placeId === selectedPlaceId && targetPaintLayer === 'topPlaces') {
 
                 // Selected top-place pins lift, scale up, and use selected floating motion.
                 motion.classList.add('is-selected');
@@ -36,7 +36,7 @@ const useUpdateSelectedMarkerStyle = (
                 }
             }
         });
-    }, [topPlaces, selectedPlaceId, selectedLayer]);
+    }, [topPlaces, selectedPlaceId, targetPaintLayer]);
 };
 
 export default useUpdateSelectedMarkerStyle;

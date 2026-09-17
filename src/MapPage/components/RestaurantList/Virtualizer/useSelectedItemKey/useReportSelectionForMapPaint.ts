@@ -1,16 +1,19 @@
 import { useEffect, useRef } from 'react';
 
-import { usePlaceSelection } from '../../../../../../context/PlaceSelectionContext';
-import { type PlacesListItem } from '../../../../../request/useRequestPlacesList/request'
-import { type SelectedLayer } from '../../../../../../context/PlaceSelectionContext';
+import { usePlaceSelection } from '../../../../../context/PlaceSelectionContext';
+import { type PlacesListItem } from '../../../../request/useRequestPlacesList/request'
+import { type SelectedLayer } from '../../../../../context/PlaceSelectionContext';
 
-const useManageSelectionContext = (
+
+// TRACKS LIST SELECTION 
+// AND REPORT FOR PAINTING MAP MARKER
+const useReportSelectionForMapPaint = (
     selectedPlace: PlacesListItem | null,
     targetLayer: SelectedLayer,
 ) => {
 
     const lastListSelectionRef = useRef<string | null>(null);
-    const { selectedPlaceId, selectedLayer, selectionSource, reportSelectedPlaceId } = usePlaceSelection();
+    const { selectedPlaceId, targetPaintLayer, selectionSource, reportSelectedPlaceId } = usePlaceSelection();
     
     // IF NO MATCHING LIST ITEM IS FOUND 
     // AND SELECTION WAS FROM LIST - CLEAR IT
@@ -18,14 +21,14 @@ const useManageSelectionContext = (
     useEffect(() => {
         if (!selectedPlace) {
             const selectionFromList = selectionSource === 'list' 
-                && (selectedPlaceId !== null || selectedLayer !== null)
+                && (selectedPlaceId !== null || targetPaintLayer !== null)
             if (selectionFromList) {
                 reportSelectedPlaceId(null, null, 'list');
             }
             lastListSelectionRef.current = null;
             return;
         }
-    }, [selectedPlace, selectionSource, selectedPlaceId, selectedLayer, reportSelectedPlaceId]);
+    }, [selectedPlace, selectionSource, selectedPlaceId, targetPaintLayer, reportSelectedPlaceId]);
 
     // REPORT VALID SELECTION TO CONTEXT
     useEffect(() => {
@@ -57,7 +60,7 @@ const useManageSelectionContext = (
             selectionSource === 'list' &&
             selectedPlaceId === selectedPlace.id &&
             // Selection originally not matched to top place layer
-            selectedLayer === 'temporary' &&
+            targetPaintLayer === 'temporary' &&
             // But not targets the top place layer
             targetLayer === 'topPlaces';
         
@@ -71,7 +74,7 @@ const useManageSelectionContext = (
         const isSame = 
             selectedPlace !== null
             && selectedPlaceId === selectedPlace.id 
-            && selectedLayer === targetLayer;
+            && targetPaintLayer === targetLayer;
         if (isSame) {
             lastListSelectionRef.current = selectedPlace.id;
             return;
@@ -95,8 +98,8 @@ const useManageSelectionContext = (
         reportSelectedPlaceId(selectedPlace.id, targetLayer, 'list');
         lastListSelectionRef.current = selectedPlace.id;
 
-    }, [selectedPlace, targetLayer, selectionSource, selectedPlaceId, selectedLayer, reportSelectedPlaceId]);
+    }, [selectedPlace, targetLayer, selectionSource, selectedPlaceId, targetPaintLayer, reportSelectedPlaceId]);
     
 };
 
-export default useManageSelectionContext;
+export default useReportSelectionForMapPaint;

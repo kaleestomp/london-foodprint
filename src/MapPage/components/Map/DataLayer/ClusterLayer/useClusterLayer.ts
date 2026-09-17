@@ -39,8 +39,8 @@ const useClusterLayer = (
   const { geojson } = useFetchHeatmap(enabled);
   const isDesktop = !useIsMobileCtx();
   const latestGeojsonRef = useRef(geojson);
-  const { selectedPlaceId, selectedLayer } = usePlaceSelection();
-  const suppressedSingletonId = (selectedLayer === 'temporary')
+  const { selectedPlaceId, targetPaintLayer } = usePlaceSelection();
+  const suppressedSingletonId = (targetPaintLayer === 'temporary')
     ? selectedPlaceId
     : null;
 
