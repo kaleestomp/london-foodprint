@@ -17,7 +17,6 @@ export const clusterCountLayer = (
   sourceId: string,
   darkMode: boolean = true,
   isDesktop = false,
-  heatmapEnabled = true,
 ): SymbolLayerSpecification => {
   const clusterLabelSize = isDesktop ? DESKTOP_CLUSTER_LABEL_SIZE : MOBILE_CLUSTER_LABEL_SIZE;
 

@@ -121,7 +121,7 @@ const useClusterLayer = (
         });
       }
       if (!map.getLayer(COUNT_LAYER_ID))
-        map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID, false, isDesktop, heatmapEnabled));
+        map.addLayer(clusterCountLayer(COUNT_LAYER_ID, SOURCE_ID, false, isDesktop));
       if (!map.getLayer(PLACES_SHADOW_LAYER_ID))
         map.addLayer(unclusteredPointShadowLayer(PLACES_SHADOW_LAYER_ID, SOURCE_ID, heatmapEnabled));
       if (!map.getLayer(PLACES_LAYER_ID))
