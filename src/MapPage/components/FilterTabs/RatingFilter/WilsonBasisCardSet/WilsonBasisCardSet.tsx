@@ -25,6 +25,7 @@ const WilsonBasisCardSet: React.FC = () => {
             icon={<span className="wilson-basis-mark" aria-hidden="true">{option.mark}</span>}
             label={option.label}
             selected={selected}
+            disabled
             onClick={() => setWilsonBasis(option.basis)}
           />
         );
