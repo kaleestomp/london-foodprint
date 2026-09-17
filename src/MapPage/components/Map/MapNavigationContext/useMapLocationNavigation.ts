@@ -6,6 +6,7 @@ import { useMapLocationNavigationState } from './MapLocationNavigationContext';
 import useMapViewportNavigation from './useMapViewportNavigation';
 import { type LocationTarget } from '../../BubbleAvatar/config';
 import { geometryBbox } from '../StyleLayer/BoundaryLayer/featureBbox';
+import { useDrawerState } from '../../SlideUpDrawer/DrawerStateContext';
 
 const useMapLocationNavigationController = (
   mapRef: React.RefObject<maplibregl.Map | null>,
@@ -13,6 +14,7 @@ const useMapLocationNavigationController = (
   const { liveLocation } = useAppUI();
   const { reportSettled } = useMapLocationNavigationState();
   const { focusMap } = useMapViewportNavigation( mapRef );
+  const { snapPX } = useDrawerState();
   const handledTokenRef = useRef<number | null>(null);
 
   const targetLocation = useMemo<LocationTarget | null>(() => (
@@ -50,7 +52,7 @@ const useMapLocationNavigationController = (
       map.on('moveend', onMoveEnd);
       map.fitBounds(
         [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
-        { padding: { top: 0, right: 0, bottom: 0, left: 0 }, duration: 900, maxZoom: targetLocation.searchType === 'boundary' ? 15 : 17 },
+        { padding: { top: 0, right: 0, bottom: snapPX ?? 0, left: 0 }, duration: 900, maxZoom: targetLocation.searchType === 'boundary' ? 15 : 17 },
       );
       return () => {
         cancelled = true;
@@ -64,9 +66,9 @@ const useMapLocationNavigationController = (
       animate: true,
       onSettled: report,
       skipIfWithinMeters: 1,
-      padding: { top: 0, right: 0, bottom: 0, left: 0 },
+      padding: { top: 0, right: 0, bottom: snapPX ?? 0, left: 0 },
     });
-  }, [focusMap, liveLocation?.token, mapRef, report, targetLocation]);
+  }, [focusMap, liveLocation?.token, mapRef, report, snapPX, targetLocation]);
 };
 
 export default useMapLocationNavigationController;

@@ -1,5 +1,5 @@
-import type { OpeningTime } from '../../request/useRequestPlaceDetail/request';
-import { minuteToDate, formatTime} from '../../../utils/format/formatTime';
+import type { OpeningTime } from '../../../request/useRequestPlaceDetail/request';
+import { minuteToDate, formatTime} from '../../../../utils/format/formatTime';
 
 const formatOpeningTime = (
     openingTime: OpeningTime | string | null

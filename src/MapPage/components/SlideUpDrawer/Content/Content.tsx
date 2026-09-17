@@ -1,9 +1,10 @@
 import { type FC } from 'react';
 import type * as maplibregl from 'maplibre-gl';
+// import { usePlaceSelection } from '../../../../context/PlaceSelectionContext';
 
 import { useIsMobileCtx } from '../../../../context/IsMobileContext';
 import { useAppUI } from '../../../../context/AppUIContext';
-import { useRenderedList } from '../../../../context/PlaceDetailCardContext';
+import { usePlaceDetailCardState } from '../../../../context/PlaceDetailCardContext';
 // import delaySwitch from '../../../../utils/timer/delayTimer';
 import RestaurantList from '../../RestaurantList/RestaurantList';
 import FilterSection from '../../FilterTabs/FilterSection';
@@ -16,29 +17,34 @@ const Content: FC<{
     panelUp: boolean;
     mapRef: React.RefObject<maplibregl.Map | null>;
 }> = ({ panelUp, mapRef }) => {
-
+    
     const isMobile = useIsMobileCtx();
-    // const { suggestionsVisible } = useGeoSearch();
     const pageSize = isMobile ? 5 : 20;
     // const panelUpDelayed = delaySwitch(panelUp, 200);
     const enableList = (isMobile && panelUp) || !isMobile;
 
     const { activeToolbarTab } = useAppUI();
-    const showToolbarTap = activeToolbarTab !== null;
-    const { untrackedPlaceId, showOnDrawer, showOnNestedDrawer } = useRenderedList();
-    const hideList = showToolbarTap || showOnDrawer;
-    
-    return (
-        <div className={`drawer-content${panelUp ? ' open' : ''}${showOnDrawer && untrackedPlaceId !== null ? ' place-detail-content' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
-            <NestedDrawer open={showOnNestedDrawer} />
-            {activeToolbarTab  && <FilterSection />}
-            { !hideList && 
-                <RestaurantList mapRef={mapRef} pageSize={pageSize} resetOverride={!panelUp} enabled={enableList} />
-            }
-            
-            {showOnDrawer && untrackedPlaceId !== null && <PlaceDetail placeId={untrackedPlaceId} />}
+    const showSettings = Boolean(activeToolbarTab);
+    // const { selectedPlaceId } = usePlaceSelection();
+    const { showOnDrawer: showPlace, showOnNestedDrawer: showPlaceNested, untrackedPlaceId: placeId } = usePlaceDetailCardState();
+    const hideList = showSettings || showPlace;
 
-        </div>
+    return (
+        <>
+            <NestedDrawer launch={ showPlaceNested } >
+                <PlaceDetail placeId={placeId} nested />
+            </NestedDrawer>
+            <div className={`drawer-content${panelUp ? ' open' : ''}`}> {/*{`drawer-content${panelUp ? ' open' : ''}`}*/}
+
+                { showSettings && <FilterSection />}
+                {!hideList && <RestaurantList
+                    mapRef={mapRef} pageSize={pageSize}
+                    resetOverride={!panelUp} enabled={enableList}
+                />}
+                {showPlace && !showSettings && <PlaceDetail placeId={placeId} showHeader={false} />}
+
+            </div>
+        </>
     );
 };
 

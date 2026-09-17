@@ -11,7 +11,8 @@ const CuisineChip: React.FC<{
     count: number;
     selected: boolean;
     onClick: () => void;
-}> = ({ cuisine, count, selected, onClick }) => {
+    width?: string | number;
+}> = ({ cuisine, count, selected, onClick, width }) => {
 
     const cuisineColor = cuisine ? getCuisineColor(cuisine) : '#ffffff';
     const badgeColor = cuisineColor ? brightenColor(cuisineColor, 0.1) : 'rgba(255, 255, 255, 0.9)';
@@ -19,8 +20,14 @@ const CuisineChip: React.FC<{
 
     return (
         <Chip key={cuisine} label={`${CUISINE_DISPLAY[cuisine].replace(/\s+/g, '')} | ${count}`} clickable
-            icon={<CuisineIcon cuisine={cuisine ?? undefined} color={badgeColor} iconSize={36} badgeSize={36}/>}
+            icon={<CuisineIcon
+                cuisine={cuisine ?? undefined}
+                color={badgeColor ?? undefined}
+                iconSize={width !== undefined ? 28 : 36}
+                badgeSize={width !== undefined ? 28 : 36}
+            />}
             color={selected ? 'primaryBlack' : 'default'}
+            sx={width !== undefined ? { width, justifyContent: 'flex-start' } : undefined}
             // sx={{backgroundColor: bgColor,'&:hover': {backgroundColor: bgColor}}}
             onClick={onClick}
         />

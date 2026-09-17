@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { useDrawerState } from '../SlideUpDrawer/DrawerStateContext';
 import { usePlaceSelection } from '../../../context/PlaceSelectionContext';
-import { useRenderedList } from '../../../context/PlaceDetailCardContext';
+import { usePlaceDetailCardState } from '../../../context/PlaceDetailCardContext';
 import { type PlacesListItem } from '../../request/useRequestPlacesList/request';
 
 type ListStatus = 'empty' | 'loading' | 'success' | 'error';
@@ -16,7 +16,7 @@ const useReportSelectionNotInList = (
 
   const { isClosed } = useDrawerState();
   const { selectedPlaceId, selectionSource } = usePlaceSelection();
-  const { reportUnmatchedPlaceId } = useRenderedList();
+  const { reportUnmatchedPlaceId } = usePlaceDetailCardState();
   const unmatchedPlaceIdRef = useRef<string | null>(null);
 
   useEffect(() => {

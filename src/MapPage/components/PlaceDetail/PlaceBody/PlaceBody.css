@@ -1,18 +1,18 @@
-.place-detail-body {
+.place-body {
 	/* background:red; */
     /* keep body height stable during initial load */
 	flex: 1 1 auto;
-	margin-top: 8px;
-	margin-left: -40px;
-	min-height: calc(var(--drawer-open-height) - var(--drawer-home-height));
+	margin-inline: 30px;
+	padding-left: 0px;
+	min-width: 0;
 	overflow: visible;
 	overscroll-behavior: contain;
 
-	width: 100%;
+	width: auto;
 	box-sizing: border-box;
 }
 
-.place-detail-body-rows {
+.place-body-rows {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-start;

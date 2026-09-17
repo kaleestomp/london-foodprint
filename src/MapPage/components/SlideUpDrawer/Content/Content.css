@@ -1,4 +1,6 @@
 .drawer-content {
+  /* background: red; */
+
   /* position: relative; */
   flex: 1 1 auto;
   min-height: 0;
@@ -8,19 +10,25 @@
   background: transparent;
 
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  
   overscroll-behavior: contain; 
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   margin-top: 30px; /* 30px */ 
   transition: margin-top 200ms ease;
 }
+.drawer-content::-webkit-scrollbar {
+  display: none;
+}
 .drawer-content.open {
   margin-top: 0;
 
 }
-.drawer-content.place-detail-content {
+/* .drawer-content.place-detail-content {
   margin-top: 0;
-}
+} */
 .drawer-content:not(.open) .list-scroll-content {
   overflow: hidden;
   overscroll-behavior: none;

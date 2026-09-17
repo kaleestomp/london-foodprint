@@ -1,3 +1,4 @@
+/* VISUAL SHELL - LAYOUT BOX */
 .base-ui-drawer-body {
   /* ISOLATE FROM MAP PAINT */
   contain: layout paint;
@@ -22,8 +23,13 @@
   /* flex: 0; */
   flex: 1 1 auto;
   min-height: 0;
-  border-radius: var(--border-radius-is-closed) var(--border-radius-is-closed) 0 0;
-  transition: border-radius var(--delayed-transition);
+  border-radius: var(--border-radius-is-closed);
+  transition: 
+    background var(--delayed-transition),
+    border-radius var(--delayed-transition);
+
+  /* ENSURE SNAP-HEIGHT WORKS CORRECTLY */
+  height: 100%;
 }
 .base-ui-drawer-body.is-open {
   border-radius: 

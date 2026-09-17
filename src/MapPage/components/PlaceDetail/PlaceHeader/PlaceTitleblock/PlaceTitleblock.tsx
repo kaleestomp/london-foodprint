@@ -1,12 +1,12 @@
 import type { FC } from 'react';
 import Typography from '@mui/material/Typography';
 
-import { useSearchFilters } from '../../../../context/SearchFiltersContext';
-import calculateDistanceM from '../../../../utils/geo/calculateDistanceM';
-import { formatDistance, formatPrice } from '../../../../utils/format/formatMetrics';
+import { useSearchFilters } from '../../../../../context/SearchFiltersContext';
+import calculateDistanceM from '../../../../../utils/geo/calculateDistanceM';
+import { formatDistance, formatPrice } from '../../../../../utils/format/formatMetrics';
 // import ExtendedContent from '../../../RestaurantList/ListItem/ItemContent/ExtendedContent/ExtendedContent';
-import type { PlaceDetailResponse } from '../../../request/useRequestPlaceDetail/request';
-import formatOpeningTime from '../formatOpeningTime';
+import type { PlaceDetailResponse } from '../../../../request/useRequestPlaceDetail/request';
+import formatOpeningTime from '../../formatDetails/formatOpeningTime';
 import './PlaceTitleblock.css';
 
 // Fallback card for a selected cluster singleton marker with no matching row in the loaded list.
@@ -34,12 +34,12 @@ const PlaceTitleblock: FC<{
             >
                 {item.display_name}
             </Typography>
-            {compact && <Typography
+            <Typography
                 variant="caption"
                 className={`place-detail-subtitle ${!compact ? 'is-extended' : ''}`}
             >
                 {item.cuisine_type ?? ''}
-            </Typography>}
+            </Typography>
             {compact && (<Typography variant="caption" className="place-detail-subtitle" >
                 {[labelDistance,
                     labelPrice,

@@ -1,14 +1,15 @@
-import { useState } from 'react';
 import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
 import AppsRoundedIcon from '@mui/icons-material/AppsRounded';
+import type { SwitchProps } from '@mui/material/Switch';
 
 import BaseSwtich from './BaseSwtich/BaseSwtich';
 import './CuisineSwitch.css';
 
 
-const ChipsToBarsSwitch: React.FC = () => {
-
-  const [showHistogram, setShowHistogram] = useState(false);
+const ChipsToBarsSwitch: React.FC<{
+  checked: boolean;
+  onChange: NonNullable<SwitchProps['onChange']>;
+}> = ({ checked, onChange }) => {
   return (
     <div className="switch-row">
       <BaseSwtich
@@ -16,8 +17,8 @@ const ChipsToBarsSwitch: React.FC = () => {
         rightIcon={<BarChartRoundedIcon />}
         leftLabel="Items"
         rightLabel="Graph"
-        checked={showHistogram}
-        onChange={(event) => setShowHistogram(event.target.checked)}
+        checked={checked}
+        onChange={onChange}
         slotProps={{ input: { 'aria-label': 'Cuisine include or exclude mode' } }}
       />
     </div>

@@ -6,17 +6,17 @@ import './RankBadge.css';
 
 const RankBadge: FC<{
   item: PlaceDetailResponse | PlacesListItem;
-  accentColor: string;
-}> = ({ item, accentColor }) => {
+  accentColor: string | null;
+  hidden?: boolean;
+}> = ({ item, accentColor, hidden = false }) => {
 
   const rankValue = typeof item.ranking === 'number'
     ? Math.floor((1 - item.ranking) * 1000)/10 + 0.1
     : null;
 
   return (rankValue != null && (
-    <span
-      className="list-item-rank-badge"
-      style={{ ['--badge-fill' as any]: accentColor }}
+    <span className={`list-item-rank-badge ${hidden ? 'is-hidden' : ''}`}
+      style={{ ['--badge-fill' as any]: accentColor ?? undefined }}
     >
       <span className="list-item-rank-badge-label">
         <span className="list-item-rank-value">{rankValue.toFixed(1)}</span>
