@@ -25,6 +25,15 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
     background: white;
 }
+.rating-card:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+.rating-card:disabled:hover,
+.rating-card:disabled:active {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
 .rating-card:active {
     transform: translateY(2px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);

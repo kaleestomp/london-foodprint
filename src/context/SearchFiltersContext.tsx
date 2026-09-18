@@ -84,7 +84,7 @@ export const SearchFiltersProvider = ({ children }: { children: ReactNode }) => 
   // SCORING FILTERS
   const [scoreBasis, setScoreBasis] = useState<TierBasis>(2); // 0: Tier 1: Diversity, 2: No Block Chain
   const [scoreTier, setScoreTier] = useState<TierOptions>(2);
-  const [wilsonBasis, setWilsonBasis] = useState<WilsonBasis>(2);
+  const [wilsonBasis, setWilsonBasis] = useState<WilsonBasis>(1);
   const [allowChain, setAllowChain] = useState<boolean>(true);
   const [allowBlockChain, setAllowBlockChain] = useState<boolean>(false);
   const reportScoreBasis = (value: TierBasis) => {

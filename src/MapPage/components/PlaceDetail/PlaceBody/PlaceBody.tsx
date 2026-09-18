@@ -66,7 +66,7 @@ const PlaceBody: FC<{
 			</div>
 			{/* <Divider className="place-body-divider" sx={{ margin: '4px 0' }} /> */}
 			{chainStatus && <DetailRow key="chainStatus" value={chainStatus} icon={<StoreRoundedIcon />} />}
-			{rankStatus && <DetailRow key="rankStatus" value={rankStatus} icon={Number(place.ranking) <= 0.45 ? <GradeIcon /> : <ThumbDownAltIcon />} />}
+			{rankStatus && <DetailRow key="rankStatus" value={rankStatus} icon={Number(place.ranking) <= 0.45 ? <ThumbDownAltIcon /> : <GradeIcon />} />}
 			{representationStatus && <DetailRow key="representationStatus" value={representationStatus} icon={<SportsKabaddiRoundedIcon />} />}
 			{address && <DetailRow key="address" value={address} icon={<LocationOnRoundedIcon />} />}
 
