@@ -11,6 +11,7 @@
   /* ADD FLOATING GAP */
   --drawer-home-height: 104px;
   --drawer-open-height: 380px; /* previously 400px KEEP IT MATCHED WITH SNAP_HEIGHTS */
+  --drawer-top-margin: 96px;
   --inset-is-closed: 25px;
   --inset-is-open: 0px; /* previously 8px */
   --screen-notch-radius: 60px;
@@ -28,4 +29,3 @@
   --drawer-shadow-is-full-height: var(--app-card-box-shadow);
   --drawer-outline: 1px solid rgba(0, 0, 0, 0.1);
 }
-

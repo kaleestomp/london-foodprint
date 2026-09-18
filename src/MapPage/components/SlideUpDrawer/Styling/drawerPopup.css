@@ -5,6 +5,7 @@
   flex-direction: column;
 
   width: 100%;
+  height: calc(100dvh - var(--drawer-top-margin));
   max-height: 100dvh;
   /* min-height: 0;  */
   overflow: visible;
