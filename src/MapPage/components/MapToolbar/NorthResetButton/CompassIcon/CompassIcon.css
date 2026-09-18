@@ -12,7 +12,6 @@
 .map-toolbar-compass-dial {
   position: absolute;
   inset: 0;
-  transition: transform 180ms ease;
 }
 
 .map-toolbar-compass-layer {
